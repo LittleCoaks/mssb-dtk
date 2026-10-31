@@ -8447,51 +8447,32 @@ void knockoutRelated(void) {
     }
 }
 
+static inline void reassignClosestInfieldersToCoverBases(void);
+
 // .text:0x0003EB6C size:0x4C8 mapped:0x8067DC00
 void knockoutRelated_FlyBall(void) {
-    InMemFielder* g = &g_Fielders[0];
-    f32 targetZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-    f32 targetX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-    u8 someCollision = g_Ball.someCollisionInd;
-    u8 ballZone = g_Ball.ballZoneAwayFromHome;
     InMemFielder* fielder;
     int i;
-    int framesNeeded;
     int priority;
-    int bestPriority = 0x270f;
-    int best = -1;
-    int baseIndex;
+    int bestPriority = 9999;
+    int best; /* never initialised in the original; in practice some fielder always scores under 9999 */
 
-    for (fielder = g, i = 0; i < 9; fielder++, i++) {
-        if (targetX == fielder->pos.x && targetZ == fielder->pos.z) {
-            framesNeeded = 1;
-        } else {
-            f32 dx = targetX - fielder->pos.x;
-            f32 dz = targetZ - fielder->pos.z;
-            f32 sqx = dx * dx;
-            f32 sqz = dz * dz;
-            f32 dist = fielderSqrt(sqx + sqz);
-            f32 speed = fielder->joggingSpeed;
-            u32 half = (u32)fielder->maxAccLength_ConstF >> 1;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            framesNeeded = half + (int)(dist / speed);
-        }
-
-        priority = framesNeeded;
-        if (fielder->autoMovementFunctionIndex == 2) {
+    for (i = 0; i < 9; i++) {
+        fielder = &g_Fielders[i];
+        priority = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                                  g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM) {
             priority -= 15;
         }
         if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
             priority += 30;
         }
-        if (someCollision == 0) {
+        if (g_Ball.someCollisionInd == 0) {
             if (5.0f + fielder->distanceFromHomePlate < g_Ball.physicsSubstruct.hitLandingSpotDistFromHome) {
                 priority += 30;
             }
         }
-        if (ballZone >= 3 && i <= 5) {
+        if (g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_MID && i <= FIELDING_POSITION_SHORTSTOP) {
             priority += 15;
         }
 
@@ -8501,89 +8482,27 @@ void knockoutRelated_FlyBall(void) {
         }
     }
 
-    {
-        InMemFielder* f = &g_Fielders[best];
-        if (best != -1) {
-            setFielderAutoMovement(best, 3);
-        }
-        knockoutRelated_subFn(best, 0);
-        f->maybeMovementState = 0;
-    }
+    setFielderAutoMovementIfValid(best, 3);
+    knockoutRelated_subFn(best, 0);
+    g_Fielders[best].maybeMovementState = 0;
 
-    for (baseIndex = 0; baseIndex < 9; baseIndex++) {
-        g_Fielders[baseIndex].locationResponsibleForCovering = -1;
-        g_Fielders[baseIndex].isResponsibleForCoveringALocation = 0;
-    }
-    g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
-    g_FieldingLogic.baseCoveredInd[0] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
-    g_FieldingLogic.baseCoveredInd[1] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
-    g_FieldingLogic.baseCoveredInd[2] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
-    g_FieldingLogic.baseCoveredInd[3] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-    g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-
-    for (baseIndex = 0; baseIndex < 4; baseIndex++) {
-        int best2;
-        f32 minDist = 9999.9f;
-        int k;
-
-        for (k = 0; k < 6; k++) {
-            if (g_FieldingLogic.fielderAutoMovementCode[k] == 0) {
-                f32 d = g_Fielders[k].distanceToBases[baseIndex];
-                if (d < minDist) {
-                    minDist = d;
-                    best2 = k;
-                }
-            }
-        }
-
-        g_Fielders[best2].locationResponsibleForCovering = baseIndex;
-        g_Fielders[best2].isResponsibleForCoveringALocation = 1;
-        if (best2 != -1) {
-            InMemFielder* fielder2 = &g_Fielders[best2];
-            setFielderAutoMovement(best2, 1);
-        }
-        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = best2;
-    }
+    reassignClosestInfieldersToCoverBases();
     g_FieldingLogic.cutoffFielderIndex = -1;
 }
 
 // .text:0x0003E690 size:0x4DC mapped:0x8067D724
 void knockoutRelated_Grounder_Liner(void) {
-    InMemFielder* g = &g_Fielders[0];
-    f32 targetZ = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
-    f32 targetX = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
-    u8 ballZone = g_Ball.ballZoneAwayFromHome;
     InMemFielder* fielder;
     int i;
-    int framesNeeded;
     int priority;
-    int bestPriority = 0x270f;
-    int best = -1;
-    int baseIndex;
+    int bestPriority = 9999;
+    int best; /* never initialised in the original; in practice some fielder always scores under 9999 */
 
-    for (fielder = g, i = 0; i < 9; fielder++, i++) {
-        if (targetX == fielder->pos.x && targetZ == fielder->pos.z) {
-            framesNeeded = 1;
-        } else {
-            f32 dx = targetX - fielder->pos.x;
-            f32 dz = targetZ - fielder->pos.z;
-            f32 sqx = dx * dx;
-            f32 sqz = dz * dz;
-            f32 dist = fielderSqrt(sqx + sqz);
-            f32 speed = fielder->joggingSpeed;
-            u32 half = (u32)fielder->maxAccLength_ConstF >> 1;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            framesNeeded = half + (int)(dist / speed);
-        }
-
-        priority = framesNeeded;
-        if (fielder->autoMovementFunctionIndex == 2) {
+    for (i = 0; i < 9; i++) {
+        fielder = &g_Fielders[i];
+        priority = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x,
+                                                  g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z);
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM) {
             priority -= 15;
         }
         if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
@@ -8592,12 +8511,12 @@ void knockoutRelated_Grounder_Liner(void) {
         if (fielder->knockoutStatus != 0) {
             priority += fielder->knockOutCountDown;
         } else if (fielder->bodyCheckStatus == 3) {
-            priority += 0x5a;
+            priority += 90;
         }
         if (fielder->onFire != 0) {
             priority += fielder->onFireCountdown;
         }
-        if (ballZone >= 3 && i <= 5) {
+        if (g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_MID && i <= FIELDING_POSITION_SHORTSTOP) {
             priority += 30;
         }
 
@@ -8607,53 +8526,52 @@ void knockoutRelated_Grounder_Liner(void) {
         }
     }
 
-    {
-        InMemFielder* f = &g_Fielders[best];
-        if (best != -1) {
-            setFielderAutoMovement(best, 3);
-        }
-        knockoutRelated_subFn(best, 0);
-        f->maybeMovementState = 4;
-    }
+    setFielderAutoMovementIfValid(best, 3);
+    knockoutRelated_subFn(best, 0);
+    g_Fielders[best].maybeMovementState = 4;
 
-    for (baseIndex = 0; baseIndex < 9; baseIndex++) {
-        g[baseIndex].locationResponsibleForCovering = -1;
-        g[baseIndex].isResponsibleForCoveringALocation = 0;
+    reassignClosestInfieldersToCoverBases();
+    g_FieldingLogic.cutoffFielderIndex = -1;
+}
+
+/* Same body as assignClosestInfieldersToCoverBases below, which the knockout handlers inline.
+ * MWCC will not auto-inline the out-of-line function itself, so the callers use this copy. */
+static inline void reassignClosestInfieldersToCoverBases(void) {
+    s32 i;
+    int baseIndex;
+
+    for (i = 0; i < 9; i++) {
+        g_Fielders[i].locationResponsibleForCovering = -1;
+        g_Fielders[i].isResponsibleForCoveringALocation = FALSE;
     }
-    g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
-    g_FieldingLogic.baseCoveredInd[0] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
-    g_FieldingLogic.baseCoveredInd[1] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
-    g_FieldingLogic.baseCoveredInd[2] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
-    g_FieldingLogic.baseCoveredInd[3] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-    g_FieldingLogic.playerAtMoundCutoffLocation = 0;
+    for (baseIndex = 0; baseIndex < 4; baseIndex++) {
+        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = FIELDING_POSITION_NONE;
+        g_FieldingLogic.baseCoveredInd[baseIndex] = FALSE;
+    }
+    g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_NONE;
+    g_FieldingLogic.playerAtMoundCutoffLocation = FALSE;
 
     for (baseIndex = 0; baseIndex < 4; baseIndex++) {
-        int best2;
-        f32 minDist = 9999.9f;
         int k;
+        int best; /* never initialised: the original reads garbage when no infielder is free */
+        f32 minDist = 9999.9f;
 
-        for (k = 0; k < 6; k++) {
+        for (k = 0; k < FIELDING_POSITION_LEFT_FIELD; k++) {
             if (g_FieldingLogic.fielderAutoMovementCode[k] == 0) {
-                f32 d = g_Fielders[k].distanceToBases[baseIndex];
-                if (d < minDist) {
-                    minDist = d;
-                    best2 = k;
+                if (g_Fielders[k].distanceToBases[baseIndex] < minDist) {
+                    minDist = g_Fielders[k].distanceToBases[baseIndex];
+                    best = k;
                 }
             }
         }
 
-        g_Fielders[best2].locationResponsibleForCovering = baseIndex;
-        g_Fielders[best2].isResponsibleForCoveringALocation = 1;
-        if (best2 != -1) {
-            setFielderAutoMovement(best2, 1);
+        g_Fielders[best].locationResponsibleForCovering = baseIndex;
+        g_Fielders[best].isResponsibleForCoveringALocation = TRUE;
+        if (best != FIELDING_POSITION_NONE) {
+            setFielderAutoMovement(best, 1);
         }
-        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = best2;
+        g_FieldingLogic.fielderAssignedLocationIndex[baseIndex] = best;
     }
-    g_FieldingLogic.cutoffFielderIndex = -1;
 }
 
 // .text:0x0003E468 size:0x228 mapped:0x8067D4FC
