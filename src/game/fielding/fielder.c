@@ -8150,86 +8150,86 @@ tail:
     setInitialFielderMovements_restOfFielders();
 }
 
+static inline void sendAngularlyCloserFielder(int angle, int fielderIndex, int otherIndex) {
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    InMemFielder* other = &g_Fielders[otherIndex];
+    int dist = __abs(angle - fielder->angleOfFieldersStartingPosition);
+    int otherDist = __abs(angle - other->angleOfFieldersStartingPosition);
+
+    if (dist < otherDist) {
+        setFielderAutoMovement(fielderIndex, 3);
+    } else {
+        setFielderAutoMovement(otherIndex, 3);
+    }
+}
+
 // .text:0x0003FCF0 size:0x5B8 mapped:0x8067ED84
 void fn_3_3FCF0(BOOL useComputedAngle) {
-    s16 a2, a3, a4, a5;
+    s16 firstAngle, secondAngle, thirdAngle, shortAngle;
     int angle;
 
     angle = g_Ball.Hit_HorizontalAngle;
     if (useComputedAngle) {
+        /* The original passes the landing distance where the landing z belongs. */
         angle = calculateAngleFromCoordinates(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
-                                                    g_Ball.physicsSubstruct.hitLandingSpotDistFromHome);
+                                              g_Ball.physicsSubstruct.hitLandingSpotDistFromHome);
     }
 
-    a2 = g_Fielders[2].angleOfFieldersStartingPosition;
-    a3 = g_Fielders[3].angleOfFieldersStartingPosition;
-    a4 = g_Fielders[4].angleOfFieldersStartingPosition;
-    a5 = g_Fielders[5].angleOfFieldersStartingPosition;
+    firstAngle = g_Fielders[FIELDING_POSITION_FIRST_BASE].angleOfFieldersStartingPosition;
+    secondAngle = g_Fielders[FIELDING_POSITION_SECOND_BASE].angleOfFieldersStartingPosition;
+    thirdAngle = g_Fielders[FIELDING_POSITION_THIRD_BASE].angleOfFieldersStartingPosition;
+    shortAngle = g_Fielders[FIELDING_POSITION_SHORTSTOP].angleOfFieldersStartingPosition;
 
-    if (g_Fielders[0].cantCatchFlyBallInd == 0 &&
+    if (g_Fielders[FIELDING_POSITION_PITCHER].cantCatchFlyBallInd == 0 &&
         g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 25.0f && g_Ball.maxYOfHit < 8.0f) {
         fn_3_3F760();
         return;
     }
 
-    if (angle < a2 + (a3 - a2) / 5) {
-        setFielderAutoMovement(2, 3);
-        setFielderAutoMovement(3, 3);
+    if (angle < firstAngle + (secondAngle - firstAngle) / 5) {
+        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, 3);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 3);
         return;
     }
 
-    if (angle < (a2 + a3) / 2) {
-        setFielderAutoMovement(2, 3);
-        setFielderAutoMovement(3, 3);
+    if (angle < (firstAngle + secondAngle) / 2) {
+        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, 3);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 3);
         return;
     }
 
-    if (angle < a3 + (a5 - a3) / 3) {
-        setFielderAutoMovement(3, 3);
+    if (angle < secondAngle + (shortAngle - secondAngle) / 3) {
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 3);
 
-        if (angle > g_Fielders[0].angleOfFieldersStartingPosition - 0x40) {
-            setFielderAutoMovement(0, 4);
+        if (angle > g_Fielders[FIELDING_POSITION_PITCHER].angleOfFieldersStartingPosition - 0x40) {
+            setFielderAutoMovement(FIELDING_POSITION_PITCHER, 4);
         }
         return;
     }
 
-    if (angle < a3 + 2 * ((a5 - a3) / 3)) {
-        setFielderAutoMovement(0, 4);
-        {
-            /* Pick whichever of fielder 3 / fielder 5 is angularly closer to the ball. */
-            int d3 = angle - g_Fielders[3].angleOfFieldersStartingPosition;
-            int d5 = angle - g_Fielders[5].angleOfFieldersStartingPosition;
-            int sign3 = d3 >> 31;
-            int sign5 = d5 >> 31;
-            d3 = (d3 ^ sign3) - sign3;
-            d5 = (d5 ^ sign5) - sign5;
+    if (angle < secondAngle + 2 * ((shortAngle - secondAngle) / 3)) {
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, 4);
+        sendAngularlyCloserFielder(angle, FIELDING_POSITION_SECOND_BASE, FIELDING_POSITION_SHORTSTOP);
+        return;
+    }
 
-            if (d3 < d5) {
-                setFielderAutoMovement(3, 3);
-            } else {
-                setFielderAutoMovement(5, 3);
-            }
+    if (angle < shortAngle + (thirdAngle - shortAngle) / 3) {
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 3);
+
+        if (angle < g_Fielders[FIELDING_POSITION_PITCHER].angleOfFieldersStartingPosition + 0x40) {
+            setFielderAutoMovement(FIELDING_POSITION_PITCHER, 4);
         }
         return;
     }
 
-    if (angle < a5 + (a4 - a5) / 3) {
-        setFielderAutoMovement(5, 3);
-
-        if (angle < g_Fielders[0].angleOfFieldersStartingPosition + 0x40) {
-            setFielderAutoMovement(0, 4);
-        }
+    if (angle < shortAngle + 2 * ((thirdAngle - shortAngle) / 3)) {
+        setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, 3);
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 3);
         return;
     }
 
-    if (angle < a5 + 2 * ((a4 - a5) / 3)) {
-        setFielderAutoMovement(4, 3);
-        setFielderAutoMovement(5, 3);
-        return;
-    }
-
-    setFielderAutoMovement(4, 3);
-    setFielderAutoMovement(5, 3);
+    setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, 3);
+    setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 3);
 }
 
 // .text:0x0003F760 size:0x590 mapped:0x8067E7F4
