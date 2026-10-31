@@ -8048,6 +8048,14 @@ void fn_3_40C04(void) {
     fn_3_40D88();
 }
 
+static inline f32 distanceToBallLandingSpot(int fielderIndex) {
+    f32 dx = g_Fielders[fielderIndex].pos.x - g_Ball.landingSpotLocation.x;
+    f32 dz = g_Fielders[fielderIndex].pos.z - g_Ball.landingSpotLocation.z;
+    f32 sqx = dx * dx;
+    f32 sqz = dz * dz;
+    return fielderSqrt(sqx + sqz);
+}
+
 // .text:0x000402A8 size:0x95C mapped:0x8067F33C
 void fn_3_402A8(void) {
     int mask;
@@ -8064,7 +8072,7 @@ void fn_3_402A8(void) {
     }
 
     if ((mask & 0x9249) == 0 || g_Ball.landingSpotZoneAwayFromHome > 1 || !(g_Ball.maxYOfHit >= 8.0f)) {
-        if (g_Fielders[0].nonCatchFlyBallStratInd != 0 || g_Fielders[1].nonCatchFlyBallStratInd != 0) {
+        if (g_Fielders[0].nonCatchFlyBallStratInd != 0 && g_Fielders[1].nonCatchFlyBallStratInd != 0) {
             goto farTail;
         }
         if (!(g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 16.0f)) {
@@ -8101,39 +8109,28 @@ void fn_3_402A8(void) {
     }
     goto tail;
 
-farTail: {
-    InMemBallType* ball = &g_Ball;
+farTail:
     if ((mask & 0x1240000) != 0) {
-        angle = (s16)calculateAngleFromCoordinates(ball->landingSpotLocation.x, ball->landingSpotLocation.z);
+        angle = (s16)calculateAngleFromCoordinates(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z);
 
         if (g_Ball.Hit_HorizontalAngle < 0x3c0) {
             setFielderAutoMovement(8, 3);
             setFielderAutoMovement(7, 3);
             setFielderAutoMovement(3, 3);
-        } else if (g_Ball.Hit_HorizontalAngle <= 0x440) {
+        } else if (g_Ball.Hit_HorizontalAngle > 0x440) {
             setFielderAutoMovement(6, 3);
             setFielderAutoMovement(7, 3);
             setFielderAutoMovement(5, 3);
         } else {
-            f32 dx3, dz3, dist3;
-            f32 dx5, dz5, dist5;
-            f32 sqx, sqz;
+            f32 dist3;
+            f32 dist5;
 
             setFielderAutoMovement(6, 3);
             setFielderAutoMovement(7, 3);
             setFielderAutoMovement(8, 3);
 
-            dx3 = g_Fielders[3].pos.x - ball->landingSpotLocation.x;
-            dz3 = g_Fielders[3].pos.z - ball->landingSpotLocation.z;
-            sqx = dx3 * dx3;
-            sqz = dz3 * dz3;
-            dist3 = fielderSqrt(sqx + sqz);
-
-            dx5 = g_Fielders[5].pos.x - ball->landingSpotLocation.x;
-            dz5 = g_Fielders[5].pos.z - ball->landingSpotLocation.z;
-            sqx = dx5 * dx5;
-            sqz = dz5 * dz5;
-            dist5 = fielderSqrt(sqx + sqz);
+            dist3 = distanceToBallLandingSpot(3);
+            dist5 = distanceToBallLandingSpot(5);
 
             if (g_Ball.landingSpotZoneAwayFromHome < 3 || !(g_Ball.maxYOfHit >= 8.0f)) {
                 if (dist3 < dist5) {
@@ -8144,9 +8141,8 @@ farTail: {
             }
         }
     } else {
-        fn_3_3FCF0(TRUE);
+        fn_3_3FCF0(mask & 0x9249);
     }
-}
 
 tail:
     setInitialFielderMovements_CoverBases();
