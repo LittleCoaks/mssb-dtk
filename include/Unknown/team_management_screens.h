@@ -12,7 +12,7 @@ void challengeTeamManagementRelated(MenuScene* scene);
 void teamManagementGraphics_fieldingAlignmentInfo(MenuScene* scene);
 void teamManagementGraphics_battingOrderInfo(MenuScene* scene);
 void teamManagementGraphics_steadyState(void);
-void fn_80059458(MenuScene* scene, s32 port, u32 inputMask);
+void fn_80059458(MenuScene* scene, u8 port, u32 inputMask);
 void fn_8005C5C4(MenuScene* scene, s32 port);
 void fn_8005F734(MenuScene* scene, s32 port);
 void fn_8005F9D0(MenuScene* scene, s32 port);
