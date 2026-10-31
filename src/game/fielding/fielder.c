@@ -8415,34 +8415,19 @@ void aITeam_selectInitialFielders_linedriveThroughPitcher(void) {
 // .text:0x0003F034 size:0xF0 mapped:0x8067E0C8
 void knockoutRelated(void) {
     int i;
-    InMemFielder* fielder;
 
-    for (fielder = g_Fielders, i = 0; i < 9; fielder++, i++) {
+    for (i = 0; i < 9; i++) {
         g_FieldingLogic.fielderAutoMovementCode[i] = 0;
-        if (i != -1) {
-            fielder->autoMovementFunctionIndex = 0;
-            if (autoMovementFunctions[0].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[0].code;
-            }
-            fielder->unknown_writeOnly = 0;
-            fielder->fielderVeloAdjustmentCode = 0;
-            fielder->unknown_writeOnly_always0 = 0;
-            fielder->timeSinceThrowWasCaught = 0;
-            fielder->fielderTrackingBallState = 0;
-        }
+        setFielderAutoMovementIfValid(i, 0);
     }
 
-    g_FieldingLogic.fielderAssignedLocationIndex[0] = -1;
-    g_FieldingLogic.baseCoveredInd[0] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[1] = -1;
-    g_FieldingLogic.baseCoveredInd[1] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[2] = -1;
-    g_FieldingLogic.baseCoveredInd[2] = 0;
-    g_FieldingLogic.fielderAssignedLocationIndex[3] = -1;
-    g_FieldingLogic.baseCoveredInd[3] = 0;
-    g_FieldingLogic.someFielderIndex = -1;
-    g_FieldingLogic.cutoffFielderIndex = -1;
-    g_FieldingLogic.interceptThrowFielder = -1;
+    for (i = 0; i < 4; i++) {
+        g_FieldingLogic.fielderAssignedLocationIndex[i] = FIELDING_POSITION_NONE;
+        g_FieldingLogic.baseCoveredInd[i] = FALSE;
+    }
+    g_FieldingLogic.someFielderIndex = FIELDING_POSITION_NONE;
+    g_FieldingLogic.cutoffFielderIndex = FIELDING_POSITION_NONE;
+    g_FieldingLogic.interceptThrowFielder = FIELDING_POSITION_NONE;
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hangtimeOfHit > 45) {
         knockoutRelated_FlyBall();
