@@ -8148,12 +8148,12 @@ tail:
 
 // .text:0x0003FCF0 size:0x5B8 mapped:0x8067ED84
 void fn_3_3FCF0(BOOL useComputedAngle) {
-    s16 angle;
     s16 a2, a3, a4, a5;
+    int angle;
 
     angle = g_Ball.Hit_HorizontalAngle;
     if (useComputedAngle) {
-        angle = (s16)calculateAngleFromCoordinates(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+        angle = calculateAngleFromCoordinates(g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                     g_Ball.physicsSubstruct.hitLandingSpotDistFromHome);
     }
 
