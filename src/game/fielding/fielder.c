@@ -6837,10 +6837,10 @@ void autoMovement3_goTowardsHitBall_AITeam(int fielderIndex) {
     autoMovement2_18_goTowardsBall_phase2(fielderIndex);
 
     if (fielder->AI_Ind != 0) {
-        if (fielderIndex != -1) {
+        if (fielderIndex != FIELDING_POSITION_NONE) {
             setFielderAutoMovement(fielderIndex, 2);
         }
-    } else if (fielderIndex != -1) {
+    } else if (fielderIndex != FIELDING_POSITION_NONE) {
         setFielderAutoMovement(fielderIndex, 16);
     }
 }
@@ -6863,14 +6863,14 @@ void autoMovement4_AI_goTowardsHitBall(int fielderIndex) {
     dist = fielderSqrt(fielder->IntendedLocation.x * fielder->IntendedLocation.x +
                         fielder->IntendedLocation.z * fielder->IntendedLocation.z);
     if (dist > 20.0f) {
-        g_Fielders[0].IntendedLocation.x = g_Fielders[0].pos.x;
-        g_Fielders[0].IntendedLocation.y = g_Fielders[0].pos.y;
-        g_Fielders[0].IntendedLocation.z = g_Fielders[0].pos.z;
-        g_Fielders[0].velocityX = 0.0f;
-        g_Fielders[0].velocityZ = 0.0f;
-        g_Fielders[0].currentVelocity = 0.0f;
-        g_Fielders[0].distanceFromAutoLocation = 0.0f;
-        if (fielderIndex != -1) {
+        g_Fielders[FIELDING_POSITION_PITCHER].IntendedLocation.x = g_Fielders[FIELDING_POSITION_PITCHER].pos.x;
+        g_Fielders[FIELDING_POSITION_PITCHER].IntendedLocation.y = g_Fielders[FIELDING_POSITION_PITCHER].pos.y;
+        g_Fielders[FIELDING_POSITION_PITCHER].IntendedLocation.z = g_Fielders[FIELDING_POSITION_PITCHER].pos.z;
+        g_Fielders[FIELDING_POSITION_PITCHER].velocityX = 0.0f;
+        g_Fielders[FIELDING_POSITION_PITCHER].velocityZ = 0.0f;
+        g_Fielders[FIELDING_POSITION_PITCHER].currentVelocity = 0.0f;
+        g_Fielders[FIELDING_POSITION_PITCHER].distanceFromAutoLocation = 0.0f;
+        if (fielderIndex != FIELDING_POSITION_NONE) {
             setFielderAutoMovement(fielderIndex, 9);
         }
         return;
@@ -6879,10 +6879,10 @@ void autoMovement4_AI_goTowardsHitBall(int fielderIndex) {
     autoMovement2_18_goTowardsBall_phase2(fielderIndex);
 
     if (fielder->AI_Ind != 0) {
-        if (fielderIndex != -1) {
+        if (fielderIndex != FIELDING_POSITION_NONE) {
             setFielderAutoMovement(fielderIndex, 2);
         }
-    } else if (fielderIndex != -1) {
+    } else if (fielderIndex != FIELDING_POSITION_NONE) {
         setFielderAutoMovement(fielderIndex, 16);
     }
 }
@@ -6892,8 +6892,8 @@ void autoMovement2_18_goTowardsBall_phase2(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int result;
 
-    if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3 && g_Ball.framesSinceHit < 0x91 &&
-        fielderIndex == 1) {
+    if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3 && g_Ball.framesSinceHit < 145 &&
+        fielderIndex == FIELDING_POSITION_CATCHER) {
         return;
     }
 
@@ -6938,18 +6938,18 @@ void autoMovement2_18_goTowardsBall_phase2(int fielderIndex) {
     }
 
     if (g_d_GameSettings.minigamesEnabled) {
-        if (g_Ball.deadBallReason == 0) {
+        if (g_Ball.deadBallReason == DEAD_BALL_REASON_NONE) {
             return;
         }
-        if (fielderIndex != -1) {
+        if (fielderIndex != FIELDING_POSITION_NONE) {
             setFielderAutoMovement(fielderIndex, 12);
         }
         return;
     }
 
 standOnBase:
-    if (g_Ball.deadBallReason != 0) {
-        if (fielderIndex != -1) {
+    if (g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
+        if (fielderIndex != FIELDING_POSITION_NONE) {
             setFielderAutoMovement(fielderIndex, 12);
         }
         return;
@@ -7101,13 +7101,13 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
         if (g_Ball.AtBat_ContactResult != BALL_RESULT_TYPE_IN_AIR) {
             fielder->maybeMovementState = 5;
         }
-    } else if (g_Ball.ballVelocity < 0.1f && g_Ball.ballZoneAwayFromHome >= 3 &&
+    } else if (g_Ball.ballVelocity < 0.1f && g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_MID &&
                g_Ball.AtBat_ContactResult >= BALL_RESULT_TYPE_LANDED &&
                g_Ball.AtBat_ContactResult <= BALL_RESULT_TYPE_CAUGHT && fielder->maybeMovementState != 4 &&
                fielder->maybeMovementState != 5) {
         setIntendedLocToInterceptBall(fielderIndex);
     } else if (g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3 && g_Ball.framesSinceHit <= 180 &&
-               fielderIndex == 1 && fielder->maybeMovementState != 4) {
+               fielderIndex == FIELDING_POSITION_CATCHER && fielder->maybeMovementState != 4) {
         setIntendedLocToInterceptBall(fielderIndex);
     }
 
@@ -7179,7 +7179,7 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
             fielder->maybeMovementState = 5;
         }
 
-        if (fielderIndex >= 6 && g_Ball.ballState == BALL_STATE_HIT && fielder->framesRemainingToGetToLandingSpot < -5) {
+        if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD && g_Ball.ballState == BALL_STATE_HIT && fielder->framesRemainingToGetToLandingSpot < -5) {
             setIntendedLocToInterceptBall(fielderIndex);
         }
     } else if (fielder->maybeMovementState == 1) {
