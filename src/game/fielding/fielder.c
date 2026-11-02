@@ -7089,6 +7089,8 @@ tail:
 // .text:0x000433E0 size:0x13E4 mapped:0x80682474
 void fielderTrackingBall_updateVariables(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
+    f32 x;
+    f32 z;
 
     if (g_Ball.ballBounceState == 3) {
         setIntendedLocToInterceptBall(fielderIndex);
@@ -7110,72 +7112,69 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
     }
 
     if (g_Ball.pauseBallMovementWhenInPlant) {
-        f32 dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
-        f32 dz = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
-        f32 sqx = dx * dx;
-        f32 sqz = dz * dz;
-        f32 dist = fielderSqrt(sqx + sqz);
+        f32 dist;
+
+        x = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
+        z = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
+        dist = fielderSqrt(x * x + z * z);
 
         if (dist < fielderActionConstants[36]) {
             setFielderAutoCoords(fielderIndex, fielder->pos.x, fielder->pos.z);
         } else {
-            f32 targetX = (fielderActionConstants[36] - 1.0f) * (dx / dist) + fielder->pos.x;
-            f32 targetZ = (fielderActionConstants[36] - 1.0f) * (dz / dist) + fielder->pos.z;
-            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+            x = (fielderActionConstants[36] - 1.0f) * (x / dist) + fielder->pos.x;
+            z = (fielderActionConstants[36] - 1.0f) * (z / dist) + fielder->pos.z;
+            setFielderAutoCoords(fielderIndex, x, z);
         }
     } else if (g_FieldingLogic.letFoulBallDropIfWinningRunOn3rdInd) {
         if (fielder->framesRemainingToGetToLandingSpot > 1) {
-            CoordAndDist* c = &g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot];
-            f32 cx = c->pos.x;
-            f32 cz = c->pos.z;
-            f32 sqx = cx * cx;
-            f32 sqz = cz * cz;
-            f32 dist = fielderSqrt(sqx + sqz);
-            f32 targetXRaw = cx + 0.5f * (cx / dist);
-            f32 targetZRaw = cz + 0.5f * (cz / dist);
-            f32 targetX = (targetXRaw >= 0.0f) ? (targetXRaw - 10.0f) : (targetXRaw + 10.0f);
-            f32 targetZ = targetZRaw + 8.0f;
+            f32 dist = fielderSqrt(g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x *
+                                       g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x +
+                                   g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z *
+                                       g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z);
+            x = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x +
+                0.5f * (g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x / dist);
+            z = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z +
+                0.5f * (g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z / dist);
+            if (x < 0.0f) {
+                x += 10.0f;
+            } else {
+                x -= 10.0f;
+            }
+            z += 8.0f;
 
-            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+            setFielderAutoCoords(fielderIndex, x, z);
         }
     } else if (fielder->maybeMovementState == 0) {
         if (fielder->framesRemainingToGetToLandingSpot > 1) {
-            f32 targetX;
-            f32 targetZ;
-
             if (fielder->aiDistToStandFromWallCollision != 0) {
-                f32 outX;
-                f32 outZ;
-                fielderMovement_updateWallBounceApproach(fielderIndex, &outX, &outZ, 1);
-                fielder->maybeTargetPosX = outX;
-                fielder->maybeTargetPosZ = outZ;
-                targetX = outX;
-                targetZ = outZ;
+                fielderMovement_updateWallBounceApproach(fielderIndex, &x, &z, 1);
+                fielder->maybeTargetPosX = x;
+                fielder->maybeTargetPosZ = z;
             } else {
-                CoordAndDist* landing = &g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot];
-                f32 landingX = landing->pos.x;
-                f32 landingZ = landing->pos.z;
-                f32 sqx = landingX * landingX;
-                f32 sqz = landingZ * landingZ;
-                f32 dist = fielderSqrt(sqx + sqz);
-                targetX = landingX + 0.5f * (landingX / dist);
-                targetZ = landingZ + 0.5f * (landingZ / dist);
+                f32 dist = fielderSqrt(g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x *
+                                           g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x +
+                                       g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z *
+                                           g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z);
+                x = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x +
+                    0.5f * (g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x / dist);
+                z = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z +
+                    0.5f * (g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z / dist);
 
                 if (g_Ball.warioWaluGarlicIsActive) {
                     if (g_AiLogic.warioStarRelated[0]) {
-                        targetX = g_Ball.peachDaisyStarHitFielderLoc.x;
-                        targetZ = g_Ball.peachDaisyStarHitFielderLoc.z;
+                        x = g_Ball.peachDaisyStarHitFielderLoc.x;
+                        z = g_Ball.peachDaisyStarHitFielderLoc.z;
                     } else {
-                        targetX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-                        targetZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
+                        x = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+                        z = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
                     }
                 } else if (g_Ball.autoFielderAvoidDropSpotForPeachesStarHit) {
-                    targetX = g_Ball.peachDaisyStarHitFielderLoc.x;
-                    targetZ = g_Ball.peachDaisyStarHitFielderLoc.z;
+                    x = g_Ball.peachDaisyStarHitFielderLoc.x;
+                    z = g_Ball.peachDaisyStarHitFielderLoc.z;
                 }
             }
 
-            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+            setFielderAutoCoords(fielderIndex, x, z);
         } else {
             fielder->maybeMovementState = 5;
         }
@@ -7184,23 +7183,17 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
             setIntendedLocToInterceptBall(fielderIndex);
         }
     } else if (fielder->maybeMovementState == 1) {
-        f32 x5m;
-        f32 z5m;
-
         fielder->xPos5mAwayFromBallsCollisionSpotOnWall = g_Ball.ballWillHitBallPos.x;
         fielder->zPos5mAwayFromBallsCollisionSpotOnWall = g_Ball.ballWillHitBallPos.z;
 
         if (fielder->aiDistToStandFromWallCollision != 0) {
-            f32 outX;
-            f32 outZ;
-            fielderMovement_updateWallBounceApproach(fielderIndex, &outX, &outZ, 1);
-            setFielderAutoCoords(fielderIndex, outX, outZ);
-            fielder->maybeTargetPosX = outX;
-            fielder->maybeTargetPosZ = outZ;
+            fielderMovement_updateWallBounceApproach(fielderIndex, &x, &z, 1);
+            setFielderAutoCoords(fielderIndex, x, z);
+            fielder->maybeTargetPosX = x;
+            fielder->maybeTargetPosZ = z;
         } else {
-            x5m = fielder->xPos5mAwayFromBallsCollisionSpotOnWall;
-            z5m = fielder->zPos5mAwayFromBallsCollisionSpotOnWall;
-            setFielderAutoCoords(fielderIndex, x5m, z5m);
+            setFielderAutoCoords(fielderIndex, fielder->xPos5mAwayFromBallsCollisionSpotOnWall,
+                                 fielder->zPos5mAwayFromBallsCollisionSpotOnWall);
         }
     } else if (fielder->maybeMovementState == 2) {
         updateFielderPosition(fielderIndex);
@@ -7223,20 +7216,8 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
         if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             int n;
 
-            if (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x == fielder->pos.x &&
-                g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z == fielder->pos.z) {
-                n = 1;
-            } else {
-                f32 dx = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x - fielder->pos.x;
-                f32 dz = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z - fielder->pos.z;
-                f32 dist = fielderSqrt(dx * dx + dz * dz);
-                f32 speed = fielder->joggingSpeed;
-
-                if (speed == 0.0f) {
-                    speed = 1.0f;
-                }
-                n = ((u32)fielder->maxAccLength_ConstF >> 1) + (int)(dist / speed);
-            }
+            n = fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                                               g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
 
             if (g_Ball.framesUntilBallHitsGround > n) {
                 fielder->maybeMovementState = 0;
