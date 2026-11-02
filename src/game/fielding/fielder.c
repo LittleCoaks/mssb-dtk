@@ -7259,58 +7259,35 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
 }
 
 // .text:0x00043038 size:0x3A8 mapped:0x806820CC
+#pragma dont_inline on
 void setIntendedLocToInterceptBall(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int frame;
-    CoordAndDist* futureCoord;
-    f32 dx, dz, speed;
-    f32 sqx, sqz;
-    f32 dist;
     int total = 0;
 
     fielder->maybeMovementState = 4;
 
     frame = 5;
     while (frame <= 120) {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-
         if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > 2.5f) {
             frame += 1;
             continue;
         }
 
-        if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x == fielder->pos.x &&
-            g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z == fielder->pos.z) {
-            total = 1;
-        } else {
-            dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - fielder->pos.x;
-            dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - fielder->pos.z;
-
-            sqx = dx * dx;
-            sqz = dz * dz;
-            dist = fielderSqrt(sqx + sqz);
-
-            speed = fielder->joggingSpeed;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-
-            total = ((u32)fielder->maxAccLength_ConstF >> 1) + (int)(dist / speed);
-        }
-
+        total = fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                                               g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
         if (total < frame) {
             fielder->framesRemainingToGetToLandingSpot = frame;
-            break;
+            goto found;
         }
 
         frame += 5;
     }
-    if (frame > 120) {
-        fielder->framesRemainingToGetToLandingSpot = 120;
-    }
+    fielder->framesRemainingToGetToLandingSpot = 120;
+found:
 
-    futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot];
-    setFielderAutoCoords(fielderIndex, futureCoord->pos.x, futureCoord->pos.z);
+    setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x,
+                         g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z);
 
     if (fielder->framesRemainingToGetToLandingSpot >= 120) {
         fielder->numFramesToGetToAutoLocation = 120;
@@ -7318,6 +7295,7 @@ void setIntendedLocToInterceptBall(int fielderIndex) {
         fielder->numFramesToGetToAutoLocation = total;
     }
 }
+#pragma dont_inline reset
 
 // .text:0x00042CDC size:0x35C mapped:0x80681D70
 void updateFielderPosition(int fielderIndex) {
