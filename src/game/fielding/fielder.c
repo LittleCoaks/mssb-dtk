@@ -2756,18 +2756,18 @@ int updateFielderPositionAndVelocityForSpecialActions(int fielderIndex) {
         return 2;
     }
 
-    if (g_Minigame.GameMode_MiniGame == 5) {
+    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
         if (g_Minigame.pP_hitState[idx] != 0) {
             return 2;
         }
-    } else if (g_Minigame.GameMode_MiniGame == 6) {
+    } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
         u8 stunType = g_Minigame.starDashStunType[idx];
         if (stunType == 1 || stunType == 2) {
             return 2;
         }
     }
 
-    if (g_Minigame.GameMode_MiniGame == 5 || g_Minigame.GameMode_MiniGame == 6) {
+    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC || g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
         return 0;
     }
 
