@@ -3767,18 +3767,17 @@ return1:
 // .text:0x0004FB34 size:0xD64 mapped:0x8068EBC8
 void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    CoordAndDist* futureCoord;
     int frame;
-    int startFrame;
+    int delayFrames;
     int framesNeeded;
-    int lastFramesNeeded = 9999;
-    int resultCode = 0;
     int bestFrame = 0;
+    int step = 5;
+    f32 bestHeight = 99.0f;
     int found = 0;
     int closeEnough = 0;
-    int step = 5;
-    int delayFrames;
-    f32 bestHeight = 99.0f;
+    int lastFramesNeeded = 9999;
+    int startFrame;
+    int resultCode = 0;
     f32 threshold = 4.5f;
 
     if (g_d_GameSettings.minigamesEnabled) {
@@ -3811,12 +3810,10 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
     }
 
     for (frame = startFrame; frame < 360;) {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-
-        if (futureCoord->pos.y > threshold) {
-            if (futureCoord->pos.y > 20.0f) {
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > threshold) {
+            if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > 20.0f) {
                 frame += 10;
-            } else if (futureCoord->pos.y > 10.0f) {
+            } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > 10.0f) {
                 frame += 6;
             } else {
                 frame += 3;
@@ -3824,26 +3821,26 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
             continue;
         }
 
-        framesNeeded = startFrame + fRunningTimeToDestinationPlus7(fielderIndex, futureCoord->pos.x, futureCoord->pos.z);
+        framesNeeded = startFrame + fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
 
         if (framesNeeded < frame - delayFrames) {
-            if (futureCoord->pos.y < fielder->hitbox[3]) {
+            if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y < fielder->hitbox[3]) {
                 resultCode = 1;
                 break;
             }
 
-            if (found != 0 && bestHeight < futureCoord->pos.y) {
+            if (found != 0 && bestHeight < g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y) {
                 frame = bestFrame;
                 resultCode = 2;
                 break;
             }
-            bestHeight = futureCoord->pos.y;
+            bestHeight = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y;
             bestFrame = frame;
             found = 1;
         } else {
             if (framesNeeded < frame + 30) {
                 if (fielderIndex >= FIELDING_POSITION_FIRST_BASE && fielderIndex <= FIELDING_POSITION_SHORTSTOP &&
-                    futureCoord->dist > 5.0f + fielder->distanceFromHomePlate) {
+                    g_Ball.physicsSubstruct.futureCoordsAndDist[frame].dist > 5.0f + fielder->distanceFromHomePlate) {
                     if (framesNeeded < frame + 10) {
                         closeEnough = 1;
                     }
@@ -3989,21 +3986,15 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
 // .text:0x0004F504 size:0x630 mapped:0x8068E598
 void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    CoordAndDist* futureCoord;
     int frame;
     int startFrame;
-    int framesNeeded = 0;
+    int framesNeeded;
     int lastFramesNeeded = 9999;
-    int resultCode = 0;
     int bestFrame = 0;
     int found = 0;
-    int closeEnough = 0;
     f32 bestHeight = 99.0f;
-    f32 dx;
-    f32 dz;
-    f32 dist;
-    f32 speed;
-    int travelFrames;
+    int closeEnough = 0;
+    int resultCode = 0;
 
     startFrame = fielder->lockoutDuration - g_Ball.framesSinceHit;
     if (startFrame < 1) {
@@ -4011,46 +4002,25 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
     }
 
     for (frame = startFrame; frame < 360;) {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-
-        if (futureCoord->pos.y > 4.5f) {
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > 4.5f) {
             frame += 3;
             continue;
         }
 
-        if (futureCoord->pos.x == fielder->pos.x && futureCoord->pos.z == fielder->pos.z) {
-            framesNeeded = 1;
-        } else {
-            dx = futureCoord->pos.x - fielder->pos.x;
-            dz = futureCoord->pos.z - fielder->pos.z;
-            {
-                f32 dxSq = dx * dx;
-                f32 dzSq = dz * dz;
-                dist = fielderSqrt(dxSq + dzSq);
-            }
-
-            speed = fielder->joggingSpeed;
-            if (0.0f == speed) {
-                speed = 1.0f;
-            }
-            travelFrames = (int)(dist / speed);
-            framesNeeded = (fielder->maxAccLength_ConstF >> 1) + travelFrames;
-        }
-
-        framesNeeded = startFrame + (framesNeeded - 5);
+        framesNeeded = startFrame + fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) - 5;
 
         if (framesNeeded < frame) {
-            if (futureCoord->pos.y < 2.0f) {
+            if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y < 2.0f) {
                 resultCode = 1;
                 break;
             }
 
-            if (found != 0 && bestHeight < futureCoord->pos.y) {
+            if (found != 0 && bestHeight < g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y) {
                 frame = bestFrame;
                 resultCode = 2;
                 break;
             } else {
-                bestHeight = futureCoord->pos.y;
+                bestHeight = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y;
                 bestFrame = frame;
                 found = 1;
             }
@@ -4067,8 +4037,8 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
         }
 
         if (framesNeeded > lastFramesNeeded && found == 0) {
-            f32 originXSq = futureCoord->pos.x * futureCoord->pos.x;
-            f32 originZSq = futureCoord->pos.z * futureCoord->pos.z;
+            f32 originXSq = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x * g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x;
+            f32 originZSq = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z * g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z;
             f32 originDist = fielderSqrt(originXSq + originZSq);
 
             if (originDist > 10.0f) {
@@ -4088,8 +4058,7 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
     fielder->framesToGetToBallLandingSpot = frame;
 
     if (resultCode == 2) {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-        if (futureCoord->pos.y < 2.0f) {
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y < 2.0f) {
             resultCode = 1;
         }
     }
@@ -4105,10 +4074,8 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
     }
 
     {
-        f32 lx = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.x;
-        f32 lz = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.z;
-        f32 ddx = g_Ball.landingSpotLocation.x - lx;
-        f32 ddz = g_Ball.landingSpotLocation.z - lz;
+        f32 ddx = g_Ball.landingSpotLocation.x - g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x;
+        f32 ddz = g_Ball.landingSpotLocation.z - g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z;
         f32 ddxSq = ddx * ddx;
         f32 ddzSq = ddz * ddz;
         f32 landingDist = fielderSqrt(ddxSq + ddzSq);
@@ -4125,12 +4092,13 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
         }
     } else if (resultCode == 1) {
-        f32 lx = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.x;
-        f32 lz = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.z;
-        int throwFrames = estimatedThrowFramesBetweenTwoPoints(
-            lx, lz, base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
+        int arrival = fielder->framesToGetToBallLandingSpot +
+                      estimatedThrowFramesBetweenTwoPoints(
+                          g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.x,
+                          g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.z,
+                          base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
 
-        if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] + 30 > fielder->framesToGetToBallLandingSpot + throwFrames + 60) {
+        if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] + 30 > arrival + 60) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
         }
     }
