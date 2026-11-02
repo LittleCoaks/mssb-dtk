@@ -4510,24 +4510,24 @@ void findClosestFieldersToLooseBallAndAssignToGoGetIt(void) {
 // .text:0x0004DC14 size:0x5A8 mapped:0x8068CCA8
 void bobbleDirection(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int bestChemIdx = -1;
+    int bestChemIdx = FIELDING_POSITION_NONE;
     int assistMode = 0;
+    int horizAngle;
     int j;
-    int modeFlag;
+    int elevationAngle;
+    int baseAngle;
     int lowVelocityInd;
+    int modeFlag;
     f32 ballVelocity;
     f32 velocityScale;
-    int baseAngle;
-    int elevationAngle;
-    int horizAngle;
     f32 horizZ;
     f32 elevY;
     f32 horizX;
-    f32 elevX;
+    f32 elevX; /* also holds the closest chemistry partner's distance */
 
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
         elevX = chemBobbleMults.chemBobbleMults[0];
-        if (g_Ball.ballZoneAwayFromHome >= 3) {
+        if (g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_MID) {
             elevX = chemBobbleMults.chemBobbleMults[1];
         }
 
@@ -4555,13 +4555,13 @@ void bobbleDirection(int fielderIndex) {
     }
 
     ballVelocity = g_Ball.ballVelocity;
-    lowVelocityInd = 0;
+    lowVelocityInd = FALSE;
     modeFlag = 0;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         modeFlag = 1;
     }
     if (ballVelocity < lbl_3_data_48C4) {
-        lowVelocityInd = 1;
+        lowVelocityInd = TRUE;
     }
     if (ballVelocity > 0.5f) {
         ballVelocity = 0.5f;
@@ -4595,7 +4595,7 @@ void bobbleDirection(int fielderIndex) {
             elevationAngle = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][0], lbl_3_data_48C8[modeFlag][1]);
             randOffset = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][2], lbl_3_data_48C8[modeFlag][3]);
             horizAngle = normalizeAnglebetween_2048And2047(randOffset + baseAngle);
-        } else if (lowVelocityInd == 0) {
+        } else if (!lowVelocityInd) {
             elevationAngle = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][4], lbl_3_data_48C8[modeFlag][5]);
             randOffset = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][6], lbl_3_data_48C8[modeFlag][7]);
             if (fielder->catchCentreRightLeftOfBody == 1) {
@@ -4628,26 +4628,16 @@ void bobbleDirection(int fielderIndex) {
     g_Ball.physicsSubstruct.acceleration.z = 0.0f;
 
     if (fielder->bobble == 4) {
-        if (fielder->onFire == 0) {
-            fielder->onFireFacingAngle = radToShortAngle(fielder->desiredMovementDirection);
-            fielder->onFire = 1;
-            fielder->onFireCountUp = 0;
-            fielder->onFireCountdown = specialFielderActionConstants.fireballCountdownArray[0];
-            fielder->catchAnimation = 0;
-            fielder->isJump = 0;
-            fielder->clamberStatus = 0;
-            fielder->wallSplatStatus = 0;
-            fielder->hitKnockbackCountdown = 0;
-        }
+        maybeCastleFireballBurn(fielderIndex, 0);
     } else {
         fielder->hitKnockbackCountdown = (int)(g_Ball.ballEnergy * lbl_3_data_5CDC[4]);
     }
 
     fielder->catchAnimation = 0;
-    fielder->closingInOnCatchingFlyBall = 0;
-    g_FieldingLogic.knockoutFinished = 1;
+    fielder->closingInOnCatchingFlyBall = FALSE;
+    g_FieldingLogic.knockoutFinished = TRUE;
     g_Ball.ballState = BALL_STATE_LOOSE;
-    g_Ball.fielderAboutToGetBall_hasBall = -1;
+    g_Ball.fielderAboutToGetBall_hasBall = FIELDING_POSITION_NONE;
     g_Ball.inAirOrBefore2ndBounceOrLowBallEnergy = 0;
     g_Ball.warioWaluGarlicIsActive = 0;
     g_Ball.ballIsRollingIndicator = 0;
