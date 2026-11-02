@@ -2548,66 +2548,34 @@ void fielderMovementRelated(int fielderIndex) {
 }
 
 // .text:0x0005372C size:0x7BC mapped:0x806927C0
+static inline void releaseCoverAssignment(int fielderIndex);
+
 void setStandingOnBaseVariables(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    s16 loc = fielder->locationResponsibleForCovering;
     f32 dist;
     f32 threshold;
 
-    if (loc >= 0 && loc <= 3) {
-        f32 dx = base_MoundCoordinates[loc].x - fielder->pos.x;
-        f32 dz = base_MoundCoordinates[loc].z - fielder->pos.z;
+    if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
+        f32 dx = base_MoundCoordinates[fielder->locationResponsibleForCovering].x - fielder->pos.x;
+        f32 dz = base_MoundCoordinates[fielder->locationResponsibleForCovering].z - fielder->pos.z;
         f32 sqx = dx * dx;
         f32 sqz = dz * dz;
         dist = fielderSqrt(sqx + sqz);
 
         threshold = thresholdToBeConsideredCoveringBase_ByWeight[fielder->Weight];
         if (threshold > dist) {
-            g_FieldingLogic.baseCoveredInd[loc] = 1;
-            fielder->baseCurrentlyOn = loc;
+            g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] = 1;
+            fielder->baseCurrentlyOn = fielder->locationResponsibleForCovering;
             if (fielderIndex == 0 && fielder->pitcherHeadingToCover1stOr3rd == 1) {
                 fielder->pitcherHeadingToCover1stOr3rd = 0;
             }
         }
 
         if (g_Ball.fielderWBallIndex == fielderIndex) {
-            s16 otherIdx = g_FieldingLogic.fielderAssignedLocationIndex[loc];
-            if (otherIdx != fielderIndex && otherIdx >= 0 && g_FieldingLogic.baseCoveredInd[loc] != 0) {
-                if (loc >= 0 && loc <= 3) {
-                    if (otherIdx == fielderIndex) {
-                        g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                        g_FieldingLogic.baseCoveredInd[loc] = 0;
-                    }
-                    fielder->locationResponsibleForCovering = -1;
-                    fielder->isResponsibleForCoveringALocation = 0;
-                    if (fielder->autoMovementFunctionIndex == 1 && fielderIndex != -1) {
-                        fielder->autoMovementFunctionIndex = 12;
-                        if (autoMovementFunctions[12].code >= 0) {
-                            g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[12].code;
-                        }
-                        fielder->unknown_writeOnly = 0;
-                        fielder->fielderVeloAdjustmentCode = 0;
-                        fielder->unknown_writeOnly_always0 = 0;
-                        fielder->timeSinceThrowWasCaught = 0;
-                        fielder->fielderTrackingBallState = 0;
-                    }
-                } else if (loc == 5) {
-                    g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                    fielder->locationResponsibleForCovering = -1;
-                    fielder->isResponsibleForCoveringALocation = 0;
-                    g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-                    if (fielder->autoMovementFunctionIndex == 14 && fielderIndex != -1) {
-                        fielder->autoMovementFunctionIndex = 12;
-                        if (autoMovementFunctions[12].code >= 0) {
-                            g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[12].code;
-                        }
-                        fielder->unknown_writeOnly = 0;
-                        fielder->fielderVeloAdjustmentCode = 0;
-                        fielder->unknown_writeOnly_always0 = 0;
-                        fielder->timeSinceThrowWasCaught = 0;
-                        fielder->fielderTrackingBallState = 0;
-                    }
-                }
+            if (g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] != fielderIndex &&
+                g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] >= 0 &&
+                g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] != 0) {
+                releaseCoverAssignment(fielderIndex);
             }
         }
     } else {
@@ -2625,48 +2593,7 @@ void setStandingOnBaseVariables(int fielderIndex) {
                     continue;
                 }
 
-                {
-                    s16 otherFielderIdx = g_FieldingLogic.fielderAssignedLocationIndex[i];
-                    InMemFielder* other = &g_Fielders[otherFielderIdx];
-                    s16 otherLoc = other->locationResponsibleForCovering;
-                    if (otherLoc >= 0) {
-                        if (otherLoc <= 3) {
-                            if (g_FieldingLogic.fielderAssignedLocationIndex[otherLoc] == otherFielderIdx) {
-                                g_FieldingLogic.fielderAssignedLocationIndex[otherLoc] = -1;
-                                g_FieldingLogic.baseCoveredInd[otherLoc] = 0;
-                            }
-                            other->locationResponsibleForCovering = -1;
-                            other->isResponsibleForCoveringALocation = 0;
-                            if (other->autoMovementFunctionIndex == 1 && otherFielderIdx != -1) {
-                                other->autoMovementFunctionIndex = 12;
-                                if (autoMovementFunctions[12].code >= 0) {
-                                    g_FieldingLogic.fielderAutoMovementCode[otherFielderIdx] = autoMovementFunctions[12].code;
-                                }
-                                other->unknown_writeOnly = 0;
-                                other->fielderVeloAdjustmentCode = 0;
-                                other->unknown_writeOnly_always0 = 0;
-                                other->timeSinceThrowWasCaught = 0;
-                                other->fielderTrackingBallState = 0;
-                            }
-                        } else if (otherLoc == 5) {
-                            g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                            other->locationResponsibleForCovering = -1;
-                            other->isResponsibleForCoveringALocation = 0;
-                            g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-                            if (other->autoMovementFunctionIndex == 14 && otherFielderIdx != -1) {
-                                other->autoMovementFunctionIndex = 12;
-                                if (autoMovementFunctions[12].code >= 0) {
-                                    g_FieldingLogic.fielderAutoMovementCode[otherFielderIdx] = autoMovementFunctions[12].code;
-                                }
-                                other->unknown_writeOnly = 0;
-                                other->fielderVeloAdjustmentCode = 0;
-                                other->unknown_writeOnly_always0 = 0;
-                                other->timeSinceThrowWasCaught = 0;
-                                other->fielderTrackingBallState = 0;
-                            }
-                        }
-                    }
-                }
+                releaseCoverAssignment(g_FieldingLogic.fielderAssignedLocationIndex[i]);
 
                 fielder->locationResponsibleForCovering = i;
                 g_FieldingLogic.fielderAssignedLocationIndex[i] = fielderIndex;
