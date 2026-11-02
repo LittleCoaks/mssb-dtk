@@ -206,7 +206,7 @@ void updateSprintPointers(void);
 int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out);
 int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out);
 int setZoneAwayFromHome(f32 x, f32 z);
-f32 fn_3_52084(int fielderIndex, f32 x, f32 z);
+f32 fielderPathDistanceToPoint(int fielderIndex, f32 x, f32 z);
 void calculateMinDiveDistAndEndingCoords(int fielderIndex, int numFrames, f32 dirX, f32 dirZ,
                                           f32* outX, f32* outZ, f32* outDist);
 int fRunningTimeToDestinationPlus7(int fielderIndex, f32 x, f32 z);

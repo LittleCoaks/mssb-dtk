@@ -3109,7 +3109,7 @@ void calculateMinDiveDistAndEndingCoords(int fielderIndex, int numFrames, f32 di
 }
 
 // .text:0x00052084 size:0x25C mapped:0x80691118
-f32 fn_3_52084(int fielderIndex, f32 x, f32 z) {
+f32 fielderPathDistanceToPoint(int fielderIndex, f32 x, f32 z) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 dx;
     f32 dz;
@@ -3119,10 +3119,10 @@ f32 fn_3_52084(int fielderIndex, f32 x, f32 z) {
     if (fielder->currentVelocity < 0.01f) {
         f32 sqx;
         f32 sqz;
-        dx = fielder->pos.x - x;
-        dz = fielder->pos.z - z;
-        sqx = dx * dx;
-        sqz = dz * dz;
+        x = fielder->pos.x - x;
+        z = fielder->pos.z - z;
+        sqx = x * x;
+        sqz = z * z;
         return fielderSqrt(sqx + sqz);
     }
 
@@ -3131,9 +3131,10 @@ f32 fn_3_52084(int fielderIndex, f32 x, f32 z) {
     dot = fielder->xMovementDir * dx + fielder->zMovementDir * dz;
     perpDistSq = (dx * dx + dz * dz) - dot * dot;
 
-    if (!(perpDistSq < 0.0f)) {
-        return fielderSqrt(perpDistSq);
+    if (perpDistSq < 0.0f) {
+        return 0.0f;
     }
+    return fielderSqrt(perpDistSq);
 }
 
 // .text:0x00051DF0 size:0x294 mapped:0x80690E84
