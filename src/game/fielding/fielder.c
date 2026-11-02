@@ -4512,23 +4512,23 @@ void bobbleDirection(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int bestChemIdx = -1;
     int assistMode = 0;
-    f32 bestChemDist;
     int j;
     int modeFlag;
     int lowVelocityInd;
     f32 ballVelocity;
     f32 velocityScale;
-    s16 baseAngle;
+    int baseAngle;
     int elevationAngle;
     int horizAngle;
-    f32 elevX, elevY;
-    f32 horizX, horizZ;
-    f32 speedXZ;
+    f32 horizZ;
+    f32 elevY;
+    f32 horizX;
+    f32 elevX;
 
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
-        bestChemDist = chemBobbleMults.chemBobbleMults[0];
+        elevX = chemBobbleMults.chemBobbleMults[0];
         if (g_Ball.ballZoneAwayFromHome >= 3) {
-            bestChemDist = chemBobbleMults.chemBobbleMults[1];
+            elevX = chemBobbleMults.chemBobbleMults[1];
         }
 
         for (j = 0; j < 9; j++) {
@@ -4542,15 +4542,10 @@ void bobbleDirection(int fielderIndex) {
             if (chem < chemThresholds[2]) {
                 continue;
             }
-            if (fielder->distanceFromEachFielder[j] >= 999.9f) {
-                continue;
+            if (fielder->distanceFromEachFielder[j] < elevX && fielder->distanceFromEachFielder[j] < 999.9f) {
+                bestChemIdx = j;
+                elevX = fielder->distanceFromEachFielder[j];
             }
-            if (fielder->distanceFromEachFielder[j] >= bestChemDist) {
-                continue;
-            }
-
-            bestChemIdx = j;
-            bestChemDist = fielder->distanceFromEachFielder[j];
         }
 
         if (bestChemIdx >= 0) {
@@ -4585,7 +4580,8 @@ void bobbleDirection(int fielderIndex) {
         f32 dz = g_Fielders[bestChemIdx].pos.z - fielder->pos.z;
         int angleToPartner = calculateAngleFromCoordinates(dx, dz);
 
-        horizAngle = angleToPartner + RandomInt_Game(0x200) - 0x100;
+        horizAngle = angleToPartner + RandomInt_Game(0x200);
+        horizAngle -= 0x100;
 
         if (assistMode == 1) {
             elevationAngle = RandomInt_Game(0x100) + 0x100;
@@ -4620,11 +4616,13 @@ void bobbleDirection(int fielderIndex) {
     elevY *= velocityScale;
     getComponentsFromSAng(horizAngle, &horizX, &horizZ);
 
-    speedXZ = elevX * ballVelocity;
+    elevX *= ballVelocity;
+    horizX *= elevX;
+    horizZ *= elevX;
 
-    g_Ball.physicsSubstruct.velocity.x = horizX * speedXZ;
+    g_Ball.physicsSubstruct.velocity.x = horizX;
     g_Ball.physicsSubstruct.velocity.y = elevY;
-    g_Ball.physicsSubstruct.velocity.z = horizZ * speedXZ;
+    g_Ball.physicsSubstruct.velocity.z = horizZ;
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.acceleration.y = 0.0f;
     g_Ball.physicsSubstruct.acceleration.z = 0.0f;
