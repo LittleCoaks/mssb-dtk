@@ -3386,12 +3386,12 @@ void updateSprintPointers(void) {
 
             if (g_FieldingLogic.dashPtr->chargeLevel >= initialSprintCharge_10[1]) {
                 g_FieldingLogic.dashPtr->chargeLevel = initialSprintCharge_10[1];
-                g_FieldingLogic.dashPtr->sprintingState = 2;
+                g_FieldingLogic.dashPtr->sprintingState = DASH_STATE_SPRINTING;
 
                 if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE ||
                     g_Practice.practiceType_2 == PRACTICE_TYPE_FIELDING ||
                     g_Practice.practiceLevel == 2) {
-                    g_Practice.fieldingSprintMaxed = 1;
+                    g_Practice.fieldingSprintMaxed = TRUE;
                 }
             }
         } else if (g_FieldingLogic.dashPtr->framesSinceLastDashInput >= initialSprintCharge_10[2]) {
@@ -3410,9 +3410,10 @@ void updateSprintPointers(void) {
             return;
         }
 
-        g_FieldingLogic.dashPtr->sprintSpeedMultiplier =
-            (f32) g_FieldingLogic.dashPtr->chargeLevel / (f32) initialSprintCharge_10[1] * lbl_3_data_4B98 +
-            1.0f;
+        {
+            f32 ratio = (f32) g_FieldingLogic.dashPtr->chargeLevel / (f32) initialSprintCharge_10[1];
+            g_FieldingLogic.dashPtr->sprintSpeedMultiplier = ratio * lbl_3_data_4B98 + 1.0f;
+        }
 
         return;
     }
