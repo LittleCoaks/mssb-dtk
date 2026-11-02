@@ -4112,20 +4112,14 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
 // .text:0x0004EFC8 size:0x53C mapped:0x8068E05C
 void knockoutRelated_subFn(int fielderIndex, int flag) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    CoordAndDist* futureCoord;
     int frame;
     int startFrame;
-    int framesNeeded = 0;
+    int framesNeeded;
     int bestFrame = 0;
-    int found = 0;
-    int closeEnough = 0;
+    BOOL found = FALSE;
+    BOOL closeEnough = FALSE;
     int resultCode = 0;
     f32 bestHeight = 99.0f;
-    f32 dx;
-    f32 dz;
-    f32 dist;
-    f32 speed;
-    int travelFrames;
 
     startFrame = fielder->lockoutDuration - g_Ball.framesSinceHit;
     if (startFrame < 1) {
@@ -4133,61 +4127,43 @@ void knockoutRelated_subFn(int fielderIndex, int flag) {
     }
 
     for (frame = startFrame; frame < 360;) {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-
-        if (futureCoord->pos.y > 4.5f) {
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > 4.5f) {
             frame += 3;
             continue;
         }
 
-        if (futureCoord->pos.x == fielder->pos.x && futureCoord->pos.z == fielder->pos.z) {
-            framesNeeded = 1;
-        } else {
-            dx = futureCoord->pos.x - fielder->pos.x;
-            dz = futureCoord->pos.z - fielder->pos.z;
-            {
-                f32 dxSq = dx * dx;
-                f32 dzSq = dz * dz;
-
-                dist = fielderSqrt(dxSq + dzSq);
-            }
-
-            speed = fielder->joggingSpeed;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            travelFrames = (int)(dist / speed);
-            framesNeeded = (fielder->maxAccLength_ConstF >> 1) + travelFrames;
-        }
-
-        framesNeeded = startFrame + (framesNeeded - 5);
+        framesNeeded = startFrame +
+                       fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                                                      g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) -
+                       5;
 
         if (framesNeeded < frame) {
-            if (futureCoord->pos.y < 2.0f) {
+            if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y < 2.0f) {
                 resultCode = 1;
                 break;
             }
 
-            if (found != 0 && bestHeight < futureCoord->pos.y) {
+            if (found && bestHeight < g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y) {
                 frame = bestFrame;
                 resultCode = 2;
                 break;
             } else {
-                bestHeight = futureCoord->pos.y;
+                bestHeight = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y;
                 bestFrame = frame;
-                found = 1;
+                found = TRUE;
             }
         } else {
             if (framesNeeded < frame + 30) {
-                closeEnough = 1;
+                closeEnough = TRUE;
             }
 
-            if (found != 0) {
+            if (found) {
                 if (flag == 0) {
+                    resultCode = 2;
                     frame = g_Ball.framesUntilBallHitsGround;
-                } else {
-                    frame = bestFrame;
+                    break;
                 }
+                frame = bestFrame;
                 resultCode = 2;
                 break;
             }
@@ -4203,27 +4179,24 @@ void knockoutRelated_subFn(int fielderIndex, int flag) {
     fielder->framesToGetToBallLandingSpot = frame + g_Ball.framesSinceHit;
 
     if (resultCode == 2) {
-        futureCoord = &g_Ball.physicsSubstruct.futureCoordsAndDist[frame];
-        if (futureCoord->pos.y < 2.0f) {
+        if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y < 2.0f) {
             resultCode = 1;
         }
     }
 
-    if (resultCode == 3 && closeEnough == 0) {
+    if (resultCode == 3 && !closeEnough) {
         resultCode = 4;
     }
 
     fielder->catchStrategy = resultCode;
-    if (resultCode == 1 || resultCode == 2) {
-        fielder->cantCatchFlyBallInd = 0;
-    } else {
-        fielder->cantCatchFlyBallInd = 1;
+    fielder->cantCatchFlyBallInd = FALSE;
+    if (resultCode != 1 && resultCode != 2) {
+        fielder->cantCatchFlyBallInd = TRUE;
     }
 
     {
-        int landingFrame = fielder->framesToGetToBallLandingSpot;
-        f32 lx = g_Ball.physicsSubstruct.futureCoordsAndDist[landingFrame].pos.x;
-        f32 lz = g_Ball.physicsSubstruct.futureCoordsAndDist[landingFrame].pos.z;
+        f32 lx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x;
+        f32 lz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z;
         f32 ddx = g_Ball.landingSpotLocation.x - lx;
         f32 ddz = g_Ball.landingSpotLocation.z - lz;
         f32 ddxSq = ddx * ddx;
@@ -4231,13 +4204,13 @@ void knockoutRelated_subFn(int fielderIndex, int flag) {
         f32 landingDist = fielderSqrt(ddxSq + ddzSq);
 
         if (landingDist < 3.0f && resultCode == 1) {
-            fielder->nonCatchFlyBallStratInd = 0;
+            fielder->nonCatchFlyBallStratInd = FALSE;
         } else {
-            fielder->nonCatchFlyBallStratInd = 1;
+            fielder->nonCatchFlyBallStratInd = TRUE;
         }
     }
 
-    if (fielder->nonCatchFlyBallStratInd == 0) {
+    if (!fielder->nonCatchFlyBallStratInd) {
         if (framesNeeded + 30 < fielder->framesToGetToBallLandingSpot) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
         }
@@ -4245,10 +4218,10 @@ void knockoutRelated_subFn(int fielderIndex, int flag) {
         int landingFrame = fielder->framesToGetToBallLandingSpot;
         f32 lx = g_Ball.physicsSubstruct.futureCoordsAndDist[landingFrame].pos.x;
         f32 lz = g_Ball.physicsSubstruct.futureCoordsAndDist[landingFrame].pos.z;
-        int throwFrames = estimatedThrowFramesBetweenTwoPoints(
-            lx, lz, base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
+        int arrival = fielder->framesToGetToBallLandingSpot +
+                      estimatedThrowFramesBetweenTwoPoints(lx, lz, base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
 
-        if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] + 30 > fielder->framesToGetToBallLandingSpot + throwFrames + 60) {
+        if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] + 30 > arrival + 60) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
         }
     }
