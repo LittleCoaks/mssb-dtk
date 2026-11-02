@@ -3281,10 +3281,9 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
 int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 x = fielder->pos.x + fielder->velocityX;
-    f32 z = fielder->pos.z + fielder->velocityZ;
     f32 moundZ;
     f32 moundX;
-    f32 negX;
+    f32 z = fielder->pos.z + fielder->velocityZ;
     f32 d;
     int ret = 0;
 
@@ -3296,9 +3295,8 @@ int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
             ret = 2;
         }
     } else {
-        negX = -x;
-        if (negX > z) {
-            f32 half = (negX - z) * 0.5f;
+        if (-x > z) {
+            f32 half = (-x - z) * 0.5f;
             z = z + half;
             x = -z;
             ret = 2;
@@ -3307,14 +3305,7 @@ int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
 
     moundZ = base_MoundCoordinates[2].z;
     d = z - moundZ;
-    if (d > x) {
-        goto skipAdjust;
-    }
-    negX = -x;
-    if (d > negX) {
-        goto skipAdjust;
-    }
-
+    if (!(d > x) && !(d > -x)) {
     if (x > 0.0f) {
         f32 half;
         d = moundZ - z;
@@ -3325,13 +3316,13 @@ int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
     } else {
         f32 half;
         d = moundZ - z;
-        half = (negX - d) * 0.5f;
+        half = (-x - d) * 0.5f;
         x = -d - half;
         z = x + moundZ;
         ret = 2;
     }
+    }
 
-skipAdjust:
     moundX = base_MoundCoordinates[2].x;
     if (z <= moundX) {
         return 1;
