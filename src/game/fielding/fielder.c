@@ -2417,17 +2417,22 @@ void fielding_handleCollisionsAndSpecialActions(void) {
 
 // .text:0x00053F48 size:0x570 mapped:0x80692FDC
 void minigameFieldingRelated_collisions(void) {
-    int i, j;
+    int i;
+    int j;
     InMemFielder* outer;
     InMemFielder* inner;
-    f32 dx, dz, dist;
-    f32 dxSq, dzSq;
+    f32 dx;
+    f32 dz;
+    f32 dist;
+    f32 dxSq;
+    f32 dzSq;
     f32 sumRadius;
     f32 frac;
-    VecXZ collisionPoint;
-    f32 dx2, dz2, dist2;
-    f32 nx, nz;
-    int outerIdx, innerIdx, currentTeam;
+    f32 cx;
+    f32 cz;
+    int outerIdx;
+    int innerIdx;
+    int currentTeam;
     int collided;
     VecXYZ scratch;
 
@@ -2455,20 +2460,16 @@ void minigameFieldingRelated_collisions(void) {
             }
             frac = lbl_3_data_476C[outer->Weight] / sumRadius;
 
-            dx = outer->pos.x;
-            dx = inner->pos.x - dx;
-            dz = outer->pos.z;
-            dz = inner->pos.z - dz;
-            collisionPoint.x = frac * dx + outer->pos.x;
-            collisionPoint.z = frac * dz + outer->pos.z;
-            dx2 = collisionPoint.x - outer->pos.x;
-            dz2 = collisionPoint.z - outer->pos.z;
-            dist2 = fielderSqrt(dx2 * dx2 + dz2 * dz2);
-            if (!(dist2 > 0.0f)) {
+            cx = frac * (inner->pos.x - outer->pos.x) + outer->pos.x;
+            cz = frac * (inner->pos.z - outer->pos.z) + outer->pos.z;
+            dx = cx - outer->pos.x;
+            dz = cz - outer->pos.z;
+            dist = fielderSqrt(dx * dx + dz * dz);
+            if (!(dist > 0.0f)) {
                 continue;
             }
-            nx = dx2 / dist2;
-            nz = dz2 / dist2;
+            dx /= dist;
+            dz /= dist;
 
             if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
                 outerIdx = *((s8*)&g_Minigame + 0x18f2 + i);
@@ -2485,35 +2486,34 @@ void minigameFieldingRelated_collisions(void) {
                     g_Minigame.starDashCollisionPushDelta[innerIdx].x = inner->pos.x - outer->pos.x;
                     g_Minigame.starDashCollisionPushDelta[innerIdx].z = inner->pos.z - outer->pos.z;
                     minigame_transferPoints(outerIdx, innerIdx);
-                    goto skipPush;
+                    continue;
                 }
                 if (innerIdx == currentTeam) {
                     g_Minigame.starDashStunType[outerIdx] = 1;
                     g_Minigame.starDashCollisionPushDelta[outerIdx].x = outer->pos.x - inner->pos.x;
                     g_Minigame.starDashCollisionPushDelta[outerIdx].z = outer->pos.z - inner->pos.z;
                     minigame_transferPoints(innerIdx, outerIdx);
-                    goto skipPush;
+                    continue;
                 }
             }
 
             if (outer->currentVelocity <= 0.0f) {
-                inner->pos.x = nx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
+                inner->pos.x = dx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
                                outer->pos.x;
-                inner->pos.z = nz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
+                inner->pos.z = dz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
                                outer->pos.z;
             } else if (inner->currentVelocity <= 0.0f) {
                 outer->pos.x = inner->pos.x -
-                               nx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
+                               dx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
                 outer->pos.z = inner->pos.z -
-                               nz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
+                               dz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
             } else {
-                outer->pos.x = collisionPoint.x - nx * lbl_3_data_476C[outer->Weight];
-                outer->pos.z = collisionPoint.z - nz * lbl_3_data_476C[outer->Weight];
-                inner->pos.x = nx * lbl_3_data_476C[inner->Weight] + collisionPoint.x;
-                inner->pos.z = nz * lbl_3_data_476C[inner->Weight] + collisionPoint.z;
+                outer->pos.x = cx - dx * lbl_3_data_476C[outer->Weight];
+                outer->pos.z = cz - dz * lbl_3_data_476C[outer->Weight];
+                inner->pos.x = dx * lbl_3_data_476C[inner->Weight] + cx;
+                inner->pos.z = dz * lbl_3_data_476C[inner->Weight] + cz;
             }
 
-        skipPush:
             collided = updateFielderPosition_checkFielderCollision(i, &scratch);
             if (collided != 0) {
                 outer->pos.x = outer->posXLastFrame;
