@@ -14170,6 +14170,8 @@ int determineBestFrameForFielder(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int found = 0;
     int bestFrame = 0;
+    f32 ballZ;
+    f32 ballX;
     f32 dx;
     f32 dz;
     f32 sqx;
@@ -14191,12 +14193,13 @@ int determineBestFrameForFielder(int fielderIndex) {
             continue;
         }
 
-        if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x == fielder->pos.x &&
-            g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z == fielder->pos.z) {
+        ballX = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x;
+        ballZ = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z;
+        if (ballX == fielder->pos.x && ballZ == fielder->pos.z) {
             framesNeeded = 1;
         } else {
-            dx = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x - fielder->pos.x;
-            dz = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z - fielder->pos.z;
+            dx = ballX - fielder->pos.x;
+            dz = ballZ - fielder->pos.z;
             sqx = dx * dx;
             sqz = dz * dz;
             dist = fielderSqrt(sqx + sqz);
@@ -14236,7 +14239,10 @@ int determineBestFrameForFielder(int fielderIndex) {
         }
     }
 
-    return (frame < 360) ? frame : 359;
+    if (frame >= 360) {
+        frame = 359;
+    }
+    return frame;
 }
 
 // .text:0x0002CEF4 size:0x18C mapped:0x8066BF88
