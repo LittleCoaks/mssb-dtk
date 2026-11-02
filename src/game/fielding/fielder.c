@@ -3578,7 +3578,7 @@ int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag) {
         return 0;
     }
 
-    if ((u32)fielderIndex <= 2 || fielderIndex == 4) {
+    if ((u32)fielderIndex <= FIELDING_POSITION_FIRST_BASE || fielderIndex == FIELDING_POSITION_THIRD_BASE) {
         return 0;
     }
 
@@ -3608,10 +3608,7 @@ int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag) {
 
         fielder->aiDistToStandFromWallCollision = 1;
         fielder->_0188 = 30;
-        return 1;
-    }
-
-    if (!fielder->_020E) {
+    } else if (!fielder->_020E) {
         if (fielder->aiDistToStandFromWallCollision > lbl_3_data_48A4[2][fielder->AILevel3Weak0Powerful]) {
             fielder->_020E = 1;
         } else {
@@ -3628,25 +3625,34 @@ int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag) {
 
         *outX = fielder->maybeTargetPosX;
         *outZ = fielder->maybeTargetPosZ;
-        return 1;
-    }
-
-    dx = fielder->xPos5mAwayFromBallsCollisionSpotOnWall - fielder->maybeTargetPosX;
-    dz = fielder->zPos5mAwayFromBallsCollisionSpotOnWall - fielder->maybeTargetPosZ;
-    fielder->_0188--;
-
-    if (fielder->_0188 <= 0) {
-        *outX = fielder->xPos5mAwayFromBallsCollisionSpotOnWall;
-        *outZ = fielder->zPos5mAwayFromBallsCollisionSpotOnWall;
-        fielder->aiDistToStandFromWallCollision = 0;
     } else {
-        f32 diff = (f32)fielder->_0188;
-        f32 t = 1.0f / diff;
-        *outX = fielder->maybeTargetPosX + dx * t;
-        *outZ = fielder->maybeTargetPosZ + dz * t;
+        tempX = fielder->xPos5mAwayFromBallsCollisionSpotOnWall - fielder->maybeTargetPosX;
+        tempZ = fielder->zPos5mAwayFromBallsCollisionSpotOnWall - fielder->maybeTargetPosZ;
+        fielder->_0188--;
+
+        if (fielder->_0188 <= 0) {
+            *outX = fielder->xPos5mAwayFromBallsCollisionSpotOnWall;
+            *outZ = fielder->zPos5mAwayFromBallsCollisionSpotOnWall;
+            fielder->aiDistToStandFromWallCollision = 0;
+        } else {
+            f32 t = 1.0f / (f32)fielder->_0188;
+            tempX *= t;
+            tempZ *= t;
+            *outX = fielder->maybeTargetPosX + tempX;
+            *outZ = fielder->maybeTargetPosZ + tempZ;
+        }
     }
 
     return 1;
+}
+
+static inline void pushOutFromHome(InMemFielder* fielder, f32* outX, f32* outZ) {
+    f32 xOverD = fielder->pos.x;
+    f32 zOverD = fielder->pos.z;
+    xOverD /= fielder->distanceFromHomePlate;
+    zOverD /= fielder->distanceFromHomePlate;
+    *outX = xOverD * (10.0f + fielder->distanceFromHomePlate);
+    *outZ = zOverD * (10.0f + fielder->distanceFromHomePlate);
 }
 
 // .text:0x00050C20 size:0x1B8 mapped:0x8068FCB4
@@ -3656,7 +3662,7 @@ void fielderMovement_adjustPlaceToStandForBallBouncingOffWall(int fielderIndex, 
     f32 dz = fielder->zPos5mAwayFromBallsCollisionSpotOnWall - fielder->pos.z;
     int angle = calculateAngleFromCoordinates(dx, dz);
 
-    if (fielderIndex == 7) {
+    if (fielderIndex == FIELDING_POSITION_CENTER_FIELD) {
         if (angle > 0x200 && angle < 0x600) {
             *outX = fielder->pos.x;
             *outZ = fielder->zPos5mAwayFromBallsCollisionSpotOnWall;
@@ -3665,12 +3671,9 @@ void fielderMovement_adjustPlaceToStandForBallBouncingOffWall(int fielderIndex, 
             *outZ = fielder->pos.z;
         }
         fielder->aiDistToStandFromWallCollision = _0x18aArray[fielder->AILevel3Weak0Powerful];
-    } else if (fielderIndex == 8) {
+    } else if (fielderIndex == FIELDING_POSITION_RIGHT_FIELD) {
         if (angle > 0x100 && angle < 0x600) {
-            f32 xOverD = fielder->pos.x / fielder->distanceFromHomePlate;
-            f32 zOverD = fielder->pos.z / fielder->distanceFromHomePlate;
-            *outX = xOverD * (10.0f + fielder->distanceFromHomePlate);
-            *outZ = zOverD * (10.0f + fielder->distanceFromHomePlate);
+            pushOutFromHome(fielder, outX, outZ);
         } else {
             *outX = fielder->xPos5mAwayFromBallsCollisionSpotOnWall;
             *outZ = fielder->pos.z;
@@ -3678,10 +3681,7 @@ void fielderMovement_adjustPlaceToStandForBallBouncingOffWall(int fielderIndex, 
         fielder->aiDistToStandFromWallCollision = _0x18aArray[fielder->AILevel3Weak0Powerful];
     } else {
         if (angle > 0x200 && angle < 0x700) {
-            f32 xOverD = fielder->pos.x / fielder->distanceFromHomePlate;
-            f32 zOverD = fielder->pos.z / fielder->distanceFromHomePlate;
-            *outX = xOverD * (10.0f + fielder->distanceFromHomePlate);
-            *outZ = zOverD * (10.0f + fielder->distanceFromHomePlate);
+            pushOutFromHome(fielder, outX, outZ);
         } else {
             *outX = fielder->xPos5mAwayFromBallsCollisionSpotOnWall;
             *outZ = fielder->pos.z;
@@ -3709,9 +3709,9 @@ int fn_3_50898(int fielderIndex, f32* outX, f32* outZ) {
         goto scanFutureCoords;
     }
 
-    if (fielderIndex <= 5) {
-        if ((fielderIndex == 3 && angle > fielder->playerAngleFromHome) ||
-            (fielderIndex == 5 && angle < fielder->playerAngleFromHome)) {
+    if (fielderIndex <= FIELDING_POSITION_SHORTSTOP) {
+        if ((fielderIndex == FIELDING_POSITION_SECOND_BASE && angle > fielder->playerAngleFromHome) ||
+            (fielderIndex == FIELDING_POSITION_SHORTSTOP && angle < fielder->playerAngleFromHome)) {
             *outX = fielder->xPos5mAwayFromBallsCollisionSpotOnWall;
             *outZ = fielder->pos.z;
             return 1;
@@ -3723,7 +3723,7 @@ int fn_3_50898(int fielderIndex, f32* outX, f32* outZ) {
         goto return1;
     }
 
-    if (fielderIndex == 7) {
+    if (fielderIndex == FIELDING_POSITION_CENTER_FIELD) {
     scanFutureCoords:
         for (i = 60; i < 240; i += 5) {
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z > fielder->pos.z) {
@@ -3740,8 +3740,8 @@ int fn_3_50898(int fielderIndex, f32* outX, f32* outZ) {
         goto return1;
     }
 
-    if ((fielderIndex == 6 && fielder->playerAngleFromHome > angle) ||
-        (fielderIndex == 8 && fielder->playerAngleFromHome < angle)) {
+    if ((fielderIndex == FIELDING_POSITION_LEFT_FIELD && fielder->playerAngleFromHome > angle) ||
+        (fielderIndex == FIELDING_POSITION_RIGHT_FIELD && fielder->playerAngleFromHome < angle)) {
         for (i = 60; i < 240; i += 5) {
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[i].dist > fielder->distanceFromHomePlate) {
                 break;
