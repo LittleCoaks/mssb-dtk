@@ -2812,9 +2812,7 @@ void setFielderAutoCoords(int fielderIndex, f32 x, f32 z) {
 
 // .text:0x000526DC size:0x870 mapped:0x80691770
 void setFielderVelocity(int fielderIndex) {
-
     InMemFielder* fielder;
-    int fielderOffset;
     VecXYZ scratch;
     int collided;
     f32 dx;
@@ -2823,8 +2821,7 @@ void setFielderVelocity(int fielderIndex) {
     f32 sqx, sqz;
     BOOL takeElseBranch;
 
-    fielderOffset = fielderIndex * sizeof(InMemFielder);
-    fielder = (InMemFielder*)((u8*)g_Fielders + fielderOffset);
+    fielder = &g_Fielders[fielderIndex];
 
     if (fielder->animatingActionInd) {
         fielder->standingStillInd = TRUE;
@@ -2865,30 +2862,28 @@ void setFielderVelocity(int fielderIndex) {
                 (g_FieldingLogic.fielderTagType == FIELDER_TAG_RUNNING || g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_3 ||
                  g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_4) &&
                 g_FieldingLogic.tagResult_1out_2safe == 1) {
-                InMemRunnerType* runner;
-
                 fielder->standingStillInd = FALSE;
 
-                runner = &g_Runners[g_FieldingLogic.runnerChasingAfter];
-                dx = runner->position.x - fielder->pos.x;
-                dz = runner->position.z - fielder->pos.z;
+                dx = g_Runners[g_FieldingLogic.runnerChasingAfter].position.x - fielder->pos.x;
+                dz = g_Runners[g_FieldingLogic.runnerChasingAfter].position.z - fielder->pos.z;
                 dist = fielderSqrt(dx * dx + dz * dz);
 
+                dist -= 1.2f;
                 if (g_FieldingLogic.fielderTagType == FIELDER_TAG_UNUSED_4) {
-                    f32 velo = (dist - 1.2f) * 0.5f;
+                    dist *= 0.5f;
                     if (g_FieldingLogic.framesRunnerIsOutBy > 0) {
-                        velo /= (f32)g_FieldingLogic.framesRunnerIsOutBy;
+                        dist /= (f32)g_FieldingLogic.framesRunnerIsOutBy;
                     }
-                    fielder->currentVelocity = velo;
+                    fielder->currentVelocity = dist;
                 } else {
-                    f32 velo = dist;
-                    if (velo < 0.0f) {
-                        velo = 0.0f;
+                    if (dist < 0.0f) {
+                        dist = 0.0f;
                     }
                     if (g_FieldingLogic.framesRunnerIsOutBy > 0) {
-                        velo /= (f32)g_FieldingLogic.framesRunnerIsOutBy;
+                        fielder->currentVelocity = dist / (f32)g_FieldingLogic.framesRunnerIsOutBy;
+                    } else {
+                        fielder->currentVelocity = dist;
                     }
-                    fielder->currentVelocity = velo;
                 }
                 goto afterSwitch;
             }
@@ -2930,7 +2925,7 @@ void setFielderVelocity(int fielderIndex) {
     }
 
 switchSection:
-    if (fielder->fielderVeloAdjustmentCode <= 13) {
+    {
         switch (fielder->fielderVeloAdjustmentCode) {
         case 0:
             setFielderVelocity_someSituation(fielderIndex);
@@ -2990,7 +2985,7 @@ afterSwitch:
         fielder->distanceFromAutoLocation = -1.0f;
     }
 
-    if (fielder->currentVelocity > 0.0f) {
+    if (!(fielder->currentVelocity <= 0.0f)) {
         if (fielder->distanceFromAutoLocation < 0.0f) {
             fielder->distanceFromAutoLocation = 0.0f;
 
@@ -3008,26 +3003,14 @@ afterSwitch:
                 }
             }
 
-            g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
-            g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
-            g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
-            g_Fielders[fielderIndex].velocityX = 0.0f;
-            g_Fielders[fielderIndex].velocityZ = 0.0f;
-            g_Fielders[fielderIndex].currentVelocity = 0.0f;
-            g_Fielders[fielderIndex].distanceFromAutoLocation = 0.0f;
+            stopFielderAtCurrentPosition(fielderIndex);
         } else {
             fielder->velocityX = fielder->currentVelocity * (f32)cos(fielder->desiredMovementDirection2);
             fielder->velocityZ = fielder->currentVelocity * (f32)sin(fielder->desiredMovementDirection2);
 
             collided = updateFielderPosition_checkFielderCollision(fielderIndex, &scratch);
             if (collided != 0) {
-                g_Fielders[fielderIndex].IntendedLocation.x = fielder->pos.x;
-                g_Fielders[fielderIndex].IntendedLocation.y = fielder->pos.y;
-                g_Fielders[fielderIndex].IntendedLocation.z = fielder->pos.z;
-                g_Fielders[fielderIndex].velocityX = 0.0f;
-                g_Fielders[fielderIndex].velocityZ = 0.0f;
-                g_Fielders[fielderIndex].currentVelocity = 0.0f;
-                g_Fielders[fielderIndex].distanceFromAutoLocation = 0.0f;
+                stopFielderAtCurrentPosition(fielderIndex);
             } else {
                 fielder->pos.x += fielder->velocityX;
                 fielder->pos.z += fielder->velocityZ;
