@@ -13577,9 +13577,9 @@ void miniGameDash(void) {
 
     for (i = 0; i < 4; i++) {
         if ((s8)g_Minigame.minigameFielderIndex[i] >= 0) {
-            g_FieldingLogic.dashPtr = (FielderDash*) ((u8*) g_FieldingLogic.fielderDashByPort + i * 0x1c);
+            g_FieldingLogic.dashPtr = &((FielderDash*) g_FieldingLogic.fielderDashByPort)[i];
             g_FieldingLogic.jumpDiveStruct =
-                (UnkInputRelated*) ((u8*) &g_FieldingLogic.specialActionChecks + i * 6);
+                &((g_FieldingLogic_s*) ((u8*) &g_FieldingLogic + i * 6))->specialActionChecks;
 
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD && g_Minigame._19BC != 0 &&
                 i == (s8) g_Minigame.toyField_turnPlayer) {
@@ -13744,10 +13744,12 @@ updateEachFielder:
 // .text:0x0002EA24 size:0x64 mapped:0x8066DAB8
 void miniGameFielding(void) {
     int i;
+    int fielderIndex;
 
     for (i = 0; i < 4; i++) {
-        if (g_Minigame.minigameFielderIndex[i] < 0x80) {
-            updateFielder_SpecificValuesEachFrame((s8) g_Minigame.minigameFielderIndex[i]);
+        fielderIndex = g_Minigame.minigameFielderIndex[i];
+        if ((s8) fielderIndex >= 0) {
+            updateFielder_SpecificValuesEachFrame((s8) fielderIndex);
         }
     }
 
@@ -13819,6 +13821,7 @@ void toyfieldRelated(void) {
 void fn_3_2E41C(void) {
     int i;
     int fielderIdx;
+    int slot;
 
     if (pauseControl.isPaused != 0) {
         return;
@@ -13843,6 +13846,7 @@ void fn_3_2E41C(void) {
             s16* charHist;
             s16 stickAngle;
             InMemFielder* fielder;
+            int movementAngle;
             s32 j;
 
             g_Minigame.minigameRelatedIndex = g_Minigame.minigameFielderIndex[i];
@@ -13884,30 +13888,33 @@ void fn_3_2E41C(void) {
             g_FieldingLogic.fielderInputs = control->buttonInput;
             g_FieldingLogic.fielderInputsLatestFrame = control->newButtonInput;
             g_FieldingLogic.unused_fielderControls0x8 = control->_08;
-            g_FieldingLogic.dashPtr = (FielderDash*) ((u8*) g_FieldingLogic.fielderDashByPort + i * 0x1c);
+            g_FieldingLogic.dashPtr = &((FielderDash*) g_FieldingLogic.fielderDashByPort)[i];
             g_FieldingLogic.jumpDiveStruct =
-                (UnkInputRelated*) ((u8*) &g_FieldingLogic.specialActionChecks + i * 6);
-            g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
+                &((g_FieldingLogic_s*) ((u8*) &g_FieldingLogic + i * 6))->specialActionChecks;
+            ((g_FieldingLogic_s*) ((u8*) &g_FieldingLogic + i * 6))->specialActionChecks.aPressed_decidingWhatActionToTake = 0;
 
             fielder = &g_Fielders[(s8) g_Minigame.minigameFielderIndex[i]];
-            fielder->movementAngle = (g_FieldingLogic.playOverInd != 0)
-                                          ? -1
-                                          : fielderControlStick_continuousAngleHistory[0];
+            movementAngle = fielderControlStick_continuousAngleHistory[0];
+            if (g_FieldingLogic.playOverInd != 0) {
+                movementAngle = -1;
+            }
+            fielder->movementAngle = movementAngle;
 
             if (g_GameLogic.autoFielding[g_GameLogic.awayTeamBattingInd_battingTeam] == 0 &&
-                fielder->movementAngle >= 0 && fielder->framesSinceStartedMoving > 0xa) {
+                movementAngle >= 0 && fielder->framesSinceStartedMoving > 0xa) {
                 g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
             }
 
-            if (fielder->movementAngle >= 0) {
+            if (movementAngle >= 0) {
                 if (g_FieldingLogic.dashPtr->sprintingState != 3 &&
-                    g_FieldingLogic.dashPtr->sprintingState != 4 &&
-                    (g_FieldingLogic.fielderInputsLatestFrame & INPUT_BUTTON_B)) {
-                    g_FieldingLogic.dashPtr->framesSinceLastDashInput = 0;
-                }
+                    g_FieldingLogic.dashPtr->sprintingState != 4) {
+                    if (g_FieldingLogic.fielderInputsLatestFrame & INPUT_BUTTON_B) {
+                        g_FieldingLogic.dashPtr->framesSinceLastDashInput = 0;
+                    }
 
-                if (ACTIVE_TUTORIAL() && g_Practice.practice_fielding_enableSprinting) {
-                    g_FieldingLogic.dashPtr->framesSinceLastDashInput = 0;
+                    if (ACTIVE_TUTORIAL() && g_Practice.practice_fielding_enableSprinting) {
+                        g_FieldingLogic.dashPtr->framesSinceLastDashInput = 0;
+                    }
                 }
             }
 
@@ -13916,8 +13923,9 @@ void fn_3_2E41C(void) {
     }
 
     if (g_d_GameSettings.minigamesEnabled) {
-        if ((s8) g_Minigame.minigamePlayerSelectedOrder >= 0) {
-            fielderIdx = (s8) g_Minigame.minigameFielderIndex[(s8) g_Minigame.minigamePlayerSelectedOrder];
+        slot = g_Minigame.minigamePlayerSelectedOrder;
+        if ((s8) slot >= 0) {
+            fielderIdx = (s8) g_Minigame.minigameFielderIndex[(s8) slot];
             g_Fielders[fielderIdx].pos.x = g_Pitcher.pitcher.x;
             g_Fielders[fielderIdx].pos.z = g_Pitcher.pitcher.z;
         }
