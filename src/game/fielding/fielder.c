@@ -49,7 +49,7 @@ extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
 
 extern f32 ballDistCalculator(f32 x, f32 z);
-extern u8 minigame_getAIDrivenInputInd(void);
+extern u32 minigame_getAIDrivenInputInd(s8 player);
 extern int sD_IsBlockedByThwomp(int fielderIndex);
 extern void foulBall(void);
 extern void setFielderValues(int characterID, int fielderIndex);
@@ -13611,7 +13611,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
 
     control = &g_Controls[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
-    if (minigame_getAIDrivenInputInd()) {
+    if (minigame_getAIDrivenInputInd(g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot])) {
         control = &g_Minigame.aiInputs[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
     }
 
@@ -14252,9 +14252,10 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
     int i;
     int fielderIndex;
 
-    fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
+    fielderIndex = g_Minigame.minigameFielderIndex[minigameFielderSlot];
     g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
+    fielderIndex = (s8)fielderIndex;
     fielder = &g_Fielders[fielderIndex];
 
     updateFielder_SpecificValuesEachFrame(fielderIndex);
