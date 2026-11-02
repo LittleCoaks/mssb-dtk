@@ -7221,7 +7221,7 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
 
             if (g_Ball.framesUntilBallHitsGround > n) {
                 fielder->maybeMovementState = 0;
-                fielder->framesRemainingToGetToLandingSpot = n - 2;
+                fielder->framesRemainingToGetToLandingSpot = g_Ball.framesUntilBallHitsGround - 2;
             }
         }
     }
@@ -7323,13 +7323,9 @@ void fielderTrackingBall_checkSwitchToIntercept(int fielderIndex) {
 // .text:0x00042A00 size:0x1D0 mapped:0x80681A94
 void fielderTrackingBall_goToFutureBallPos(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 x;
-    f32 z;
 
-    x = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x;
-    z = g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z;
-
-    setFielderAutoCoords(fielderIndex, x, z);
+    setFielderAutoCoords(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.x,
+                         g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesRemainingToGetToLandingSpot].pos.z);
 
     if (fielder->framesRemainingToGetToLandingSpot <= 1) {
         fielder->maybeMovementState = 5;
