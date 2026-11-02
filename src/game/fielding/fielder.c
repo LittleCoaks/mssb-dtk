@@ -2278,15 +2278,14 @@ void fn_3_54900(int fielderIndex) {
 
 // .text:0x000544B8 size:0x448 mapped:0x8069354C
 void fielding_handleCollisionsAndSpecialActions(void) {
-    int i;
+    u8 vol, val;
     InMemFielder* fielder;
     VecSrcDst inVec;
     CollisionStruct collision;
     u32 collisionType;
     Vec currentPos, prevPos;
-    SND_FXID fid;
     SND_VOICEID voiceID;
-    u8 vol, val;
+    int i;
 
     extern u16 stadiumHazardSoundIDs[16];
     extern u8 stadiumHazardSoundFxRelated[0xB4];
@@ -2331,25 +2330,23 @@ void fielding_handleCollisionsAndSpecialActions(void) {
 
                 if (fn_800639BC((s8)i, &currentPos, &prevPos) >= 2) {
                     if (g_d_GameSettings.StadiumID == STADIUM_ID_PEACH_GARDEN) {
-                        fid = stadiumHazardSoundIDs[4] + 7;
                         vol = (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD)
                                   ? lbl_3_data_84B8[0xe]
                                   : stadiumHazardSoundFxRelated[0x86];
-                        voiceID = sndFXStartEx(fid, vol, 0x3f, 0);
+                        voiceID = sndFXStartEx(stadiumHazardSoundIDs[4] + 7, vol, 0x3f, 0);
                         val = (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD)
                                   ? lbl_3_data_84B8[0xf]
                                   : stadiumHazardSoundFxRelated[0x87];
-                        sndFXCtrl(voiceID, 0x5b, val);
+                        sndFXCtrl(voiceID, SND_MIDICTRL_REVERB, val);
                     } else if (g_d_GameSettings.StadiumID == STADIUM_ID_DK_JUNGLE) {
-                        fid = stadiumHazardSoundIDs[5] + 0xc;
                         vol = (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD)
                                   ? lbl_3_data_84B8[0x18]
                                   : stadiumHazardSoundFxRelated[0xae];
-                        voiceID = sndFXStartEx(fid, vol, 0x3f, 0);
+                        voiceID = sndFXStartEx(stadiumHazardSoundIDs[5] + 0xc, vol, 0x3f, 0);
                         val = (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD)
                                   ? lbl_3_data_84B8[0x19]
                                   : stadiumHazardSoundFxRelated[0xaf];
-                        sndFXCtrl(voiceID, 0x5b, val);
+                        sndFXCtrl(voiceID, SND_MIDICTRL_REVERB, val);
                     }
                 }
             } else {
