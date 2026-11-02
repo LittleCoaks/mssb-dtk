@@ -13687,7 +13687,8 @@ void fn_3_2EA88(int minigameFielderSlot) {
     int i;
     int fielderIndex;
 
-    fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
+    fielderIndex = g_Minigame.minigameFielderIndex[minigameFielderSlot];
+    fielderIndex = (s8)fielderIndex;
     fielder = &g_Fielders[fielderIndex];
 
     for (i = 19; i >= 1; i--) {
@@ -13724,7 +13725,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
 
     updateFielderMovementAndPosition();
     updateFielder_SpecificValuesEachFrame(fielderIndex);
-    autoMovementFunctions[fielder->autoMovementFunctionIndex].fn(fielderIndex);
+    autoMovementFunctions[g_Fielders[fielderIndex].autoMovementFunctionIndex].fn(fielderIndex);
     fielderUpdateChasingRunnerValues(fielderIndex);
 
     if (g_Minigame.framesSincePanelHit != 0) {
