@@ -1045,7 +1045,7 @@ void updateFielderMovementAndPosition(void) {
         fielder->maybeTargetPosX = fielder->IntendedLocation.x;
         fielder->maybeTargetPosZ = fielder->IntendedLocation.z;
     } else if (fielder->aiDistToStandFromWallCollision != 0) {
-        fn_3_50DD8(fielderIndex, &outX, &outZ, 1);
+        fielderMovement_updateWallBounceApproach(fielderIndex, &outX, &outZ, 1);
         setFielderAutoCoords(fielderIndex, outX, outZ);
         fielder->maybeTargetPosX = fielder->IntendedLocation.x;
         fielder->maybeTargetPosZ = fielder->IntendedLocation.z;
@@ -3564,7 +3564,7 @@ void updateSprintPointers(void) {
  * ============================================================================ */
 
 // .text:0x00050DD8 size:0x448 mapped:0x8068FE6C
-int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag) {
+int fielderMovement_updateWallBounceApproach(int fielderIndex, f32* outX, f32* outZ, int flag) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 dx;
     f32 dz;
@@ -3601,7 +3601,7 @@ int fn_3_50DD8(int fielderIndex, f32* outX, f32* outZ, int flag) {
             return 0;
         }
 
-        if (fn_3_50898(fielderIndex, &tempX, &tempZ)) {
+        if (fielderMovement_findWallBounceInterceptSpot(fielderIndex, &tempX, &tempZ)) {
             *outX = tempX;
             *outZ = tempZ;
         }
@@ -3691,7 +3691,7 @@ void fielderMovement_adjustPlaceToStandForBallBouncingOffWall(int fielderIndex, 
 }
 
 // .text:0x00050898 size:0x388 mapped:0x8068F92C
-int fn_3_50898(int fielderIndex, f32* outX, f32* outZ) {
+int fielderMovement_findWallBounceInterceptSpot(int fielderIndex, f32* outX, f32* outZ) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int frame;
     int angle;
@@ -3929,11 +3929,11 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
         f32 landingDist = fielderSqrt(ddxSq + ddzSq);
 
         if (landingDist < 4.0f && resultCode == 1) {
-            fielder->nonCatchFlyBallStratInd = 0;
+            fielder->nonCatchFlyBallStratInd = FALSE;
         } else if (landingDist < 5.0f && resultCode == 1 && fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
-            fielder->nonCatchFlyBallStratInd = 0;
+            fielder->nonCatchFlyBallStratInd = FALSE;
         } else {
-            fielder->nonCatchFlyBallStratInd = 1;
+            fielder->nonCatchFlyBallStratInd = TRUE;
         }
     }
 
@@ -3942,24 +3942,24 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
                                       g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
 
         if (fielder->catchStrategy == 2) {
-            if (zone >= 2) {
+            if (zone >= BALL_ZONE_OF_SHALLOW) {
                 fielder->catchStrategy = 4;
             }
-        } else if (zone >= 4) {
+        } else if (zone >= BALL_ZONE_OF_DEEP) {
             fielder->catchStrategy = 4;
         }
     }
 
     if (g_Ball.howFoulTheBallWillBe != 0 && g_Ball.maxYOfHit >= 15.0f &&
-        fielder->nonCatchFlyBallStratInd != 0) {
+        fielder->nonCatchFlyBallStratInd) {
         fielder->framesToGetToBallLandingSpot = g_Ball.framesUntilBallHitsGround - 3;
         fielder->catchStrategy = 3;
-        fielder->cantCatchFlyBallInd = 1;
-        fielder->nonCatchFlyBallStratInd = 0;
+        fielder->cantCatchFlyBallInd = TRUE;
+        fielder->nonCatchFlyBallStratInd = FALSE;
     }
 
     if (!g_d_GameSettings.minigamesEnabled) {
-        if (fielder->nonCatchFlyBallStratInd == 0) {
+        if (!fielder->nonCatchFlyBallStratInd) {
             if (framesNeeded + 15 < fielder->framesToGetToBallLandingSpot) {
                 g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
             }
@@ -4068,9 +4068,9 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
     }
 
     fielder->catchStrategy = resultCode;
-    fielder->cantCatchFlyBallInd = 0;
+    fielder->cantCatchFlyBallInd = FALSE;
     if (resultCode != 1 && resultCode != 2) {
-        fielder->cantCatchFlyBallInd = 1;
+        fielder->cantCatchFlyBallInd = TRUE;
     }
 
     {
@@ -4081,13 +4081,13 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
         f32 landingDist = fielderSqrt(ddxSq + ddzSq);
 
         if (landingDist < 3.0f && resultCode == 1) {
-            fielder->nonCatchFlyBallStratInd = 0;
+            fielder->nonCatchFlyBallStratInd = FALSE;
         } else {
-            fielder->nonCatchFlyBallStratInd = 1;
+            fielder->nonCatchFlyBallStratInd = TRUE;
         }
     }
 
-    if (fielder->nonCatchFlyBallStratInd == 0) {
+    if (!fielder->nonCatchFlyBallStratInd) {
         if (framesNeeded + 30 < fielder->framesToGetToBallLandingSpot) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
         }
@@ -7083,7 +7083,7 @@ void fielderTrackingBall_initialVariableSetting(int fielderIndex) {
         f32 outX;
         f32 outZ;
 
-        fn_3_50DD8(fielderIndex, &outX, &outZ, 0);
+        fielderMovement_updateWallBounceApproach(fielderIndex, &outX, &outZ, 0);
         targetX = outX;
         targetZ = outZ;
     }
@@ -7158,7 +7158,7 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
             if (fielder->aiDistToStandFromWallCollision != 0) {
                 f32 outX;
                 f32 outZ;
-                fn_3_50DD8(fielderIndex, &outX, &outZ, 1);
+                fielderMovement_updateWallBounceApproach(fielderIndex, &outX, &outZ, 1);
                 fielder->maybeTargetPosX = outX;
                 fielder->maybeTargetPosZ = outZ;
                 targetX = outX;
@@ -7205,7 +7205,7 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
         if (fielder->aiDistToStandFromWallCollision != 0) {
             f32 outX;
             f32 outZ;
-            fn_3_50DD8(fielderIndex, &outX, &outZ, 1);
+            fielderMovement_updateWallBounceApproach(fielderIndex, &outX, &outZ, 1);
             setFielderAutoCoords(fielderIndex, outX, outZ);
             fielder->maybeTargetPosX = outX;
             fielder->maybeTargetPosZ = outZ;
@@ -7331,7 +7331,7 @@ void updateFielderPosition(int fielderIndex) {
     fielder->zPos5mAwayFromBallsCollisionSpotOnWall = 5.0f * g_Ball._19E8 + g_Ball.ballWillHitBallPos.z;
 
     if (fielder->aiDistToStandFromWallCollision != 0) {
-        fn_3_50DD8(fielderIndex, &outX, &outZ, 1);
+        fielderMovement_updateWallBounceApproach(fielderIndex, &outX, &outZ, 1);
         setFielderAutoCoords(fielderIndex, outX, outZ);
         fielder->maybeTargetPosX = outX;
         fielder->maybeTargetPosZ = outZ;
