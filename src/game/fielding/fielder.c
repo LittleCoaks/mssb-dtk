@@ -4254,19 +4254,43 @@ void knockoutRelated_subFn(int fielderIndex, int flag) {
     }
 }
 
+static inline BOOL anyBallChaserUnsettled(void) {
+    int i;
+    BOOL problemFound = FALSE;
+    InMemFielder* fielder;
+
+    for (i = 0; i < 9; i++) {
+        if (g_FieldingLogic.fielderAutoMovementCode[i] == 1) {
+            fielder = &g_Fielders[i];
+            if (fielder->catchStrategy == 0) {
+                problemFound = TRUE;
+                break;
+            }
+            if (fielder->nonCatchFlyBallStratInd == 0) {
+                problemFound = TRUE;
+                break;
+            }
+            if (fielder->maybeMovementState == 0 || fielder->maybeMovementState == 1) {
+                problemFound = TRUE;
+                break;
+            }
+        }
+    }
+    return problemFound;
+}
+
 // .text:0x0004EBC4 size:0x404 mapped:0x8068DC58
 void aISetFielderWithBallIndex(void) {
     s16 frames;
-    int outfielderProblem;
-    int bestFielderIndex;
-    s16 bestScore;
-    s16 secondScore;
-    int i;
+    int lastFrames;
+    int bestFielderIndex = -1;
+    s16 bestScore = 9999;
+    s16 secondScore = 9999;
+    BOOL skipOutfielders = FALSE;
     InMemFielder* fielder;
     s16 numFramesToGetToAutoLocation;
     u8 catchStrategy;
-    int lastFrames;
-    int problemFound;
+    int i;
 
     if (g_FieldingLogic.locationThrownTo >= 0) {
         g_Ball.fielderAboutToGetBall_hasBall = -1;
@@ -4282,57 +4306,51 @@ void aISetFielderWithBallIndex(void) {
         return;
     }
 
-    outfielderProblem = 0;
-    if (g_Ball.ballZoneAwayFromHome <= 1 && g_Ball.maxYOfHit <= 3.0f) {
-        outfielderProblem = 1;
+    lastFrames = -1;
+    if (g_Ball.ballZoneAwayFromHome <= BALL_ZONE_IF_DIRT && g_Ball.maxYOfHit <= 3.0f) {
+        skipOutfielders = TRUE;
     }
 
-    bestFielderIndex = -1;
-    bestScore = 0x270f;
-    secondScore = 0x270f;
-    lastFrames = -1;
-
-    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
+    for (i = 0; i < 9; i++) {
         if (g_FieldingLogic.fielderAutoMovementCode[i] != 1) {
             continue;
         }
 
+        fielder = &g_Fielders[i];
         numFramesToGetToAutoLocation = fielder->numFramesToGetToAutoLocation;
-        if (numFramesToGetToAutoLocation == -1) {
-            if (g_Ball.fielderAboutToGetBall_hasBall == i) {
-                g_Ball.fielderAboutToGetBall_hasBall = -1;
-            }
+        if (numFramesToGetToAutoLocation == -1 && g_Ball.fielderAboutToGetBall_hasBall == i) {
+            g_Ball.fielderAboutToGetBall_hasBall = -1;
             continue;
         }
 
         catchStrategy = fielder->catchStrategy;
-        if (catchStrategy == 1 && i <= 5) {
+        if (catchStrategy == 1 && i <= FIELDING_POSITION_SHORTSTOP) {
             if (fielder->distanceFromLandingSpot > 5.0f) {
-                outfielderProblem = 1;
+                skipOutfielders = TRUE;
                 continue;
             }
         }
 
-        if (i >= 6) {
-            if (outfielderProblem != 0) {
+        if (i >= FIELDING_POSITION_LEFT_FIELD) {
+            if (skipOutfielders) {
                 break;
             }
         }
 
+        lastFrames = numFramesToGetToAutoLocation;
         if (numFramesToGetToAutoLocation < 0) {
             continue;
         }
 
-        lastFrames = numFramesToGetToAutoLocation;
         if (fielder->fielderReadiness != 0) {
-            lastFrames = numFramesToGetToAutoLocation + 0x3c;
+            lastFrames = numFramesToGetToAutoLocation + 60;
         } else if (fielder->animatingActionInd != 0) {
-            lastFrames = numFramesToGetToAutoLocation + 0x3c;
+            lastFrames = numFramesToGetToAutoLocation + 60;
         }
 
-        if (i == 0 && catchStrategy == 1) {
+        if (i == FIELDING_POSITION_PITCHER && catchStrategy == 1) {
             if (fielder->distanceFromLandingSpot > fielder->distanceFromHomePlate) {
-                lastFrames += 0x1e;
+                lastFrames += 30;
             }
         }
 
@@ -4345,49 +4363,34 @@ void aISetFielderWithBallIndex(void) {
     }
 
     if (bestFielderIndex >= 0) {
-        if (g_Fielders[bestFielderIndex].catchStrategy == 1) {
-            if (bestScore < 0x3c && bestScore + 0x3c < secondScore) {
+        if (g_Fielders[bestFielderIndex].catchStrategy == 1 && bestScore < 60) {
+            if (bestScore + 60 < secondScore) {
                 g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
             }
-        }
 
-        if (bestScore < 0x1e) {
-            g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
-        }
+            if (bestScore < 30) {
+                g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
+            }
 
-        if (g_Ball.AtBat_ContactResult != 0) {
-            g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
-        } else if (g_Fielders[bestFielderIndex].nonCatchFlyBallStratInd == 0) {
-            g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
-        } else if (lastFrames == bestFielderIndex) {
-            g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
+            if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
+                if (g_Fielders[bestFielderIndex].nonCatchFlyBallStratInd == 0) {
+                    g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
+                } else if (lastFrames == bestFielderIndex) {
+                    g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
+                }
+            } else {
+                g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
+            }
         }
 
         if (g_Fielders[bestFielderIndex].maybeMovementState == 4) {
-            if (bestScore < 0x3c) {
+            if (bestScore < 60) {
                 g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
             }
         }
 
-        if (g_Fielders[bestFielderIndex].maybeMovementState == 2 && bestScore < 0x1e) {
-            problemFound = 0;
-            for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
-                if (g_FieldingLogic.fielderAutoMovementCode[i] == 1) {
-                    if (fielder->catchStrategy == 0) {
-                        problemFound = 1;
-                        break;
-                    }
-                    if (fielder->nonCatchFlyBallStratInd == 0) {
-                        problemFound = 1;
-                        break;
-                    }
-                    if (fielder->maybeMovementState == 0 || fielder->maybeMovementState == 1) {
-                        problemFound = 1;
-                        break;
-                    }
-                }
-            }
-            if (!problemFound) {
+        if (g_Fielders[bestFielderIndex].maybeMovementState == 2 && bestScore < 30) {
+            if (!anyBallChaserUnsettled()) {
                 g_Ball.fielderAboutToGetBall_hasBall = bestFielderIndex;
             }
         }
