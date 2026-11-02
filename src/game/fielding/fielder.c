@@ -220,12 +220,8 @@ static inline void fielderAIAssignmentRelated_finish(int fielderIndex) {
 static s16 fielderControlStick_continuousAngleHistory[72];
 static s16 currentStickDirection;
 
-typedef struct {
-    s16 pad0[2];
-    s16 characterStickAngleHistory[4][20];
-} lbl_3_bss_C8_s;
-
-static lbl_3_bss_C8_s lbl_3_bss_C8;
+static s16 characterStickAngleHistory[4][20];
+static s32 lbl_3_bss_C8;
 
 AutoMovementFunction autoMovementFunctions[29] = {
     { 0, autoMovement0_stayStill_exceptForSpecialActions },
@@ -13620,7 +13616,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
     }
 
     charHist =
-        lbl_3_bss_C8.characterStickAngleHistory[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
+        characterStickAngleHistory[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
     for (i = 19; i >= 1; i--) {
         fielderControlStick_continuousAngleHistory[i] = charHist[i - 1];
@@ -13859,7 +13855,7 @@ void fn_3_2E41C(void) {
 
             characterIndex = g_Minigame.minigameControlStruct[0].characterIndex[i];
             control = &g_Controls[characterIndex];
-            charHist = lbl_3_bss_C8.characterStickAngleHistory[characterIndex];
+            charHist = characterStickAngleHistory[characterIndex];
 
             for (j = 19; j >= 1; j--) {
                 fielderControlStick_continuousAngleHistory[j] = charHist[j - 1];
