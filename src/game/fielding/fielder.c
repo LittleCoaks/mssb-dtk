@@ -13838,11 +13838,11 @@ void fn_3_2E41C(void) {
 
         if (fielderIdx > 0) {
             int characterIndex;
-            InputStruct* control;
             s16* charHist;
+            InputStruct* control;
             s16 stickAngle;
-            InMemFielder* fielder;
             int movementAngle;
+            InMemFielder* fielder;
             s32 j;
 
             g_Minigame.minigameRelatedIndex = g_Minigame.minigameFielderIndex[i];
@@ -13887,7 +13887,7 @@ void fn_3_2E41C(void) {
             g_FieldingLogic.dashPtr = &((FielderDash*) g_FieldingLogic.fielderDashByPort)[i];
             g_FieldingLogic.jumpDiveStruct =
                 &((g_FieldingLogic_s*) ((u8*) &g_FieldingLogic + i * 6))->specialActionChecks;
-            ((g_FieldingLogic_s*) ((u8*) &g_FieldingLogic + i * 6))->specialActionChecks.aPressed_decidingWhatActionToTake = 0;
+            g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
 
             fielder = &g_Fielders[(s8) g_Minigame.minigameFielderIndex[i]];
             movementAngle = fielderControlStick_continuousAngleHistory[0];
