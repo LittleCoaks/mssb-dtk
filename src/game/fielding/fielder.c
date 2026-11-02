@@ -13934,32 +13934,42 @@ void fn_3_2E41C(void) {
 
 // .text:0x0002DDB4 size:0x668 mapped:0x8066CE48
 void fn_3_2DDB4(void) {
-    u8 playerIndex = g_Minigame.activeFielderSlot;
+    s32 playerIndex = (u8)g_Minigame.activeFielderSlot;
     u8 fielderIndex = g_Minigame.minigameRelatedIndex;
-    InputStruct* control = &g_Controls[playerIndex];
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    s16* counter = &g_AiLogic._9C[playerIndex];
+    InputStruct* control = &g_Controls[(u8)playerIndex];
 
-    if (*counter < 0x7ffe) {
-        *counter = *counter + 1;
+    if (g_AiLogic._9C[(u8)playerIndex] < 0x7ffe) {
+        g_AiLogic._9C[(u8)playerIndex]++;
     } else {
-        *counter = 0x7fff;
+        g_AiLogic._9C[(u8)playerIndex] = 0x7fff;
     }
 
     if (g_AiLogic._B4[playerIndex] == 0) {
         if (g_AiLogic._B8[playerIndex] == 0) {
-            f32 pushDist = lbl_3_data_1C44[g_Batter.characterClass];
-            f32 dist = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
+            f32 pushDist;
+            f32 dist;
+            f32 posZ;
+            f32 posX;
+            f32 dirX;
+            f32 dirZ;
 
-            g_AiLogic._7C[playerIndex].x = (fielder->pos.x / dist) * pushDist + fielder->pos.x;
-            g_AiLogic._7C[playerIndex].z = (fielder->pos.z / dist) * pushDist + fielder->pos.z;
-            *counter = 0;
+            pushDist = lbl_3_data_1C44[g_Batter.characterClass];
+            dist = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
+            posX = fielder->pos.x;
+            posZ = fielder->pos.z;
+            dirX = posX / dist;
+            dirZ = posZ / dist;
+
+            g_AiLogic._7C[playerIndex].x = dirX * pushDist + posX;
+            g_AiLogic._7C[playerIndex].z = dirZ * pushDist + posZ;
+            g_AiLogic._9C[(u8)playerIndex] = 0;
             g_AiLogic._B8[playerIndex] = 1;
         } else if (g_AiLogic._B8[playerIndex] == 2) {
             if (fielder->characterClass == CHARACTER_CLASS_SPEED ||
                 fielder->characterClass == CHARACTER_CLASS_TECHNIQUE) {
                 g_AiLogic._B4[playerIndex] = 1;
-                g_AiLogic._AC[playerIndex] = fielder->playerAngleFromHome;
+                g_AiLogic._AC[(u8)playerIndex] = fielder->playerAngleFromHome;
             } else {
                 g_AiLogic._B4[playerIndex] = 2;
             }
@@ -13969,33 +13979,29 @@ void fn_3_2DDB4(void) {
         f32 dist = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
 
         if (fielder->pos.x < -15.0f) {
-            int sum = fielder->playerAngleFromHome + RandomInt_Game(0x400);
-            g_AiLogic._AC[playerIndex] = sum - 0x600;
-        } else if (fielder->pos.x <= 15.0f) {
-            int sum = fielder->playerAngleFromHome + RandomInt_Game(0x400);
-            g_AiLogic._AC[playerIndex] = sum + 0x200;
+            g_AiLogic._AC[(u8)playerIndex] = fielder->playerAngleFromHome - 0x600 + RandomInt_Game(0x400);
+        } else if (fielder->pos.x > 15.0f) {
+            g_AiLogic._AC[(u8)playerIndex] = fielder->playerAngleFromHome + 0x200 + RandomInt_Game(0x400);
         } else if (dist > 75.0f) {
-            int sum = RandomInt_Game(0x800) + fielder->playerAngleFromHome;
-            g_AiLogic._AC[playerIndex] = sum + 0x400;
+            g_AiLogic._AC[(u8)playerIndex] = RandomInt_Game(0x800) + 0x400 + fielder->playerAngleFromHome;
         } else if (dist < 50.0f) {
-            int sum = RandomInt_Game(0x800) + fielder->playerAngleFromHome;
-            g_AiLogic._AC[playerIndex] = sum - 0x400;
-        } else if (RandomInt_Game(2) == 0) {
-            g_AiLogic._AC[playerIndex] = RandomInt_Game(0x400) + g_AiLogic._AC[playerIndex] - 0x200;
+            g_AiLogic._AC[(u8)playerIndex] = RandomInt_Game(0x800) - 0x400 + fielder->playerAngleFromHome;
+        } else if (RandomInt_Game(2) != 0) {
+            g_AiLogic._AC[(u8)playerIndex] += RandomInt_Game(0x400) - 0x200;
         } else {
-            g_AiLogic._AC[playerIndex] = RandomInt_Game(0x1000);
+            g_AiLogic._AC[(u8)playerIndex] = RandomInt_Game(0x1000);
         }
 
-        g_AiLogic._AC[playerIndex] = normalizeAngle(g_AiLogic._AC[playerIndex]);
-        g_AiLogic._A4[playerIndex] = RandomInt_Game_Range(lbl_3_data_1C54[0], lbl_3_data_1C54[1]);
-        *counter = 0;
+        g_AiLogic._AC[(u8)playerIndex] = normalizeAngle(g_AiLogic._AC[(u8)playerIndex]);
+        g_AiLogic._A4[(u8)playerIndex] = RandomInt_Game_Range(lbl_3_data_1C54[0], lbl_3_data_1C54[1]);
+        g_AiLogic._9C[(u8)playerIndex] = 0;
         g_AiLogic._B8[playerIndex] = 1;
     }
 
     if (g_AiLogic._B8[playerIndex] == 1) {
         if (g_AiLogic._B4[playerIndex] == 1) {
-            control->controlStickAngle = g_AiLogic._AC[playerIndex];
-            if (*counter >= g_AiLogic._A4[playerIndex]) {
+            control->controlStickAngle = g_AiLogic._AC[(u8)playerIndex];
+            if (g_AiLogic._9C[(u8)playerIndex] >= g_AiLogic._A4[(u8)playerIndex]) {
                 g_AiLogic._B8[playerIndex] = 0;
             }
         } else {
@@ -14003,10 +14009,10 @@ void fn_3_2DDB4(void) {
             f32 diffX = g_AiLogic._7C[playerIndex].x - fielder->pos.x;
             f32 dist = fielderSqrt(diffX * diffX + diffZ * diffZ);
 
-            if (dist >= 0.5f) {
-                control->controlStickAngle = calculateAngleFromCoordinates(diffX, diffZ);
-            } else {
+            if (dist < 0.5f) {
                 g_AiLogic._B8[playerIndex] = 2;
+            } else {
+                control->controlStickAngle = calculateAngleFromCoordinates(diffX, diffZ);
             }
         }
     }
