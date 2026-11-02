@@ -2025,8 +2025,11 @@ void updateFielderDirectionFacing(int fielderIndex) {
                 return;
             }
 
-            fielder->desiredMovementDirection = ATAN2F(g_Runners[runnerIdx].position.z - fielder->pos.z,
-                                                         g_Runners[runnerIdx].position.x - fielder->pos.x);
+            {
+                InMemRunnerType* runner = &g_Runners[runnerIdx];
+                fielder->desiredMovementDirection =
+                    ATAN2F(runner->position.z - fielder->pos.z, runner->position.x - fielder->pos.x);
+            }
             return;
         }
     }
@@ -2165,7 +2168,7 @@ void updateFielderDirectionFacing(int fielderIndex) {
         return;
 
 cascade:
-        if (g_BallsStrikesOuts.outs >= 3 && fielder->currentVelocity != 0.0f &&
+        if (g_BallsStrikesOuts.outs >= 3 && fielder->currentVelocity &&
             g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
             f32 x = dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.awayTeamBattingInd_battingTeam].x;
             f32 z = dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.awayTeamBattingInd_battingTeam].z;
