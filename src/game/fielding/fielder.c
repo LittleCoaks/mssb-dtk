@@ -3176,12 +3176,22 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
     CollisionStruct collision;
     u32 type;
     f32 magnitude;
-    f32 unitNormalX, unitNormalZ;
-    f32 dirX, dirZ;
-    f32 weightedNormalX, weightedNormalZ;
-    f32 angle1, angle2, diff, cosDiff;
-    f32 pushRadius, collisionDist;
-    f32 baseX, baseZ, offsetX, offsetZ;
+    f32 weightedNormalX;
+    f32 weightedNormalZ;
+    f32 dirX;
+    f32 dirZ;
+    f32 unitNormalX;
+    f32 unitNormalZ;
+    f32 angle1;
+    f32 angle2;
+    f32 diff;
+    f32 cosDiff;
+    f32 pushRadius;
+    f32 collisionDist;
+    f32 baseZ;
+    f32 baseX;
+    f32 offsetX;
+    f32 offsetZ;
 
     if (fielder->currentVelocity == 0.0f) {
         return 0;
@@ -3260,10 +3270,10 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
         offsetX = 3.0f * unitNormalX;
         offsetZ = 3.0f * unitNormalZ;
         inVec.dst.x = baseX;
-        inVec.src.x = baseX + offsetX;
-        inVec.dst.x -= offsetX;
         inVec.dst.z = baseZ;
+        inVec.src.x = baseX + offsetX;
         inVec.src.z = baseZ + offsetZ;
+        inVec.dst.x -= offsetX;
         inVec.dst.z -= offsetZ;
         type = checkCollision(&inVec, &collision, 1, 0);
         if (type != BALL_COLLISION_TYPE_NONE) {
