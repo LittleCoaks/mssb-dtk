@@ -13604,19 +13604,19 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
     int fielderIndex;
     s32 i;
 
-    fielderIndex = (s8)g_Minigame.minigameFielderIndex[minigameFielderSlot];
+    fielderIndex = ((s8*)g_Minigame.minigameFielderIndex)[minigameFielderSlot];
     g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
     fielder = &g_Fielders[fielderIndex];
 
-    control = &g_Controls[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
+    control = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
     if (minigame_getAIDrivenInputInd(g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot])) {
-        control = &g_Minigame.aiInputs[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
+        control = &g_Minigame.aiInputs[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
     }
 
     charHist =
-        characterStickAngleHistory[(s8)g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
+        characterStickAngleHistory[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
     for (i = 19; i >= 1; i--) {
         fielderControlStick_continuousAngleHistory[i] = charHist[i - 1];
@@ -13687,8 +13687,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
     int i;
     int fielderIndex;
 
-    fielderIndex = g_Minigame.minigameFielderIndex[minigameFielderSlot];
-    fielderIndex = (s8)fielderIndex;
+    fielderIndex = ((s8*)g_Minigame.minigameFielderIndex)[minigameFielderSlot];
     fielder = &g_Fielders[fielderIndex];
 
     for (i = 19; i >= 1; i--) {
@@ -14265,10 +14264,9 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
     int i;
     int fielderIndex;
 
-    fielderIndex = g_Minigame.minigameFielderIndex[minigameFielderSlot];
+    fielderIndex = ((s8*)g_Minigame.minigameFielderIndex)[minigameFielderSlot];
     g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
-    fielderIndex = (s8)fielderIndex;
     fielder = &g_Fielders[fielderIndex];
 
     updateFielder_SpecificValuesEachFrame(fielderIndex);
