@@ -5945,83 +5945,83 @@ void setInitialFielderMovements_cutoffs(void) {
     u8 movementCode3;
     u8 movementCode5;
 
-    if (g_Ball.hitClassification2 == 5 || g_Ball.hitClassification2 == 6 || g_Ball.hitClassification2 == 8) {
-        movementCode3 = g_FieldingLogic.fielderAutoMovementCode[3];
-        if (movementCode3 == 1 || movementCode3 == 10 || movementCode3 == 11) {
-            if (g_Fielders[5].locationResponsibleForCovering != -1) {
-                g_Fielders[3].locationResponsibleForCovering = 6;
-                g_Fielders[3].isResponsibleForCoveringALocation = 2;
+    if (!(g_Ball.hitClassification2 == 5 || g_Ball.hitClassification2 == 6 || g_Ball.hitClassification2 == 8)) {
+        return;
+    }
+
+    movementCode3 = g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_SECOND_BASE];
+    if (movementCode3 == 1 || movementCode3 == 10 || movementCode3 == 11) {
+        if (g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering != -1) {
+            g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 6;
+            g_Fielders[FIELDING_POSITION_SECOND_BASE].isResponsibleForCoveringALocation = 2;
+        } else {
+            g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 6;
+            g_Fielders[FIELDING_POSITION_SHORTSTOP].isResponsibleForCoveringALocation = 2;
+            if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_SHORTSTOP] == 0) {
+                setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 11);
+            }
+        }
+    } else {
+        movementCode5 = g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_SHORTSTOP];
+        if (movementCode5 == 1 || movementCode5 == 10 || movementCode5 == 11) {
+            if (g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering != -1) {
+                g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 6;
+                g_Fielders[FIELDING_POSITION_SHORTSTOP].isResponsibleForCoveringALocation = 2;
             } else {
-                g_Fielders[5].locationResponsibleForCovering = 6;
-                g_Fielders[5].isResponsibleForCoveringALocation = 2;
-                if (g_FieldingLogic.fielderAutoMovementCode[5] == 0) {
-                    setFielderAutoMovement(5, 11);
+                g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 6;
+                g_Fielders[FIELDING_POSITION_SECOND_BASE].isResponsibleForCoveringALocation = 2;
+                if (movementCode3 == 0) {
+                    setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 11);
+                }
+            }
+        } else if (g_Ball.Hit_HorizontalAngle < 0x400) {
+            u8 movementCode2;
+            if (g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering == 1 &&
+                ((movementCode2 = g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_FIRST_BASE]) == 1 ||
+                 movementCode2 == 10 || movementCode2 == 11)) {
+                g_Fielders[FIELDING_POSITION_FIRST_BASE].locationResponsibleForCovering = 6;
+                g_Fielders[FIELDING_POSITION_FIRST_BASE].isResponsibleForCoveringALocation = 2;
+            } else {
+                g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 6;
+                g_Fielders[FIELDING_POSITION_SECOND_BASE].isResponsibleForCoveringALocation = 2;
+                if (movementCode3 == 0) {
+                    setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 11);
                 }
             }
         } else {
-            movementCode5 = g_FieldingLogic.fielderAutoMovementCode[5];
-            if (movementCode5 == 1 || movementCode5 == 10 || movementCode5 == 11) {
-                if (g_Fielders[3].locationResponsibleForCovering != -1) {
-                    g_Fielders[5].locationResponsibleForCovering = 6;
-                    g_Fielders[5].isResponsibleForCoveringALocation = 2;
-                } else {
-                    g_Fielders[3].locationResponsibleForCovering = 6;
-                    g_Fielders[3].isResponsibleForCoveringALocation = 2;
-                    if (movementCode3 == 0) {
-                        setFielderAutoMovement(3, 11);
-                    }
-                }
-            } else if (g_Ball.Hit_HorizontalAngle < 0x400) {
-                u8 movementCode2;
-                if (g_Fielders[3].locationResponsibleForCovering == 1 &&
-                    ((movementCode2 = g_FieldingLogic.fielderAutoMovementCode[2]) == 1 || movementCode2 == 10 ||
-                     movementCode2 == 11)) {
-                    g_Fielders[2].locationResponsibleForCovering = 6;
-                    g_Fielders[2].isResponsibleForCoveringALocation = 2;
-                } else if (movementCode3 != 0) {
-                    g_Fielders[3].locationResponsibleForCovering = 6;
-                    g_Fielders[3].isResponsibleForCoveringALocation = 2;
-                } else {
-                    g_Fielders[3].locationResponsibleForCovering = 6;
-                    g_Fielders[3].isResponsibleForCoveringALocation = 2;
-                    setFielderAutoMovement(3, 11);
-                }
+            u8 movementCode4;
+            if (g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering == 3 &&
+                ((movementCode4 = g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_THIRD_BASE]) == 1 ||
+                 movementCode4 == 10 || movementCode4 == 11)) {
+                g_Fielders[FIELDING_POSITION_THIRD_BASE].locationResponsibleForCovering = 6;
+                g_Fielders[FIELDING_POSITION_THIRD_BASE].isResponsibleForCoveringALocation = 2;
             } else {
-                u8 movementCode4;
-                if (g_Fielders[5].locationResponsibleForCovering == 3 &&
-                    ((movementCode4 = g_FieldingLogic.fielderAutoMovementCode[4]) == 1 || movementCode4 == 10 ||
-                     movementCode4 == 11)) {
-                    g_Fielders[4].locationResponsibleForCovering = 6;
-                    g_Fielders[4].isResponsibleForCoveringALocation = 2;
-                } else if (movementCode5 != 0) {
-                    g_Fielders[5].locationResponsibleForCovering = 6;
-                    g_Fielders[5].isResponsibleForCoveringALocation = 2;
-                } else {
-                    g_Fielders[5].locationResponsibleForCovering = 6;
-                    g_Fielders[5].isResponsibleForCoveringALocation = 2;
-                    setFielderAutoMovement(5, 11);
+                g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 6;
+                g_Fielders[FIELDING_POSITION_SHORTSTOP].isResponsibleForCoveringALocation = 2;
+                if (movementCode5 == 0) {
+                    setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 11);
                 }
             }
         }
     }
 
-    if (g_FieldingLogic.fielderAutoMovementCode[0] == 0) {
-        InMemFielder* fielder = &g_Fielders[0];
+    if (g_FieldingLogic.fielderAutoMovementCode[FIELDING_POSITION_PITCHER] == 0) {
+        InMemFielder* fielder = &g_Fielders[FIELDING_POSITION_PITCHER];
         sAng angle = g_Ball.Hit_HorizontalAngle;
 
         fielder->locationResponsibleForCovering = 15;
 
         if (angle < 0x320) {
-            fielderTrackingBall_applyIntendedLocation(fielder, 6.0f, 16.0f, 0);
+            fielderTrackingBall_applyIntendedLocation(fielder, 6.0f, 16.0f, FALSE);
         } else if (angle < 0x400) {
-            fielderTrackingBall_applyIntendedLocation(fielder, 3.0f, 21.0f, 0);
+            fielderTrackingBall_applyIntendedLocation(fielder, 3.0f, 21.0f, FALSE);
         } else if (angle < 0x4e0) {
-            fielderTrackingBall_applyIntendedLocation(fielder, -3.0f, 21.0f, 0);
+            fielderTrackingBall_applyIntendedLocation(fielder, -3.0f, 21.0f, FALSE);
         } else {
-            fielderTrackingBall_applyIntendedLocation(fielder, -6.0f, 16.0f, 0);
+            fielderTrackingBall_applyIntendedLocation(fielder, -6.0f, 16.0f, FALSE);
         }
 
-        setFielderAutoMovement(0, 14);
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, 14);
     }
 }
 
