@@ -1498,7 +1498,7 @@ int runnerAI_gradeHitDropChance(void) {
         if (code == 1 || code == 10 || code == 11) {
             if (g_Fielders[i].groundDistanceFromBall < 3.0f &&
                 g_Ball.physicsSubstruct.hitLandingSpotDistFromHome > g_Fielders[i].distanceFromHomePlate) {
-                int time = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                int time = fRunningTimeToDestination(i, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
                                                           g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) -
                            10;
 
@@ -1511,10 +1511,10 @@ int runnerAI_gradeHitDropChance(void) {
                 }
                 bestFielder = i;
             } else {
-                int landingTime = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+                int landingTime = fRunningTimeToDestination(i, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                                  g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z) -
                                   10;
-                int time = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                int time = fRunningTimeToDestination(i, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
                                                           g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) -
                            10;
 
@@ -1585,7 +1585,7 @@ int runnerAI_getFastestFielderToBall(int* outFielder) {
             int time;
 
             do {
-                time = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                time = fRunningTimeToDestination(i, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
                                                       g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
                 if (time < frame + 15) {
                     break;
@@ -1751,9 +1751,9 @@ int runnerAI_getRundownDirection(int runnerIdx) {
         return 1;
     }
 
-    framesToNext = fRunningTimeToDestinationPlus7(g_Ball.fielderWBallIndex, base_MoundCoordinates[nextBase].x,
+    framesToNext = fRunningTimeToDestination(g_Ball.fielderWBallIndex, base_MoundCoordinates[nextBase].x,
                                                   base_MoundCoordinates[nextBase].z);
-    framesToCurrent = fRunningTimeToDestinationPlus7(g_Ball.fielderWBallIndex, base_MoundCoordinates[currentBase].x,
+    framesToCurrent = fRunningTimeToDestination(g_Ball.fielderWBallIndex, base_MoundCoordinates[currentBase].x,
                                                      base_MoundCoordinates[currentBase].z);
 
     target = g_FieldingLogic.somethingForTryingTagOutTargetBase;
