@@ -13571,7 +13571,7 @@ void miniGameDash(void) {
 
     fielderResetAndStoreValuesEachFrame();
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < (int) ARRAY_COUNT(g_Minigame.minigameFielderIndex); i++) {
         if ((s8)g_Minigame.minigameFielderIndex[i] >= 0) {
             g_FieldingLogic.dashPtr = &((FielderDash*) g_FieldingLogic.fielderDashByPort)[i];
             g_FieldingLogic.jumpDiveStruct =
@@ -13742,7 +13742,7 @@ void miniGameFielding(void) {
     int i;
     int fielderIndex;
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < (int) ARRAY_COUNT(g_Minigame.minigameFielderIndex); i++) {
         fielderIndex = g_Minigame.minigameFielderIndex[i];
         if ((s8) fielderIndex >= 0) {
             updateFielder_SpecificValuesEachFrame((s8) fielderIndex);
