@@ -254,6 +254,13 @@ typedef enum _BALL_RESULT_TYPE {
     /* 0x3 */ BALL_RESULT_TYPE_CAUGHT
 } BALL_RESULT_TYPE;
 
+// g_Ball.fieldedTerritory: where the ball was when a fielder first handled it.
+typedef enum _FIELDED_TERRITORY {
+    /*  -1 */ FIELDED_TERRITORY_UNSET = -1,
+    /* 0x0 */ FIELDED_TERRITORY_FAIR,
+    /* 0x1 */ FIELDED_TERRITORY_FOUL,
+} FIELDED_TERRITORY;
+
 typedef enum _DEAD_BALL_REASON {
     /* 0x0 */ DEAD_BALL_REASON_NONE,
     /* 0x1 */ DEAD_BALL_REASON_HOME_RUN,

@@ -391,7 +391,7 @@ void running_setDefaultRunners(void) {
         runner->tagUpStatus = TAG_UP_TYPE_NONE;
         runner->movementRestrictions = RUNNER_RESTRICTION_NONE;
         runner->unused_AIBaseHoldFlag = 0;
-        runner->outType = 0;
+        runner->outType = OUT_TYPE_NONE;
         runner->forceOutCd = FORCE_OUT_TYPE_NOT_FORCED_TO_ADVANCE;
         runner->isEligibleToScore = TRUE;
         runner->steal_forcedBaseToGoToOnWalk = STEAL_FORCED_BASE_NONE;
@@ -721,7 +721,7 @@ void running_checkForOuts(void) {
 
             if (contact == BALL_RESULT_TYPE_CAUGHT || g_FieldingLogic.infieldFlyIndicator == 2) {
                 running_recordOut(0);
-                g_Runners[0].outType = 1;
+                g_Runners[0].outType = OUT_TYPE_CAUGHT;
                 if (g_Ball.fielderWhoGotLastOut < 0) {
                     g_Ball.fielderWhoGotLastOut = g_Ball.fielderWBallIndex;
                 }
@@ -732,7 +732,7 @@ void running_checkForOuts(void) {
                     s16 fielder;
 
                     running_recordOut(g_FieldingLogic.runnerBeingTargettedForOut);
-                    runner->outType = 3;
+                    runner->outType = OUT_TYPE_TAG;
                     g_FieldingLogic.runnerBeingTargettedForOut = -1;
                     g_FieldingLogic.fielderTagType = FIELDER_TAG_NONE;
                     if (g_Ball.fielderWhoGotLastOut < 0) {
@@ -757,7 +757,7 @@ void running_checkForOuts(void) {
                        g_FieldingLogic.tagResult_1out_2safe == 2) {
                 if (runner->tagUpStatus == TAG_UP_TYPE_MUST_RETURN) {
                     running_recordOut(g_FieldingLogic.runnerBeingTargettedForOut);
-                    runner->outType = 4;
+                    runner->outType = OUT_TYPE_WHILE_TAGGING_UP;
                     g_FieldingLogic.runnerBeingTargettedForOut = -1;
                     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                         if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.lastThrowWasLaser != 0) {
@@ -770,7 +770,7 @@ void running_checkForOuts(void) {
                     if (runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
                         runner->forceOutCd = FORCE_OUT_TYPE_OUT_ON_FORCE;
                     }
-                    runner->outType = 3;
+                    runner->outType = OUT_TYPE_TAG;
                     g_FieldingLogic.runnerBeingTargettedForOut = -1;
                     if (g_Ball.fielderWhoGotLastOut < 0) {
                         g_Ball.fielderWhoGotLastOut = g_Ball.fielderWithBallIndexStored2;
@@ -788,7 +788,7 @@ void running_checkForOuts(void) {
 
             if (g_Ball.baseBallAndFielderAreOn >= 1 && g_Runners[g_Ball.baseBallAndFielderAreOn].tagUpStatus == TAG_UP_TYPE_MUST_RETURN) {
                 running_recordOut(g_Ball.baseBallAndFielderAreOn);
-                g_Runners[g_Ball.baseBallAndFielderAreOn].outType = 4;
+                g_Runners[g_Ball.baseBallAndFielderAreOn].outType = OUT_TYPE_WHILE_TAGGING_UP;
                 if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
                     if (g_Ball.throwingFielder >= 0 && g_FieldingLogic.lastThrowWasLaser != 0) {
                         starMissionsQuantityBased(STAR_MISSION_EVENT_LASER_THROW_OUT, g_Fielders[g_Ball.throwingFielder].rosterLocation);
@@ -819,7 +819,7 @@ void running_beginFrame_checkForceOut(void) {
         if (g_Runners[index].forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
             running_recordOut(index);
             g_Runners[index].forceOutCd = FORCE_OUT_TYPE_OUT_ON_FORCE;
-            g_Runners[index].outType = 2;
+            g_Runners[index].outType = OUT_TYPE_FORCE;
             if (g_Ball.fielderWhoGotLastOut < 0) {
                 if (g_Ball.throwingFielder < 0) {
                     g_Ball.fielderWhoGotLastOut = g_Ball.fielderWBallIndex;
@@ -966,7 +966,7 @@ void running_updateBatterHoldAndVelocity(void) {
             if (g_BallsStrikesOuts.outs < 3) {
                 batter->batterStayInBattersBoxReason = 1;
             }
-        } else if (batter->outType == 0 || batter->runnerStatus != RUNNER_STATUS_OUT_DURING_PLAY) {
+        } else if (batter->outType == OUT_TYPE_NONE || batter->runnerStatus != RUNNER_STATUS_OUT_DURING_PLAY) {
             if (g_Ball.framesSinceHit < batter->delayBeforeStartingToRun) {
                 batter->batterStayInBattersBoxReason = 2;
             } else if (g_Batter.predictedHitOutcome == PREDICTED_HIT_OUTCOME_HOME_RUN && g_Ball.framesSinceHit < 90) {
