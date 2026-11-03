@@ -3585,7 +3585,7 @@ A pass over every game unit, looking for hand-written copies of functions that M
   inlined helper of its own unit: 27 hosts and 51 copies (32 pasted blocks, plus 19 calls to a
   pointer-form `static inline`). No host lost score (+0.04 .text, 3 new
   100%). A copy whose argument came from a struct field (`out.x`) scored higher with the field first
-  copied into a local (`x = out.x; f(i, x, z)`) than with the field passed directly (fn_3_4597C, 99.31 vs 99.54).
+  copied into a local (`x = out.x; f(i, x, z)`) than with the field passed directly (setFielderAutoCoordsOnThrowLine, 99.31 vs 99.54).
 
 ### Findings from the minigame_framework second pass (2026-10)
 Unit `game/game/minigame/minigame_framework`, 41 -> 49 of 59 functions at 100%.

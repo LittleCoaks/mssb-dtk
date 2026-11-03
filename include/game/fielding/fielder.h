@@ -162,7 +162,7 @@ void fielderTrackingBall_initialVariableSetting(int fielderIndex);
 void autoMovement2_18_goTowardsBall_phase2(int fielderIndex);
 void autoMovement4_AI_goTowardsHitBall(int fielderIndex);
 void autoMovement3_goTowardsHitBall_AITeam(int fielderIndex);
-void fn_3_4597C(int fielderIndex);
+void setFielderAutoCoordsOnThrowLine(int fielderIndex);
 void autoMovement25_readyToInterceptThrownBall(int fielderIndex);
 void updateFielderValuesSubFunction1_cuttoffRelated(void);
 s32 fn_3_46688(f32* outX, f32* outZ);

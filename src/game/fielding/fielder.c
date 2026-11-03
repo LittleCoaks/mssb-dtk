@@ -6534,13 +6534,13 @@ void autoMovement25_readyToInterceptThrownBall(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int result;
 
-    g_FieldingLogic.throwInterceptionTriggered = 0;
+    g_FieldingLogic.throwInterceptionTriggered = FALSE;
 
     if (fielder->fielderTrackingBallState == 0) {
         fielder->fielderTrackingBallState = 1;
-        fielder->cutoffWaitingToInterceptThrownBall = 1;
+        fielder->cutoffWaitingToInterceptThrownBall = TRUE;
         g_FieldingLogic.selectedFielder = fielderIndex;
-        fn_3_4597C(fielderIndex);
+        setFielderAutoCoordsOnThrowLine(fielderIndex);
     }
 
     result = updateFielderPositionAndVelocityForSpecialActions(fielderIndex);
@@ -6553,23 +6553,21 @@ void autoMovement25_readyToInterceptThrownBall(int fielderIndex) {
         if (fielder->cutoffWaitingToInterceptThrownBall != 0) {
             setFielderVelocity(fielderIndex);
             if (g_FieldingLogic.fielderInputsLatestFrame & INPUT_BUTTON_A) {
-                g_FieldingLogic.throwInterceptionTriggered = 1;
+                g_FieldingLogic.throwInterceptionTriggered = TRUE;
             }
         }
         break;
     }
 
     if (g_Ball.ballState != BALL_STATE_THROWN) {
-        g_FieldingLogic.interceptThrowFielder = -1;
-        fielder->cutoffWaitingToInterceptThrownBall = 0;
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 9);
-        }
+        g_FieldingLogic.interceptThrowFielder = FIELDING_POSITION_NONE;
+        fielder->cutoffWaitingToInterceptThrownBall = FALSE;
+        setFielderAutoMovementIfValid(fielderIndex, 9);
     }
 }
 
 // .text:0x0004597C size:0x20C mapped:0x80684A10
-void fn_3_4597C(int fielderIndex) {
+void setFielderAutoCoordsOnThrowLine(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     VecXZ out;
     VecXZ a[2];
@@ -6580,13 +6578,12 @@ void fn_3_4597C(int fielderIndex) {
     f32 x;
     f32 z;
 
-    vz = g_Ball.throwTarget.z - g_Ball.AtBat_Contact_BallPos.z;
-    vx = g_Ball.throwTarget.x - g_Ball.AtBat_Contact_BallPos.x;
-
     a[0].x = g_Ball.AtBat_Contact_BallPos.x;
     a[0].z = g_Ball.AtBat_Contact_BallPos.z;
     a[1].x = g_Ball.throwTarget.x;
     a[1].z = g_Ball.throwTarget.z;
+    vz = a[1].z - a[0].z;
+    vx = a[1].x - a[0].x;
 
     b[0].x = fielder->pos.x;
     b[0].z = fielder->pos.z;
