@@ -6069,64 +6069,70 @@ int fn_3_47628(void) {
     return 4;
 }
 
+/* The same computation as fn_3_46688. The original inlines this copy into
+ * setCutoffLocationToStandAt but keeps fn_3_46688 as a separate function. */
+static inline void estimateBallSpotForCutoff(f32* outX, f32* outZ) {
+    InMemFielder* fielder = &g_Fielders[g_FieldingLogic.selectedFielder];
+    f32 dx, dz;
+    f32 magnitude;
+    f32 sqx, sqz;
+
+    if (g_Ball.fielderWBallIndex >= 0) {
+        *outX = g_Ball.AtBat_Contact_BallPos.x;
+        *outZ = g_Ball.AtBat_Contact_BallPos.z;
+    } else if (g_Ball.ballState == BALL_STATE_THROWN) {
+        *outX = g_Ball.throwStartingLocation.x;
+        *outZ = g_Ball.deadballLastLoc.x;
+    } else if (g_Ball.fielderAboutToGetBall_hasBall >= 0) {
+        *outX = g_Fielders[g_Ball.fielderAboutToGetBall_hasBall].pos.x;
+        *outZ = g_Fielders[g_Ball.fielderAboutToGetBall_hasBall].pos.z;
+    } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
+        *outX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+        *outZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
+    } else {
+        dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
+        dz = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
+        sqx = dx * dx;
+        sqz = dz * dz;
+        magnitude = fielderSqrt(sqx + sqz);
+
+        if (0.0f == magnitude) {
+            *outX = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+            *outZ = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
+        } else if (g_Ball.ballVelocity <= 0.01f) {
+            *outX = g_Ball.AtBat_Contact_BallPos.x;
+            *outZ = g_Ball.AtBat_Contact_BallPos.z;
+        } else {
+            f32 t = magnitude / g_Ball.ballVelocity;
+            *outX = g_Ball.physicsSubstruct.velocity.x * t + g_Ball.AtBat_Contact_BallPos.x;
+            *outZ = g_Ball.physicsSubstruct.velocity.z * t + g_Ball.AtBat_Contact_BallPos.z;
+        }
+    }
+}
+
 // .text:0x00046E08 size:0x820 mapped:0x80685E9C
 int setCutoffLocationToStandAt(int fielderIndex, f32* outX, f32* outZ) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int found = 0;
+    BOOL found = FALSE;
     f32 x;
     f32 z;
     f32 dist;
     s16 idx;
-    VecXZ* base;
     f32 baseX;
     f32 baseZ;
     int i;
 
     if (fielder->AI_Ind != 0) {
         if (!fn_3_468DC(&x, &z)) {
-            return 0;
+            return FALSE;
         }
     } else {
-        InMemFielder* other = &g_Fielders[g_FieldingLogic.selectedFielder];
-
-        if (g_Ball.fielderWBallIndex >= 0) {
-            x = g_Ball.AtBat_Contact_BallPos.x;
-            z = g_Ball.AtBat_Contact_BallPos.z;
-        } else if (g_Ball.ballState == BALL_STATE_THROWN) {
-            x = g_Ball.throwStartingLocation.x;
-            z = g_Ball.deadballLastLoc.x;
-        } else if (g_Ball.fielderAboutToGetBall_hasBall >= 0) {
-            int otherIdx = g_Ball.fielderAboutToGetBall_hasBall;
-            x = g_Fielders[otherIdx].pos.x;
-            z = g_Fielders[otherIdx].pos.z;
-        } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-            x = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-            z = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-        } else {
-            f32 deltaX = g_Ball.AtBat_Contact_BallPos.x - other->pos.x;
-            f32 deltaZ = g_Ball.AtBat_Contact_BallPos.z - other->pos.z;
-            f32 sqX = deltaX * deltaX;
-            f32 sqZ = deltaZ * deltaZ;
-
-            dist = fielderSqrt(sqX + sqZ);
-            if (dist == 0.0f) {
-                x = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-                z = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
-            } else if (g_Ball.ballVelocity <= 0.01f) {
-                x = g_Ball.AtBat_Contact_BallPos.x;
-                z = g_Ball.AtBat_Contact_BallPos.z;
-            } else {
-                f32 time = dist / g_Ball.ballVelocity;
-                x = g_Ball.AtBat_Contact_BallPos.x + g_Ball.physicsSubstruct.velocity.x * time;
-                z = g_Ball.AtBat_Contact_BallPos.z + g_Ball.physicsSubstruct.velocity.z * time;
-            }
-        }
+        estimateBallSpotForCutoff(&x, &z);
     }
 
     idx = fielder->baseCuttoffIsTargeting;
-    base = &base_MoundCoordinates[idx];
-    baseX = base->x;
-    baseZ = base->z;
+    baseX = base_MoundCoordinates[idx].x;
+    baseZ = base_MoundCoordinates[idx].z;
 
     switch (idx) {
     case 0: {
@@ -6146,17 +6152,17 @@ int setCutoffLocationToStandAt(int fielderIndex, f32* outX, f32* outZ) {
         break;
     }
     case 1:
-        *outX = (x - baseX) * 0.5f + baseX;
-        *outZ = (z - baseZ) * 0.5f + baseZ;
+        *outX = baseX + (x - baseX) / 2.0f;
+        *outZ = baseZ + (z - baseZ) / 2.0f;
         break;
     case 2:
-        *outX = (x - baseX) * 0.25f + baseX;
-        *outZ = (z - baseZ) * 0.25f + baseZ;
+        *outX = baseX + (x - baseX) / 4.0f;
+        *outZ = baseZ + (z - baseZ) / 4.0f;
         break;
     case 3:
         if (fielder->playerAngleFromHome < 0x480) {
-            *outX = 0.5f * (x - baseX) + baseX;
-            *outZ = 0.5f * (z - baseZ) + baseZ;
+            *outX = baseX + (x - baseX) / 2.0f;
+            *outZ = baseZ + (z - baseZ) / 2.0f;
         } else {
             *outX = baseX + (x - baseX) / 3.0f;
             *outZ = baseZ + (z - baseZ) / 3.0f;
@@ -6170,17 +6176,11 @@ int setCutoffLocationToStandAt(int fielderIndex, f32* outX, f32* outZ) {
         break;
     }
 
-    {
-        VecXZ* b = &base_MoundCoordinates[1];
-
-        i = 3;
-        do {
-            if (*outZ > b->z - 5.0f && *outZ < b->z + 5.0f &&
-                *outX > b->x - 5.0f && *outX < b->x + 5.0f) {
-                found = 1;
-            }
-            b++;
-        } while (--i);
+    for (i = 1; i < 4; i++) {
+        if (*outZ > base_MoundCoordinates[i].z - 5.0f && *outZ < base_MoundCoordinates[i].z + 5.0f &&
+            *outX > base_MoundCoordinates[i].x - 5.0f && *outX < base_MoundCoordinates[i].x + 5.0f) {
+            found = TRUE;
+        }
     }
 
     if (found) {
@@ -6202,13 +6202,13 @@ int setCutoffLocationToStandAt(int fielderIndex, f32* outX, f32* outZ) {
             *outZ = baseZ + (z - baseZ) / 1.7f;
             break;
         case 4:
-            *outX = baseX + (x - baseX) * 0.5f;
-            *outZ = baseZ + (z - baseZ) * 0.5f;
+            *outX = baseX + (x - baseX) / 2.0f;
+            *outZ = baseZ + (z - baseZ) / 2.0f;
             break;
         default:
             break;
         }
-        return 1;
+        return TRUE;
     } else {
         f32 deltaX = *outX - fielder->IntendedLocation.x;
         f32 deltaZ = *outZ - fielder->IntendedLocation.z;
@@ -6220,7 +6220,7 @@ int setCutoffLocationToStandAt(int fielderIndex, f32* outX, f32* outZ) {
             *outX = fielder->IntendedLocation.x;
             *outZ = fielder->IntendedLocation.z;
         }
-        return 1;
+        return TRUE;
     }
 }
 
