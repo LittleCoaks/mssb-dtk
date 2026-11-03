@@ -6363,7 +6363,7 @@ s32 fn_3_46688(f32* outX, f32* outZ) {
 // .text:0x00045E98 size:0x7F0 mapped:0x80684F2C
 void updateFielderValuesSubFunction1_cuttoffRelated(void) {
     s16 cutoffFielderIndex;
-    int flag;
+    BOOL flag;
     int pos;
     int count;
     int candidates[3];
@@ -6371,7 +6371,7 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
     f32 bestDist;
     int j;
 
-    flag = 0;
+    flag = FALSE;
     if (g_FieldingLogic.someFrameCounterFielderRelated != 0) {
         g_FieldingLogic.someFrameCounterFielderRelated--;
     }
@@ -6381,58 +6381,58 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
     }
 
     if (g_Ball.fielderWBallIndex == g_FieldingLogic.cutoffFielderIndex) {
-        g_FieldingLogic.cutoffFielderIndex = -1;
+        g_FieldingLogic.cutoffFielderIndex = FIELDING_POSITION_NONE;
     }
 
     cutoffFielderIndex = g_FieldingLogic.cutoffFielderIndex;
-    if (cutoffFielderIndex == -1) {
+    if (cutoffFielderIndex == FIELDING_POSITION_NONE) {
         if (g_FieldingLogic.locationThrownTo >= 0) {
             return;
         }
 
-        for (pos = 0; pos < 6; pos++) {
+        for (pos = FIELDING_POSITION_PITCHER; pos < FIELDING_POSITION_LEFT_FIELD; pos++) {
             if (g_Fielders[pos].locationResponsibleForCovering == 6) {
-                u8 idx = g_Fielders[pos].autoMovementFunctionIndex;
-                if (!(idx == 2 || (u8)(idx - 0xf) <= 1 || (u8)(idx - 0x15) <= 2 || idx == 0xc || idx == 0)) {
+                if (!(g_Fielders[pos].autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM ||
+                      (u8)(g_Fielders[pos].autoMovementFunctionIndex - AUTO_MOVEMENT_GOING_TO_BALL) <= 1 ||
+                      (u8)(g_Fielders[pos].autoMovementFunctionIndex - 0x15) <= 2 || g_Fielders[pos].autoMovementFunctionIndex == 0xc ||
+                      g_Fielders[pos].autoMovementFunctionIndex == 0)) {
                     return;
                 }
                 g_Fielders[pos].locationResponsibleForCovering = -1;
             }
         }
 
-        if (g_Ball.ballZoneAwayFromHome >= 3) {
-            flag = 1;
+        if (g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_MID) {
+            flag = TRUE;
         } else {
-            if (g_Ball.ballZoneAwayFromHome <= 1) {
+            if (g_Ball.ballZoneAwayFromHome <= BALL_ZONE_IF_DIRT) {
                 return;
             }
             if (g_Ball.fielderWBallIndex >= 0) {
                 return;
             }
-            if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.ballZoneAwayFromHome >= 2) {
-                flag = 1;
+            if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.ballZoneAwayFromHome >= BALL_ZONE_OF_SHALLOW) {
+                flag = TRUE;
             }
-        }
 
-        for (pos = 0; pos < 6; pos++) {
-            u8 c = g_FieldingLogic.fielderAutoMovementCode[pos];
-            if (c == 1 || c == 0xa) {
-                break;
-            }
-        }
-        if (pos == 6) {
-            for (pos = 6; pos < 9; pos++) {
-                u8 c = g_FieldingLogic.fielderAutoMovementCode[pos];
-                if (c == 1 || c == 0xa) {
+            for (pos = FIELDING_POSITION_PITCHER; pos < FIELDING_POSITION_LEFT_FIELD; pos++) {
+                if (g_FieldingLogic.fielderAutoMovementCode[pos] == 1 || g_FieldingLogic.fielderAutoMovementCode[pos] == 0xa) {
                     break;
                 }
             }
-            if (pos <= 8) {
-                flag = 1;
+            if (pos == FIELDING_POSITION_LEFT_FIELD) {
+                for (pos = FIELDING_POSITION_LEFT_FIELD; pos <= FIELDING_POSITION_RIGHT_FIELD; pos++) {
+                    if (g_FieldingLogic.fielderAutoMovementCode[pos] == 1 || g_FieldingLogic.fielderAutoMovementCode[pos] == 0xa) {
+                        break;
+                    }
+                }
+                if (pos <= FIELDING_POSITION_RIGHT_FIELD) {
+                    flag = TRUE;
+                }
             }
         }
 
-        if (flag == 0) {
+        if (flag == FALSE) {
             return;
         }
         if (g_FieldingLogic.someFrameCounterFielderRelated != 0) {
@@ -6440,17 +6440,18 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
         }
 
         count = 0;
-        candidates[0] = -1;
-        candidates[1] = -1;
-        candidates[2] = -1;
-        for (pos = 2; pos < 6; pos++) {
+        candidates[2] = FIELDING_POSITION_NONE;
+        candidates[1] = FIELDING_POSITION_NONE;
+        candidates[0] = FIELDING_POSITION_NONE;
+        bestDist = 0.0f;
+        for (pos = FIELDING_POSITION_FIRST_BASE; pos < FIELDING_POSITION_LEFT_FIELD; pos++) {
             u8 code = g_FieldingLogic.fielderAutoMovementCode[pos];
             if ((code == 0 || code == 8 || code == 9) && g_Fielders[pos].animatingActionInd == 0) {
                 candidates[count] = pos;
                 count++;
-                if (count == 3) {
-                    break;
-                }
+            }
+            if (count == 3) {
+                break;
             }
         }
         if (count <= 0) {
@@ -6464,15 +6465,13 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
             bestCandidate = candidates[0];
             for (j = 0; j < 3; j++) {
                 int cand = candidates[j];
-                InMemFielder* cf;
                 f32 dx, dz, sqx, sqz, dist;
 
                 if (cand < 0) {
                     continue;
                 }
-                cf = &g_Fielders[cand];
-                dx = cf->pos.x - projX;
-                dz = cf->pos.z - projZ;
+                dx = g_Fielders[cand].pos.x - projX;
+                dz = g_Fielders[cand].pos.z - projZ;
                 sqx = dx * dx;
                 sqz = dz * dz;
                 dist = fielderSqrt(sqx + sqz);
@@ -6480,23 +6479,12 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
                     bestDist = dist;
                 } else if (dist < bestDist) {
                     bestDist = dist;
-                    bestCandidate = cand;
+                    bestCandidate = candidates[j];
                 }
             }
         }
 
-        if (bestCandidate != -1) {
-            InMemFielder* bf = &g_Fielders[bestCandidate];
-            bf->autoMovementFunctionIndex = 11;
-            if (autoMovementFunctions[11].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[bestCandidate] = autoMovementFunctions[11].code;
-            }
-            bf->unknown_writeOnly = 0;
-            bf->fielderVeloAdjustmentCode = 0;
-            bf->unknown_writeOnly_always0 = 0;
-            bf->timeSinceThrowWasCaught = 0;
-            bf->fielderTrackingBallState = 0;
-        }
+        setFielderAutoMovementIfValid(bestCandidate, 11);
 
         g_FieldingLogic.FrameCycleCounter_20 = specialFielderActionConstants._40[11];
     } else {
@@ -6511,12 +6499,12 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
         cutoff = &g_Fielders[cutoffFielderIndex];
         targetX = cutoff->IntendedLocation.x;
         targetZ = cutoff->IntendedLocation.z;
-        for (pos = 2; pos < 6; pos++) {
+        for (pos = FIELDING_POSITION_FIRST_BASE; pos < FIELDING_POSITION_LEFT_FIELD; pos++) {
             u8 code;
             InMemFielder* cand;
             f32 dx, dz, sqx, sqz, dist;
 
-            if (pos == cutoffFielderIndex) {
+            if (cutoffFielderIndex == pos) {
                 continue;
             }
             code = g_FieldingLogic.fielderAutoMovementCode[pos];
@@ -6532,22 +6520,11 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
             sqx = dx * dx;
             sqz = dz * dz;
             dist = fielderSqrt(sqx + sqz);
-            if (dist >= g_Fielders[g_FieldingLogic.cutoffFielderIndex].distanceFromAutoLocation) {
-                continue;
+            if (dist < g_Fielders[g_FieldingLogic.cutoffFielderIndex].distanceFromAutoLocation) {
+                setFielderAutoMovementIfValid(pos, 11);
+                g_FieldingLogic.FrameCycleCounter_20 = specialFielderActionConstants._40[11];
+                return;
             }
-
-            cand->autoMovementFunctionIndex = 11;
-            if (autoMovementFunctions[11].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[pos] = autoMovementFunctions[11].code;
-            }
-            cand->unknown_writeOnly = 0;
-            cand->fielderVeloAdjustmentCode = 0;
-            cand->unknown_writeOnly_always0 = 0;
-            cand->timeSinceThrowWasCaught = 0;
-            cand->fielderTrackingBallState = 0;
-
-            g_FieldingLogic.FrameCycleCounter_20 = specialFielderActionConstants._40[11];
-            return;
         }
     }
 }
