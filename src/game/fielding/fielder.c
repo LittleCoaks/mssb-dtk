@@ -5721,15 +5721,13 @@ void autoMovement11_cutoff_setInitialLocation(int fielderIndex) {
     fielder->baseCuttoffIsTargeting = fn_3_47628();
 
     if (g_FieldingLogic.cutoffFielderIndex < 0) {
-        if (setCutoffLocationToStandAt(fielderIndex, &x, &z) == 0) {
+        if (setCutoffLocationToStandAt(fielderIndex, &x, &z) == FALSE) {
             return;
         }
 
         setFielderAutoCoords(fielderIndex, x, z);
         g_FieldingLogic.cutoffFielderIndex = fielderIndex;
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 5);
-        }
+        setFielderAutoMovementIfValid(fielderIndex, 5);
 
         autoMovement5(fielderIndex);
 
@@ -5738,114 +5736,54 @@ void autoMovement11_cutoff_setInitialLocation(int fielderIndex) {
             return;
         }
 
-        {
-            s16 loc = fielder->locationResponsibleForCovering;
-
-            if (loc < 0) {
-                return;
-            }
-
-            if (loc <= 3) {
-                if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == fielderIndex) {
-                    g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                    g_FieldingLogic.baseCoveredInd[loc] = 0;
-                }
-                fielder->locationResponsibleForCovering = -1;
-                fielder->isResponsibleForCoveringALocation = 0;
-                if (fielder->autoMovementFunctionIndex == 1 && fielderIndex != -1) {
-                    setFielderAutoMovement(fielderIndex, 12);
-                }
-            } else if (loc == 5) {
-                fielder->locationResponsibleForCovering = -1;
-                fielder->isResponsibleForCoveringALocation = 0;
-                g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-                if (fielder->autoMovementFunctionIndex == 14 && fielderIndex != -1) {
-                    setFielderAutoMovement(fielderIndex, 12);
-                }
-            }
-        }
+        releaseCoverAssignment(fielderIndex);
     } else if (g_FieldingLogic.locationThrownTo == 6) {
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 12);
-        }
+        setFielderAutoMovementIfValid(fielderIndex, 12);
         g_Fielders[fielderIndex].unknown_writeOnly = 4;
     } else {
-        if (setCutoffLocationToStandAt(fielderIndex, &x, &z) == 0) {
+        f32 dx;
+        f32 dz;
+        f32 dxSq;
+        f32 dzSq;
+        f32 candidateDist;
+        s16 oldCutoffIdx;
+
+        if (setCutoffLocationToStandAt(fielderIndex, &x, &z) == FALSE) {
             return;
         }
 
-        {
-            f32 dx = x - fielder->pos.x;
-            f32 dz = z - fielder->pos.z;
-            f32 dxSq = dx * dx;
-            f32 dzSq = dz * dz;
-            f32 candidateDist = fielderSqrt(dxSq + dzSq);
-            s16 oldCutoffIdx = g_FieldingLogic.cutoffFielderIndex;
-            InMemFielder* oldCutoff = &g_Fielders[oldCutoffIdx];
+        dx = x - fielder->pos.x;
+        dz = z - fielder->pos.z;
+        dxSq = dx * dx;
+        dzSq = dz * dz;
+        candidateDist = fielderSqrt(dxSq + dzSq);
+        oldCutoffIdx = g_FieldingLogic.cutoffFielderIndex;
 
-            if (!(candidateDist < oldCutoff->distanceFromAutoLocation)) {
-                goto setUnknownWriteOnlyAndReturn;
-            }
-
+        if (candidateDist < g_Fielders[oldCutoffIdx].distanceFromAutoLocation) {
             if (g_Ball.fielderWBallIndex != oldCutoffIdx) {
-                if (oldCutoffIdx != -1) {
-                    setFielderAutoMovement(oldCutoffIdx, 12);
-                }
+                setFielderAutoMovementIfValid(oldCutoffIdx, 12);
                 g_Fielders[g_FieldingLogic.cutoffFielderIndex].unknown_writeOnly = 4;
             }
 
             g_Fielders[g_FieldingLogic.cutoffFielderIndex].locationResponsibleForCovering = -1;
             g_Fielders[g_FieldingLogic.cutoffFielderIndex].isResponsibleForCoveringALocation = 0;
-        }
 
-        setFielderAutoCoords(fielderIndex, x, z);
-        g_FieldingLogic.cutoffFielderIndex = fielderIndex;
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 5);
-        }
+            setFielderAutoCoords(fielderIndex, x, z);
+            g_FieldingLogic.cutoffFielderIndex = fielderIndex;
+            setFielderAutoMovementIfValid(fielderIndex, 5);
 
-        autoMovement5(fielderIndex);
+            autoMovement5(fielderIndex);
 
-        if (g_FieldingLogic.fielderAssignedLocationIndex[4] != fielderIndex &&
-            fielder->locationResponsibleForCovering < 0) {
-            return;
-        }
-
-        {
-            s16 loc = fielder->locationResponsibleForCovering;
-
-            if (loc < 0) {
+            if (g_FieldingLogic.fielderAssignedLocationIndex[4] != fielderIndex &&
+                fielder->locationResponsibleForCovering < 0) {
                 return;
             }
 
-            if (loc <= 3) {
-                if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == fielderIndex) {
-                    g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                    g_FieldingLogic.baseCoveredInd[loc] = 0;
-                }
-                fielder->locationResponsibleForCovering = -1;
-                fielder->isResponsibleForCoveringALocation = 0;
-                if (fielder->autoMovementFunctionIndex == 1 && fielderIndex != -1) {
-                    setFielderAutoMovement(fielderIndex, 12);
-                }
-            } else if (loc == 5) {
-                fielder->locationResponsibleForCovering = -1;
-                fielder->isResponsibleForCoveringALocation = 0;
-                g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-                g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-                if (fielder->autoMovementFunctionIndex == 14 && fielderIndex != -1) {
-                    setFielderAutoMovement(fielderIndex, 12);
-                }
-            }
+            releaseCoverAssignment(fielderIndex);
+        } else {
+            setFielderAutoMovementIfValid(fielderIndex, 12);
+            g_Fielders[fielderIndex].unknown_writeOnly = 4;
         }
-        return;
-
-setUnknownWriteOnlyAndReturn:
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 12);
-        }
-        g_Fielders[fielderIndex].unknown_writeOnly = 4;
     }
 }
 
