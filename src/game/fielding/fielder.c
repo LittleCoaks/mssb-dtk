@@ -2021,8 +2021,11 @@ void updateFielderDirectionFacing(int fielderIndex) {
                 return;
             }
 
-            fielder->desiredMovementDirection = ATAN2F(g_Runners[runnerIdx].position.z - fielder->pos.z,
-                                                         g_Runners[runnerIdx].position.x - fielder->pos.x);
+            {
+                InMemRunnerType* runner = &g_Runners[runnerIdx];
+                fielder->desiredMovementDirection =
+                    ATAN2F(runner->position.z - fielder->pos.z, runner->position.x - fielder->pos.x);
+            }
             return;
         }
     }
@@ -2161,7 +2164,7 @@ void updateFielderDirectionFacing(int fielderIndex) {
         return;
 
 cascade:
-        if (g_BallsStrikesOuts.outs >= 3 && fielder->currentVelocity != 0.0f &&
+        if (g_BallsStrikesOuts.outs >= 3 && fielder->currentVelocity &&
             g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
             f32 x = dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.awayTeamBattingInd_battingTeam].x;
             f32 z = dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.awayTeamBattingInd_battingTeam].z;
@@ -2271,15 +2274,14 @@ void fn_3_54900(int fielderIndex) {
 
 // .text:0x000544B8 size:0x448 mapped:0x8069354C
 void fielding_handleCollisionsAndSpecialActions(void) {
-    int i;
+    u8 vol, val;
     InMemFielder* fielder;
     VecSrcDst inVec;
     CollisionStruct collision;
     u32 collisionType;
     Vec currentPos, prevPos;
-    SND_FXID fid;
     SND_VOICEID voiceID;
-    u8 vol, val;
+    int i;
 
     extern u16 stadiumHazardSoundIDs[16];
     extern u8 stadiumHazardSoundFxRelated[0xB4];
@@ -2324,25 +2326,23 @@ void fielding_handleCollisionsAndSpecialActions(void) {
 
                 if (fn_800639BC((s8)i, &currentPos, &prevPos) >= 2) {
                     if (g_d_GameSettings.StadiumID == STADIUM_ID_PEACH_GARDEN) {
-                        fid = stadiumHazardSoundIDs[4] + 7;
                         vol = (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD)
                                   ? lbl_3_data_84B8[0xe]
                                   : stadiumHazardSoundFxRelated[0x86];
-                        voiceID = sndFXStartEx(fid, vol, 0x3f, 0);
+                        voiceID = sndFXStartEx(stadiumHazardSoundIDs[4] + 7, vol, 0x3f, 0);
                         val = (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD)
                                   ? lbl_3_data_84B8[0xf]
                                   : stadiumHazardSoundFxRelated[0x87];
-                        sndFXCtrl(voiceID, 0x5b, val);
+                        sndFXCtrl(voiceID, SND_MIDICTRL_REVERB, val);
                     } else if (g_d_GameSettings.StadiumID == STADIUM_ID_DK_JUNGLE) {
-                        fid = stadiumHazardSoundIDs[5] + 0xc;
                         vol = (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD)
                                   ? lbl_3_data_84B8[0x18]
                                   : stadiumHazardSoundFxRelated[0xae];
-                        voiceID = sndFXStartEx(fid, vol, 0x3f, 0);
+                        voiceID = sndFXStartEx(stadiumHazardSoundIDs[5] + 0xc, vol, 0x3f, 0);
                         val = (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD)
                                   ? lbl_3_data_84B8[0x19]
                                   : stadiumHazardSoundFxRelated[0xaf];
-                        sndFXCtrl(voiceID, 0x5b, val);
+                        sndFXCtrl(voiceID, SND_MIDICTRL_REVERB, val);
                     }
                 }
             } else {
@@ -2413,17 +2413,22 @@ void fielding_handleCollisionsAndSpecialActions(void) {
 
 // .text:0x00053F48 size:0x570 mapped:0x80692FDC
 void minigameFieldingRelated_collisions(void) {
-    int i, j;
+    int i;
+    int j;
     InMemFielder* outer;
     InMemFielder* inner;
-    f32 dx, dz, dist;
-    f32 dxSq, dzSq;
+    f32 dx;
+    f32 dz;
+    f32 dist;
+    f32 dxSq;
+    f32 dzSq;
     f32 sumRadius;
     f32 frac;
-    VecXZ collisionPoint;
-    f32 dx2, dz2, dist2;
-    f32 nx, nz;
-    int outerIdx, innerIdx, currentTeam;
+    f32 cx;
+    f32 cz;
+    int outerIdx;
+    int innerIdx;
+    int currentTeam;
     int collided;
     VecXYZ scratch;
 
@@ -2451,20 +2456,16 @@ void minigameFieldingRelated_collisions(void) {
             }
             frac = lbl_3_data_476C[outer->Weight] / sumRadius;
 
-            dx = outer->pos.x;
-            dx = inner->pos.x - dx;
-            dz = outer->pos.z;
-            dz = inner->pos.z - dz;
-            collisionPoint.x = frac * dx + outer->pos.x;
-            collisionPoint.z = frac * dz + outer->pos.z;
-            dx2 = collisionPoint.x - outer->pos.x;
-            dz2 = collisionPoint.z - outer->pos.z;
-            dist2 = fielderSqrt(dx2 * dx2 + dz2 * dz2);
-            if (!(dist2 > 0.0f)) {
+            cx = frac * (inner->pos.x - outer->pos.x) + outer->pos.x;
+            cz = frac * (inner->pos.z - outer->pos.z) + outer->pos.z;
+            dx = cx - outer->pos.x;
+            dz = cz - outer->pos.z;
+            dist = fielderSqrt(dx * dx + dz * dz);
+            if (!(dist > 0.0f)) {
                 continue;
             }
-            nx = dx2 / dist2;
-            nz = dz2 / dist2;
+            dx /= dist;
+            dz /= dist;
 
             if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
                 outerIdx = *((s8*)&g_Minigame + 0x18f2 + i);
@@ -2481,35 +2482,34 @@ void minigameFieldingRelated_collisions(void) {
                     g_Minigame.starDashCollisionPushDelta[innerIdx].x = inner->pos.x - outer->pos.x;
                     g_Minigame.starDashCollisionPushDelta[innerIdx].z = inner->pos.z - outer->pos.z;
                     minigame_transferPoints(outerIdx, innerIdx);
-                    goto skipPush;
+                    continue;
                 }
                 if (innerIdx == currentTeam) {
                     g_Minigame.starDashStunType[outerIdx] = 1;
                     g_Minigame.starDashCollisionPushDelta[outerIdx].x = outer->pos.x - inner->pos.x;
                     g_Minigame.starDashCollisionPushDelta[outerIdx].z = outer->pos.z - inner->pos.z;
                     minigame_transferPoints(innerIdx, outerIdx);
-                    goto skipPush;
+                    continue;
                 }
             }
 
             if (outer->currentVelocity <= 0.0f) {
-                inner->pos.x = nx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
+                inner->pos.x = dx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
                                outer->pos.x;
-                inner->pos.z = nz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
+                inner->pos.z = dz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
                                outer->pos.z;
             } else if (inner->currentVelocity <= 0.0f) {
                 outer->pos.x = inner->pos.x -
-                               nx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
+                               dx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
                 outer->pos.z = inner->pos.z -
-                               nz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
+                               dz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
             } else {
-                outer->pos.x = collisionPoint.x - nx * lbl_3_data_476C[outer->Weight];
-                outer->pos.z = collisionPoint.z - nz * lbl_3_data_476C[outer->Weight];
-                inner->pos.x = nx * lbl_3_data_476C[inner->Weight] + collisionPoint.x;
-                inner->pos.z = nz * lbl_3_data_476C[inner->Weight] + collisionPoint.z;
+                outer->pos.x = cx - dx * lbl_3_data_476C[outer->Weight];
+                outer->pos.z = cz - dz * lbl_3_data_476C[outer->Weight];
+                inner->pos.x = dx * lbl_3_data_476C[inner->Weight] + cx;
+                inner->pos.z = dz * lbl_3_data_476C[inner->Weight] + cz;
             }
 
-        skipPush:
             collided = updateFielderPosition_checkFielderCollision(i, &scratch);
             if (collided != 0) {
                 outer->pos.x = outer->posXLastFrame;
@@ -2752,18 +2752,18 @@ int updateFielderPositionAndVelocityForSpecialActions(int fielderIndex) {
         return 2;
     }
 
-    if (g_Minigame.GameMode_MiniGame == 5) {
+    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
         if (g_Minigame.pP_hitState[idx] != 0) {
             return 2;
         }
-    } else if (g_Minigame.GameMode_MiniGame == 6) {
+    } else if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
         u8 stunType = g_Minigame.starDashStunType[idx];
         if (stunType == 1 || stunType == 2) {
             return 2;
         }
     }
 
-    if (g_Minigame.GameMode_MiniGame == 5 || g_Minigame.GameMode_MiniGame == 6) {
+    if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC || g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
         return 0;
     }
 
@@ -3105,7 +3105,7 @@ void calculateMinDiveDistAndEndingCoords(int fielderIndex, int numFrames, f32 di
 }
 
 // .text:0x00052084 size:0x25C mapped:0x80691118
-f32 fn_3_52084(int fielderIndex, f32 x, f32 z) {
+f32 fielderPathDistanceToPoint(int fielderIndex, f32 x, f32 z) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 dx;
     f32 dz;
@@ -3115,10 +3115,10 @@ f32 fn_3_52084(int fielderIndex, f32 x, f32 z) {
     if (fielder->currentVelocity < 0.01f) {
         f32 sqx;
         f32 sqz;
-        dx = fielder->pos.x - x;
-        dz = fielder->pos.z - z;
-        sqx = dx * dx;
-        sqz = dz * dz;
+        x = fielder->pos.x - x;
+        z = fielder->pos.z - z;
+        sqx = x * x;
+        sqz = z * z;
         return fielderSqrt(sqx + sqz);
     }
 
@@ -3127,9 +3127,10 @@ f32 fn_3_52084(int fielderIndex, f32 x, f32 z) {
     dot = fielder->xMovementDir * dx + fielder->zMovementDir * dz;
     perpDistSq = (dx * dx + dz * dz) - dot * dot;
 
-    if (!(perpDistSq < 0.0f)) {
-        return fielderSqrt(perpDistSq);
+    if (perpDistSq < 0.0f) {
+        return 0.0f;
     }
+    return fielderSqrt(perpDistSq);
 }
 
 // .text:0x00051DF0 size:0x294 mapped:0x80690E84
@@ -3171,12 +3172,22 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
     CollisionStruct collision;
     u32 type;
     f32 magnitude;
-    f32 unitNormalX, unitNormalZ;
-    f32 dirX, dirZ;
-    f32 weightedNormalX, weightedNormalZ;
-    f32 angle1, angle2, diff, cosDiff;
-    f32 pushRadius, collisionDist;
-    f32 baseX, baseZ, offsetX, offsetZ;
+    f32 weightedNormalX;
+    f32 weightedNormalZ;
+    f32 dirX;
+    f32 dirZ;
+    f32 unitNormalX;
+    f32 unitNormalZ;
+    f32 angle1;
+    f32 angle2;
+    f32 diff;
+    f32 cosDiff;
+    f32 pushRadius;
+    f32 collisionDist;
+    f32 baseZ;
+    f32 baseX;
+    f32 offsetX;
+    f32 offsetZ;
 
     if (fielder->currentVelocity == 0.0f) {
         return 0;
@@ -3255,10 +3266,10 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
         offsetX = 3.0f * unitNormalX;
         offsetZ = 3.0f * unitNormalZ;
         inVec.dst.x = baseX;
-        inVec.src.x = baseX + offsetX;
-        inVec.dst.x -= offsetX;
         inVec.dst.z = baseZ;
+        inVec.src.x = baseX + offsetX;
         inVec.src.z = baseZ + offsetZ;
+        inVec.dst.x -= offsetX;
         inVec.dst.z -= offsetZ;
         type = checkCollision(&inVec, &collision, 1, 0);
         if (type != BALL_COLLISION_TYPE_NONE) {
@@ -3277,10 +3288,9 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
 int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 x = fielder->pos.x + fielder->velocityX;
-    f32 z = fielder->pos.z + fielder->velocityZ;
     f32 moundZ;
     f32 moundX;
-    f32 negX;
+    f32 z = fielder->pos.z + fielder->velocityZ;
     f32 d;
     int ret = 0;
 
@@ -3292,9 +3302,8 @@ int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
             ret = 2;
         }
     } else {
-        negX = -x;
-        if (negX > z) {
-            f32 half = (negX - z) * 0.5f;
+        if (-x > z) {
+            f32 half = (-x - z) * 0.5f;
             z = z + half;
             x = -z;
             ret = 2;
@@ -3303,14 +3312,7 @@ int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
 
     moundZ = base_MoundCoordinates[2].z;
     d = z - moundZ;
-    if (d > x) {
-        goto skipAdjust;
-    }
-    negX = -x;
-    if (d > negX) {
-        goto skipAdjust;
-    }
-
+    if (!(d > x) && !(d > -x)) {
     if (x > 0.0f) {
         f32 half;
         d = moundZ - z;
@@ -3321,13 +3323,13 @@ int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
     } else {
         f32 half;
         d = moundZ - z;
-        half = (negX - d) * 0.5f;
+        half = (-x - d) * 0.5f;
         x = -d - half;
         z = x + moundZ;
         ret = 2;
     }
+    }
 
-skipAdjust:
     moundX = base_MoundCoordinates[2].x;
     if (z <= moundX) {
         return 1;
