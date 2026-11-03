@@ -14072,7 +14072,7 @@ void moveFielderTowardsIntendedLocation_initPhase(int fielderIndex) {
 // .text:0x0002D47C size:0x2EC mapped:0x8066C510
 void updateFielderPositionBasedOnBallState(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int useCurrentPos;
+    BOOL useCurrentPos;
     int frame;
     int bestIdx;
     f32 best;
@@ -14083,9 +14083,9 @@ void updateFielderPositionBasedOnBallState(int fielderIndex) {
     f32 dist;
     int i;
 
-    useCurrentPos = 0;
-    if (g_Minigame.TF_ballDespawnedInd || g_Ball.fielderWBallIndex >= 0 || g_Ball.deadBallReason != 0) {
-        useCurrentPos = 1;
+    useCurrentPos = FALSE;
+    if (g_Minigame.TF_ballDespawnedInd || g_Ball.fielderWBallIndex >= 0 || g_Ball.deadBallReason != DEAD_BALL_REASON_NONE) {
+        useCurrentPos = TRUE;
     }
 
     if (g_Minigame.toyField_coinsRemaining && useCurrentPos) {
@@ -14125,10 +14125,10 @@ void updateFielderPositionBasedOnBallState(int fielderIndex) {
     if (fielder->_0208 == 4) {
         bestIdx = -1;
         best = 999.9f;
-        for (i = 0; i < 100; i++) {
-            if (g_Minigame.wallBall_coinsVisibleInd) {
-                dx = fielder->pos.x - (&g_Minigame.wallBall_coinCoordinates)[i].x;
-                dz = fielder->pos.z - (&g_Minigame.wallBall_coinCoordinates)[i].z;
+        for (i = 0; i < (int) ARRAY_COUNT(g_Minigame.coinPos); i++) {
+            if (g_Minigame.coinState[i]) {
+                dx = fielder->pos.x - g_Minigame.coinPos[i].x;
+                dz = fielder->pos.z - g_Minigame.coinPos[i].z;
                 sqx = dx * dx;
                 sqz = dz * dz;
                 dist = fielderSqrt(sqx + sqz);
@@ -14139,8 +14139,8 @@ void updateFielderPositionBasedOnBallState(int fielderIndex) {
             }
         }
         if (bestIdx >= 0) {
-            fielder->IntendedLocation.x = (&g_Minigame.wallBall_coinCoordinates)[bestIdx].x;
-            fielder->IntendedLocation.z = (&g_Minigame.wallBall_coinCoordinates)[bestIdx].z;
+            fielder->IntendedLocation.x = g_Minigame.coinPos[bestIdx].x;
+            fielder->IntendedLocation.z = g_Minigame.coinPos[bestIdx].z;
         }
     }
 }
