@@ -915,7 +915,7 @@ First seen: `game/game/fielding/fielder` (2026-09, sessions 3-4).
 percentages for the exact same build, and both are correct under their own
 method: `report generate` resolves relocations with full cross-object
 context, so it scores relocation-bearing instructions a per-unit diff cannot
-resolve, and its numbers run higher. Worked example: `fn_3_4DB84` in
+resolve, and its numbers run higher. Worked example: `isFielderAheadOfBallPath` in
 `fielder` reads 80.00% under `report generate` and 77.08% under
 per-unit `diff`, both current, both correct.
 
@@ -6307,7 +6307,7 @@ functions. These lessons are not specific to one file:
 
 - **Hand-written blocks are usually an inlined helper.** In fielder.c most large near-misses had a
   never-`bl`'d helper copied out by hand (catch-state setup `fn_3_2C238`, `setFielderAutoCoords`,
-  `stopFielderAtCurrentPosition`, `setFielderAutoMovementIfValid`, `fRunningTimeToDestinationPlus7`).
+  `stopFielderAtCurrentPosition`, `setFielderAutoMovementIfValid`, `fRunningTimeToDestination`).
   Calling the helper fixed the match and, several times, a real bug in the copy. Under
   `-inline deferred` a helper defined later in the file still inlines into an earlier one
   (`unused_FUN_80678e58` into `updateFielderSelection`).

@@ -3023,7 +3023,7 @@ afterSwitch:
 }
 
 // .text:0x00052560 size:0x17C mapped:0x806915F4
-int fRunningTimeToDestinationPlus7(int fielderIndex, f32 x, f32 z) {
+int fRunningTimeToDestination(int fielderIndex, f32 x, f32 z) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 dz;
     f32 dx;
@@ -3730,7 +3730,7 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
             continue;
         }
 
-        framesNeeded = startFrame + fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
+        framesNeeded = startFrame + fRunningTimeToDestination(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
 
         if (framesNeeded < frame - delayFrames) {
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y < fielder->hitbox[3]) {
@@ -3775,7 +3775,7 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
             for (i = 0, offset = 5; i < 14; i++, offset += 5) {
                 int candidateFrame = frame + offset;
 
-                if (startFrame + fRunningTimeToDestinationPlus7(
+                if (startFrame + fRunningTimeToDestination(
                                      fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[candidateFrame].pos.x,
                                      g_Ball.physicsSubstruct.futureCoordsAndDist[candidateFrame].pos.z) <
                     candidateFrame) {
@@ -3789,7 +3789,7 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
             for (i = 0, offset = 5; i < 5; i++, offset += 5) {
                 int candidateFrame = frame + offset;
                 int delta = startFrame +
-                            fRunningTimeToDestinationPlus7(
+                            fRunningTimeToDestination(
                                 fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[candidateFrame].pos.x,
                                 g_Ball.physicsSubstruct.futureCoordsAndDist[candidateFrame].pos.z) -
                             candidateFrame;
@@ -3916,7 +3916,7 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
             continue;
         }
 
-        framesNeeded = startFrame + fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) - 5;
+        framesNeeded = startFrame + fRunningTimeToDestination(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) - 5;
 
         if (framesNeeded < frame) {
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y < 2.0f) {
@@ -4019,7 +4019,7 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
  * ============================================================================ */
 
 // .text:0x0004EFC8 size:0x53C mapped:0x8068E05C
-void knockoutRelated_subFn(int fielderIndex, int flag) {
+void calcKnockoutCatchStrategy(int fielderIndex, int flag) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int frame;
     int startFrame;
@@ -4042,7 +4042,7 @@ void knockoutRelated_subFn(int fielderIndex, int flag) {
         }
 
         framesNeeded = startFrame +
-                       fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                       fRunningTimeToDestination(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
                                                       g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) -
                        5;
 
@@ -4586,7 +4586,7 @@ void bobbleDirection(int fielderIndex) {
 }
 
 // .text:0x0004DB84 size:0x90 mapped:0x8068CC18
-int fn_3_4DB84(int fielderIndex) {
+int isFielderAheadOfBallPath(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 dot;
 
@@ -5324,7 +5324,7 @@ void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) 
 
         futureX = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30].pos.x;
         futureZ = &g_Ball.physicsSubstruct.futureCoordsAndDist[g_Ball.framesUntilBallHitsGround + 30].pos.z;
-        index = fRunningTimeToDestinationPlus7(fielderIndex, *futureX, *futureZ);
+        index = fRunningTimeToDestination(fielderIndex, *futureX, *futureZ);
 
         if (index < g_Ball.framesUntilBallHitsGround + 30) {
             *outX = *futureX;
@@ -5365,7 +5365,7 @@ void setIntendedLocationAheadOfBallPath(int fielderIndex, f32* outX, f32* outZ) 
         }
 
         future = &g_Ball.physicsSubstruct.futureCoordsAndDist[30];
-        index = fRunningTimeToDestinationPlus7(fielderIndex, future->pos.x, future->pos.z);
+        index = fRunningTimeToDestination(fielderIndex, future->pos.x, future->pos.z);
 
         if (index < 30) {
             *outX = future->pos.x;
@@ -7024,7 +7024,7 @@ void fielderTrackingBall_updateVariables(int fielderIndex) {
         if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             int n;
 
-            n = fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+            n = fRunningTimeToDestination(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
 
             if (g_Ball.framesUntilBallHitsGround > n) {
@@ -7051,7 +7051,7 @@ void setIntendedLocToInterceptBall(int fielderIndex) {
             continue;
         }
 
-        total = fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+        total = fRunningTimeToDestination(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
                                                g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
         if (total < frame) {
             fielder->framesRemainingToGetToLandingSpot = frame;
@@ -8079,7 +8079,7 @@ void knockoutRelated_FlyBall(void) {
 
     for (i = 0; i < 9; i++) {
         fielder = &g_Fielders[i];
-        priority = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+        priority = fRunningTimeToDestination(i, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                   g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
         if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM) {
             priority -= 15;
@@ -8103,7 +8103,7 @@ void knockoutRelated_FlyBall(void) {
     }
 
     setFielderAutoMovementIfValid(best, 3);
-    knockoutRelated_subFn(best, 0);
+    calcKnockoutCatchStrategy(best, 0);
     g_Fielders[best].maybeMovementState = 0;
 
     reassignClosestInfieldersToCoverBases();
@@ -8120,7 +8120,7 @@ void knockoutRelated_Grounder_Liner(void) {
 
     for (i = 0; i < 9; i++) {
         fielder = &g_Fielders[i];
-        priority = fRunningTimeToDestinationPlus7(i, g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x,
+        priority = fRunningTimeToDestination(i, g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x,
                                                   g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z);
         if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM) {
             priority -= 15;
@@ -8147,7 +8147,7 @@ void knockoutRelated_Grounder_Liner(void) {
     }
 
     setFielderAutoMovementIfValid(best, 3);
-    knockoutRelated_subFn(best, 0);
+    calcKnockoutCatchStrategy(best, 0);
     g_Fielders[best].maybeMovementState = 4;
 
     reassignClosestInfieldersToCoverBases();
@@ -11551,7 +11551,7 @@ void decideHowToTrackFoulBall(int fielderIndex) {
                 goto trackBallFromContact;
             }
         } else if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
-            int n = fRunningTimeToDestinationPlus7(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
+            int n = fRunningTimeToDestination(fielderIndex, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                    g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
 
             if (g_Ball.framesUntilBallHitsGround - n > 10) {
@@ -11569,7 +11569,7 @@ void decideHowToTrackFoulBall(int fielderIndex) {
                     } else {
                         frame = g_Ball.framesUntilBallHitsGround + i;
 
-                        if (frame - fRunningTimeToDestinationPlus7(fielderIndex,
+                        if (frame - fRunningTimeToDestination(fielderIndex,
                                                                    g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
                                                                    g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z) >
                             5) {

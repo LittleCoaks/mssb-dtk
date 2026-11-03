@@ -1998,7 +1998,7 @@ int howManyFramesTheRunnerIsOutOfReach(int runnerIndex, BOOL forwards, int* thro
     if (ballDist > 60.0f && ballDist < 70.0f && (base == 0 || base == 3)) {
         totalFrames -= 0x2d;
     }
-    runFrames = fRunningTimeToDestinationPlus7(g_Ball.fielderWBallIndex, baseX, baseZ);
+    runFrames = fRunningTimeToDestination(g_Ball.fielderWBallIndex, baseX, baseZ);
     if (coveringFielder == g_Ball.fielderWBallIndex || coveringFielder == -1 || ballDist < 3.0f) {
         *throwStrat = -1;
         *runStrat = base;
@@ -2231,7 +2231,7 @@ void runnerTimeToCoverBase(int runnerIndex) {
     totalFrames = fielder->throwWindupEstimate + frames;
     totalFrames = totalFrames + lbl_3_data_1C40;
     ballDist = g_Ball.ballDistanceFromBase[base];
-    runFrames = fRunningTimeToDestinationPlus7(g_Ball.fielderWBallIndex, baseX, baseZ);
+    runFrames = fRunningTimeToDestination(g_Ball.fielderWBallIndex, baseX, baseZ);
     if (coveringFielder == g_Ball.fielderWBallIndex || coveringFielder == -1 || ballDist < 3.0f ||
         g_Fielders[coveringFielder].lockedOutInd != 0 ||
         ((coverFrames = g_Fielders[coveringFielder].numFramesToGetToAutoLocation) < 0 &&
@@ -2289,7 +2289,7 @@ void throwTimeToBase(int baseCounter) {
     totalFrames = totalFrames + fielder->throwWindupEstimate;
     totalFrames = totalFrames + lbl_3_data_1C40;
     ballDist = g_Ball.ballDistanceFromBase[base];
-    runFrames = fRunningTimeToDestinationPlus7(g_Ball.fielderWBallIndex, baseX, baseZ);
+    runFrames = fRunningTimeToDestination(g_Ball.fielderWBallIndex, baseX, baseZ);
     if (runner->currentBase == runner->startingBase_baseAchieved) {
         framesToBase = runner->framesToPreviousBase;
     } else {
@@ -2521,7 +2521,7 @@ void fn_3_A41E8(int base) {
     ballDist = g_Ball.ballDistanceFromBase[base];
     baseX = base_MoundCoordinates[base].x;
     baseZ = base_MoundCoordinates[base].z;
-    timeToBase = fRunningTimeToDestinationPlus7(g_Ball.fielderWBallIndex, baseX, baseZ);
+    timeToBase = fRunningTimeToDestination(g_Ball.fielderWBallIndex, baseX, baseZ);
     if (assigned == g_Ball.fielderWBallIndex || assigned == -1 || ballDist < 3.0f) {
         g_FieldingLogic.somethingForTryingTagOutTargetBase = base;
         g_FieldingLogic.locationThrownTo = -1;
