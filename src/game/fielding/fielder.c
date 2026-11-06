@@ -1166,7 +1166,7 @@ void processFielderJumpAI(int fielderIndex) {
             }
         }
 
-        if (fielderIndex <= 5) {
+        if (fielderIndex <= FIELDING_POSITION_SHORTSTOP) {
             g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 2;
         } else {
             g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 2;
@@ -1175,10 +1175,10 @@ void processFielderJumpAI(int fielderIndex) {
         return;
     }
 
-    if (fielderIndex < 2) {
+    if (fielderIndex < FIELDING_POSITION_FIRST_BASE) {
         return;
     }
-    if (fielderIndex > 5) {
+    if (fielderIndex > FIELDING_POSITION_SHORTSTOP) {
         return;
     }
 
@@ -13351,6 +13351,7 @@ void startFielderJump(int fielderIndex) {
     int idx = fielderIndex;
     int frames3;
     int apexDiv;
+    f32 horizontalScale = 0.1f;
 
     fielder->isJump = 1;
     fielder->jumpY = 0.0f;
@@ -13364,16 +13365,16 @@ void startFielderJump(int fielderIndex) {
     }
 
     fielder->jumpVelocity.y = jumpArray[hasSuperJump][0];
-    fielder->jumpVelocity.x = fielder->xMovementDir * 0.1f * jumpArray[hasSuperJump][2];
+    fielder->jumpVelocity.x = fielder->xMovementDir * horizontalScale * jumpArray[hasSuperJump][2];
 
     frames3 = (int)jumpArray[hasSuperJump][3];
 
-    fielder->jumpVelocity.z = fielder->zMovementDir * 0.1f * jumpArray[hasSuperJump][2];
+    fielder->jumpVelocity.z = fielder->zMovementDir * horizontalScale * jumpArray[hasSuperJump][2];
 
     apexDiv = (int)(fielder->jumpVelocity.y / jumpArray[hasSuperJump][1]);
 
     fielder->jumpApexFrame = apexDiv + 1;
-    fielder->jumpCountDown = apexDiv + apexDiv + frames3 + 2;
+    fielder->jumpCountDown = (apexDiv + 1) + (apexDiv + 1) + frames3;
     fielder->jumpCountUp = 0;
 
     if (hasSuperJump != 0) {
