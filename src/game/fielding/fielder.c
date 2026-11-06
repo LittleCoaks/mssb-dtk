@@ -1069,15 +1069,15 @@ void updateFielderMovementAndPosition(void) {
 
 // .text:0x00057A14 size:0x1A0 mapped:0x80696AA8
 void aITeamFielding_SelectCharWithHand(void) {
+    f32 dist;
     f32 minDist;
     f32 secondMinDist;
-    f32 dist;
     int bestFielder;
     int secondFielder;
     u8 code;
     int i;
 
-    if (g_Ball.fielderWBallIndex < 0) {
+    if (g_Ball.fielderWBallIndex >= 0) {
         g_FieldingLogic.selectedFielder = g_Ball.fielderWBallIndex;
         return;
     }
@@ -1087,14 +1087,12 @@ void aITeamFielding_SelectCharWithHand(void) {
         return;
     }
 
-    minDist = 999.9f;
-    secondMinDist = minDist;
-    bestFielder = -1;
-    secondFielder = -1;
+    minDist = secondMinDist = 999.9f;
+    bestFielder = secondFielder = FIELDING_POSITION_NONE;
 
     for (i = 1; i < 9; i++) {
         code = g_Fielders[i].autoMovementFunctionIndex;
-        if (code == 2 || code == 3) {
+        if (code == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM || code == 3) {
             dist = g_Fielders[i].groundDistanceFromBall;
             if (dist < secondMinDist) {
                 if (dist < minDist) {
@@ -1112,11 +1110,10 @@ void aITeamFielding_SelectCharWithHand(void) {
 
     if (bestFielder >= 0) {
         g_FieldingLogic.selectedFielder = bestFielder;
-    } else {
-        code = g_Fielders[0].autoMovementFunctionIndex;
-        if (code == 2 || code == 3 || code == 4) {
-            g_FieldingLogic.selectedFielder = 0;
-        }
+    } else if (g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM ||
+               g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == 3 ||
+               g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == 4) {
+        g_FieldingLogic.selectedFielder = FIELDING_POSITION_PITCHER;
     }
 
     if (secondFielder >= 0) {
