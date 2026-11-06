@@ -1674,84 +1674,47 @@ void fielderUpdateChasingRunnerValues(int fielderIndex) {
 
 // .text:0x00055918 size:0x3AC mapped:0x806949AC
 void fielder_endOfInning_deadball_updateCounters(void) {
-    InMemFielder* fielder;
     int i;
     s32 j;
-    s16 fielderWBallIdx;
 
     if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0) {
         fielderAISomething();
     }
 
     if (g_BallsStrikesOuts.outs >= 3 && g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE) {
-        fielder = g_Fielders;
-        for (i = 0; i < 9; i++, fielder++) {
-            if (fielder->autoMovementFunctionIndex == 17) {
+        for (i = 0; i < 9; i++) {
+            if (g_Fielders[i].autoMovementFunctionIndex == 17) {
                 continue;
             }
             if (g_Ball.fielderWBallIndex == i && g_FieldingLogic.bodyCheckResult != 0) {
                 continue;
             }
-            if (fielder->_0200 != 0) {
-                continue;
-            }
-            if (i == -1) {
+            if (g_Fielders[i]._0200 != 0) {
                 continue;
             }
 
-            fielder->autoMovementFunctionIndex = 17;
-            if (autoMovementFunctions[17].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[17].code;
-            }
-            fielder->unknown_writeOnly = 0;
-            fielder->fielderVeloAdjustmentCode = 0;
-            fielder->unknown_writeOnly_always0 = 0;
-            fielder->timeSinceThrowWasCaught = 0;
-            fielder->fielderTrackingBallState = 0;
+            setFielderAutoMovementIfValid(i, 17);
         }
     }
 
     if (g_Ball.unknown_always0 >= 1 && g_Ball.unknown_always0 <= 4) {
-        fielder = g_Fielders;
-        for (i = 0; i < 9; i++, fielder++) {
-            if (i != -1) {
-                fielder->autoMovementFunctionIndex = 0;
-                if (autoMovementFunctions[0].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[0].code;
-                }
-                fielder->unknown_writeOnly = 0;
-                fielder->fielderVeloAdjustmentCode = 0;
-                fielder->unknown_writeOnly_always0 = 0;
-                fielder->timeSinceThrowWasCaught = 0;
-                fielder->fielderTrackingBallState = 0;
-            }
+        for (i = 0; i < 9; i++) {
+            setFielderAutoMovementIfValid(i, 0);
         }
     } else if (g_Ball.deadBallReason != 0) {
-        fielder = g_Fielders;
-        for (i = 0; i < 9; i++, fielder++) {
+        for (i = 0; i < 9; i++) {
             if (!(g_Ball.unknown_always0 >= 1 && g_Ball.unknown_always0 <= 4) &&
-                fielder->autoMovementFunctionIndex == 15 && g_Ball.deadBallReason != 0) {
+                g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_GOING_TO_BALL && g_Ball.deadBallReason != 0) {
                 continue;
             }
-            if (fielder->autoMovementFunctionIndex == 12) {
+            if (g_Fielders[i].autoMovementFunctionIndex == 12) {
                 continue;
             }
-            if (fielder->catchAnimation != 0) {
-                continue;
-            }
-            if (i == -1) {
+            if (g_Fielders[i].catchAnimation != 0) {
                 continue;
             }
 
-            fielder->autoMovementFunctionIndex = 12;
-            if (autoMovementFunctions[12].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[12].code;
-            }
-            fielder->unknown_writeOnly = 0;
-            fielder->fielderVeloAdjustmentCode = 0;
-            fielder->unknown_writeOnly_always0 = 0;
-            fielder->timeSinceThrowWasCaught = 0;
-            fielder->fielderTrackingBallState = 0;
+            setFielderAutoMovementIfValid(i, 12);
         }
     }
 
@@ -1780,16 +1743,12 @@ void fielder_endOfInning_deadball_updateCounters(void) {
     }
 
     if (g_FieldingLogic.always0_012b != 0) {
-        fielderWBallIdx = g_Ball.fielderWBallIndex;
-        if (fielderWBallIdx < 0) {
+        if (g_Ball.fielderWBallIndex < 0) {
+            g_FieldingLogic.always0_012b = 0;
+        } else if (g_Fielders[g_Ball.fielderWBallIndex].baseCurrentlyOn >= 0) {
             g_FieldingLogic.always0_012b = 0;
         } else {
-            fielder = &g_Fielders[fielderWBallIdx];
-            if (fielder->baseCurrentlyOn >= 0) {
-                g_FieldingLogic.always0_012b = 0;
-            } else {
-                g_FieldingLogic.always0_012b--;
-            }
+            g_FieldingLogic.always0_012b--;
         }
     }
 
