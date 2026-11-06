@@ -1583,8 +1583,8 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
         fielder->fielderTrackingBallState = 0;
     }
 
-    if (g_Ball.framesSinceHit > 0x3c && g_Ball.deadBallReason != 0) {
-        g_Ball.deadBallReason = 2;
+    if (g_Ball.framesSinceHit > 60 && g_Ball.lineDriveThroughPitcherInd != 0) {
+        g_Ball.lineDriveThroughPitcherInd = 2;
     }
 
     fielder->animationRelated = 1;
@@ -1611,9 +1611,8 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
             }
         }
     } else if (g_GameLogic.gameStatus == GAME_STATUS_AT_BAT || g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY ||
-               g_GameLogic.gameStatus == GAME_STATUS_DEFAULT) {
-        fielder->animationRelated = 2;
-    } else if (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Ball.framesSinceHit < 0x3c) {
+               g_GameLogic.gameStatus == GAME_STATUS_DEFAULT ||
+               (g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL && g_Ball.framesSinceHit < 60)) {
         fielder->animationRelated = 2;
     }
 }
