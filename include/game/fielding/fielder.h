@@ -221,7 +221,7 @@ void fielding_handleCollisionsAndSpecialActions(void);
 void fn_3_54900(int fielderIndex);
 void updateFielderDirectionFacing(int fielderIndex);
 void fielding_updateAllFieldersPostMovement(void);
-void fn_3_555AC(int fielderIndex);
+void updateFielderInBasePath(int fielderIndex);
 void handleBodyCheck2(int fielderIndex);
 void fielder_endOfInning_deadball_updateCounters(void);
 void fielderUpdateChasingRunnerValues(int fielderIndex);

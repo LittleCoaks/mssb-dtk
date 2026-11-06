@@ -1308,6 +1308,58 @@ void liveBallUpdateFieldingValues(void) {
 }
 #pragma dont_inline reset
 
+/* Sets inBasePath to the base path (1-4, home to first through third to home)
+ * the fielder is standing on, or 0. updateFielderInBasePath() is a standalone
+ * copy of the same logic. */
+static inline void setInBasePathFromPosition(InMemFielder* fielder) {
+    f32 lo;
+    f32 hi;
+
+    fielder->inBasePath = 0;
+
+    if (fielder->pos.z > 45.0f) {
+        return;
+    }
+    if (fielder->pos.z < -5.0f) {
+        return;
+    }
+
+    if (fielder->pos.x > 25.0f) {
+        return;
+    }
+    if (fielder->pos.x < -25.0f) {
+        return;
+    }
+
+    if (fielder->pos.z > base_MoundCoordinates[1].z) {
+        lo = base_MoundCoordinates[2].z - 2.0f;
+        hi = 4.0f + base_MoundCoordinates[2].z;
+
+        if (fielder->pos.x > 0.0f) {
+            if (fielder->pos.z > -fielder->pos.x + lo && fielder->pos.z < -fielder->pos.x + hi) {
+                fielder->inBasePath = 2;
+            }
+        } else {
+            if (fielder->pos.z > fielder->pos.x + lo && fielder->pos.z < fielder->pos.x + hi) {
+                fielder->inBasePath = 3;
+            }
+        }
+    } else {
+        lo = base_MoundCoordinates[0].z - 4.0f;
+        hi = 2.0f + base_MoundCoordinates[0].z;
+
+        if (fielder->pos.x > 0.0f) {
+            if (fielder->pos.z > fielder->pos.x + lo && fielder->pos.z < fielder->pos.x + hi) {
+                fielder->inBasePath = 1;
+            }
+        } else {
+            if (fielder->pos.z > -fielder->pos.x + lo && fielder->pos.z < -fielder->pos.x + hi) {
+                fielder->inBasePath = 4;
+            }
+        }
+    }
+}
+
 // .text:0x00055EEC size:0x1258 mapped:0x80694F80
 void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -1498,46 +1550,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
             handleBodyCheck2(fielderIndex);
         }
 
-        {
-            f32 posZ;
-            f32 posX;
-
-            fielder->inBasePath = 0;
-
-            posZ = fielder->pos.z;
-            if (posZ <= 45.0f && posZ >= -5.0f) {
-                posX = fielder->pos.x;
-                if (posX <= 25.0f && posX >= -25.0f) {
-                    if (posZ > base_MoundCoordinates[1].z) {
-                        f32 lo = base_MoundCoordinates[2].z - 2.0f;
-                        f32 hi = 4.0f + base_MoundCoordinates[2].z;
-
-                        if (posX > 0.0f) {
-                            if (posZ > -posX + lo && posZ < -posX + hi) {
-                                fielder->inBasePath = 2;
-                            }
-                        } else {
-                            if (posZ > posX + lo && posZ < posX + hi) {
-                                fielder->inBasePath = 3;
-                            }
-                        }
-                    } else {
-                        f32 lo = base_MoundCoordinates[0].z - 4.0f;
-                        f32 hi = 2.0f + base_MoundCoordinates[0].z;
-
-                        if (posX > 0.0f) {
-                            if (posZ > posX + lo && posZ < posX + hi) {
-                                fielder->inBasePath = 1;
-                            }
-                        } else {
-                            if (posZ > -posX + lo && posZ < -posX + hi) {
-                                fielder->inBasePath = 4;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        setInBasePathFromPosition(fielder);
     }
 
     if (fielder->catchAnimation != 0) {
@@ -1881,52 +1894,50 @@ void handleBodyCheck2(int fielderIndex) {
 }
 
 // .text:0x000555AC size:0x164 mapped:0x80694640
-void fn_3_555AC(int fielderIndex) {
+void updateFielderInBasePath(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 posZ;
-    f32 posX;
+    f32 lo;
+    f32 hi;
 
     fielder->inBasePath = 0;
 
-    posZ = fielder->pos.z;
-    if (posZ > 45.0f) {
+    if (fielder->pos.z > 45.0f) {
         return;
     }
-    if (posZ < -5.0f) {
-        return;
-    }
-
-    posX = fielder->pos.x;
-    if (posX > 25.0f) {
-        return;
-    }
-    if (posX < -25.0f) {
+    if (fielder->pos.z < -5.0f) {
         return;
     }
 
-    if (posZ > base_MoundCoordinates[1].z) {
-        f32 lo = base_MoundCoordinates[2].z - 2.0f;
-        f32 hi = 4.0f + base_MoundCoordinates[2].z;
+    if (fielder->pos.x > 25.0f) {
+        return;
+    }
+    if (fielder->pos.x < -25.0f) {
+        return;
+    }
 
-        if (posX > 0.0f) {
-            if (posZ > -posX + lo && posZ < -posX + hi) {
+    if (fielder->pos.z > base_MoundCoordinates[1].z) {
+        lo = base_MoundCoordinates[2].z - 2.0f;
+        hi = 4.0f + base_MoundCoordinates[2].z;
+
+        if (fielder->pos.x > 0.0f) {
+            if (fielder->pos.z > -fielder->pos.x + lo && fielder->pos.z < -fielder->pos.x + hi) {
                 fielder->inBasePath = 2;
             }
         } else {
-            if (posZ > posX + lo && posZ < posX + hi) {
+            if (fielder->pos.z > fielder->pos.x + lo && fielder->pos.z < fielder->pos.x + hi) {
                 fielder->inBasePath = 3;
             }
         }
     } else {
-        f32 lo = base_MoundCoordinates[0].z - 4.0f;
-        f32 hi = 2.0f + base_MoundCoordinates[0].z;
+        lo = base_MoundCoordinates[0].z - 4.0f;
+        hi = 2.0f + base_MoundCoordinates[0].z;
 
-        if (posX > 0.0f) {
-            if (posZ > posX + lo && posZ < posX + hi) {
+        if (fielder->pos.x > 0.0f) {
+            if (fielder->pos.z > fielder->pos.x + lo && fielder->pos.z < fielder->pos.x + hi) {
                 fielder->inBasePath = 1;
             }
         } else {
-            if (posZ > -posX + lo && posZ < -posX + hi) {
+            if (fielder->pos.z > -fielder->pos.x + lo && fielder->pos.z < -fielder->pos.x + hi) {
                 fielder->inBasePath = 4;
             }
         }
