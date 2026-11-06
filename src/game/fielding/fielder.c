@@ -1264,7 +1264,6 @@ setFromFutureCoord:
 // .text:0x00057144 size:0x344 mapped:0x806961D8
 #pragma dont_inline on
 void liveBallUpdateFieldingValues(void) {
-    InMemFielder* fielder;
     int i;
 
     if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0 &&
@@ -1283,9 +1282,9 @@ void liveBallUpdateFieldingValues(void) {
 
     updateSprintPointers();
 
-    for (fielder = g_Fielders, i = 0; i < 9; i++, fielder++) {
+    for (i = 0; i < 9; i++) {
         updateFielder_SpecificValuesEachFrame(i);
-        autoMovementFunctions[fielder->autoMovementFunctionIndex].fn(i);
+        autoMovementFunctions[g_Fielders[i].autoMovementFunctionIndex].fn(i);
         fielderUpdateChasingRunnerValues(i);
     }
 
