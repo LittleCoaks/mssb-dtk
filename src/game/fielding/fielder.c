@@ -1360,14 +1360,35 @@ static inline void setInBasePathFromPosition(InMemFielder* fielder) {
     }
 }
 
+static inline int getOutfieldZoneCode(f32 x, f32 z) {
+    f32 dist;
+
+    if (40.0f + (x - z) > 0.0f && 40.0f + (-x - z) > 0.0f) {
+        return 0;
+    }
+
+    dist = dolsqrtf2(x * x + z * z);
+    if (dist < 38.8f) {
+        return 1;
+    }
+
+    dist = dolsqrtf2(x * x + (z - 18.4f) * (z - 18.4f));
+    if (dist < 28.0f) {
+        return 1;
+    } else if (dist < 37.0f) {
+        return 2;
+    } else if (dist < 43.0f) {
+        return 3;
+    }
+    return 4;
+}
+
 // .text:0x00055EEC size:0x1258 mapped:0x80694F80
 void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int i;
     f32 dx, dz;
     f32 sqx, sqz;
-    f32 zoneDist;
-    int outFieldZoneCode;
 
     fielder->lastFrameVelocityUpToBase = fielder->currentVelocity;
     fielder->velocityXPrev = fielder->velocityX;
@@ -1416,7 +1437,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
         }
     }
 
-    if (fielderIndex == 0) {
+    if (fielderIndex == FIELDING_POSITION_PITCHER) {
         if (fielder->_0200 != 0) {
             g_FieldingLogic.pitcher_inPitchingState = 0;
         }
@@ -1424,7 +1445,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
         if ((g_Ball.framesSinceHit == fielder->lockoutDuration && g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) ||
             (fielder->animationRelated >= 5 && fielder->animationRelated <= 9 && g_Ball.framesSinceHit <= 1 &&
              g_GameLogic.gameStatus == GAME_STATUS_LIVE_BALL) ||
-            (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE && g_Ball.framesSinceHit <= 0x65)) {
+            (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE && g_Ball.framesSinceHit <= 101)) {
             if (!(g_Ball.lineDriveThroughPitcherInd != 0 && g_Ball.framesSinceHit < fielder->lockoutDuration) &&
                 g_FieldingLogic.pitcher_inPitchingState != 0) {
                 fielder->pos.x = g_Pitcher.pitcherCoord.x;
@@ -1435,21 +1456,21 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
         }
     }
 
-    if (fielderIndex == 1) {
+    if (fielderIndex == FIELDING_POSITION_CATCHER) {
         if (!g_d_GameSettings.minigamesEnabled && g_FieldingLogic.catcherNotFocusedOnRunnerScoring != 0) {
             int framesSinceHit = g_Ball.framesSinceHit;
 
-            if ((framesSinceHit > g_Fielders[1].lockoutDuration || g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3) &&
-                (framesSinceHit > 0x91 || g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_UNUSED_3)) {
+            if ((framesSinceHit > g_Fielders[FIELDING_POSITION_CATCHER].lockoutDuration || g_FieldingLogic.liveBallReason == PICKOFF_STEAL_CODE_UNUSED_3) &&
+                (framesSinceHit > 145 || g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_UNUSED_3)) {
                 if (g_FieldingLogic.liveBallReason != PICKOFF_STEAL_CODE_NONE) {
                     framesSinceHit -= 100;
                 }
 
-                if (framesSinceHit < 0x78) {
+                if (framesSinceHit < 120) {
                     if (g_Runners[3].runnerStatus == RUNNER_STATUS_ON_FIELD &&
                         g_Runners[3].fractionalBasesRan >= 3.3f) {
                         g_FieldingLogic.catcherNotFocusedOnRunnerScoring = 0;
-                    } else if (g_Fielders[1].autoMovementFunctionIndex != 1) {
+                    } else if (g_Fielders[FIELDING_POSITION_CATCHER].autoMovementFunctionIndex != 1) {
                         g_FieldingLogic.catcherNotFocusedOnRunnerScoring = 0;
                     }
 
@@ -1484,30 +1505,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
     sqz = dz * dz;
     fielder->distanceToMound = dolsqrtf2(sqx + sqz);
 
-    dz = fielder->pos.z;
-    dx = fielder->pos.x;
-    if (40.0f + (dx - dz) > 0.0f &&
-        40.0f + (-dx - dz) > 0.0f) {
-        outFieldZoneCode = 0;
-    } else {
-        sqx = dx * dx;
-        zoneDist = dolsqrtf2(sqx + dz * dz);
-        if (zoneDist < 38.8f) {
-            outFieldZoneCode = 1;
-        } else {
-            zoneDist = dolsqrtf2(sqx + (dz - 18.4f) * (dz - 18.4f));
-            if (zoneDist < 28.0f) {
-                outFieldZoneCode = 1;
-            } else if (zoneDist < 37.0f) {
-                outFieldZoneCode = 2;
-            } else if (zoneDist < 43.0f) {
-                outFieldZoneCode = 3;
-            } else {
-                outFieldZoneCode = 4;
-            }
-        }
-    }
-    fielder->outFieldZoneCode = outFieldZoneCode;
+    fielder->outFieldZoneCode = getOutfieldZoneCode(fielder->pos.x, fielder->pos.z);
 
     fielder->distanceFromBallLastFrame = fielder->distanceFromBall;
     dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
@@ -1569,16 +1567,8 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
         fielder->lockedOutInd = 0;
     }
 
-    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && fielder->AI_Ind != 0 && fielderIndex != -1) {
-        fielder->autoMovementFunctionIndex = 0x13;
-        if (autoMovementFunctions[0x13].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[0x13].code;
-        }
-        fielder->unknown_writeOnly = 0;
-        fielder->fielderVeloAdjustmentCode = 0;
-        fielder->unknown_writeOnly_always0 = 0;
-        fielder->timeSinceThrowWasCaught = 0;
-        fielder->fielderTrackingBallState = 0;
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && fielder->AI_Ind != 0) {
+        setFielderAutoMovementIfValid(fielderIndex, 19);
     }
 
     if (g_Ball.framesSinceHit > 60 && g_Ball.lineDriveThroughPitcherInd != 0) {
@@ -1594,7 +1584,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
     } else if (g_Ball.fielderWBallIndex == fielderIndex) {
         fielder->animationRelated = 3;
     } else if (g_FieldingLogic.fielderAutoMovementCode[fielderIndex] == 1 ||
-               g_FieldingLogic.fielderAutoMovementCode[fielderIndex] == 0xa) {
+               g_FieldingLogic.fielderAutoMovementCode[fielderIndex] == 10) {
         if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
             fielder->animationRelated = 2;
         } else if (g_Ball.ballVelocity > 0.3f) {
@@ -1602,7 +1592,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
         }
     } else if (g_Ball.ballState == BALL_STATE_HELD || g_Ball.ballState == BALL_STATE_THROWN) {
         if (g_Ball.ballZoneAwayFromHome <= 1) {
-            if (fielderIndex >= 6) {
+            if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
                 fielder->animationRelated = 0;
             } else if (fielder->locationResponsibleForCovering < 0) {
                 fielder->animationRelated = 0;
