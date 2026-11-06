@@ -6341,6 +6341,27 @@ functions. These lessons are not specific to one file:
   sections found more than a dozen real bugs (inverted tests, swapped arms, wrong table indices, wrong fields, wrong
   loop bounds, a missing argument). They also confirmed several bugs in the original game, which stay
   as written.
+- **Per-frame section (2026-11):** a `for (p = g_Fielders, i = 0; ...; p++)` loop pointer gives an
+  extra `addi r0; mr rX, r0`; indexing `g_Fielders[i]` directly lets strength reduction build the
+  pointer in place (fielding_updateAllFieldersPostMovement, liveBallUpdateFieldingValues, the reset
+  loops of fielder_endOfInning_deadball_updateCounters). It also shrinks the IR, which kept
+  fielding_updateAllFieldersPostMovement under `inline_max_size` so its inlined copies still match.
+- **Stack slots of inlined `dolsqrtf2`/`fielderSqrt` isnan temporaries reveal inline helpers:** slots
+  are handed out in code order, except that an inline helper's temps come after all of the caller's.
+  A block whose temps took the lowest slots was an inline (getOutfieldZoneCode).
+- **A non-static function defined later in the file is not always inlined** even under
+  `-inline deferred` and well under `inline_max_size` (updateFielderInBasePath into
+  updateFielder_SpecificValuesEachFrame stayed a `bl`, whatever the inline pragmas). A `static inline`
+  copy with the same body did inline and matched.
+- **Address-taken locals don't fuse:** x/z passed by address to a helper live in memory, so
+  `x * x + z * z` stays fmuls/fmuls/fadds; with register locals the same source gives fmadds. When
+  the target spills deltas to the out-parameter slots, the deltas *are* those out-parameters.
+- **A float literal operand gets commuted; an f32 local doesn't:** `dir * 0.1f` came out as
+  `fmuls fD, f0.1, fdir`, while `f32 horizontalScale = 0.1f; dir * horizontalScale` gave the target's
+  order (startFielderJump).
+- **Mirror sibling files:** the held-ball block in fielding_updateAllFieldersPostMovement matched once
+  copied from the same code in ball_physics.c (landing spot from AtBat_Contact_BallPos,
+  `VEC_LENGTH_XZ`).
 
 ### Wave73: recover the remaining record digit state machine
 

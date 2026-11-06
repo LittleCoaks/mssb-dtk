@@ -962,7 +962,6 @@ void fielderResetAndStoreValuesEachFrame(void) {
 #pragma dont_inline on
 void liveBallFielderControlAITeam(void) {
     int i;
-    InMemFielder* fielder;
 
     for (i = 19; i >= 1; i--) {
         fielderControlStick_continuousAngleHistory[i] = -1;
