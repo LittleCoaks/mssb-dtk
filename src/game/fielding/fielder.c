@@ -996,15 +996,9 @@ void liveBallFielderControlAITeam(void) {
 void updateFielderMovementAndPosition(void) {
     int fielderIndex;
     InMemFielder* fielder;
-    f32 dx;
-    f32 dz;
     f32 dist;
-    f32 sqx;
-    f32 sqz;
-    f32 outX;
-    f32 outZ;
-    f32 targetX;
-    f32 targetZ;
+    f32 x;
+    f32 z;
 
     fielderIndex = g_FieldingLogic.selectedFielder;
     if (g_d_GameSettings.minigamesEnabled) {
@@ -1024,34 +1018,30 @@ void updateFielderMovementAndPosition(void) {
     updateOutfielderPositionBasedOnBallState();
 
     if (g_Ball.pauseBallMovementWhenInPlant) {
-        dx = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
-        dz = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
-        sqx = dx * dx;
-        sqz = dz * dz;
-        dist = fielderSqrt(sqx + sqz);
+        x = g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x;
+        z = g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z;
+        dist = fielderSqrt(x * x + z * z);
 
         if (dist < fielderActionConstants[37]) {
             setFielderAutoCoords(fielderIndex, fielder->pos.x, fielder->pos.z);
         } else {
-            targetX = (fielderActionConstants[36] - 1.0f) * (dx / dist) + fielder->pos.x;
-            targetZ = (fielderActionConstants[36] - 1.0f) * (dz / dist) + fielder->pos.z;
-            setFielderAutoCoords(fielderIndex, targetX, targetZ);
+            x = (fielderActionConstants[36] - 1.0f) * (x / dist) + fielder->pos.x;
+            z = (fielderActionConstants[36] - 1.0f) * (z / dist) + fielder->pos.z;
+            setFielderAutoCoords(fielderIndex, x, z);
         }
 
         fielder->maybeTargetPosX = fielder->IntendedLocation.x;
         fielder->maybeTargetPosZ = fielder->IntendedLocation.z;
     } else if (fielder->aiDistToStandFromWallCollision != 0) {
-        fielderMovement_updateWallBounceApproach(fielderIndex, &outX, &outZ, 1);
-        setFielderAutoCoords(fielderIndex, outX, outZ);
+        fielderMovement_updateWallBounceApproach(fielderIndex, &x, &z, 1);
+        setFielderAutoCoords(fielderIndex, x, z);
         fielder->maybeTargetPosX = fielder->IntendedLocation.x;
         fielder->maybeTargetPosZ = fielder->IntendedLocation.z;
     }
 
-    dx = fielder->maybeTargetPosX - fielder->pos.x;
-    dz = fielder->maybeTargetPosZ - fielder->pos.z;
-    sqx = dx * dx;
-    sqz = dz * dz;
-    dist = fielderSqrt(sqx + sqz);
+    x = fielder->maybeTargetPosX - fielder->pos.x;
+    z = fielder->maybeTargetPosZ - fielder->pos.z;
+    dist = fielderSqrt(x * x + z * z);
 
     if (!(dist < 0.5f)) {
         if (fielder->someCountDown2 == 0) {
@@ -1061,7 +1051,7 @@ void updateFielderMovementAndPosition(void) {
             }
         }
 
-        fielderControlStick_continuousAngleHistory[0] = calculateAngleFromCoordinates(dx, dz);
+        fielderControlStick_continuousAngleHistory[0] = calculateAngleFromCoordinates(x, z);
     }
 
     currentStickDirection = fielderControlStick_continuousAngleHistory[0];
