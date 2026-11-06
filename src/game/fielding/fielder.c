@@ -1935,27 +1935,26 @@ void fn_3_555AC(int fielderIndex) {
 
 // .text:0x00055370 size:0x23C mapped:0x80694404
 void fielding_updateAllFieldersPostMovement(void) {
-    InMemFielder* fielder;
     int i;
 
-    for (i = 0, fielder = g_Fielders; i < 9; i++, fielder++) {
+    for (i = 0; i < 9; i++) {
         if (g_d_GameSettings.minigamesEnabled && g_Minigame.minigameRelatedIndex != i) {
             continue;
         }
 
         updateFielderDirectionFacing(i);
-        fielder->groundDistanceFromBall = ballDistCalculator(fielder->pos.x, fielder->pos.z);
+        g_Fielders[i].groundDistanceFromBall = ballDistCalculator(g_Fielders[i].pos.x, g_Fielders[i].pos.z);
 
-        if (0.0f == fielder->currentVelocity) {
-            fielder->xMovementDir = 0.0f;
-            fielder->zMovementDir = 0.0f;
+        if (0.0f == g_Fielders[i].currentVelocity) {
+            g_Fielders[i].xMovementDir = 0.0f;
+            g_Fielders[i].zMovementDir = 0.0f;
         } else {
-            fielder->xMovementDir = fielder->velocityX / fielder->currentVelocity;
-            fielder->zMovementDir = fielder->velocityZ / fielder->currentVelocity;
+            g_Fielders[i].xMovementDir = g_Fielders[i].velocityX / g_Fielders[i].currentVelocity;
+            g_Fielders[i].zMovementDir = g_Fielders[i].velocityZ / g_Fielders[i].currentVelocity;
         }
 
-        fielder->unused_alwaysSetTo0 = 0;
-        fielder->attachedKlaptrapCount = 0;
+        g_Fielders[i].unused_alwaysSetTo0 = 0;
+        g_Fielders[i].attachedKlaptrapCount = 0;
     }
 
     fielding_handleCollisionsAndSpecialActions();
@@ -1963,14 +1962,13 @@ void fielding_updateAllFieldersPostMovement(void) {
     if (g_d_GameSettings.minigamesEnabled) {
         minigameFieldingRelated_collisions();
     } else if (g_Ball.fielderWBallIndex >= 0) {
-        fielder = &g_Fielders[g_Ball.fielderWBallIndex];
-
-        g_Ball.AtBat_Contact_BallPos.x = fielder->pos.x;
-        g_Ball.AtBat_Contact_BallPos.y = fielder->pos.y;
-        g_Ball.AtBat_Contact_BallPos.z = fielder->pos.z;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = fielder->pos.x;
-        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = fielder->pos.z;
-        g_Ball.ballDistanceFromHome = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
+        i = g_Ball.fielderWBallIndex;
+        g_Ball.AtBat_Contact_BallPos.x = g_Fielders[i].pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = g_Fielders[i].pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = g_Fielders[i].pos.z;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x = g_Ball.AtBat_Contact_BallPos.x;
+        g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z = g_Ball.AtBat_Contact_BallPos.z;
+        g_Ball.ballDistanceFromHome = VEC_LENGTH_XZ(&g_Ball.AtBat_Contact_BallPos);
     }
 }
 
@@ -7446,7 +7444,7 @@ void aITeamFieldingFirstFrameAfterHit(void) {
         }
 
         g_Fielders[i].distanceFromHomePlate =
-            fielderSqrt(g_Fielders[i].pos.x * g_Fielders[i].pos.x + g_Fielders[i].pos.z * g_Fielders[i].pos.z);
+            fielderSqrt(SQ(g_Fielders[i].pos.x) + SQ(g_Fielders[i].pos.z));
 
         dx = g_Ball.landingSpotLocation.x - g_Fielders[i].pos.x;
         dz = g_Ball.landingSpotLocation.z - g_Fielders[i].pos.z;
@@ -11584,7 +11582,7 @@ void humanTeamFieldingFirstFrameAfterHit(void) {
         }
 
         g_Fielders[i].distanceFromHomePlate =
-            fielderSqrt(g_Fielders[i].pos.x * g_Fielders[i].pos.x + g_Fielders[i].pos.z * g_Fielders[i].pos.z);
+            fielderSqrt(SQ(g_Fielders[i].pos.x) + SQ(g_Fielders[i].pos.z));
 
         dx = g_Ball.landingSpotLocation.x - g_Fielders[i].pos.x;
         dz = g_Ball.landingSpotLocation.z - g_Fielders[i].pos.z;
