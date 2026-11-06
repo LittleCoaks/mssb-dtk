@@ -1212,7 +1212,7 @@ void processFielderJumpAI(int fielderIndex) {
 #pragma dont_inline on
 void updateOutfielderPositionBasedOnBallState(void) {
     int fielderIndex = g_FieldingLogic.selectedFielder;
-    int idx = fielderIndex;
+    int idx = g_FieldingLogic.selectedFielder;
     InMemFielder* fielder;
     f32 dist;
 
@@ -1239,7 +1239,7 @@ void updateOutfielderPositionBasedOnBallState(void) {
         goto setFromFutureCoord;
     }
 
-    if (fielderIndex >= 6 || g_d_GameSettings.minigamesEnabled) {
+    if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD || g_d_GameSettings.minigamesEnabled) {
         dist = fielderSqrt(SQ(fielder->maybeTargetPosX) + SQ(fielder->maybeTargetPosZ));
         if (dist > 10.0f && g_Ball.ballDistanceFromHome > dist) {
             goto setFromFutureCoord;
