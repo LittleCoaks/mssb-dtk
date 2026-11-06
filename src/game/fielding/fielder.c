@@ -1495,8 +1495,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
         if (zoneDist < 38.8f) {
             outFieldZoneCode = 1;
         } else {
-            dz = dz - 18.4f;
-            zoneDist = dolsqrtf2(sqx + dz * dz);
+            zoneDist = dolsqrtf2(sqx + (dz - 18.4f) * (dz - 18.4f));
             if (zoneDist < 28.0f) {
                 outFieldZoneCode = 1;
             } else if (zoneDist < 37.0f) {
@@ -1528,15 +1527,14 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
     fielder->playerAngleFromHome = calculateAngleFromCoordinates(fielder->pos.x, fielder->pos.z);
     fielder->wjAngleRelated = game_atan2(fielder->pos.x, fielder->pos.z);
 
+    fielder->distanceFromEachFielder[fielderIndex] = 0.0f;
     for (i = fielderIndex + 1; i < 9; i++) {
-        InMemFielder* other = &g_Fielders[i];
-
-        dx = other->pos.x - fielder->pos.x;
-        dz = other->pos.z - fielder->pos.z;
+        dx = g_Fielders[i].pos.x - fielder->pos.x;
+        dz = g_Fielders[i].pos.z - fielder->pos.z;
         sqx = dx * dx;
         sqz = dz * dz;
         fielder->distanceFromEachFielder[i] = dolsqrtf2(sqx + sqz);
-        other->distanceFromEachFielder[fielderIndex] = fielder->distanceFromEachFielder[i];
+        g_Fielders[i].distanceFromEachFielder[fielderIndex] = fielder->distanceFromEachFielder[i];
     }
 
     fielder->desiredMovementDirectionFPrev5 = fielder->desiredMovementDirectionFPrev4;
