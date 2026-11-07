@@ -137,7 +137,7 @@ static inline void setFielderAutoMovementIfValid(int fielderIndex, int autoMovem
     }
 }
 
-static inline void assignFielderToCoverLocation(int fielderIndex, int location) {
+static inline void assignFielderToCoverLocation(int fielderIndex, s32 location) {
     InMemFielder* f = &g_Fielders[fielderIndex];
     f->locationResponsibleForCovering = location;
     f->isResponsibleForCoveringALocation = 1;
@@ -4757,7 +4757,7 @@ void setInitialFielderMovements_CoverBases(void) {
 
 // .text:0x0004BA0C size:0xFBC mapped:0x8068AAA0
 void updateSomeAutoMovementAssignments(void) {
-    int problemOutfieldBase = -1;
+    s32 problemOutfieldBase = -1;
     InMemFielder* fielder;
     int numAssigned;
     f32 dist9, dist7, dist8;
@@ -4876,7 +4876,7 @@ void updateSomeAutoMovementAssignments(void) {
 
     if (problemOutfieldBase >= 0) {
         int newFielder = -1;
-        int oldFielder;
+        s32 oldFielder;
 
         for (i = 0; i < 6; i++) {
             u8 code = g_FieldingLogic.fielderAutoMovementCode[i];
@@ -7516,7 +7516,7 @@ void fn_3_40C04(void) {
     fn_3_40D88();
 }
 
-static inline f32 distanceToBallLandingSpot(int fielderIndex) {
+static inline f32 distanceToBallLandingSpot(s32 fielderIndex) {
     f32 dx = g_Fielders[fielderIndex].pos.x - g_Ball.landingSpotLocation.x;
     f32 dz = g_Fielders[fielderIndex].pos.z - g_Ball.landingSpotLocation.z;
     f32 sqx = dx * dx;
