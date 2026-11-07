@@ -15732,8 +15732,6 @@ void updateVariablesPostCatch(int fielderIndex) {
 
     if (fielder->isResponsibleForCoveringALocation == 1) {
         setStandingOnBaseVariables(fielderIndex);
-    }
-
     {
         s16 locationIdx = fielder->locationResponsibleForCovering;
         if (g_FieldingLogic.fielderAssignedLocationIndex[locationIdx] == fielderIndex &&
@@ -15758,6 +15756,7 @@ void updateVariablesPostCatch(int fielderIndex) {
             }
         }
     }
+    }
 
     g_FieldingLogic.fielderActionBeingProcessed = fielder->action;
     if ((s8)g_FieldingLogic.fielderActionBeingProcessed_prev < 0) {
@@ -15772,8 +15771,8 @@ void updateVariablesPostCatch(int fielderIndex) {
         }
     }
 
-    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && g_Ball.numberOfThrowsDuringPlay == 0 &&
-        (fielder->catchAnimation == 4 || fielder->catchAnimation == 5)) {
+    if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && g_Ball.numberOfThrowsDuringPlay == 0) {
+    if (fielder->catchAnimation == 4 || fielder->catchAnimation == 5) {
         g_FieldingLogic.bigPlayPotential = 2;
         g_UnkSound_32718.hudPopupCode = 4;
         g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
@@ -15782,9 +15781,7 @@ void updateVariablesPostCatch(int fielderIndex) {
             g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
             starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, fielder->rosterLocation);
         }
-    }
-
-    if (fielder->isJump) {
+    } else if (fielder->isJump) {
         if (g_Ball.AtBat_Contact_BallPos.y > fielder->hitbox[3] + fielderActionConstants[38]) {
             g_FieldingLogic.bigPlayPotential = 2;
             g_UnkSound_32718.hudPopupCode = 4;
@@ -15795,26 +15792,26 @@ void updateVariablesPostCatch(int fielderIndex) {
                 starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, fielder->rosterLocation);
             }
         }
-    }
-
-    if (g_FieldingLogic.bigPlayPotential == 1 && fielder->action != 0) {
-        g_FieldingLogic.bigPlayPotential = 2;
-        g_UnkSound_32718.hudPopupCode = 4;
-        g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
-        if (!g_d_GameSettings.exhibitionMatchInd &&
-            scoutState.humanTeam == g_GameLogic.teamFielding &&
-            g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
+    } else {
+        if (g_FieldingLogic.bigPlayPotential == 1 && fielder->action != 0) {
+            g_FieldingLogic.bigPlayPotential = 2;
+            g_UnkSound_32718.hudPopupCode = 4;
+            g_FieldingLogic.bigPlayFielderIndex = fielderIndex;
+            if (!g_d_GameSettings.exhibitionMatchInd &&
+                scoutState.humanTeam == g_GameLogic.teamFielding &&
+                g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT) {
+                starMissionsQuantityBased(STAR_MISSION_EVENT_BIG_PLAY, fielder->rosterLocation);
+            }
+        }
+        if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding &&
+            g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && fielder->action == 2) {
             starMissionsQuantityBased(STAR_MISSION_EVENT_ACTION_CATCH, fielder->rosterLocation);
         }
     }
-
-    if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding &&
-        g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_CAUGHT && fielder->action == 2) {
-        starMissionsQuantityBased(STAR_MISSION_EVENT_ACTION_CATCH, fielder->rosterLocation);
     }
 
     if (g_Ball.currentStarSwing == 1 || g_Ball.currentStarSwing == 2) {
-        fielder->stunFramesOnFireBall = ((s16*)&g_hitShorts)[g_Batter.lightFireballStunID + 4];
+        fielder->stunFramesOnFireBall = (&g_hitShorts.fireballStunFrames)[g_Batter.lightFireballStunID];
     }
 
     if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding &&
@@ -15929,21 +15926,16 @@ void updateVariablesPostCatch(int fielderIndex) {
                        g_Ball.AtBat_Contact_BallPos.z);
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        u8 stadiumID = g_d_GameSettings.StadiumID;
-        SND_FXID fid = stadiumHazardSoundIDs[stadiumID] + 0x16;
-        SND_VOICEID voiceID;
-        u8 vol, val;
-
-        if (fid != 0) {
-            vol = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD
-                      ? lbl_3_data_84B8[0x2c]
-                      : stadiumHazardSoundFxRelated[stadiumID * 0x1e + 0x2c];
-            voiceID = sndFXStartEx(fid, vol, 0x3f, 0);
-        }
-        val = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD
-                  ? lbl_3_data_84B8[0x2d]
-                  : stadiumHazardSoundFxRelated[stadiumID * 0x1e + 0x2d];
-        sndFXCtrl(voiceID, 0x5b, val);
+        int stadiumID = g_d_GameSettings.StadiumID;
+        SND_VOICEID voiceID = sndFXStartEx(stadiumHazardSoundIDs[stadiumID] + 0x16,
+                                           g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD
+                                               ? lbl_3_data_84B8[0x2c]
+                                               : stadiumHazardSoundFxRelated[stadiumID * 0x1e + 0x2c],
+                                           0x3f, 0);
+        sndFXCtrl(voiceID, SND_MIDICTRL_REVERB,
+                  g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD
+                      ? lbl_3_data_84B8[0x2d]
+                      : stadiumHazardSoundFxRelated[stadiumID * 0x1e + 0x2d]);
     }
 }
 
