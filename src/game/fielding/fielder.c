@@ -836,8 +836,6 @@ void setDefaultInMemFielder(void) {
         g_FieldingLogic.bigPlayFielderIndex = -1;
         g_FieldingLogic.smashThrow_framesDirectionHeld = 0;
         g_FieldingLogic.FrameCycleCounter_20 = 0;
-        g_FieldingLogic.someFrameCounterFielderRelated = 0;
-
         for (i = 0; i < 4; i++) {
             dash = &((FielderDash*)g_FieldingLogic.fielderDashByPort)[i];
             dash->framesSinceLastDashInput = -1;
@@ -847,6 +845,7 @@ void setDefaultInMemFielder(void) {
             dash->dashingFielderIndex = -1;
             dash->sprintingState = 0;
         }
+        g_FieldingLogic.someFrameCounterFielderRelated = 0;
 
         g_FieldingLogic.dashPtr = (FielderDash*)g_FieldingLogic.fielderDashByPort;
         g_FieldingLogic.jumpDiveStruct = &g_FieldingLogic.specialActionChecks;
