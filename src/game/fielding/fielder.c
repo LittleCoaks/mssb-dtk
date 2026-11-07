@@ -15655,7 +15655,7 @@ void finishFielderCatchAnimation(int fielderIndex) {
 }
 
 // .text:0x00027738 size:0x2C mapped:0x806667CC
-void fn_3_27738(int fielderIndex) {
+void setFielderAutoCatch(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
 
     fielder->autoCatch0_noCatchAnimationOnly1 = 1;
@@ -15668,7 +15668,7 @@ void processFielderAutoCatch(void) {
 
     for (i = 0; i < 9; i++) {
         if (g_Fielders[i].catchAnimation != 0) {
-            fn_3_27738(i);
+            setFielderAutoCatch(i);
         }
     }
 }
@@ -16113,7 +16113,7 @@ void fielderMovement_VelocityDuringCatchAnimations(int fielderIndex) {
 
     collided = updateFielderPosition_checkFielderCollision(fielderIndex, &scratch);
     if (collided == 1) {
-        fn_3_27738(fielderIndex);
+        setFielderAutoCatch(fielderIndex);
     }
     if (collided != 0) {
         fielder->pos.x = fielder->posXLastFrame;

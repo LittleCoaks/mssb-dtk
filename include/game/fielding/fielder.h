@@ -27,7 +27,7 @@ void fielderMovement_VelocityDuringCatchAnimations(int fielderIndex);
 void calculateBobble(int fielderIndex);
 void updateVariablesPostCatch(int fielderIndex);
 void processFielderAutoCatch(void);
-void fn_3_27738(int fielderIndex);
+void setFielderAutoCatch(int fielderIndex);
 void finishFielderCatchAnimation(int fielderIndex);
 void catchAnimationProgression(int fielderIndex);
 int clamberCheckCatch(int fielderIndex);
