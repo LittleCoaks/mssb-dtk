@@ -8301,7 +8301,7 @@ void autoMovement17_runningOffField(int fielderIndex) {
     }
 
     if (g_Ball.fielderWBallIndex == fielderIndex && fielder->animationRelatedInd == 0) {
-        g_Ball.fielderWBallIndex = -1;
+        g_Ball.fielderWBallIndex = FIELDING_POSITION_NONE;
     }
 
     x = dugoutCoordinates[g_d_GameSettings.StadiumID].team[g_GameLogic.awayTeamBattingInd_battingTeam].x;
@@ -8311,8 +8311,8 @@ void autoMovement17_runningOffField(int fielderIndex) {
         rotate2DByAngle(lbl_3_data_4348[g_d_GameSettings.StadiumID][g_GameLogic.teamFielding],
                                                  lbl_3_data_4300[fielderIndex].x,
                                                  lbl_3_data_4300[fielderIndex].z, &outX, &outZ);
-        z += outZ;
         x += outX;
+        z += outZ;
     }
 
     fielder->fielderVeloAdjustmentCode = 13;
@@ -8320,11 +8320,9 @@ void autoMovement17_runningOffField(int fielderIndex) {
     setFielderVelocity(fielderIndex);
 
     if (fielder->distanceFromAutoLocation <= 0.5f) {
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 0);
-        }
+        setFielderAutoMovementIfValid(fielderIndex, 0);
 
-        fielder->atDugoutAtEndOfInning = 1;
+        fielder->atDugoutAtEndOfInning = TRUE;
     }
 
     if (fielderIndex == g_Ball.fielderWBallIndex) {
