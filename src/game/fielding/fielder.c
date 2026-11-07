@@ -16136,6 +16136,9 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
     f32 dz;
     f32 dist;
     f32 ratio;
+    f32 offX;
+    f32 offY;
+    f32 offZ;
     VecXYZ coords;
 
     idx = fielderIndex;
@@ -16157,9 +16160,11 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
             dz = fielder->actionStartingCoordinate.z - fielder->pos.z;
             dist = fielderSqrt(dx * dx + dz * dz);
             ratio = (0.01f * (f32)FielderHitboxConsts[fielder->CharID]._08) / dist;
+            offX = dx * ratio;
+            offZ = dz * ratio;
+            g_Ball.diveCatchLocationOffset.x = fielder->pos.x + offX;
+            g_Ball.diveCatchLocationOffset.z = fielder->pos.z + offZ;
             g_Ball.diveCatchLocationOffset.y = 0.01f * (f32)FielderHitboxConsts[fielder->CharID]._0E;
-            g_Ball.diveCatchLocationOffset.x = fielder->pos.x + dx * ratio;
-            g_Ball.diveCatchLocationOffset.z = fielder->pos.z + dz * ratio;
         } else {
             if (fielder->catchAnimationFramesCountDown > specialFielderActionConstants._00[24]) {
                 return;
@@ -16169,19 +16174,21 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
             dz = fielder->actionStartingCoordinate.z - fielder->pos.z;
             dist = fielderSqrt(dx * dx + dz * dz);
             ratio = (0.01f * (f32)FielderHitboxConsts[fielder->CharID]._00) / dist;
-            g_Ball.diveCatchLocationOffset.x = fielder->pos.x + dx * ratio;
-            g_Ball.diveCatchLocationOffset.z = fielder->pos.z + dz * ratio;
+            offX = dx * ratio;
+            offZ = dz * ratio;
+            g_Ball.diveCatchLocationOffset.x = fielder->pos.x + offX;
+            g_Ball.diveCatchLocationOffset.z = fielder->pos.z + offZ;
             g_Ball.diveCatchLocationOffset.y = 0.01f * (f32)FielderHitboxConsts[fielder->CharID]._04;
         }
 
         g_Ball.fielderActionCatchCoords.x = g_Ball.AtBat_Contact_BallPos.x;
         g_Ball.fielderActionCatchCoords.y = g_Ball.AtBat_Contact_BallPos.y;
         g_Ball.fielderActionCatchCoords.z = g_Ball.AtBat_Contact_BallPos.z;
-        g_Ball.catchAnimationTotalFrames = (u8)fielder->catchAnimationFramesCountDown;
+        g_Ball.catchAnimationTotalFrames = fielder->catchAnimationFramesCountDown;
 
         if (fielder->suctionCatchInd == 0 && fielder->catchAnimation == 3) {
-            fielder->catchAnimationFramesCountDown = specialFielderActionConstants._40[5];
-            g_Ball.catchAnimationTotalFrames = (u8)fielder->catchAnimationFramesCountDown;
+            g_Ball.catchAnimationTotalFrames = fielder->catchAnimationFramesCountDown =
+                specialFielderActionConstants._40[5];
         }
 
         g_Batter.invisibleBallForPeachStarHit = 0;
@@ -16200,9 +16207,15 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
         }
 
         ratio = (f32)fielder->catchAnimationFramesCountDown / (f32)g_Ball.catchAnimationTotalFrames;
-        g_Ball.fielderActionCatchCoords.x = coords.x + (g_Ball.AtBat_Contact_BallPos.x - coords.x) * ratio;
-        g_Ball.fielderActionCatchCoords.y = coords.y + (g_Ball.AtBat_Contact_BallPos.y - coords.y) * ratio;
-        g_Ball.fielderActionCatchCoords.z = coords.z + (g_Ball.AtBat_Contact_BallPos.z - coords.z) * ratio;
+        offX = g_Ball.AtBat_Contact_BallPos.x - coords.x;
+        offY = g_Ball.AtBat_Contact_BallPos.y - coords.y;
+        offZ = g_Ball.AtBat_Contact_BallPos.z - coords.z;
+        offX *= ratio;
+        offY *= ratio;
+        offZ *= ratio;
+        g_Ball.fielderActionCatchCoords.x = coords.x + offX;
+        g_Ball.fielderActionCatchCoords.y = coords.y + offY;
+        g_Ball.fielderActionCatchCoords.z = coords.z + offZ;
 
         if (fielder->catchAnimationFramesCountDown == 1) {
             g_Ball.catchAnimationTotalFrames = 0;
