@@ -4796,12 +4796,13 @@ void setInitialFielderMovements_CoverBases(void) {
 
 // .text:0x0004BA0C size:0xFBC mapped:0x8068AAA0
 void updateSomeAutoMovementAssignments(void) {
-    InMemFielder* fielder;
-    int best9, best8, best7;
-    int i;
     int problemOutfieldBase = -1;
+    InMemFielder* fielder;
     int numAssigned;
-    f32 dist9, dist8, dist7;
+    f32 dist9, dist7, dist8;
+    int best9, best8, best7;
+    int code;
+    int i;
 
     if (g_BallsStrikesOuts.outs >= 3) {
         return;
@@ -4824,20 +4825,19 @@ void updateSomeAutoMovementAssignments(void) {
 
     for (i = 0; i < 4; i++) {
         if (g_FieldingLogic.baseCoveredInd[i] == 0) {
-            s16 fielderIndex = g_FieldingLogic.fielderAssignedLocationIndex[i];
-            if (fielderIndex >= 0) {
-                int code = g_FieldingLogic.fielderAutoMovementCode[fielderIndex];
+            if (g_FieldingLogic.fielderAssignedLocationIndex[i] >= 0) {
+                code = g_FieldingLogic.fielderAutoMovementCode[g_FieldingLogic.fielderAssignedLocationIndex[i]];
                 if (code == 7) {
                     if (i == g_FieldingLogic.somethingForTryingTagOutTargetBase) {
-                        if (!(g_Fielders[fielderIndex].distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 3.0f)) {
-                            fn_3_4B8D0(fielderIndex);
+                        if (!(g_Fielders[g_FieldingLogic.fielderAssignedLocationIndex[i]].distanceToBases[g_FieldingLogic.somethingForTryingTagOutTargetBase] < 3.0f)) {
+                            fn_3_4B8D0(g_FieldingLogic.fielderAssignedLocationIndex[i]);
                         }
-                    } else if (g_Fielders[fielderIndex].distanceToBases[i] > 2.5f) {
-                        fn_3_4B8D0(fielderIndex);
+                    } else if (g_Fielders[g_FieldingLogic.fielderAssignedLocationIndex[i]].distanceToBases[i] > 2.5f) {
+                        fn_3_4B8D0(g_FieldingLogic.fielderAssignedLocationIndex[i]);
                     }
                 } else if (code == 1 || code == 10 || code == 11) {
-                    if (g_Fielders[fielderIndex].distanceToBases[i] > 2.0f) {
-                        fn_3_4B8D0(fielderIndex);
+                    if (g_Fielders[g_FieldingLogic.fielderAssignedLocationIndex[i]].distanceToBases[i] > 2.0f) {
+                        fn_3_4B8D0(g_FieldingLogic.fielderAssignedLocationIndex[i]);
                     }
                 }
                 if (code == 2) {
@@ -4851,7 +4851,7 @@ void updateSomeAutoMovementAssignments(void) {
     }
 
     best7 = best8 = best9 = -1;
-    dist7 = dist8 = 999.9f;
+    dist8 = dist7 = 999.9f;
     for (i = 0; i < 6; i++) {
         if (g_Fielders[i].animatingActionInd == 0) {
             u8 code = g_FieldingLogic.fielderAutoMovementCode[i];
@@ -4954,7 +4954,7 @@ void updateSomeAutoMovementAssignments(void) {
             return;
         }
 
-        dist7 = dist8 = 999.9f;
+        dist8 = dist7 = 999.9f;
         if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.ballZoneAwayFromHome <= BALL_ZONE_IF_DIRT) {
             return;
         }
