@@ -12848,7 +12848,6 @@ void clamber_setPosAndVelo(int fielderIndex) {
 void clamberJumpOffWall(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int countdown = fielder->specialActionCountdown;
-    u8 status;
 
     if (countdown < 0x7FFE) {
         fielder->specialActionCountdown = countdown + 1;
@@ -12856,15 +12855,14 @@ void clamberJumpOffWall(int fielderIndex) {
         fielder->specialActionCountdown = 0x7FFF;
     }
 
-    status = fielder->clamberStatus;
-    if (status == 5) {
+    if (fielder->clamberStatus == 5) {
         if (fielder->specialActionCountdown < specialFielderActionConstants._00[6]) {
             return;
         }
     }
 
-    if (status == 3 || status == 5) {
-        if (status == 3) {
+    if (fielder->clamberStatus == 3 || fielder->clamberStatus == 5) {
+        if (fielder->clamberStatus == 3) {
             fielder->wallActionVelo.x = fielder->actionDirectionRadians * fielderActionConstants[19];
             fielder->wallActionVelo.z = fielder->wallActionFacingAngle * fielderActionConstants[19];
             fielder->wallActionVelo.y = fielderActionConstants[21];
