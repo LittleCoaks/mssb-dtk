@@ -12547,66 +12547,56 @@ void stealSetFielders(void) {
 
 // .text:0x00031C50 size:0x440 mapped:0x80670CE4
 void fielderActionsOnSteal(void) {
-    int d1, d2;
-    InMemFielder* fielder;
     int i;
 
     if (g_Pitcher.pickOffLoc == 5) {
-        g_Fielders[0].locationResponsibleForCovering = 5;
-        g_FieldingLogic.fielderAssignedLocationIndex[4] = 0;
-        setFielderAutoMovement(0, 14);
+        g_Fielders[FIELDING_POSITION_PITCHER].locationResponsibleForCovering = 5;
+        g_FieldingLogic.fielderAssignedLocationIndex[4] = FIELDING_POSITION_PITCHER;
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, 14);
 
-        g_Fielders[1].locationResponsibleForCovering = 0;
-        setFielderAutoMovement(1, 10);
-        g_FieldingLogic.fielderAssignedLocationIndex[0] = 1;
+        g_Fielders[FIELDING_POSITION_CATCHER].locationResponsibleForCovering = 0;
+        setFielderAutoMovement(FIELDING_POSITION_CATCHER, 10);
+        g_FieldingLogic.fielderAssignedLocationIndex[0] = FIELDING_POSITION_CATCHER;
     } else {
-        setFielderAutoMovement(0, 10);
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, 10);
 
-        g_Fielders[1].locationResponsibleForCovering = 0;
-        setFielderAutoMovement(1, 1);
-        g_FieldingLogic.fielderAssignedLocationIndex[0] = 1;
+        g_Fielders[FIELDING_POSITION_CATCHER].locationResponsibleForCovering = 0;
+        setFielderAutoMovement(FIELDING_POSITION_CATCHER, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[0] = FIELDING_POSITION_CATCHER;
     }
 
-    g_Fielders[2].locationResponsibleForCovering = 1;
-    setFielderAutoMovement(2, 1);
-    g_FieldingLogic.fielderAssignedLocationIndex[1] = 2;
+    g_Fielders[FIELDING_POSITION_FIRST_BASE].locationResponsibleForCovering = 1;
+    setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, 1);
+    g_FieldingLogic.fielderAssignedLocationIndex[1] = FIELDING_POSITION_FIRST_BASE;
 
-    g_Fielders[4].locationResponsibleForCovering = 3;
-    setFielderAutoMovement(4, 1);
+    g_Fielders[FIELDING_POSITION_THIRD_BASE].locationResponsibleForCovering = 3;
+    setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, 1);
+    g_FieldingLogic.fielderAssignedLocationIndex[3] = FIELDING_POSITION_THIRD_BASE;
 
-    d1 = g_Fielders[3].angleOfFieldersStartingPosition - 0x400;
-    if (d1 < 0) {
-        d1 = -d1;
-    }
-    d2 = g_Fielders[5].angleOfFieldersStartingPosition - 0x400;
-    if (d2 < 0) {
-        d2 = -d2;
-    }
-    if ((f64)d1 < (f64)d2) {
-        g_Fielders[3].locationResponsibleForCovering = 2;
-        setFielderAutoMovement(3, 1);
-        g_FieldingLogic.fielderAssignedLocationIndex[2] = 3;
+    if ((f32)__abs(g_Fielders[FIELDING_POSITION_SECOND_BASE].angleOfFieldersStartingPosition - 0x400) <
+        (f32)__abs(g_Fielders[FIELDING_POSITION_SHORTSTOP].angleOfFieldersStartingPosition - 0x400)) {
+        g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 2;
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[2] = FIELDING_POSITION_SECOND_BASE;
 
-        setFielderAutoMovement(5, 0);
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 0);
     } else {
-        g_Fielders[5].locationResponsibleForCovering = 2;
-        setFielderAutoMovement(5, 1);
-        g_FieldingLogic.fielderAssignedLocationIndex[2] = 5;
+        g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 2;
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[2] = FIELDING_POSITION_SHORTSTOP;
 
-        setFielderAutoMovement(3, 0);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 0);
     }
 
-    fielder = g_Fielders;
-    for (i = 0; i < 9; i++) {
-        if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
-            fielder->isResponsibleForCoveringALocation = 1;
+    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+        if (g_Fielders[i].locationResponsibleForCovering >= 0 && g_Fielders[i].locationResponsibleForCovering <= 3) {
+            g_Fielders[i].isResponsibleForCoveringALocation = TRUE;
         }
-        fielder++;
     }
 
-    autoMovementDetermineWhatToDo(6, 5);
-    autoMovementDetermineWhatToDo(7, 1);
-    autoMovementDetermineWhatToDo(8, 4);
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_LEFT_FIELD, 5);
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_CENTER_FIELD, 1);
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_RIGHT_FIELD, 4);
 }
 
 // .text:0x00031A3C size:0x214 mapped:0x80670AD0
@@ -12648,60 +12638,49 @@ void fn_3_31A3C(void) {
 // .text:0x00031678 size:0x3C4 mapped:0x8067070C
 void fn_3_31678(void) {
     int i;
-    int d1, d2;
-    InMemFielder* fielder;
 
-    g_Fielders[0].locationResponsibleForCovering = 0;
-    setFielderAutoMovement(0, 1);
-    g_FieldingLogic.fielderAssignedLocationIndex[0] = 0;
+    g_Fielders[FIELDING_POSITION_PITCHER].locationResponsibleForCovering = 0;
+    setFielderAutoMovement(FIELDING_POSITION_PITCHER, 1);
+    g_FieldingLogic.fielderAssignedLocationIndex[0] = FIELDING_POSITION_PITCHER;
 
     if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0) {
-        setFielderAutoMovement(1, 18);
+        setFielderAutoMovement(FIELDING_POSITION_CATCHER, 18);
     } else {
-        setFielderAutoMovement(1, 15);
+        setFielderAutoMovement(FIELDING_POSITION_CATCHER, AUTO_MOVEMENT_GOING_TO_BALL);
     }
 
-    g_Fielders[2].locationResponsibleForCovering = 1;
-    setFielderAutoMovement(2, 1);
-    g_FieldingLogic.fielderAssignedLocationIndex[1] = 2;
+    g_Fielders[FIELDING_POSITION_FIRST_BASE].locationResponsibleForCovering = 1;
+    setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, 1);
+    g_FieldingLogic.fielderAssignedLocationIndex[1] = FIELDING_POSITION_FIRST_BASE;
 
-    g_Fielders[4].locationResponsibleForCovering = 3;
-    setFielderAutoMovement(4, 1);
-    g_FieldingLogic.fielderAssignedLocationIndex[3] = 4;
+    g_Fielders[FIELDING_POSITION_THIRD_BASE].locationResponsibleForCovering = 3;
+    setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, 1);
+    g_FieldingLogic.fielderAssignedLocationIndex[3] = FIELDING_POSITION_THIRD_BASE;
 
-    d1 = g_Fielders[3].angleOfFieldersStartingPosition - 0x400;
-    if (d1 < 0) {
-        d1 = -d1;
-    }
-    d2 = g_Fielders[5].angleOfFieldersStartingPosition - 0x400;
-    if (d2 < 0) {
-        d2 = -d2;
-    }
-    if ((f64)d1 < (f64)d2) {
-        g_Fielders[3].locationResponsibleForCovering = 2;
-        setFielderAutoMovement(3, 1);
-        g_FieldingLogic.fielderAssignedLocationIndex[2] = 3;
+    if ((f32)__abs(g_Fielders[FIELDING_POSITION_SECOND_BASE].angleOfFieldersStartingPosition - 0x400) <
+        (f32)__abs(g_Fielders[FIELDING_POSITION_SHORTSTOP].angleOfFieldersStartingPosition - 0x400)) {
+        g_Fielders[FIELDING_POSITION_SECOND_BASE].locationResponsibleForCovering = 2;
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[2] = FIELDING_POSITION_SECOND_BASE;
 
-        setFielderAutoMovement(5, 0);
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 0);
     } else {
-        g_Fielders[5].locationResponsibleForCovering = 2;
-        setFielderAutoMovement(5, 1);
-        g_FieldingLogic.fielderAssignedLocationIndex[2] = 5;
+        g_Fielders[FIELDING_POSITION_SHORTSTOP].locationResponsibleForCovering = 2;
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, 1);
+        g_FieldingLogic.fielderAssignedLocationIndex[2] = FIELDING_POSITION_SHORTSTOP;
 
-        setFielderAutoMovement(3, 0);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, 0);
     }
 
-    fielder = g_Fielders;
-    for (i = 0; i < 9; i++) {
-        if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
-            fielder->isResponsibleForCoveringALocation = 1;
+    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+        if (g_Fielders[i].locationResponsibleForCovering >= 0 && g_Fielders[i].locationResponsibleForCovering <= 3) {
+            g_Fielders[i].isResponsibleForCoveringALocation = TRUE;
         }
-        fielder++;
     }
 
-    autoMovementDetermineWhatToDo(6, 5);
-    autoMovementDetermineWhatToDo(7, 1);
-    autoMovementDetermineWhatToDo(8, 4);
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_LEFT_FIELD, 5);
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_CENTER_FIELD, 1);
+    autoMovementDetermineWhatToDo(FIELDING_POSITION_RIGHT_FIELD, 4);
 }
 
 // .text:0x00031594 size:0xE4 mapped:0x80670628
