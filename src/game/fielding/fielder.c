@@ -8887,7 +8887,7 @@ void autoMovement15_selectedFielderOnLooseBall(int fielderIndex) {
 // .text:0x0003AE34 size:0x53C mapped:0x80679EC8
 void autoMovement21_23_humanControlInitialSelectedFielders(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int result;
+    int angle;
     s16 loc;
     int selectedFielder;
 
@@ -8896,24 +8896,25 @@ void autoMovement21_23_humanControlInitialSelectedFielders(int fielderIndex) {
     }
 
     if (fielder->fielderTrackingBallState == 0) {
-        fielder->fielderIsInitialOutfielderSelectedInd = 0;
-        if (g_FieldingLogic.selectedFielder_stored == fielderIndex && fielderIndex >= 6 && fielderIndex <= 8) {
-            fielder->fielderIsInitialOutfielderSelectedInd = 1;
+        fielder->fielderIsInitialOutfielderSelectedInd = FALSE;
+        if (g_FieldingLogic.selectedFielder_stored == fielderIndex && fielderIndex >= FIELDING_POSITION_LEFT_FIELD &&
+            fielderIndex <= FIELDING_POSITION_RIGHT_FIELD) {
+            fielder->fielderIsInitialOutfielderSelectedInd = TRUE;
         }
+        fielder->fielderTrackingBallState = 1;
     }
-    fielder->fielderTrackingBallState = 1;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE &&
         g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_BATTING) {
         return;
     }
 
-    result = updateFielderPositionAndVelocityForSpecialActions(fielderIndex);
-    if (result == 2) {
+    switch (updateFielderPositionAndVelocityForSpecialActions(fielderIndex)) {
+    case 2:
         return;
-    }
-
-    if (result != 1) {
+    case 1:
+        break;
+    default:
         if (fielder->fielderTrackingBallState == 1) {
             if (g_Ball.framesSinceHit == fielder->lockoutDuration) {
                 fielderTrackingBall_initialVariableSetting(fielderIndex);
@@ -8931,20 +8932,18 @@ void autoMovement21_23_humanControlInitialSelectedFielders(int fielderIndex) {
                 g_FieldingLogic.unkFlagMaybeInAir = 0;
             }
 
-            {
-                s16 angle = fielderControlStick_continuousAngleHistory[0];
-                if (g_FieldingLogic.playOverInd != 0) {
-                    angle = -1;
-                }
-                fielder->movementAngle = angle;
+            angle = fielderControlStick_continuousAngleHistory[0];
+            if (g_FieldingLogic.playOverInd != 0) {
+                angle = -1;
             }
+            fielder->movementAngle = angle;
 
             if (g_GameLogic.autoFielding[g_GameLogic.awayTeamBattingInd_battingTeam] == 0 &&
-                fielder->movementAngle >= 0 && fielder->framesSinceStartedMoving > 0xa) {
+                angle >= 0 && fielder->framesSinceStartedMoving > 10) {
                 g_FieldingLogic.somethingForTryingTagOutTargetBase = -1;
             }
 
-            if (fielder->movementAngle >= 0) {
+            if (angle >= 0) {
                 FielderDash* dash = g_FieldingLogic.dashPtr;
                 if (dash->sprintingState != 3 && dash->sprintingState != 4) {
                     if (g_FieldingLogic.fielderInputsLatestFrame & INPUT_BUTTON_B) {
@@ -8959,49 +8958,28 @@ void autoMovement21_23_humanControlInitialSelectedFielders(int fielderIndex) {
 
             moveFielder_CheckForAndSetJump(fielderIndex);
         }
+        break;
     }
 
     if (g_Ball.ballState != BALL_STATE_HIT && g_Ball.ballState != BALL_STATE_LOOSE) {
         if (fielder->locationResponsibleForCovering == 6) {
-            if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 11);
-            }
+            setFielderAutoMovementIfValid(fielderIndex, 11);
         } else {
-            if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 12);
-            }
+            setFielderAutoMovementIfValid(fielderIndex, 12);
         }
 
-        if (fielderIndex <= 5) {
+        if (fielderIndex <= FIELDING_POSITION_SHORTSTOP) {
             fielder->unknown_writeOnly = 3;
         } else {
             fielder->unknown_writeOnly = 2;
         }
 
-        g_FieldingLogic.selectedFielder = -1;
+        g_FieldingLogic.selectedFielder = FIELDING_POSITION_NONE;
     }
 
     loc = fielder->locationResponsibleForCovering;
     if (loc >= 0 && loc <= 3 && fielder->distanceToBases[loc] > 3.0f) {
-        if (loc >= 0 && loc <= 3) {
-            if (g_FieldingLogic.fielderAssignedLocationIndex[loc] == fielderIndex) {
-                g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
-                g_FieldingLogic.baseCoveredInd[loc] = 0;
-            }
-            fielder->locationResponsibleForCovering = -1;
-            fielder->isResponsibleForCoveringALocation = 0;
-            if (fielder->autoMovementFunctionIndex == 1 && fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 12);
-            }
-        } else if (loc == 5) {
-            g_FieldingLogic.fielderAssignedLocationIndex[4] = -1;
-            fielder->locationResponsibleForCovering = -1;
-            fielder->isResponsibleForCoveringALocation = 0;
-            g_FieldingLogic.playerAtMoundCutoffLocation = 0;
-            if (fielder->autoMovementFunctionIndex == 14 && fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 12);
-            }
-        }
+        releaseCoverAssignment(fielderIndex);
     }
 
     selectedFielder = g_FieldingLogic.selectedFielder;
