@@ -643,6 +643,7 @@ void setDefaultInMemFielder(void) {
     for (i = 0; i < PLAYERS_PER_TEAM; i++) {
         fielder = &g_Fielders[i];
 
+        g_FieldingLogic.fielderAutoMovementCode[i] = 0;
         fielder->locationResponsibleForCovering = -1;
         fielder->isResponsibleForCoveringALocation = 0;
         fielder->pitcherHeadingToCover1stOr3rd = 0;
@@ -719,7 +720,6 @@ void setDefaultInMemFielder(void) {
         fielder->suctionCatchInd = 0;
         fielder->catchAnimation = 0;
         fielder->AI_Ind = 0;
-        g_FieldingLogic.fielderAutoMovementCode[i] = 0;
         fielder->autoFielderInd = 0;
 
         if (!g_d_GameSettings.minigamesEnabled) {
