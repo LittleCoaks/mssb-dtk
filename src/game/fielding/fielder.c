@@ -4854,9 +4854,8 @@ void updateSomeAutoMovementAssignments(void) {
     dist8 = dist7 = 999.9f;
     for (i = 0; i < 6; i++) {
         if (g_Fielders[i].animatingActionInd == 0) {
-            u8 code = g_FieldingLogic.fielderAutoMovementCode[i];
-            if (code == 0 || code == 8 || code == 9 ||
-                (code == 9 && g_FieldingLogic.fielderAssignedLocationIndex[4] == i)) {
+            if (g_FieldingLogic.fielderAutoMovementCode[i] == 0 || g_FieldingLogic.fielderAutoMovementCode[i] == 8 || g_FieldingLogic.fielderAutoMovementCode[i] == 9 ||
+                (g_FieldingLogic.fielderAutoMovementCode[i] == 9 && g_FieldingLogic.fielderAssignedLocationIndex[4] == i)) {
                 if (best9 == -1) {
                     best9 = i;
                 } else if (best8 == -1) {
