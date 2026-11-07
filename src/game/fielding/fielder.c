@@ -3621,17 +3621,17 @@ return1:
 // .text:0x0004FB34 size:0xD64 mapped:0x8068EBC8
 void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int frame;
+    int lastFramesNeeded = 9999;
     int delayFrames;
-    int framesNeeded;
     int bestFrame = 0;
+    int framesNeeded;
     int step = 5;
     f32 bestHeight = 99.0f;
     int found = 0;
     int closeEnough = 0;
-    int lastFramesNeeded = 9999;
-    int startFrame;
     int resultCode = 0;
+    int frame;
+    int startFrame;
     f32 threshold = 4.5f;
 
     if (g_d_GameSettings.minigamesEnabled) {
