@@ -7180,7 +7180,7 @@ void decideWhenToLeaveFunction2_16_18(int fielderIndex) {
 // .text:0x00041D78 size:0x304 mapped:0x80680E0C
 void fielderAISomething(void) {
     int i;
-    int found = 0;
+    BOOL found = FALSE;
     u8 code;
     f32 dx;
     f32 dz;
@@ -7220,26 +7220,26 @@ void fielderAISomething(void) {
     for (i = 0; i < 9; i++) {
         code = g_FieldingLogic.fielderAutoMovementCode[i];
         if (code == 1 || code == 7) {
-            found = 1;
+            found = TRUE;
             break;
         }
     }
 
-    if (found == 0) {
+    if (!found) {
         fielderAIAssignmentRelated(0);
         return;
     }
 
-    found = 0;
+    found = FALSE;
     for (i = 0; i < 9; i++) {
-        code = g_Fielders[i].autoMovementFunctionIndex;
-        if (code == 2 || (u8)(code - 3) <= 1 || code == 18) {
-            found = 1;
+        if (g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM ||
+            (u8)(g_Fielders[i].autoMovementFunctionIndex - 3) <= 1 || g_Fielders[i].autoMovementFunctionIndex == 18) {
+            found = TRUE;
             break;
         }
     }
 
-    if (found == 0) {
+    if (!found) {
         fielderAIAssignmentRelated(0);
     }
 }
