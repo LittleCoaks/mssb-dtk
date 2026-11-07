@@ -2962,13 +2962,22 @@ afterSwitch:
     fielder->unused_jumpActiveOrRunningCatchRelated = TRUE;
 }
 
+static inline f32 fielderDistSqToPoint(InMemFielder* fielder, f32 x, f32 z) {
+    f32 dx;
+    f32 dz;
+    f32 dxSq;
+    f32 dzSq;
+    dx = x - fielder->pos.x;
+    dz = z - fielder->pos.z;
+    dxSq = dx * dx;
+    dzSq = dz * dz;
+
+    return dxSq + dzSq;
+}
+
 // .text:0x00052560 size:0x17C mapped:0x806915F4
 int fRunningTimeToDestination(int fielderIndex, f32 x, f32 z) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
-    f32 dz;
-    f32 dx;
-    f32 dxSq;
-    f32 dzSq;
     f32 dist;
     u32 halfAcc;
     f32 speed;
@@ -2977,11 +2986,7 @@ int fRunningTimeToDestination(int fielderIndex, f32 x, f32 z) {
         return 1;
     }
 
-    dx = x - fielder->pos.x;
-    dz = z - fielder->pos.z;
-    dxSq = dx * dx;
-    dzSq = dz * dz;
-    dist = fielderSqrt(dxSq + dzSq);
+    dist = fielderSqrt(fielderDistSqToPoint(fielder, x, z));
     halfAcc = (u32)fielder->maxAccLength_ConstF >> 1;
 
     if (0.0f == fielder->joggingSpeed) {
