@@ -16044,10 +16044,13 @@ void fielderMovement_VelocityDuringCatchAnimations(int fielderIndex) {
     if (fielder->catchAnimation == 4) {
         if (fielder->wallJumpFramesTillTopOfWallContact != 0) {
             f32 divisor = (f32)fielder->wallJumpFramesTillTopOfWallContact;
+            f32 dy;
 
             fielder->fielderVelocityDuringAction.x = (fielder->wallActionLocationX - fielder->pos.x) / divisor;
             fielder->fielderVelocityDuringAction.z = (fielder->wallactionLocationZ - fielder->pos.z) / divisor;
-            fielder->wallActionCurrentHeight += (fielder->wallActionLocationY - fielder->wallActionCurrentHeight) / divisor;
+            dy = fielder->wallActionLocationY - fielder->wallActionCurrentHeight;
+            dy /= divisor;
+            fielder->wallActionCurrentHeight += dy;
 
             fielder->wallJumpFramesTillTopOfWallContact--;
             if (fielder->wallJumpFramesTillTopOfWallContact == 0) {
@@ -16055,11 +16058,14 @@ void fielderMovement_VelocityDuringCatchAnimations(int fielderIndex) {
             }
         } else {
             f32 divisor = (f32)catchCountDown;
+            f32 vy;
 
             fielder->fielderVelocityDuringAction.x = (fielder->wallJumpApexX - fielder->pos.x) / divisor;
             fielder->fielderVelocityDuringAction.z = (fielder->wallJumpApexZ - fielder->pos.z) / divisor;
-            fielder->jumpVelocity.y = (fielder->wallJumpApexY - fielder->wallActionCurrentHeight) / divisor;
-            fielder->wallActionCurrentHeight += fielder->jumpVelocity.y;
+            vy = fielder->wallJumpApexY - fielder->wallActionCurrentHeight;
+            vy /= divisor;
+            fielder->jumpVelocity.y = vy;
+            fielder->wallActionCurrentHeight += vy;
         }
     } else if (fielder->catchAnimationFramesCountUp <= 1) {
         fielder->fielderVelocityDuringAction.x = 0.0f;
@@ -16072,22 +16078,20 @@ void fielderMovement_VelocityDuringCatchAnimations(int fielderIndex) {
                 fielder->catchAnimation == 3 && fielder->autoCatch0_noCatchAnimationOnly1 == 0) {
                 fielder->fielderVelocityDuringAction.x = 0.0f;
                 fielder->fielderVelocityDuringAction.z = 0.0f;
+            } else {
+                f32 divisor2;
+
+                scratch.x = fielder->actionStartingCoordinate.x - fielder->pos.x;
+                scratch.z = fielder->actionStartingCoordinate.z - fielder->pos.z;
+                divisor2 = (f32)fielder->catchAnimationFramesCountDown;
+                fielder->fielderVelocityDuringAction.x = scratch.x / divisor2;
+                divisor2 = (f32)fielder->catchAnimationFramesCountDown;
+                fielder->fielderVelocityDuringAction.z = scratch.z / divisor2;
+
+                if (fielder->catchAnimation == 7 || fielder->catchAnimation == 8) {
+                    fielder->runningCatchCountDown = (u8)specialFielderActionConstants._00[21];
+                }
             }
-        }
-
-        {
-            f32 divisor2;
-
-            scratch.x = fielder->actionStartingCoordinate.x - fielder->pos.x;
-            scratch.z = fielder->actionStartingCoordinate.z - fielder->pos.z;
-            divisor2 = (f32)fielder->catchAnimationFramesCountDown;
-            fielder->fielderVelocityDuringAction.x = scratch.x / divisor2;
-            divisor2 = (f32)fielder->catchAnimationFramesCountDown;
-            fielder->fielderVelocityDuringAction.z = scratch.z / divisor2;
-        }
-
-        if (fielder->catchAnimation == 7 || fielder->catchAnimation == 8) {
-            fielder->runningCatchCountDown = (u8)specialFielderActionConstants._00[21];
         }
     }
 
