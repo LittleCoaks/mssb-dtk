@@ -337,7 +337,7 @@ void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int newLocation)
 
 // .text:0x000596F8 size:0x164 mapped:0x8069878C
 void initFielders(void) {
-    int i;
+    s32 i;
     int team;
     int position;
     u8 aiIndex;
@@ -439,30 +439,7 @@ void resetInMemFielders(void) {
         }
     }
 
-    g_GameLogic.rosterLoc_skippingCap = 0;
-    team = g_GameLogic.awayTeamBattingInd_battingTeam;
-    for (i = 0; i < 10; i++) {
-        position = g_GameLogic.battingOrderAndPositionMapping[team][i][1];
-        if (position <= 8) {
-            setFielderValues(g_GameLogic.battingOrderAndPositionMapping[team][i][0], position);
-        }
-    }
-
-    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-        aiIndex = g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam];
-        fielder = &g_Fielders[i];
-        fielder->lockoutDuration = fielderLockout[aiIndex][i];
-        if (aiIndex != 0) {
-            diff = (s32)lbl_3_data_470C[1] - (s32)lbl_3_data_470C[0];
-            value = lbl_3_data_470C[0] +
-                    (s32)((f32)diff * g_AiLogic.aIDifficultyMultiplierArray[g_GameLogic.homeTeamBattingInd_fieldingTeam]);
-            if (i <= 1) {
-                fielder->lockoutDuration += value / 2;
-            } else {
-                fielder->lockoutDuration += value;
-            }
-        }
-    }
+    initFielders();
 
     for (i = 0; i < PLAYERS_PER_TEAM; i++) {
         fielder = &g_Fielders[i];
