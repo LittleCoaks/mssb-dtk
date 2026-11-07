@@ -3258,21 +3258,21 @@ int adjustPlayerPosOutsideFoulLine(int fielderIndex, VecXYZ* out) {
     moundZ = base_MoundCoordinates[2].z;
     d = z - moundZ;
     if (!(d > x) && !(d > -x)) {
-    if (x > 0.0f) {
-        f32 half;
-        d = moundZ - z;
-        half = (x - d) * 0.5f;
-        x = d + half;
-        z = -x + moundZ;
-        ret = 2;
-    } else {
-        f32 half;
-        d = moundZ - z;
-        half = (-x - d) * 0.5f;
-        x = -d - half;
-        z = x + moundZ;
-        ret = 2;
-    }
+        if (x > 0.0f) {
+            f32 half;
+            d = moundZ - z;
+            half = (x - d) * 0.5f;
+            x = d + half;
+            z = -x + moundZ;
+            ret = 2;
+        } else {
+            f32 half;
+            d = moundZ - z;
+            half = (-x - d) / 2.0f;
+            x = -d - half;
+            z = x + moundZ;
+            ret = 2;
+        }
     }
 
     moundX = base_MoundCoordinates[2].x;
