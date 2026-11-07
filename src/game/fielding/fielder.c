@@ -15434,7 +15434,7 @@ int wallJumpInitialization(int fielderIndex) {
     inVec.src.z = fielder->pos.z;
     inVec.dst.y = -fielderActionConstants[5];
     inVec.src.y = -fielderActionConstants[5];
-    magnitude = fielderSqrt(dx * dx + dz * dz);
+    magnitude = fielderSqrt(dz * dz + dx * dx);
     dx = dx / magnitude;
     dz = dz / magnitude;
     inVec.dst.x = dx * fielderActionConstants[4] + fielder->pos.x;
