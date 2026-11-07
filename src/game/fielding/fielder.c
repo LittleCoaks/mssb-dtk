@@ -633,7 +633,7 @@ void initializeMiniGameCharacters(void) {
 
 // .text:0x00058870 size:0x5E0 mapped:0x80697904
 void setDefaultInMemFielder(void) {
-    int i;
+    s32 i;
     InMemFielder* fielder;
 
     if (!g_d_GameSettings.minigamesEnabled) {
@@ -677,7 +677,7 @@ void setDefaultInMemFielder(void) {
         fielder->runningVsLookingAngleCode = 0;
         fielder->_01F4 = 0;
         fielder->baseCurrentlyOn = -1;
-        fielder->baseOn2 = 0xff;
+        fielder->baseOn2 = -1;
         fielder->_01F9 = 0;
         fielder->atDugoutAtEndOfInning = 0;
         fielder->someCountDown = 0;
@@ -735,40 +735,23 @@ void setDefaultInMemFielder(void) {
     }
 
     if (g_d_GameSettings.minigamesEnabled) {
-        s8 idx;
-        u8* fp;
-
-        idx = (s8)g_Minigame.minigamePlayerSelectedOrder;
-        if (idx >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[idx] != 0) {
-            g_Fielders[0].AI_Ind = 1;
-            g_Fielders[0].autoFielderInd = 1;
-        } else {
-            idx = (s8)g_Minigame.minigameControlStruct[1].aIStrength[2];
-            if (idx >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[idx] != 0) {
-                g_Fielders[2].AI_Ind = 1;
-                g_Fielders[2].autoFielderInd = 1;
+        if (*(s8*)&g_Minigame.minigamePlayerSelectedOrder >= 0) {
+            if (g_Minigame.playerSlots.aiControlledInd[*(s8*)&g_Minigame.minigamePlayerSelectedOrder]) {
+                g_Fielders[0].AI_Ind = 1;
+                g_Fielders[0].autoFielderInd = 1;
             }
+        } else if (g_Minigame.playerSlots.participantSlot[0] >= 0 &&
+                   g_Minigame.playerSlots.aiControlledInd[g_Minigame.playerSlots.participantSlot[0]]) {
+            g_Fielders[2].AI_Ind = 1;
+            g_Fielders[2].autoFielderInd = 1;
         }
 
-        fp = (u8*)g_Fielders;
-        idx = (s8)g_Minigame.minigameControlStruct[1].aIStrength[3];
-        if (idx >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[idx] != 0) {
-            fp[0x8fd] = 1;
-            fp[0x8fe] = 1;
-        }
-
-        fp += 0x4d0;
-        idx = (s8)g_Minigame.minigameControlStruct[1].aIStrength[4];
-        if (idx >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[idx] != 0) {
-            fp[0x695] = 1;
-            fp[0x696] = 1;
-        }
-
-        fp += 0x268;
-        idx = (s8)g_Minigame.minigameControlStruct[1].aIStrength[5];
-        if (idx >= 0 && g_Minigame.minigameControlStruct[0].battingHandedness[idx] != 0) {
-            fp[0x695] = 1;
-            fp[0x696] = 1;
+        for (i = 1; i < 4; i++) {
+            if (g_Minigame.playerSlots.participantSlot[i] >= 0 &&
+                g_Minigame.playerSlots.aiControlledInd[g_Minigame.playerSlots.participantSlot[i]]) {
+                g_Fielders[i + 2].AI_Ind = 1;
+                g_Fielders[i + 2].autoFielderInd = 1;
+            }
         }
     }
 
@@ -855,42 +838,21 @@ void setDefaultInMemFielder(void) {
         g_FieldingLogic.FrameCycleCounter_20 = 0;
         g_FieldingLogic.someFrameCounterFielderRelated = 0;
 
+        for (i = 0; i < 4; i++) {
+            dash = &((FielderDash*)g_FieldingLogic.fielderDashByPort)[i];
+            dash->framesSinceLastDashInput = -1;
+            dash->sprintLengthInFrames = -1;
+            dash->chargeLevel = 0;
+            dash->sprintLengthInFramesStored = 0;
+            dash->dashingFielderIndex = -1;
+            dash->sprintingState = 0;
+        }
+
         g_FieldingLogic.dashPtr = (FielderDash*)g_FieldingLogic.fielderDashByPort;
         g_FieldingLogic.jumpDiveStruct = &g_FieldingLogic.specialActionChecks;
         g_AiLogic.AIControlFlag = 0;
-
-        dash = g_FieldingLogic.dashPtr;
-        dash->framesSinceLastDashInput = -1;
-        dash->sprintLengthInFrames = -1;
-        dash->chargeLevel = 0;
-        dash->sprintLengthInFramesStored = 0;
-        dash->dashingFielderIndex = -1;
-        dash->sprintingState = 0;
-        dash++;
-        dash->framesSinceLastDashInput = -1;
-        dash->sprintLengthInFrames = -1;
-        dash->chargeLevel = 0;
-        dash->sprintLengthInFramesStored = 0;
-        dash->dashingFielderIndex = -1;
-        dash->sprintingState = 0;
-        dash++;
-        dash->framesSinceLastDashInput = -1;
-        dash->sprintLengthInFrames = -1;
-        dash->chargeLevel = 0;
-        dash->sprintLengthInFramesStored = 0;
-        dash->dashingFielderIndex = -1;
-        dash->sprintingState = 0;
-        dash++;
-        dash->framesSinceLastDashInput = -1;
-        dash->sprintLengthInFrames = -1;
-        dash->chargeLevel = 0;
-        dash->sprintLengthInFramesStored = 0;
-        dash->dashingFielderIndex = -1;
-        dash->sprintingState = 0;
     }
-
-    fielderControlStick_continuousAngleHistory[0] = -1;
-    for (i = 1; i < 20; i++) {
+    for (i = 0; i < 20; i++) {
         fielderControlStick_continuousAngleHistory[i] = -1;
     }
 

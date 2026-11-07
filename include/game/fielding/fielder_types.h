@@ -93,7 +93,7 @@ typedef struct {
     /*0x0112*/ u8 tagResult_1out_2safe;
     /*0x0113*/ u8 processErrorCode;
     /*0x0114*/ u8 fielderActionBeingProcessed;
-    /*0x0115*/ u8 fielderActionBeingProcessed_prev;
+    /*0x0115*/ s8 fielderActionBeingProcessed_prev;
     /*0x0116*/ u8 bodyCheckResult;
     /*0x0117*/ u8 pitcher_inPitchingState;
     /*0x0118*/ u8 catcherNotFocusedOnRunnerScoring;
@@ -357,7 +357,7 @@ typedef struct _InMemFielder {
     /*0x1F4*/ u8 _01F4;
     /*0x1F5*/ s8 baseCurrentlyOn;
     /*0x1F6*/ u8 baseOnLastFrame;
-    /*0x1F7*/ u8 baseOn2;
+    /*0x1F7*/ s8 baseOn2;
     /*0x1F8*/ u8 outFieldZoneCode;
     /*0x1F9*/ u8 _01F9;
     /*0x1FA*/ u8 atDugoutAtEndOfInning;
