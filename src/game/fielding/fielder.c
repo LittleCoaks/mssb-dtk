@@ -12904,7 +12904,7 @@ void setClamberPos(int fielderIndex) {
     int type;
     int nextStatus;
     int status;
-    int collided = 0;
+    BOOL collided = FALSE;
 
     height = fielder->wallActionCurrentHeight;
 
@@ -12943,7 +12943,7 @@ void setClamberPos(int fielderIndex) {
     type = checkCollision(&inVec, &collision, 0, 0) & 0x7F;
     if (type == BALL_COLLISION_TYPE_WALL) {
         fielder->wallActionCurrentHeight = height;
-        collided = 1;
+        collided = TRUE;
         fielder->wjRelated = status;
         goto horizontal;
     }
@@ -12962,10 +12962,17 @@ horizontal:
 
     getComponentsFromRad(angle, &cosComponent, &sinComponent);
 
-    inVec.src.x = cosComponent * (fielder->distanceFromHomePlate - 5.0f);
-    inVec.src.z = sinComponent * (fielder->distanceFromHomePlate - 5.0f);
-    inVec.dst.x = cosComponent * (5.0f + fielder->distanceFromHomePlate);
-    inVec.dst.z = sinComponent * (5.0f + fielder->distanceFromHomePlate);
+    {
+        f32 farDist;
+        f32 nearDist;
+
+        nearDist = fielder->distanceFromHomePlate - 5.0f;
+        farDist = 5.0f + fielder->distanceFromHomePlate;
+        inVec.src.x = cosComponent * nearDist;
+        inVec.src.z = sinComponent * nearDist;
+        inVec.dst.x = cosComponent * farDist;
+        inVec.dst.z = sinComponent * farDist;
+    }
     inVec.dst.y = -(fielder->wallActionCurrentHeight + fielder->hitbox[4]);
     inVec.src.y = -(fielder->wallActionCurrentHeight + fielder->hitbox[4]);
 
@@ -12976,9 +12983,9 @@ horizontal:
         if (nextStatus != 0) {
             fielder->wjRelated = nextStatus;
         }
-        collided = 1;
+        collided = TRUE;
     } else {
-        collided = 0;
+        collided = FALSE;
     }
 
 finish:
