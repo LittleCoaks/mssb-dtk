@@ -8731,7 +8731,7 @@ void liveBallFielderControlHumanTeam(void) {
 }
 
 // .text:0x0003B99C size:0x48 mapped:0x8067AA30
-void fn_3_3B99C(void) {
+void recordFielderAPress(void) {
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
         return;
     }
@@ -8814,7 +8814,7 @@ void autoMovement15_selectedFielderOnLooseBall(int fielderIndex) {
     case 1:
         break;
     default:
-        fn_3_3AAF8(fielderIndex);
+        updateHumanFielderMovementAngle(fielderIndex);
         moveFielder_CheckForAndSetJump(fielderIndex);
         break;
     }
@@ -9047,7 +9047,7 @@ void updateFielderMovementIfNoBall(int fielderIndex) {
 }
 
 // .text:0x0003ABF0 size:0xD0 mapped:0x80679C84
-void fn_3_3ABF0(int fielderIndex) {
+void stopFielderIfSelectedFielderCatching(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int selectedFielder = g_FieldingLogic.selectedFielder;
     InMemFielder* selected = &g_Fielders[selectedFielder];
@@ -9078,7 +9078,7 @@ void fn_3_3ABF0(int fielderIndex) {
 }
 
 // .text:0x0003AAF8 size:0xF8 mapped:0x80679B8C
-void fn_3_3AAF8(int fielderIndex) {
+void updateHumanFielderMovementAngle(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     int angle = fielderControlStick_continuousAngleHistory[0];
     FielderDash* dash;
