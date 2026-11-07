@@ -13751,14 +13751,14 @@ void setFielderMovementAngleTowardsIntendedLocation(int fielderIndex) {
 
 // .text:0x0002D080 size:0x288 mapped:0x8066C114
 int determineBestFrameForFielder(int fielderIndex) {
-    int bestFrame = 0;
+    int lastFramesNeeded = 9999;
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 bestHeight = 99.0f;
     int framesNeeded;
     int frame;
-    int found = 0;
-    int lastFramesNeeded = 9999;
-    s16 reactionFrames = lbl_3_data_1C3C[1];
+    int bestFrame = 0;
+    BOOL found = FALSE;
+    int reactionFrames = lbl_3_data_1C3C[1];
 
     for (frame = 0; frame < 360; ) {
         if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > 4.5f) {
@@ -13780,20 +13780,20 @@ int determineBestFrameForFielder(int fielderIndex) {
                 break;
             }
 
-            if (found != 0 && bestHeight < g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y) {
+            if (found && bestHeight < g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y) {
                 frame = bestFrame;
                 break;
             } else {
                 bestHeight = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y;
                 bestFrame = frame;
-                found = 1;
+                found = TRUE;
             }
-        } else if (found != 0) {
+        } else if (found) {
             frame = bestFrame;
             break;
         }
 
-        if (framesNeeded <= lastFramesNeeded || found != 0) {
+        if (framesNeeded <= lastFramesNeeded || found) {
             lastFramesNeeded = framesNeeded;
             frame += 3;
         } else {
