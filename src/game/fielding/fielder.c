@@ -15843,22 +15843,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     }
 
     if (g_Ball.numberOfThrowsDuringPlay == 0) {
-        int framesEstimate;
-        if (fielder->storedPosX == fielder->pos.x && fielder->storedPosZ == fielder->pos.z) {
-            framesEstimate = 1;
-        } else {
-            f32 dx = fielder->storedPosX - fielder->pos.x;
-            f32 dz = fielder->storedPosZ - fielder->pos.z;
-            f32 dxSq = dx * dx;
-            f32 dzSq = dz * dz;
-            f32 dist = fielderSqrt(dxSq + dzSq);
-            int halfMaxAccLength = (u32)fielder->maxAccLength_ConstF >> 1;
-            f32 speed = fielder->joggingSpeed;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            framesEstimate = halfMaxAccLength + (int)(dist / speed);
-        }
+        int framesEstimate = fRunningTimeToDestination(fielderIndex, fielder->storedPosX, fielder->storedPosZ);
 
         if (g_Ball.framesSinceHit - framesEstimate < specialFielderActionConstants._40[6]) {
             g_FieldingLogic.bigPlayPotential = 1;
