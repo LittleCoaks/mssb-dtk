@@ -13465,9 +13465,9 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
     s32 i;
 
     fielderIndex = ((s8*)g_Minigame.minigameFielderIndex)[minigameFielderSlot];
+    fielder = &g_Fielders[fielderIndex];
     g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
-    fielder = &g_Fielders[fielderIndex];
 
     control = &g_Controls[g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.activeFielderSlot]];
 
@@ -14099,9 +14099,9 @@ BOOL minigameDashUpdateFieldingVals(int minigameFielderSlot) {
     int fielderIndex;
 
     fielderIndex = ((s8*)g_Minigame.minigameFielderIndex)[minigameFielderSlot];
+    fielder = &g_Fielders[fielderIndex];
     g_Minigame.activeFielderSlot = minigameFielderSlot;
     g_Minigame.minigameRelatedIndex = fielderIndex;
-    fielder = &g_Fielders[fielderIndex];
 
     updateFielder_SpecificValuesEachFrame(fielderIndex);
 
