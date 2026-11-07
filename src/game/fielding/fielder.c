@@ -12731,35 +12731,22 @@ void atBat_Fielders(void) {
     fielding_atBat_SetSomeAutomovements_callCollisionFn();
 }
 
-static inline int minigameFielderMatchIdx(int fielderIndex) {
-    int matchIdx = 0;
-
-    if ((s8) g_Minigame.minigameFielderIndex[0] != fielderIndex) {
-        matchIdx = 1;
-        if ((s8) g_Minigame.minigameFielderIndex[1] != fielderIndex) {
-            matchIdx = 2;
-            if ((s8) g_Minigame.minigameFielderIndex[2] != fielderIndex) {
-                matchIdx = 3;
-                if ((s8) g_Minigame.minigameFielderIndex[3] != fielderIndex) {
-                    matchIdx = 4;
-                }
-            }
-        }
-    }
-    return matchIdx;
-}
-
 // .text:0x000313B0 size:0x1E4 mapped:0x80670444
 void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
     InMemFielder* fielder;
     int i;
+    u8 minigamesEnabled;
     int matchIdx;
-    BOOL minigamesEnabled;
 
-    for (fielder = g_Fielders, i = 0; i < 9; fielder++, i++) {
+    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+        fielder = &g_Fielders[i];
         minigamesEnabled = g_d_GameSettings.minigamesEnabled;
         if (minigamesEnabled) {
-            matchIdx = minigameFielderMatchIdx(i);
+            for (matchIdx = 0; matchIdx < 4; matchIdx++) {
+                if ((s8)g_Minigame.minigameFielderIndex[matchIdx] == i) {
+                    break;
+                }
+            }
             if (matchIdx >= 4) {
                 continue;
             }
@@ -12769,12 +12756,11 @@ void fielding_atBat_SetSomeAutomovements_callCollisionFn(void) {
             if (pauseControl.isPaused == 0) {
                 fielder->desiredMovementDirection = ATAN2F(fielder->velocityZ, fielder->velocityX);
             }
-        } else if (g_Pitcher.pitchTotalTimeCounter > 0 ||
-                   g_Runners[1].runnerStatus != RUNNER_STATUS_ON_FIELD || i != 2 ||
-                   minigamesEnabled) {
-            fielder->desiredMovementDirection = ATAN2F(-fielder->pos.z, -fielder->pos.x);
-        } else {
+        } else if (g_Pitcher.pitchTotalTimeCounter <= 0 && g_Runners[1].runnerStatus == RUNNER_STATUS_ON_FIELD &&
+                   i == FIELDING_POSITION_FIRST_BASE && !minigamesEnabled) {
             fielder->desiredMovementDirection = -3.1415927f;
+        } else {
+            fielder->desiredMovementDirection = ATAN2F(-fielder->pos.z, -fielder->pos.x);
         }
 
         if (fielder->velocityX != 0.0f || fielder->velocityZ != 0.0f) {
