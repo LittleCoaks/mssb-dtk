@@ -128,7 +128,7 @@ void autoMovement0_stayStill_exceptForSpecialActions(int fielderIndex);
 int setFielderToCoverHome(int fielderIndex);
 int setFielderToCoverBaseIfNear(int fielderIndex);
 int runOffBaseOverride(int fielderIndex);
-int fn_3_3CB8C(int fielderIndex);
+BOOL trySendOutfielderAfterHitBall(int fielderIndex);
 void autoMovement9_OffBase_coverHome(int fielderIndex);
 void autoMovement17_runningOffField(int fielderIndex);
 void autoMovement12_stopBetweenInstructions(int fielderIndex);

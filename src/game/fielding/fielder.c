@@ -8341,6 +8341,8 @@ void autoMovement17_runningOffField(int fielderIndex) {
     }
 }
 
+static inline BOOL sendOutfielderAfterHitBallIfFree(int fielderIndex);
+
 // .text:0x0003CCB0 size:0x654 mapped:0x8067BD44
 void autoMovement9_OffBase_coverHome(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
@@ -8363,7 +8365,7 @@ void autoMovement9_OffBase_coverHome(int fielderIndex) {
         return;
     }
 
-    if (fielderIndex <= 5) {
+    if (fielderIndex <= FIELDING_POSITION_SHORTSTOP) {
         if (runOffBaseOverride(fielderIndex) != 0) {
             return;
         }
@@ -8376,59 +8378,13 @@ void autoMovement9_OffBase_coverHome(int fielderIndex) {
     for (i = 0; i < 4; i++) {
         if (fielderIndex == g_FieldingLogic.fielderAssignedLocationIndex[i]) {
             fielder->locationResponsibleForCovering = i;
-            if (fielderIndex == -1) {
-                return;
-            }
-            setFielderAutoMovement(fielderIndex, 1);
+            setFielderAutoMovementIfValid(fielderIndex, 1);
             return;
         }
     }
 
-    if (fielderIndex >= 6) {
-        BOOL success;
-
-        if (g_Ball.AtBat_ContactResult > 1) {
-            success = 0;
-            goto ballCheckDone;
-        }
-        if (g_Ball.hitWallInd != 0) {
-            success = 0;
-            goto ballCheckDone;
-        }
-        if (g_FieldingLogic.someFielderIndex >= 0) {
-            success = 0;
-            goto ballCheckDone;
-        }
-
-        if (g_Ball.AtBat_ContactResult == 0) {
-            if (g_Ball.landingSpotZoneAwayFromHome < 1 || fielderIndex < 6) {
-                success = 0;
-                goto ballCheckDone;
-            }
-            if (g_Ball.landingSpotAngle < 0x380 && fielderIndex == 6) {
-                success = 0;
-                goto ballCheckDone;
-            }
-            if (g_Ball.landingSpotAngle > 0x480 && fielderIndex == 8) {
-                success = 0;
-                goto ballCheckDone;
-            }
-        } else {
-            if (fielderIndex < 6 || fielderIndex != g_FieldingLogic.secondaryFielderStored) {
-                success = 0;
-                goto ballCheckDone;
-            }
-        }
-
-        success = 1;
-
-ballCheckDone:
-        if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, 24);
-            g_FieldingLogic.someFielderIndex = fielderIndex;
-        }
-        g_FieldingLogic.someFielderIndex = fielderIndex;
-        if (success) {
+    if (fielderIndex >= FIELDING_POSITION_LEFT_FIELD) {
+        if (sendOutfielderAfterHitBallIfFree(fielderIndex)) {
             return;
         }
 
@@ -8440,10 +8396,8 @@ ballCheckDone:
         if (fielder->distanceFromHomePlate > 45.0f) {
             fielder->locationResponsibleForCovering = setFielderLocToBeNearBase(fielderIndex);
             fielder->isResponsibleForCoveringALocation = 2;
-            if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 14);
-            }
-            fielder->fielderVeloAdjustmentCode = 0xb;
+            setFielderAutoMovementIfValid(fielderIndex, 14);
+            fielder->fielderVeloAdjustmentCode = 11;
             return;
         }
     }
@@ -8457,18 +8411,20 @@ ballCheckDone:
     }
 }
 
-// .text:0x0003CB8C size:0x124 mapped:0x8067BC20
-int fn_3_3CB8C(int fielderIndex) {
+/* An outfielder with nobody chasing the ball goes after it (auto movement 24) when the ball is a
+ * fly ball to its side of the outfield, or a grounder for which it is the stored secondary fielder.
+ * trySendOutfielderAfterHitBall() is the out-of-line copy. */
+static inline BOOL sendOutfielderAfterHitBallIfFree(int fielderIndex) {
     InMemFielder* fielder;
 
-    if (g_Ball.AtBat_ContactResult > 1) {
-        return 0;
+    if (g_Ball.AtBat_ContactResult > BALL_RESULT_TYPE_LANDED) {
+        return FALSE;
     }
     if (g_Ball.hitWallInd != 0) {
-        return 0;
+        return FALSE;
     }
     if (g_FieldingLogic.someFielderIndex >= 0) {
-        return 0;
+        return FALSE;
     }
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR) {
@@ -8476,18 +8432,18 @@ int fn_3_3CB8C(int fielderIndex) {
             goto fail;
         }
         if (g_Ball.landingSpotAngle < 0x380 && fielderIndex == 6) {
-            return 0;
+            return FALSE;
         }
         if (g_Ball.landingSpotAngle > 0x480 && fielderIndex == 8) {
-            return 0;
+            return FALSE;
         }
     } else if (fielderIndex < 6 || fielderIndex != g_FieldingLogic.secondaryFielderStored) {
     fail:
-        return 0;
+        return FALSE;
     }
 
     fielder = &g_Fielders[fielderIndex];
-    if (fielderIndex != -1) {
+    if (fielderIndex != FIELDING_POSITION_NONE) {
         fielder->autoMovementFunctionIndex = 24;
         if (autoMovementFunctions[24].code >= 0) {
             g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[24].code;
@@ -8500,7 +8456,12 @@ int fn_3_3CB8C(int fielderIndex) {
         fielder->fielderTrackingBallState = 0;
     }
     g_FieldingLogic.someFielderIndex = fielderIndex;
-    return 1;
+    return TRUE;
+}
+
+// .text:0x0003CB8C size:0x124 mapped:0x8067BC20
+BOOL trySendOutfielderAfterHitBall(int fielderIndex) {
+    return sendOutfielderAfterHitBallIfFree(fielderIndex);
 }
 
 // .text:0x0003C594 size:0x5F8 mapped:0x8067B628
@@ -8533,7 +8494,7 @@ int runOffBaseOverride(int fielderIndex) {
             continue;
         }
 
-        if (fielderIndex != 0 || !(g_Ball.ballDistanceFromHome < 18.0f) || !(g_Ball.ballVelocity < 0.15f)) {
+        if (fielderIndex != FIELDING_POSITION_PITCHER || !(g_Ball.ballDistanceFromHome < 18.0f) || !(g_Ball.ballVelocity < 0.15f)) {
             goto found_loopBreak;
         }
 
