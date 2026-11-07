@@ -14028,23 +14028,14 @@ void setFielderMovementAngleTowardsIntendedLocation(int fielderIndex) {
 
 // .text:0x0002D080 size:0x288 mapped:0x8066C114
 int determineBestFrameForFielder(int fielderIndex) {
-    int frame;
-    f32 bestHeight = 99.0f;
-    s16 reactionFrames = lbl_3_data_1C3C[1];
-    int lastFramesNeeded = 9999;
-    InMemFielder* fielder = &g_Fielders[fielderIndex];
-    int found = 0;
     int bestFrame = 0;
-    f32 ballZ;
-    f32 ballX;
-    f32 dx;
-    f32 dz;
-    f32 sqx;
-    f32 sqz;
-    f32 dist;
-    f32 speed;
-    int travelFrames;
+    InMemFielder* fielder = &g_Fielders[fielderIndex];
+    f32 bestHeight = 99.0f;
     int framesNeeded;
+    int frame;
+    int found = 0;
+    int lastFramesNeeded = 9999;
+    s16 reactionFrames = lbl_3_data_1C3C[1];
 
     for (frame = 0; frame < 360; ) {
         if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y > 4.5f) {
@@ -14058,25 +14049,8 @@ int determineBestFrameForFielder(int fielderIndex) {
             continue;
         }
 
-        ballX = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x;
-        ballZ = g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z;
-        if (ballX == fielder->pos.x && ballZ == fielder->pos.z) {
-            framesNeeded = 1;
-        } else {
-            dx = ballX - fielder->pos.x;
-            dz = ballZ - fielder->pos.z;
-            sqx = dx * dx;
-            sqz = dz * dz;
-            dist = fielderSqrt(sqx + sqz);
-
-            framesNeeded = (u32)fielder->maxAccLength_ConstF >> 1;
-            speed = fielder->joggingSpeed;
-            if (speed == 0.0f) {
-                speed = 1.0f;
-            }
-            travelFrames = (int)(dist / speed);
-            framesNeeded += travelFrames;
-        }
+        framesNeeded = fRunningTimeToDestination(fielderIndex, g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
+                                                 g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
 
         if (framesNeeded < frame - reactionFrames) {
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.y < fielder->hitbox[3]) {
