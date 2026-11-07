@@ -8662,13 +8662,13 @@ void checkIfPlayerNeedsToMoveToCatchBall(int fielderIndex) {
 
 // .text:0x0003B9E4 size:0x46C mapped:0x8067AA78
 void liveBallFielderControlHumanTeam(void) {
-    int i;
+    s32 i;
     InMemFielder* fielder;
     InputStruct* control;
     s16 stickAngle;
 
-    g_FieldingLogic.selectedFielder_stored = g_FieldingLogic.selectedFielder;
     control = &g_Controls[g_GameLogic.teams[g_GameLogic.teamFielding]];
+    g_FieldingLogic.selectedFielder_stored = g_FieldingLogic.selectedFielder;
 
     for (i = 19; i >= 1; i--) {
         fielderControlStick_continuousAngleHistory[i] = fielderControlStick_continuousAngleHistory[i - 1];
@@ -8689,10 +8689,10 @@ void liveBallFielderControlHumanTeam(void) {
         }
     }
 
-    if (fielderControlStick_continuousAngleHistory[1] < 0 || fielderControlStick_continuousAngleHistory[2] < 0) {
-        currentStickDirection = -1;
-    } else {
+    if (fielderControlStick_continuousAngleHistory[1] >= 0 && fielderControlStick_continuousAngleHistory[2] >= 0) {
         currentStickDirection = fielderControlStick_continuousAngleHistory[0];
+    } else {
+        currentStickDirection = -1;
     }
 
     g_FieldingLogic.fielderInputs = control->buttonInput;
@@ -8725,7 +8725,7 @@ void liveBallFielderControlHumanTeam(void) {
         g_FieldingLogic.unkFlagMaybeInAir = 0;
     } else if (g_Ball.ballState == BALL_STATE_THROWN) {
         if (g_FieldingLogic.interceptThrowFielder < 0) {
-            g_FieldingLogic.selectedFielder = -1;
+            g_FieldingLogic.selectedFielder = FIELDING_POSITION_NONE;
         }
     }
 }
