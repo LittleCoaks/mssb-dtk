@@ -419,11 +419,7 @@ void initializeFielderConstants(void) {
 
 // .text:0x00059338 size:0x28C mapped:0x806983CC
 void resetInMemFielders(void) {
-    int team;
     int position;
-    u8 aiIndex;
-    s32 diff;
-    s32 value;
     s32 i;
     InMemFielder* fielder;
 
@@ -2942,6 +2938,7 @@ void calculateMinDiveDistAndEndingCoords(int fielderIndex, int numFrames, f32 di
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 totalDist = 0.0f;
     f32 speed = fielder->currentVelocity;
+    f32 dirLength;
     f32 normDirX;
     f32 normDirZ;
     s16 diveAngle;
@@ -2955,10 +2952,10 @@ void calculateMinDiveDistAndEndingCoords(int fielderIndex, int numFrames, f32 di
         return;
     }
 
-    totalDist = fielderSqrt(dirX * dirX + dirZ * dirZ);
+    dirLength = fielderSqrt(dirX * dirX + dirZ * dirZ);
 
-    normDirX = dirX / totalDist;
-    normDirZ = dirZ / totalDist;
+    normDirX = dirX / dirLength;
+    normDirZ = dirZ / dirLength;
 
     diveAngle = calculateAngleFromCoordinates(normDirX, normDirZ);
 
@@ -2980,7 +2977,8 @@ void calculateMinDiveDistAndEndingCoords(int fielderIndex, int numFrames, f32 di
         totalDist += speed;
     }
 
-    totalDist += (f32)(numFrames - (i + 1)) * fielder->joggingSpeed;
+    numFrames -= i + 1;
+    totalDist += fielder->joggingSpeed * (f32)numFrames;
 
     *outDist = totalDist;
     *outX = fielder->pos.x + normDirX * totalDist;
