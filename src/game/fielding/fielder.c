@@ -3946,11 +3946,11 @@ void setCatcherCatchStrategy_distToLandingSpot(int fielderIndex) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
         }
     } else if (resultCode == 1) {
+        int landingFrame = fielder->framesToGetToBallLandingSpot;
+        f32 lx = g_Ball.physicsSubstruct.futureCoordsAndDist[landingFrame].pos.x;
+        f32 lz = g_Ball.physicsSubstruct.futureCoordsAndDist[landingFrame].pos.z;
         int arrival = fielder->framesToGetToBallLandingSpot +
-                      estimatedThrowFramesBetweenTwoPoints(
-                          g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.x,
-                          g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.z,
-                          base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
+                      estimatedThrowFramesBetweenTwoPoints(lx, lz, base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
 
         if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] + 30 > arrival + 60) {
             g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
