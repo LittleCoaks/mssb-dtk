@@ -2382,10 +2382,6 @@ typedef struct {
 // 0x8088a7e4
 extern g_Stats_s g_Stats;
 
-/* g_FieldingLogic.fielderDashByPort: four 0x1B-byte per-port dash records
- * (not a C struct array -- 0x1B is not 4-aligned). Byte offsets within one: */
-#define FIELDER_DASH_SPRINTING_STATE 0x1A
-
 typedef struct {
     /*0x00*/ s16 stickAngleWhenPressingA;
     /*0x02*/ u8 aPressed_decidingWhatActionToTake;

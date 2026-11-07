@@ -24,10 +24,7 @@ typedef struct {
 } FielderDash; // size: 0x1c
 
 typedef struct {
-    /*0x0000*/ u8 fielderDashByPort[4][0x1B];
-    /*0x006c*/ s16 pad;
-    /*0x006e*/ u8 always0;
-    /*0x006f*/ u8 padding;
+    /*0x0000*/ FielderDash fielderDashByPort[4];
     /*0x0070*/ FielderDash* dashPtr;
     /*0x0074*/ UnkInputRelated specialActionChecks;
     /*0x007c*/ u8 _007c;

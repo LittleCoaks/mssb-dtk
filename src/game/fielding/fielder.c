@@ -400,7 +400,7 @@ void initializeFielderConstants(void) {
     }
 
     g_FieldingLogic.selectedFielder = -1;
-    dash = (FielderDash*)&g_FieldingLogic;
+    dash = g_FieldingLogic.fielderDashByPort;
     dash->sprintSpeedMultiplier = 1.0f;
     dash->sprintSpeedMultiplier = 1.0f;
     dash->sprintSpeedMultiplier = 1.0f;
@@ -412,7 +412,7 @@ void initializeFielderConstants(void) {
     g_FieldingLogic.cutoffFielderIndex = -1;
     g_FieldingLogic._0136 = 1;
     g_FieldingLogic.always0_0137 = 0;
-    g_FieldingLogic.dashPtr = (FielderDash*)&g_FieldingLogic;
+    g_FieldingLogic.dashPtr = g_FieldingLogic.fielderDashByPort;
     g_FieldingLogic.jumpDiveStruct = &g_FieldingLogic.specialActionChecks;
     dash->sprintSpeedMultiplier = 1.0f;
 }
@@ -847,7 +847,7 @@ void setDefaultInMemFielder(void) {
         }
         g_FieldingLogic.someFrameCounterFielderRelated = 0;
 
-        g_FieldingLogic.dashPtr = (FielderDash*)g_FieldingLogic.fielderDashByPort;
+        g_FieldingLogic.dashPtr = g_FieldingLogic.fielderDashByPort;
         g_FieldingLogic.jumpDiveStruct = &g_FieldingLogic.specialActionChecks;
         g_AiLogic.AIControlFlag = 0;
     }
@@ -13393,7 +13393,7 @@ void miniGameDash(void) {
 
     for (i = 0; i < (int) ARRAY_COUNT(g_Minigame.minigameFielderIndex); i++) {
         if ((s8)g_Minigame.minigameFielderIndex[i] >= 0) {
-            g_FieldingLogic.dashPtr = &((FielderDash*) g_FieldingLogic.fielderDashByPort)[i];
+            g_FieldingLogic.dashPtr = &g_FieldingLogic.fielderDashByPort[i];
             g_FieldingLogic.jumpDiveStruct =
                 &((g_FieldingLogic_s*) ((u8*) &g_FieldingLogic + i * 6))->specialActionChecks;
 
@@ -13704,7 +13704,7 @@ void fn_3_2E41C(void) {
             g_FieldingLogic.fielderInputs = control->buttonInput;
             g_FieldingLogic.fielderInputsLatestFrame = control->newButtonInput;
             g_FieldingLogic.unused_fielderControls0x8 = control->_08;
-            g_FieldingLogic.dashPtr = &((FielderDash*) g_FieldingLogic.fielderDashByPort)[i];
+            g_FieldingLogic.dashPtr = &g_FieldingLogic.fielderDashByPort[i];
             g_FieldingLogic.jumpDiveStruct =
                 &((g_FieldingLogic_s*) ((u8*) &g_FieldingLogic + i * 6))->specialActionChecks;
             g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
