@@ -12995,7 +12995,6 @@ void wallSplat_setPosAndVelo(int fielderIndex) {
 
     if (fielder->wallSplatStatus == 1) {
         f32 factor;
-        f32 heightDelta;
         f32 dx = fielder->wallActionLocationX - fielder->pos.x;
         f32 dz = fielder->wallactionLocationZ - fielder->pos.z;
         f32 dy = fielder->wallActionLocationY - fielder->wallActionCurrentHeight;
@@ -13006,12 +13005,14 @@ void wallSplat_setPosAndVelo(int fielderIndex) {
             factor = 1.0f;
         }
 
-        fielder->velocityX = dx * factor;
-        fielder->velocityZ = dz * factor;
-        heightDelta = dy * factor;
+        dx *= factor;
+        dz *= factor;
+        dy *= factor;
+        fielder->velocityX = dx;
+        fielder->velocityZ = dz;
         fielder->pos.x += fielder->velocityX;
         fielder->pos.z += fielder->velocityZ;
-        fielder->wallActionCurrentHeight += heightDelta;
+        fielder->wallActionCurrentHeight += dy;
 
         fielder->wallSplatStageCountDown--;
         if (fielder->wallSplatStageCountDown == 0) {
