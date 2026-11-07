@@ -12485,10 +12485,11 @@ void stealSetFielders(void) {
     int i;
     int angle;
     u8 code;
+    BOOL quickThrow;
 
-    fielder = g_Fielders;
-    for (i = 0; i < 9; i++) {
-        if (i == 1) {
+    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+        fielder = &g_Fielders[i];
+        if (i == FIELDING_POSITION_CATCHER) {
             fielder->angleOfFieldersStartingPosition = 0x400;
         } else if (fielder->pos.x == 0.0f) {
             fielder->angleOfFieldersStartingPosition = 0x400;
@@ -12500,7 +12501,6 @@ void stealSetFielders(void) {
             fielder->angleOfFieldersStartingPosition = angle;
         }
         fielder->distanceFromHomePlate = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
-        fielder++;
     }
 
     fielderActionsOnSteal();
@@ -12514,7 +12514,7 @@ void stealSetFielders(void) {
     g_Ball.ballState = BALL_STATE_HELD;
     g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_FIELDED;
     g_Ball.fielderAboutToGetBall_hasBall = 0;
-    g_Ball.fielderBeingThrownTo = -1;
+    g_Ball.fielderBeingThrownTo = FIELDING_POSITION_NONE;
     g_Ball.ballIsLooseInd_unused = 0;
     g_Ball.looseBall_codeForHowLongUntilSomeoneWillGetIt = 0;
 
@@ -12524,25 +12524,22 @@ void stealSetFielders(void) {
     }
 
     if (g_Pitcher.pickOffLoc == 5) {
-        g_Ball.AtBat_Contact_BallPos.x = g_Fielders[1].pos.x;
-        g_Ball.AtBat_Contact_BallPos.y = g_Fielders[1].pos.y;
-        g_Ball.AtBat_Contact_BallPos.z = g_Fielders[1].pos.z;
-        g_Ball.fielderWBallIndex = 1;
+        g_Ball.AtBat_Contact_BallPos.x = g_Fielders[FIELDING_POSITION_CATCHER].pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = g_Fielders[FIELDING_POSITION_CATCHER].pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = g_Fielders[FIELDING_POSITION_CATCHER].pos.z;
+        g_Ball.fielderWBallIndex = FIELDING_POSITION_CATCHER;
     } else {
-        g_Ball.AtBat_Contact_BallPos.x = g_Fielders[0].pos.x;
-        g_Ball.AtBat_Contact_BallPos.y = g_Fielders[0].pos.y;
-        g_Ball.AtBat_Contact_BallPos.z = g_Fielders[0].pos.z;
-        g_Ball.fielderWBallIndex = 0;
+        g_Ball.AtBat_Contact_BallPos.x = g_Fielders[FIELDING_POSITION_PITCHER].pos.x;
+        g_Ball.AtBat_Contact_BallPos.y = g_Fielders[FIELDING_POSITION_PITCHER].pos.y;
+        g_Ball.AtBat_Contact_BallPos.z = g_Fielders[FIELDING_POSITION_PITCHER].pos.z;
+        g_Ball.fielderWBallIndex = FIELDING_POSITION_PITCHER;
         if (g_Pitcher.pickOffLoc >= 1 && g_Pitcher.pickOffLoc <= 3) {
             g_FieldingLogic.locationThrownTo = g_Pitcher.pickOffLoc;
         }
+        quickThrow = checkFieldingStat(g_GameLogic.teamFielding, g_Fielders[FIELDING_POSITION_PITCHER].rosterLocation,
+                                       FIELDING_ABILITY_QUICK_THROW);
+        g_Fielders[FIELDING_POSITION_PITCHER].throwWindUpFrames = throwWindUpFrames[quickThrow * 3 + 2];
     }
-
-    g_Fielders[0].throwWindUpFrames =
-        throwWindUpFrames[checkFieldingStat(g_GameLogic.teamFielding, g_Fielders[0].rosterLocation,
-                                             FIELDING_ABILITY_QUICK_THROW) *
-                               3 +
-                           2];
 }
 
 // .text:0x00031C50 size:0x440 mapped:0x80670CE4
@@ -12600,14 +12597,14 @@ void fielderActionsOnSteal(void) {
 }
 
 // .text:0x00031A3C size:0x214 mapped:0x80670AD0
-void fn_3_31A3C(void) {
+void wildPitchSetFielders(void) {
     int i;
     InMemFielder* fielder;
     int angle;
 
-    fielder = g_Fielders;
-    for (i = 0; i < 9; i++) {
-        if (i == 1) {
+    for (i = 0; i < PLAYERS_PER_TEAM; i++) {
+        fielder = &g_Fielders[i];
+        if (i == FIELDING_POSITION_CATCHER) {
             fielder->angleOfFieldersStartingPosition = 0x400;
         } else if (fielder->pos.x == 0.0f) {
             fielder->angleOfFieldersStartingPosition = 0x400;
@@ -12619,24 +12616,23 @@ void fn_3_31A3C(void) {
             fielder->angleOfFieldersStartingPosition = angle;
         }
         fielder->distanceFromHomePlate = fielderSqrt(fielder->pos.x * fielder->pos.x + fielder->pos.z * fielder->pos.z);
-        fielder++;
     }
 
-    fn_3_31678();
+    fielderActionsOnWildPitch();
 
     g_Ball.physicsSubstruct.acceleration.x = 0.0f;
     g_Ball.physicsSubstruct.acceleration.y = 0.0f;
     g_Ball.physicsSubstruct.acceleration.z = 0.0f;
     g_Ball.ballState = BALL_STATE_LOOSE;
     g_Ball.AtBat_ContactResult = BALL_RESULT_TYPE_FIELDED;
-    g_Ball.fielderAboutToGetBall_hasBall = -1;
-    g_Ball.fielderBeingThrownTo = -1;
+    g_Ball.fielderAboutToGetBall_hasBall = FIELDING_POSITION_NONE;
+    g_Ball.fielderBeingThrownTo = FIELDING_POSITION_NONE;
     g_Ball.ballIsLooseInd_unused = 0;
     g_Ball.looseBall_codeForHowLongUntilSomeoneWillGetIt = 0;
 }
 
 // .text:0x00031678 size:0x3C4 mapped:0x8067070C
-void fn_3_31678(void) {
+void fielderActionsOnWildPitch(void) {
     int i;
 
     g_Fielders[FIELDING_POSITION_PITCHER].locationResponsibleForCovering = 0;
