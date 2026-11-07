@@ -6072,8 +6072,8 @@ void checkIfCutoffIsntAtThrowDestination(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 predX;
     f32 predZ;
-    f32 dz;
     f32 dx;
+    f32 dz;
     f32 dist;
     f32 sqx;
     f32 sqz;
@@ -6082,7 +6082,8 @@ void checkIfCutoffIsntAtThrowDestination(int fielderIndex) {
         if (0.0f != g_Ball.ballVelocity) {
             f32 t = fielder->distanceFromBall / g_Ball.ballVelocity;
 
-            predX = g_Ball.physicsSubstruct.velocity.x * t + g_Ball.AtBat_Contact_BallPos.x;
+            predX = g_Ball.AtBat_Contact_BallPos.x;
+            predX += g_Ball.physicsSubstruct.velocity.x * t;
             predZ = g_Ball.physicsSubstruct.velocity.z * t + g_Ball.AtBat_Contact_BallPos.z;
 
             dx = fielder->pos.x - predX;
@@ -6092,7 +6093,6 @@ void checkIfCutoffIsntAtThrowDestination(int fielderIndex) {
             dist = fielderSqrt(sqz + sqx);
 
             if (dist > fielder->hitbox[0]) {
-
                 fielder->playerNeedsToMoveToCatchThrowInd = 1;
                 setFielderAutoCoords(fielderIndex, predX, predZ);
             }
@@ -8621,30 +8621,33 @@ void checkIfPlayerNeedsToMoveToCatchBall(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     f32 predX;
     f32 predZ;
-    f32 dz;
     f32 dx;
+    f32 dz;
     f32 dist;
     f32 sqx;
     f32 sqz;
 
-    if (fielder->animationRelatedInd == 0) {
-        if (g_Ball.framesSinceThrowStarted == 5) {
-            if (0.0f != g_Ball.ballVelocity) {
-                f32 t = fielder->distanceFromBall / g_Ball.ballVelocity;
+    if (fielder->animationRelatedInd != 0) {
+        return;
+    }
 
-                predX = g_Ball.physicsSubstruct.velocity.x * t + g_Ball.AtBat_Contact_BallPos.x;
-                predZ = g_Ball.physicsSubstruct.velocity.z * t + g_Ball.AtBat_Contact_BallPos.z;
+    if (g_Ball.framesSinceThrowStarted == 5) {
+        if (0.0f != g_Ball.ballVelocity) {
+            f32 t = fielder->distanceFromBall / g_Ball.ballVelocity;
 
-                dx = fielder->pos.x - predX;
-                dz = fielder->pos.z - predZ;
-                sqx = dx * dx;
-                sqz = dz * dz;
-                dist = fielderSqrt(sqz + sqx);
+            predX = g_Ball.AtBat_Contact_BallPos.x;
+            predX += g_Ball.physicsSubstruct.velocity.x * t;
+            predZ = g_Ball.physicsSubstruct.velocity.z * t + g_Ball.AtBat_Contact_BallPos.z;
 
-                if (dist > fielder->hitbox[0]) {
-                    fielder->playerNeedsToMoveToCatchThrowInd = 1;
-                    setFielderAutoCoords(fielderIndex, predX, predZ);
-                }
+            dx = fielder->pos.x - predX;
+            dz = fielder->pos.z - predZ;
+            sqx = dx * dx;
+            sqz = dz * dz;
+            dist = fielderSqrt(sqz + sqx);
+
+            if (dist > fielder->hitbox[0]) {
+                fielder->playerNeedsToMoveToCatchThrowInd = 1;
+                setFielderAutoCoords(fielderIndex, predX, predZ);
             }
         }
     }
