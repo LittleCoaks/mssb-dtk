@@ -3818,16 +3818,16 @@ void setFielderCatchStrategy_calcFramesToGetToDropSpot(int fielderIndex) {
                 g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
             }
         } else if (fielderIndex <= FIELDING_POSITION_SHORTSTOP && resultCode == 1) {
-            int angle = calculateAngleFromCoordinates(
-                g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.x,
-                g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.z);
+            int landingFrame = fielder->framesToGetToBallLandingSpot;
+            int angle = calculateAngleFromCoordinates(g_Ball.physicsSubstruct.futureCoordsAndDist[landingFrame].pos.x,
+                                                      g_Ball.physicsSubstruct.futureCoordsAndDist[landingFrame].pos.z);
 
             if (getDifferenceInAngle(angle, fielder->playerAngleFromHome) < 0x80) {
+                int catchFrame = fielder->framesToGetToBallLandingSpot;
+                f32 lx = g_Ball.physicsSubstruct.futureCoordsAndDist[catchFrame].pos.x;
+                f32 lz = g_Ball.physicsSubstruct.futureCoordsAndDist[catchFrame].pos.z;
                 int arrival = fielder->framesToGetToBallLandingSpot +
-                              estimatedThrowFramesBetweenTwoPoints(
-                                  g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.x,
-                                  g_Ball.physicsSubstruct.futureCoordsAndDist[fielder->framesToGetToBallLandingSpot].pos.z,
-                                  base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
+                              estimatedThrowFramesBetweenTwoPoints(lx, lz, base_MoundCoordinates[1].x, base_MoundCoordinates[1].z);
 
                 if ((&g_RunningLogic.runnersByCurrentBaseMask)[5] - 20 > arrival + 20) {
                     g_FieldingLogic.fieldersWhoCanCatchBall_bitIndicators |= (1 << fielderIndex);
