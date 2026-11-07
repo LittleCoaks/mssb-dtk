@@ -2461,9 +2461,9 @@ void setStandingOnBaseVariables(int fielderIndex) {
 
         threshold = thresholdToBeConsideredCoveringBase_ByWeight[fielder->Weight];
         if (threshold > dist) {
-            g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] = 1;
+            g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] = TRUE;
             fielder->baseCurrentlyOn = fielder->locationResponsibleForCovering;
-            if (fielderIndex == 0 && fielder->pitcherHeadingToCover1stOr3rd == 1) {
+            if (fielderIndex == FIELDING_POSITION_PITCHER && fielder->pitcherHeadingToCover1stOr3rd == 1) {
                 fielder->pitcherHeadingToCover1stOr3rd = 0;
             }
         }
@@ -2471,13 +2471,13 @@ void setStandingOnBaseVariables(int fielderIndex) {
         if (g_Ball.fielderWBallIndex == fielderIndex) {
             if (g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] != fielderIndex &&
                 g_FieldingLogic.fielderAssignedLocationIndex[fielder->locationResponsibleForCovering] >= 0 &&
-                g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] != 0) {
+                g_FieldingLogic.baseCoveredInd[fielder->locationResponsibleForCovering] != FALSE) {
                 releaseCoverAssignment(fielderIndex);
             }
         }
     } else {
         if (g_Ball.fielderWBallIndex == fielderIndex) {
-            int i;
+            s32 i;
             for (i = 0; i < 4; i++) {
                 f32 dx = base_MoundCoordinates[i].x - fielder->pos.x;
                 f32 dz = base_MoundCoordinates[i].z - fielder->pos.z;
@@ -2495,7 +2495,7 @@ void setStandingOnBaseVariables(int fielderIndex) {
                 fielder->locationResponsibleForCovering = i;
                 g_FieldingLogic.fielderAssignedLocationIndex[i] = fielderIndex;
                 fielder->isResponsibleForCoveringALocation = 1;
-                g_FieldingLogic.baseCoveredInd[i] = 1;
+                g_FieldingLogic.baseCoveredInd[i] = TRUE;
                 break;
             }
         }
@@ -2529,7 +2529,7 @@ void setStandingOnBaseVariables(int fielderIndex) {
         int k;
         for (k = 0; k < 4; k++) {
             if (g_FieldingLogic.fielderAssignedLocationIndex[k] == fielderIndex) {
-                g_FieldingLogic.baseCoveredInd[k] = 0;
+                g_FieldingLogic.baseCoveredInd[k] = FALSE;
                 break;
             }
         }
