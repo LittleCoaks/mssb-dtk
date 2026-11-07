@@ -6362,6 +6362,32 @@ functions. These lessons are not specific to one file:
 - **Mirror sibling files:** the held-ball block in fielding_updateAllFieldersPostMovement matched once
   copied from the same code in ball_physics.c (landing spot from AtBat_Contact_BallPos,
   `VEC_LENGTH_XZ`).
+- **Cleanup pass (2026-11): a nested inline for the squared distance fixes FPRs in every copy.**
+  `fRunningTimeToDestination` had swapped dx/dz registers in all its inlined copies. Moving the
+  subtraction into `static inline f32 fielderDistSqToPoint(fielder, x, z)` and writing
+  `dist = fielderSqrt(fielderDistSqToPoint(...))` matched the helper and two callers, and raised four
+  more. Declaration order inside a nested inline behaves reversed.
+- **Read an array-of-struct index into an `int` local when a sibling does.**
+  `int landingFrame = fielder->framesToGetToBallLandingSpot;` followed by
+  `futureCoordsAndDist[landingFrame].pos.x/.z` into locals gave the target's `addi base+0x354/0x35c`
+  plus `lfsx` (setCatcherCatchStrategy_distToLandingSpot 95.0 -> 99.8). The shape was copied from
+  calcKnockoutCatchStrategy, whose identical tail already matched.
+- **`/ 2.0f` and `* 0.5f` give the same constant but the opposite `fmuls` operand order.** The divide
+  form puts the constant second. The choice can differ from one site to the next in the same function:
+  adjustPlayerPosOutsideFoulLine matched three `* 0.5f` and one `/ 2.0f` (98.6 -> 99.7), after trying all
+  81 combinations.
+- **Re-reading a field at every test can beat a cached local.** fielderAISomething went to 100 by
+  testing `g_Fielders[i].autoMovementFunctionIndex` three times instead of through a `u8 code`
+  local. updateSomeAutoMovementAssignments' first loop got the target's registers by re-reading
+  `fielderAssignedLocationIndex[i]` at every use instead of keeping an `s16` local. MWCC's CSE value
+  takes a different register than a named local would.
+- **Inlined copies can want the opposite source order from the standalone body.** In fn_3_402A8,
+  `shiftAmt += 3, i++` matched the standalone function, but its two inlined copies (in
+  aITeam/humanTeamFieldingFirstFrameAfterHit) dropped from 100. Check every caller before keeping an
+  order change in a function that also inlines elsewhere.
+- **The order of the pointer assignment matters.** minigameDashUpdateFieldingVariables
+  rose 97.7 -> 98.4 by moving `fielder = &g_Fielders[fielderIndex]` to just after the index read,
+  ahead of two unrelated global stores.
 
 ### Wave73: recover the remaining record digit state machine
 
