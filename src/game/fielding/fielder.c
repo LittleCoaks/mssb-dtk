@@ -8095,7 +8095,7 @@ void autoMovement14_infieldSupport(int fielderIndex) {
     }
 
     if (g_Ball.homeRunClassification != 0) {
-        if (fielderIndex <= 1) {
+        if (fielderIndex <= FIELDING_POSITION_CATCHER) {
             return;
         }
     }
@@ -8114,11 +8114,10 @@ void autoMovement14_infieldSupport(int fielderIndex) {
             f32 offsetX;
             f32 offsetZ;
 
-            offsetX = 2.0f;
+            offsetX = offsetZ = 2.0f;
             if (fielder->pos.x < 0.0f) {
                 offsetX = -2.0f;
             }
-            offsetZ = 2.0f;
             if (fielder->pos.z < base_MoundCoordinates[4].z) {
                 offsetZ = -2.0f;
             }
@@ -8133,11 +8132,11 @@ void autoMovement14_infieldSupport(int fielderIndex) {
             setFielderVelocity(fielderIndex);
 
             if (fielder->distanceFromAutoLocation < 3.0f) {
-                g_FieldingLogic.playerAtMoundCutoffLocation = 1;
+                g_FieldingLogic.playerAtMoundCutoffLocation = TRUE;
                 fielder->distanceFromAutoLocation = 0.0f;
                 fielder->fielderVeloAdjustmentCode = 8;
             } else {
-                g_FieldingLogic.playerAtMoundCutoffLocation = 0;
+                g_FieldingLogic.playerAtMoundCutoffLocation = FALSE;
                 fielder->fielderVeloAdjustmentCode = 11;
             }
             return;
@@ -8149,9 +8148,7 @@ void autoMovement14_infieldSupport(int fielderIndex) {
         setFielderAutoCoords(fielderIndex, targetX, targetZ);
         setFielderVelocity(fielderIndex);
         if (fielder->distanceFromAutoLocation == 0.0f) {
-            if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 0);
-            }
+            setFielderAutoMovementIfValid(fielderIndex, 0);
         }
         return;
     } else if (location >= 8 && location <= 13) {
@@ -8161,16 +8158,12 @@ void autoMovement14_infieldSupport(int fielderIndex) {
         setFielderAutoCoords(fielderIndex, targetX, targetZ);
         setFielderVelocity(fielderIndex);
         if (fielder->distanceFromAutoLocation == 0.0f) {
-            if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 0);
-            }
+            setFielderAutoMovementIfValid(fielderIndex, 0);
         }
         return;
     } else if (location == 14) {
         if (fielder->inBasePath == 0) {
-            if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 0);
-            }
+            setFielderAutoMovementIfValid(fielderIndex, 0);
             fielder->locationResponsibleForCovering = -1;
         } else {
             setFielderVelocity(fielderIndex);
@@ -8179,9 +8172,7 @@ void autoMovement14_infieldSupport(int fielderIndex) {
     } else if (location == 15) {
         setFielderVelocity(fielderIndex);
         if (fielder->distanceFromAutoLocation == 0.0f) {
-            if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, 0);
-            }
+            setFielderAutoMovementIfValid(fielderIndex, 0);
         }
     }
 }
