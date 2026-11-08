@@ -4735,7 +4735,7 @@ void updateSomeAutoMovementAssignments(void) {
     s32 problemOutfieldBase = -1;
     InMemFielder* fielder;
     int numAssigned;
-    f32 dist9, dist7, dist8;
+    f32 dist[3];
     int best9, best8, best7;
     int code;
     int i;
@@ -4787,7 +4787,7 @@ void updateSomeAutoMovementAssignments(void) {
     }
 
     best7 = best8 = best9 = -1;
-    dist8 = dist7 = 999.9f;
+    dist[1] = dist[2] = 999.9f;
     for (i = 0; i < 6; i++) {
         if (g_Fielders[i].animatingActionInd == 0) {
             if (g_FieldingLogic.fielderAutoMovementCode[i] == 0 || g_FieldingLogic.fielderAutoMovementCode[i] == 8 || g_FieldingLogic.fielderAutoMovementCode[i] == 9 ||
@@ -4823,25 +4823,25 @@ void updateSomeAutoMovementAssignments(void) {
             return;
         }
 
-        dist9 = fielderSqrt(SQ(g_Fielders[best9].pos.x - base_MoundCoordinates[numAssigned].x) +
+        dist[0] = fielderSqrt(SQ(g_Fielders[best9].pos.x - base_MoundCoordinates[numAssigned].x) +
                             SQ(g_Fielders[best9].pos.z - base_MoundCoordinates[numAssigned].z));
         if (best8 >= 0) {
-            dist8 = fielderSqrt(SQ(g_Fielders[best8].pos.x - base_MoundCoordinates[numAssigned].x) +
+            dist[1] = fielderSqrt(SQ(g_Fielders[best8].pos.x - base_MoundCoordinates[numAssigned].x) +
                                 SQ(g_Fielders[best8].pos.z - base_MoundCoordinates[numAssigned].z));
         }
         if (best7 >= 0) {
-            dist7 = fielderSqrt(SQ(g_Fielders[best7].pos.x - base_MoundCoordinates[numAssigned].x) +
+            dist[2] = fielderSqrt(SQ(g_Fielders[best7].pos.x - base_MoundCoordinates[numAssigned].x) +
                                 SQ(g_Fielders[best7].pos.z - base_MoundCoordinates[numAssigned].z));
         }
 
         winner = best7;
-        if (dist9 < dist8) {
-            if (dist9 < dist7) {
+        if (dist[0] < dist[1]) {
+            if (dist[0] < dist[2]) {
                 winner = best9;
             } else {
                 winner = best7;
             }
-        } else if (dist8 < dist7) {
+        } else if (dist[1] < dist[2]) {
             winner = best8;
         }
 
@@ -4889,7 +4889,7 @@ void updateSomeAutoMovementAssignments(void) {
             return;
         }
 
-        dist8 = dist7 = 999.9f;
+        dist[1] = dist[2] = 999.9f;
         if (g_Ball.ballState == BALL_STATE_HIT && g_Ball.ballZoneAwayFromHome <= BALL_ZONE_IF_DIRT) {
             return;
         }
@@ -4907,21 +4907,21 @@ void updateSomeAutoMovementAssignments(void) {
             return;
         }
 
-        dist9 = g_Fielders[best9].distanceToMound;
+        dist[0] = g_Fielders[best9].distanceToMound;
         if (best8 >= 0) {
-            dist8 = g_Fielders[best8].distanceToMound;
+            dist[1] = g_Fielders[best8].distanceToMound;
         }
         if (best7 >= 0) {
-            dist7 = g_Fielders[best8].distanceToMound;
+            dist[2] = g_Fielders[best8].distanceToMound;
         }
 
-        if (dist9 < dist8) {
-            if (dist9 < dist7) {
+        if (dist[0] < dist[1]) {
+            if (dist[0] < dist[2]) {
                 winner = best9;
             } else {
                 winner = best7;
             }
-        } else if (dist8 < dist7) {
+        } else if (dist[1] < dist[2]) {
             winner = best8;
         } else {
             winner = best7;
