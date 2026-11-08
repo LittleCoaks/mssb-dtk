@@ -6388,6 +6388,61 @@ functions. These lessons are not specific to one file:
 - **The order of the pointer assignment matters.** minigameDashUpdateFieldingVariables
   rose 97.7 -> 98.4 by moving `fielder = &g_Fielders[fielderIndex]` to just after the index read,
   ahead of two unrelated global stores.
+- **Playbook pass (2026-11): `int` vs `s32` is also an addressing lever, not only a loop-guard one.**
+  MWCC treats `long` and `int` differently when folding an array index into an address. With an
+  `int` index, `g_FieldingLogic.fielderAssignedLocationIndex[i]` became `add; lhau 0xd0`; with an
+  `s32` index the target's shared `addi base,0xd0` plus `lhax`/`sthx` came back, and so did an inlined
+  helper's reuse of that base. setStandingOnBaseVariables went 94.83 -> 100 on the loop counter alone.
+  The same flip on two index locals and one inline-helper parameter took
+  updateSomeAutoMovementAssignments from 95.8 to 97.3, and `distanceToBallLandingSpot(s32 idx)` took
+  fn_3_402A8 from 97.8 to 99.96. Sweep it mechanically: flip one `int` local or `static inline` parameter at a
+  time and re-score the whole unit. Most flips change nothing or break matched callers, so keep only
+  the clean hits.
+- **A narrow local can be the whole problem.** determineBestFrameForFielder's `s16 reactionFrames`
+  (read from an `s16` table) needed to be `int` (95.7 -> 99.7). A declaration-order walk run after
+  the type fix then reached 100. An earlier walk done with the wrong type had found nothing. Re-run
+  the order walk after every type change.
+- **A callee-saved FPR that is loaded with a constant and never overwritten means two variables were
+  merged.** In calculateMinDiveDistAndEndingCoords, the target kept `totalDist = 0.0f` in f31 across the
+  sqrt and the call. The draft had written the sqrt result into totalDist, a real bug: the returned
+  dive distance also included the direction vector's length. A separate `dirLength` local fixed both.
+- **Small local arrays, again:** updateSomeAutoMovementAssignments' three candidate distances as
+  `f32 dist[3]` removed the `f6 + fmr` copies of the second and third sqrt results (97.3 -> 98.1).
+  Turning the matching `best` indices into an array made it worse, so measure each group on its own.
+- **Call the in-file function rather than keeping a hand copy of it, even when the copy matches it
+  instruction for instruction.** resetInMemFielders contained initFielders' body. Calling
+  `initFielders()` (it inlines) with an `s32` counter scored higher than the copy, and both
+  functions now share one remaining diff.
+
+### Checklist for near-misses (compiled from the fielder.c passes)
+
+Work out the mismatch type first, then try that type's items in order.
+
+- **Structural (wrong branch layout, most instructions differ):** rebuild the if/else chain from the
+  target's branch targets; call never-`bl`'d helpers instead of hand copies; copy a matching sibling's
+  shape; turn a block that recomputes its own base into an inline helper; forward-declare a
+  `static inline` copy when a later function won't inline; turn a compare tree on one value into a
+  `switch`; use small local arrays for rank/candidate slots; write a hand-unrolled lookup as a loop; give
+  a result kept in r3 a single exit (`goto end`); write an unreachable `b epilogue` as `else { return; }`.
+- **Register-copy pairs or an extra saved register:** index `g_Fielders[i]` directly instead of
+  walking a pointer; re-read a field at each use, or else cache the index in an `int` local; write
+  array-of-struct reads out in full; check local and parameter types (`int`/`s32`/`s16`/`u8`, see
+  above); assign the pointer straight after the index read.
+- **FPR permutation:** declaration order (it works in reverse inside a nested inline); a nested
+  `static inline` for the squared distance; vary expression shape (`/ 2.0f` versus `* 0.5f`,
+  `p = pos; p += v*t` versus `v*t + pos`, scaling in place); chained initialisation; merge two
+  locals that share one stack slot.
+- **Compare/branch form:** `!(x <= 0.0f)` for `cror`; `||` chains for "bcc over b return"; one-expression
+  `(f32)__abs(a) < (f32)__abs(b)`; `__abs` versus a hand-written abs; swap the `cmpw` operand order.
+- **Constants:** constant registers follow the order in which each constant first appears in the source.
+- **Types and data:** a sign-extended stored byte is an `s8` field; split a static data blob into
+  its real objects.
+- **Every shrink:** re-score the callers. A function that drops under `inline_max_size` starts
+  inlining, and a host that grows stops inlining into its own callers.
+- **Known dead ends in fielder.c:** more fRunningTimeToDestination variants; further expression or
+  declaration sweeps on the checkIfCutoff/checkIfPlayerNeeds twins; header retype of
+  `minigameFielderIndex` to `s8` (breaks two matched functions); 30-swap declaration walks on the
+  remaining register-only near-misses (24 functions, one gain).
 
 ### Wave73: recover the remaining record digit state machine
 
