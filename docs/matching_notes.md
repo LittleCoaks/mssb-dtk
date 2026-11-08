@@ -3585,7 +3585,7 @@ A pass over every game unit, looking for hand-written copies of functions that M
   inlined helper of its own unit: 27 hosts and 51 copies (32 pasted blocks, plus 19 calls to a
   pointer-form `static inline`). No host lost score (+0.04 .text, 3 new
   100%). A copy whose argument came from a struct field (`out.x`) scored higher with the field first
-  copied into a local (`x = out.x; f(i, x, z)`) than with the field passed directly (fn_3_4597C, 99.31 vs 99.54).
+  copied into a local (`x = out.x; f(i, x, z)`) than with the field passed directly (setFielderAutoCoordsOnThrowLine, 99.31 vs 99.54).
 
 ### Findings from the minigame_framework second pass (2026-10)
 Unit `game/game/minigame/minigame_framework`, 41 -> 49 of 59 functions at 100%.
@@ -6341,6 +6341,108 @@ functions. These lessons are not specific to one file:
   sections found more than a dozen real bugs (inverted tests, swapped arms, wrong table indices, wrong fields, wrong
   loop bounds, a missing argument). They also confirmed several bugs in the original game, which stay
   as written.
+- **Per-frame section (2026-11):** a `for (p = g_Fielders, i = 0; ...; p++)` loop pointer gives an
+  extra `addi r0; mr rX, r0`; indexing `g_Fielders[i]` directly lets strength reduction build the
+  pointer in place (fielding_updateAllFieldersPostMovement, liveBallUpdateFieldingValues, the reset
+  loops of fielder_endOfInning_deadball_updateCounters). It also shrinks the IR, which kept
+  fielding_updateAllFieldersPostMovement under `inline_max_size` so its inlined copies still match.
+- **Stack slots of inlined `dolsqrtf2`/`fielderSqrt` isnan temporaries reveal inline helpers:** slots
+  are handed out in code order, except that an inline helper's temps come after all of the caller's.
+  A block whose temps took the lowest slots was an inline (getOutfieldZoneCode).
+- **A non-static function defined later in the file is not always inlined** even under
+  `-inline deferred` and well under `inline_max_size` (updateFielderInBasePath into
+  updateFielder_SpecificValuesEachFrame stayed a `bl`, whatever the inline pragmas). A `static inline`
+  copy with the same body did inline and matched.
+- **Address-taken locals don't fuse:** x/z passed by address to a helper live in memory, so
+  `x * x + z * z` stays fmuls/fmuls/fadds; with register locals the same source gives fmadds. When
+  the target spills deltas to the out-parameter slots, the deltas *are* those out-parameters.
+- **A float literal operand gets commuted; an f32 local doesn't:** `dir * 0.1f` came out as
+  `fmuls fD, f0.1, fdir`, while `f32 horizontalScale = 0.1f; dir * horizontalScale` gave the target's
+  order (startFielderJump).
+- **Mirror sibling files:** the held-ball block in fielding_updateAllFieldersPostMovement matched once
+  copied from the same code in ball_physics.c (landing spot from AtBat_Contact_BallPos,
+  `VEC_LENGTH_XZ`).
+- **Cleanup pass (2026-11): a nested inline for the squared distance fixes FPRs in every copy.**
+  `fRunningTimeToDestination` had swapped dx/dz registers in all its inlined copies. Moving the
+  subtraction into `static inline f32 fielderDistSqToPoint(fielder, x, z)` and writing
+  `dist = fielderSqrt(fielderDistSqToPoint(...))` matched the helper and two callers, and raised four
+  more. Declaration order inside a nested inline behaves reversed.
+- **Read an array-of-struct index into an `int` local when a sibling does.**
+  `int landingFrame = fielder->framesToGetToBallLandingSpot;` followed by
+  `futureCoordsAndDist[landingFrame].pos.x/.z` into locals gave the target's `addi base+0x354/0x35c`
+  plus `lfsx` (setCatcherCatchStrategy_distToLandingSpot 95.0 -> 99.8). The shape was copied from
+  calcKnockoutCatchStrategy, whose identical tail already matched.
+- **`/ 2.0f` and `* 0.5f` give the same constant but the opposite `fmuls` operand order.** The divide
+  form puts the constant second. The choice can differ from one site to the next in the same function:
+  adjustPlayerPosOutsideFoulLine matched three `* 0.5f` and one `/ 2.0f` (98.6 -> 99.7), after trying all
+  81 combinations.
+- **Re-reading a field at every test can beat a cached local.** fielderAISomething went to 100 by
+  testing `g_Fielders[i].autoMovementFunctionIndex` three times instead of through a `u8 code`
+  local. updateSomeAutoMovementAssignments' first loop got the target's registers by re-reading
+  `fielderAssignedLocationIndex[i]` at every use instead of keeping an `s16` local. MWCC's CSE value
+  takes a different register than a named local would.
+- **Inlined copies can want the opposite source order from the standalone body.** In fn_3_402A8,
+  `shiftAmt += 3, i++` matched the standalone function, but its two inlined copies (in
+  aITeam/humanTeamFieldingFirstFrameAfterHit) dropped from 100. Check every caller before keeping an
+  order change in a function that also inlines elsewhere.
+- **The order of the pointer assignment matters.** minigameDashUpdateFieldingVariables
+  rose 97.7 -> 98.4 by moving `fielder = &g_Fielders[fielderIndex]` to just after the index read,
+  ahead of two unrelated global stores.
+- **Playbook pass (2026-11): `int` vs `s32` is also an addressing lever, not only a loop-guard one.**
+  MWCC treats `long` and `int` differently when folding an array index into an address. With an
+  `int` index, `g_FieldingLogic.fielderAssignedLocationIndex[i]` became `add; lhau 0xd0`; with an
+  `s32` index the target's shared `addi base,0xd0` plus `lhax`/`sthx` came back, and so did an inlined
+  helper's reuse of that base. setStandingOnBaseVariables went 94.83 -> 100 on the loop counter alone.
+  The same flip on two index locals and one inline-helper parameter took
+  updateSomeAutoMovementAssignments from 95.8 to 97.3, and `distanceToBallLandingSpot(s32 idx)` took
+  fn_3_402A8 from 97.8 to 99.96. Sweep it mechanically: flip one `int` local or `static inline` parameter at a
+  time and re-score the whole unit. Most flips change nothing or break matched callers, so keep only
+  the clean hits.
+- **A narrow local can be the whole problem.** determineBestFrameForFielder's `s16 reactionFrames`
+  (read from an `s16` table) needed to be `int` (95.7 -> 99.7). A declaration-order walk run after
+  the type fix then reached 100. An earlier walk done with the wrong type had found nothing. Re-run
+  the order walk after every type change.
+- **A callee-saved FPR that is loaded with a constant and never overwritten means two variables were
+  merged.** In calculateMinDiveDistAndEndingCoords, the target kept `totalDist = 0.0f` in f31 across the
+  sqrt and the call. The draft had written the sqrt result into totalDist, a real bug: the returned
+  dive distance also included the direction vector's length. A separate `dirLength` local fixed both.
+- **Small local arrays, again:** updateSomeAutoMovementAssignments' three candidate distances as
+  `f32 dist[3]` removed the `f6 + fmr` copies of the second and third sqrt results (97.3 -> 98.1).
+  Turning the matching `best` indices into an array made it worse, so measure each group on its own.
+- **Call the in-file function rather than keeping a hand copy of it, even when the copy matches it
+  instruction for instruction.** resetInMemFielders contained initFielders' body. Calling
+  `initFielders()` (it inlines) with an `s32` counter scored higher than the copy, and both
+  functions now share one remaining diff.
+
+### Checklist for near-misses (compiled from the fielder.c passes)
+
+Work out the mismatch type first, then try that type's items in order.
+
+- **Structural (wrong branch layout, most instructions differ):** rebuild the if/else chain from the
+  target's branch targets; call never-`bl`'d helpers instead of hand copies; copy a matching sibling's
+  shape; turn a block that recomputes its own base into an inline helper; forward-declare a
+  `static inline` copy when a later function won't inline; turn a compare tree on one value into a
+  `switch`; use small local arrays for rank/candidate slots; write a hand-unrolled lookup as a loop; give
+  a result kept in r3 a single exit (`goto end`); write an unreachable `b epilogue` as `else { return; }`.
+- **Register-copy pairs or an extra saved register:** index `g_Fielders[i]` directly instead of
+  walking a pointer; re-read a field at each use, or else cache the index in an `int` local; write
+  array-of-struct reads out in full; check local and parameter types (`int`/`s32`/`s16`/`u8`, see
+  above); assign the pointer straight after the index read.
+- **FPR permutation:** declaration order (it works in reverse inside a nested inline); a nested
+  `static inline` for the squared distance; vary expression shape (`/ 2.0f` versus `* 0.5f`,
+  `p = pos; p += v*t` versus `v*t + pos`, scaling in place); chained initialisation; merge two
+  locals that share one stack slot.
+- **Compare/branch form:** `!(x <= 0.0f)` for `cror`; `||` chains for "bcc over b return"; one-expression
+  `(f32)__abs(a) < (f32)__abs(b)`; `__abs` versus a hand-written abs; swap the `cmpw` operand order.
+- **Constants:** constant registers follow the order in which each constant first appears in the source.
+- **Types and data:** a sign-extended stored byte is an `s8` field; split a static data blob into
+  its real objects.
+- **Every shrink:** re-score the callers. A function that drops under `inline_max_size` starts
+  inlining, and a host that grows stops inlining into its own callers.
+- **Known dead ends in fielder.c:** more fRunningTimeToDestination variants; further expression or
+  declaration sweeps on the checkIfCutoff/checkIfPlayerNeeds twins; header retype of
+  `minigameFielderIndex` to `s8` (breaks two matched functions); 30-swap declaration walks on the
+  remaining register-only near-misses (24 functions, one gain).
 
 ### Wave73: recover the remaining record digit state machine
 

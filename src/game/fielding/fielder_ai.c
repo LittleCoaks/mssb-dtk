@@ -1586,7 +1586,7 @@ void fielderHasBall(void) {
                 }
             }
         } else {
-            fn_3_3AAF8(fielderIndex);
+            updateHumanFielderMovementAngle(fielderIndex);
             moveFielder_CheckForAndSetJump(fielderIndex);
         }
     }
