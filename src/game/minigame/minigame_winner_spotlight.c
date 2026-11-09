@@ -79,7 +79,8 @@ extern void fn_800A7D4C(s32, void*);
 // This unit's .data (0x27EC0-0x281F0). MWCC pools file-static data and
 // addresses each object as base+offset from a single register, so these must
 // stay statics defined in this order.
-static s32 sBeamSizes[3][2] = {
+// The unit's .data starts 32-byte aligned (20 bytes of padding follow ball_contact_burst.c).
+static s32 sBeamSizes[3][2] ATTRIBUTE_ALIGN(32) = {
     {15000, 90000},
     {20000, 129999},
     {30000, 180000},
