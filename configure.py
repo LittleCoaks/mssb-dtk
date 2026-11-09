@@ -897,7 +897,7 @@ config.libs = [
             Object(NonMatching, "game/baserunning/play_result_tracking.c"),
             Object(NonMatching, "game/stats/stat_tracking.c"),
             Object(Matching, "game/replay/replay_inputs.c", extra_cflags=["-common on"]),
-            Object(Matching, "game/replay/replay_state.c"),
+            Object(Matching, "game/replay/replay_state.c", extra_cflags=["-common on"]),
             Object(NonMatching, "game/baserunning/runner.c"),
             Object(NonMatching, "game/sound/m_sound.c"),
             Object(NonMatching, "game/match_setup/character_loading.c"),

@@ -183,23 +183,9 @@ game/replay/replay_inputs.c:
 	.bss        start:0x00001748 end:0x00001760
 	.bss        start:0x00013748 end:0x00031ACC align:4 common
 
-common_bss_31ACC.s:
-	.bss        start:0x00031ACC end:0x00031EAC align:4 common
-
-common_bss_31EAC.s:
-	.bss        start:0x00031EAC end:0x000321A0 align:4 common
-
-common_bss_321A0.s:
-	.bss        start:0x000321A0 end:0x00032220 align:4 common
-
-common_bss_32220.s:
-	.bss        start:0x00032220 end:0x00032230 align:4 common
-
-common_bss_32230.s:
-	.bss        start:0x00032230 end:0x00032234 align:4 common
-
-common_bss_32234.s:
-	.bss        start:0x00032234 end:0x0003223C align:4 common
+game/replay/replay_state.c:
+	.text       start:0x0007CE90 end:0x0007D79C
+	.bss        start:0x00031ACC end:0x0003223C align:4 common
 
 common_bss_3223C.s:
 	.bss        start:0x0003223C end:0x00032718 align:4 common
@@ -245,9 +231,6 @@ common_bss_355D4.s:
 
 common_bss_37400.s:
 	.bss        start:0x00037400 end:0x0003744E align:4 common
-
-game/replay/replay_state.c:
-	.text       start:0x0007CE90 end:0x0007D79C
 
 game/baserunning/runner.c:
 	.text       start:0x0007D79C end:0x0008B094

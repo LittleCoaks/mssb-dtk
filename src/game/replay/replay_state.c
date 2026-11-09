@@ -13,12 +13,16 @@
 extern void SetGameStatus(int status);
 extern BOOL checkForButtonPressToSkip(int a, int b);
 
-extern u8 us80893314[];
-extern u8 us80893310[];
-extern u8 lbl_3_common_bss_32220[];
-extern u8 g_UnkThrowing_31ACC[];
-extern u8 g_UnkAnimation_31EAC[];
-extern u8 lbl_3_common_bss_321A0[];
+// Common .bss owned by this TU (0x31ACC-0x3223C), defined last-to-first since
+// MWCC emits common symbols in reverse order. mwld inflates the first one
+// (g_UnkThrowing_31ACC) to the whole group's size (0x3E0). 0x50 is what links:
+// with 0x58 (0x3E0 minus the others) mwld sized the group 8 bytes too big.
+u8 us80893314[8];
+u8 us80893310[4];
+u8 lbl_3_common_bss_32220[0x10];
+u8 lbl_3_common_bss_321A0[0x80];
+u8 g_UnkAnimation_31EAC[0x2F4];
+u8 g_UnkThrowing_31ACC[0x50];
 extern u8 lbl_8037169C[];
 
 typedef struct {
