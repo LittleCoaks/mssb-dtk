@@ -1487,7 +1487,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
     }
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && fielder->AI_Ind != 0) {
-        setFielderAutoMovementIfValid(fielderIndex, AUTO_MOVEMENT_FOUL_BALL);
+        setFielderAutoMovementIfValid(fielderIndex, AUTO_MOVEMENT_FOUL_BALL_STAND_STILL);
     }
 
     if (g_Ball.framesSinceHit > 60 && g_Ball.lineDriveThroughPitcherInd != 0) {
@@ -2406,9 +2406,9 @@ void fielderMovementRelated(int fielderIndex) {
         return;
     }
 
-    fielder->autoMovementFunctionIndex = AUTO_MOVEMENT_FOUL_BALL;
-    if (autoMovementFunctions[AUTO_MOVEMENT_FOUL_BALL].code >= 0) {
-        g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[AUTO_MOVEMENT_FOUL_BALL].code;
+    fielder->autoMovementFunctionIndex = AUTO_MOVEMENT_FOUL_BALL_STAND_STILL;
+    if (autoMovementFunctions[AUTO_MOVEMENT_FOUL_BALL_STAND_STILL].code >= 0) {
+        g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[AUTO_MOVEMENT_FOUL_BALL_STAND_STILL].code;
     }
     fielder->unknown_writeOnly = 0;
     fielder->fielderVeloAdjustmentCode = 0;
@@ -13274,7 +13274,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
             setFielderCatchStrategy_calcFramesToGetToDropSpot(fielderIndex);
             fielderTrackingBall_initialVariableSetting(fielderIndex);
             if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_MINIGAME_1);
+                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_MINIGAME_WAIT_FOR_HIT);
             }
             goto updateEachFielder;
         }
@@ -13287,7 +13287,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
 
     if (g_Minigame.framesSincePanelHit != 0) {
         if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_MINIGAME_DASH_3);
+            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_MINIGAME_AFTER_PANEL_HIT);
         }
     }
 
@@ -13583,7 +13583,7 @@ void autoMovement26_minigameRelated1(int fielderIndex) {
         updateFielderPositionAndVelocityForSpecialActions(fielderIndex) == 0) {
         fielderTrackingBall_initialVariableSetting(fielderIndex);
         if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_MINIGAME_DASH_2);
+            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_MINIGAME_CHASE_BALL);
         }
     }
 }
@@ -13597,7 +13597,7 @@ void autoMovement27_minigameDashRelated2(int fielderIndex) {
     }
 
     if (g_Minigame.framesSincePanelHit != 0 && fielderIndex != -1) {
-        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_MINIGAME_DASH_3);
+        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_MINIGAME_AFTER_PANEL_HIT);
     }
 }
 
