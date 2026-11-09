@@ -4281,7 +4281,7 @@ void findClosestFieldersToLooseBallAndAssignToGoGetIt(void) {
             setFielderAutoMovementIfValid(closestFielders[j], AUTO_MOVEMENT_GOING_TO_BALL);
             g_FieldingLogic.selectedFielder = closestFielders[j];
         } else {
-            setFielderAutoMovementIfValid(closestFielders[j], AUTO_MOVEMENT_TRACK_FOUL_BALL);
+            setFielderAutoMovementIfValid(closestFielders[j], AUTO_MOVEMENT_TRACK_BALL);
         }
 
         covering = fielder->locationResponsibleForCovering;
@@ -6380,7 +6380,7 @@ void autoMovement25_readyToInterceptThrownBall(int fielderIndex) {
     if (g_Ball.ballState != BALL_STATE_THROWN) {
         g_FieldingLogic.interceptThrowFielder = FIELDING_POSITION_NONE;
         fielder->cutoffWaitingToInterceptThrownBall = FALSE;
-        setFielderAutoMovementIfValid(fielderIndex, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+        setFielderAutoMovementIfValid(fielderIndex, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
     }
 }
 
@@ -6441,7 +6441,7 @@ void autoMovement3_goTowardsHitBall_AITeam(int fielderIndex) {
             setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM);
         }
     } else if (fielderIndex != FIELDING_POSITION_NONE) {
-        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_FOUL_BALL);
+        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_BALL);
     }
 }
 
@@ -6471,7 +6471,7 @@ void autoMovement4_AI_goTowardsHitBall(int fielderIndex) {
         g_Fielders[FIELDING_POSITION_PITCHER].currentVelocity = 0.0f;
         g_Fielders[FIELDING_POSITION_PITCHER].distanceFromAutoLocation = 0.0f;
         if (fielderIndex != FIELDING_POSITION_NONE) {
-            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
         }
         return;
     }
@@ -6483,7 +6483,7 @@ void autoMovement4_AI_goTowardsHitBall(int fielderIndex) {
             setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM);
         }
     } else if (fielderIndex != FIELDING_POSITION_NONE) {
-        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_FOUL_BALL);
+        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_BALL);
     }
 }
 
@@ -6970,7 +6970,7 @@ void decideWhenToLeaveFunction2_16_18(int fielderIndex) {
                     if (fielderIndex == FIELDING_POSITION_NONE) {
                         return;
                     }
-                    setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+                    setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
                     return;
                 } else if (fielderIndex != FIELDING_POSITION_CATCHER) {
                     if (g_Ball.ballZoneAwayFromHome > BALL_ZONE_IF_DIRT) {
@@ -7096,7 +7096,7 @@ void decideWhenToLeaveFunction2_16_18(int fielderIndex) {
         if (fielderIndex == FIELDING_POSITION_NONE) {
             return;
         }
-        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_FOUL_BALL);
+        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_BALL);
         return;
     }
 
@@ -8225,7 +8225,7 @@ void autoMovement12_stopBetweenInstructions(int fielderIndex) {
         }
 
         if (fielderIndex != -1) {
-            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
         }
 
 skip:
@@ -9916,10 +9916,10 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
 
     if (priorSelectedFielder >= 0) {
         if (priorSelectedFielder >= FIELDING_POSITION_LEFT_FIELD) {
-            setFielderAutoMovementIfValid(priorSelectedFielder, AUTO_MOVEMENT_TRACK_FOUL_BALL);
+            setFielderAutoMovementIfValid(priorSelectedFielder, AUTO_MOVEMENT_TRACK_BALL);
         } else if (g_Ball.ballState == BALL_STATE_HIT) {
             if (g_Fielders[priorSelectedFielder].distanceFromHomePlate > 3.0f + fielder->distanceFromHomePlate) {
-                setFielderAutoMovementIfValid(priorSelectedFielder, AUTO_MOVEMENT_TRACK_FOUL_BALL);
+                setFielderAutoMovementIfValid(priorSelectedFielder, AUTO_MOVEMENT_TRACK_BALL);
             } else if (g_Fielders[priorSelectedFielder].locationResponsibleForCovering == 6) {
                 setFielderAutoMovementIfValid(priorSelectedFielder, AUTO_MOVEMENT_CUTOFF);
             } else {
@@ -11772,9 +11772,9 @@ void setInitialFielderMovements_foulBall(void) {
         g_FieldingLogic.selectedFielder = 1;
 
         f = &g_Fielders[2];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[2] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[2] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -11793,9 +11793,9 @@ void setInitialFielderMovements_foulBall(void) {
         g_FieldingLogic.selectedFielder = 1;
 
         f = &g_Fielders[4];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[4] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[4] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -11810,9 +11810,9 @@ void setInitialFielderMovements_foulBall(void) {
             g_FieldingLogic.selectedFielder = 4;
 
             f = &g_Fielders[6];
-            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[6] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[6] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
             }
             f->unknown_writeOnly = 0;
             f->fielderVeloAdjustmentCode = 0;
@@ -11826,9 +11826,9 @@ void setInitialFielderMovements_foulBall(void) {
             g_FieldingLogic.selectedFielder = 1;
 
             f = &g_Fielders[4];
-            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[4] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[4] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
             }
             f->unknown_writeOnly = 0;
             f->fielderVeloAdjustmentCode = 0;
@@ -11837,9 +11837,9 @@ void setInitialFielderMovements_foulBall(void) {
             f->fielderTrackingBallState = 0;
 
             f = &g_Fielders[6];
-            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[6] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[6] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
             }
             f->unknown_writeOnly = 0;
             f->fielderVeloAdjustmentCode = 0;
@@ -11853,9 +11853,9 @@ void setInitialFielderMovements_foulBall(void) {
             g_FieldingLogic.selectedFielder = 4;
 
             f = &g_Fielders[5];
-            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
             }
             f->unknown_writeOnly = 0;
             f->fielderVeloAdjustmentCode = 0;
@@ -11864,9 +11864,9 @@ void setInitialFielderMovements_foulBall(void) {
             f->fielderTrackingBallState = 0;
 
             f = &g_Fielders[6];
-            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[6] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[6] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
             }
             f->unknown_writeOnly = 0;
             f->fielderVeloAdjustmentCode = 0;
@@ -11880,9 +11880,9 @@ void setInitialFielderMovements_foulBall(void) {
             g_FieldingLogic.selectedFielder = 5;
 
             f = &g_Fielders[4];
-            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[4] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[4] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
             }
             f->unknown_writeOnly = 0;
             f->fielderVeloAdjustmentCode = 0;
@@ -11891,9 +11891,9 @@ void setInitialFielderMovements_foulBall(void) {
             f->fielderTrackingBallState = 0;
 
             f = &g_Fielders[6];
-            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-                g_FieldingLogic.fielderAutoMovementCode[6] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+            f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+            if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+                g_FieldingLogic.fielderAutoMovementCode[6] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
             }
             f->unknown_writeOnly = 0;
             f->fielderVeloAdjustmentCode = 0;
@@ -11906,9 +11906,9 @@ void setInitialFielderMovements_foulBall(void) {
         g_FieldingLogic.selectedFielder = 6;
 
         f = &g_Fielders[5];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -11922,9 +11922,9 @@ void setInitialFielderMovements_foulBall(void) {
         g_FieldingLogic.selectedFielder = 2;
 
         f = &g_Fielders[8];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[8] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[8] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -11938,9 +11938,9 @@ void setInitialFielderMovements_foulBall(void) {
         g_FieldingLogic.selectedFielder = 1;
 
         f = &g_Fielders[2];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[2] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[2] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -11949,9 +11949,9 @@ void setInitialFielderMovements_foulBall(void) {
         f->fielderTrackingBallState = 0;
 
         f = &g_Fielders[8];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[8] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[8] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -11965,9 +11965,9 @@ void setInitialFielderMovements_foulBall(void) {
         g_FieldingLogic.selectedFielder = 2;
 
         f = &g_Fielders[3];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -11976,9 +11976,9 @@ void setInitialFielderMovements_foulBall(void) {
         f->fielderTrackingBallState = 0;
 
         f = &g_Fielders[8];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[8] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[8] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -11992,9 +11992,9 @@ void setInitialFielderMovements_foulBall(void) {
         g_FieldingLogic.selectedFielder = 3;
 
         f = &g_Fielders[2];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[2] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[2] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -12003,9 +12003,9 @@ void setInitialFielderMovements_foulBall(void) {
         f->fielderTrackingBallState = 0;
 
         f = &g_Fielders[8];
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[8] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[8] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -12017,9 +12017,9 @@ void setInitialFielderMovements_foulBall(void) {
     g_FieldingLogic.selectedFielder = 8;
 
     f = &g_Fielders[3];
-    f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_FOUL_BALL;
-    if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code >= 0) {
-        g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_FOUL_BALL].code;
+    f->autoMovementFunctionIndex = AUTO_MOVEMENT_TRACK_BALL;
+    if (autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code >= 0) {
+        g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[AUTO_MOVEMENT_TRACK_BALL].code;
     }
     f->unknown_writeOnly = 0;
     f->fielderVeloAdjustmentCode = 0;
@@ -13212,7 +13212,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
 
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC ||
         g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
-        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_STAY_STILL || fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_OFF_BASE_COVER_HOME) {
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_STAY_STILL || fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_OFF_BASE_REASSIGN) {
             if (fielderIndex != -1) {
                 setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
             }
@@ -13257,7 +13257,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
     g_FieldingLogic.unused_fielderControls0x8 = 0;
 
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
-        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_STAY_STILL || fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_OFF_BASE_COVER_HOME) {
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_STAY_STILL || fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_OFF_BASE_REASSIGN) {
             if (fielderIndex != -1) {
                 setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
             }

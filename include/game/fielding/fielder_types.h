@@ -446,14 +446,14 @@ typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {
     /*  6 */ AUTO_MOVEMENT_OUTFIELDER_NO_CATCH_PHASE2, // autoMovement6_outfielderNoCatch_Phase2
     /*  7 */ AUTO_MOVEMENT_OUTFIELDER_NO_CATCH_PHASE1, // autoMovement7_8_outfiederNoCatch_Phase1 (presetLocationToStandAt != 1)
     /*  8 */ AUTO_MOVEMENT_OUTFIELDER_NO_CATCH_PHASE1_PRESET_1, // autoMovement7_8_outfiederNoCatch_Phase1 (presetLocationToStandAt == 1)
-    /*  9 */ AUTO_MOVEMENT_OFF_BASE_COVER_HOME, // autoMovement9_OffBase_coverHome (re-picks a role; covers home as fallback)
+    /*  9 */ AUTO_MOVEMENT_OFF_BASE_REASSIGN, // autoMovement9_OffBase_coverHome (re-picks a role; covers home as fallback)
     /* 10 */ AUTO_MOVEMENT_HAS_BALL, // autoMovement10_HasBall
     /* 11 */ AUTO_MOVEMENT_CUTOFF, // autoMovement11_cutoff_setInitialLocation
     /* 12 */ AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS, // autoMovement12_stopBetweenInstructions (stops, then -> 9)
     /* 13 */ AUTO_MOVEMENT_BACK_UP_BALL, // autoMovement13_GoTowardsBallAsBackUp
     /* 14 */ AUTO_MOVEMENT_INFIELD_SUPPORT, // autoMovement14_infieldSupport
     /* 15 */ AUTO_MOVEMENT_GOING_TO_BALL, // autoMovement15_selectedFielderOnLooseBall
-    /* 16 */ AUTO_MOVEMENT_TRACK_FOUL_BALL, // autoMovement16_trackFoulBall
+    /* 16 */ AUTO_MOVEMENT_TRACK_BALL, // autoMovement16_trackFoulBall (foul balls, and human-team fielders on fair balls)
     /* 17 */ AUTO_MOVEMENT_RUN_OFF_FIELD, // autoMovement17_runningOffField
     /* 18 */ AUTO_MOVEMENT_AI_GOING_TO_BALL, // autoMovement2_18_goTowardsBall_phase2 (AI counterpart of 15; sets code 1)
     /* 19 */ AUTO_MOVEMENT_FOUL_BALL_STAND_STILL, // autoMovement19_foulBall (AI fielder on a foul: just stands still)

@@ -745,12 +745,12 @@ void autoMovement10_HasBall(int fielderIndex) {
                     s16 currentAssigned = assigned[fielder->locationResponsibleForCovering];
 
                     if (currentAssigned != fielderIndex && currentAssigned >= 0) {
-                        ifCurrentFielderIsTakingOverBaseCovering(currentAssigned, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+                        ifCurrentFielderIsTakingOverBaseCovering(currentAssigned, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
                     }
                     ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_COVER_BASE);
                     assigned[fielder->locationResponsibleForCovering] = fielderIndex;
                 } else {
-                    ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+                    ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
                 }
                 fielder->framesSinceThrowWasMade = 0;
                 fielder->fielderMadeThrow = 0;
@@ -1020,7 +1020,7 @@ void fielderBodyCheck_setStatus_Pos_Velo(int fielderIndex) {
         }
         if (g_FieldingLogic.bodyCheckStageCountdown <= 0) {
             if (fielder->bodyCheckStatus == 3) {
-                ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+                ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
                 loc = fielder->locationResponsibleForCovering;
                 fielder->locationResponsibleForCovering = -1;
                 g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
@@ -2575,7 +2575,7 @@ void fielderAIChaseRunner(void) {
                 s16 prev = assigned;
 
                 if (prev >= 0) {
-                    ifCurrentFielderIsTakingOverBaseCovering(prev, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+                    ifCurrentFielderIsTakingOverBaseCovering(prev, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
                     g_Fielders[prev].locationResponsibleForCovering = -1;
                 }
                 fielder->locationResponsibleForCovering = g_FieldingLogic.somethingForTryingTagOutTargetBase;
@@ -2616,7 +2616,7 @@ void fielderAIChaseRunner(void) {
                 int prev = g_FieldingLogic.fielderAssignedLocationIndex[base];
 
                 if (prev >= 0) {
-                    ifCurrentFielderIsTakingOverBaseCovering(prev, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
+                    ifCurrentFielderIsTakingOverBaseCovering(prev, AUTO_MOVEMENT_OFF_BASE_REASSIGN);
                     g_Fielders[prev].locationResponsibleForCovering = -1;
                 }
                 fielder->locationResponsibleForCovering = base;
