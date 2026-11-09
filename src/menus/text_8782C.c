@@ -162,6 +162,12 @@ E(u8, CHAR_ID) lbl_2_data_2F964[6] = {
     CHAR_ID_MARIO, CHAR_ID_PEACH, CHAR_ID_WARIO, CHAR_ID_DK, CHAR_ID_YOSHI, CHAR_ID_BOWSER
 };
 
+typedef struct ModelSlot {
+    /* 0x0 */ void *layout;
+    /* 0x4 */ void *geo;
+    /* 0x8 */ void *tex;
+} ModelSlot;
+
 #define REC_OBJ(idx) ((UIRecord *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (idx)].object)
 
 // .text:0x0008ACDC size:0x4 mapped:0x806C9D70
@@ -553,55 +559,79 @@ void fn_2_8975C(void) {
 
 // .text:0x000895F8 size:0x164 mapped:0x806C868C
 s32 fn_2_895F8(u8 useLocal) {
-    u32 sel;
+    s32 ret;
+    u32 sel = *(u32 *)(menuCursors + 0x54);
+    u32 alt = *(u32 *)(lbl_2_bss_33FBCC + 0x1C);
 
-    if (useLocal != 0) {
-        sel = *(u32 *)(lbl_2_bss_33FBCC + 0x1C);
-    } else {
-        sel = *(u32 *)(menuCursors + 0x54);
+    if (useLocal) {
+        sel = alt;
     }
+    ret = 0;
 
     switch (lbl_2_bss_33FBCC[5]) {
     case 0:
-        return sel == 5 ? 1 : 0;
+        switch (sel) {
+        case 0:
+            ret = 0;
+            break;
+        case 5:
+            ret = 1;
+            break;
+        }
+        break;
     case 1:
         switch (sel) {
+        case 1:
+            ret = 0;
+            break;
         case 3:
-            return 1;
+            ret = 1;
+            break;
         case 4:
-            return 2;
+            ret = 2;
+            break;
         case 5:
-            return 3;
+            ret = 3;
+            break;
         }
-        return 0;
+        break;
     case 2:
         switch (sel) {
         case 2:
-            return 0;
+            ret = 0;
+            break;
         case 3:
-            return 1;
+            ret = 1;
+            break;
         case 4:
-            return 2;
+            ret = 2;
+            break;
         case 5:
-            return 3;
+            ret = 3;
+            break;
         }
-        return 0;
+        break;
     case 3:
         switch (sel) {
         case 1:
-            return 0;
+            ret = 0;
+            break;
         case 2:
-            return 1;
+            ret = 1;
+            break;
         case 3:
-            return 2;
+            ret = 2;
+            break;
         case 4:
-            return 3;
+            ret = 3;
+            break;
         case 5:
-            return 4;
+            ret = 4;
+            break;
         }
-        return 0;
+        break;
     }
-    return 0;
+    return ret;
 }
 
 // .text:0x00089038 size:0x5C0 mapped:0x806C80CC
@@ -1102,31 +1132,31 @@ void fn_2_87998(DrawingSceneStruct *node) {
 
 // .text:0x0008782C size:0x16C mapped:0x806C68C0
 void fn_2_8782C(void) {
-    Rep0DEState *st = lbl_2_bss_340140;
     u32 *tbl;
-    u32 *slots;
-    s32 i;
-    s32 j;
-    s32 k;
+    int i;
+    void *layout;
+    void *geo;
+    void *tex;
 
-    st->unk3078 = 0;
-    tbl = *(u32 **)((u8 *)st + 0x2D9C);
-    slots = (u32 *)((u8 *)st + 0x2DA0);
-    for (i = 0; i < 3; i++) {
-        for (j = 0; j < 5; j++) {
-            slots[i * 5 + j] = (u32)tbl + tbl[i * 5 + j];
-        }
+    lbl_2_bss_340140->unk3078 = 0;
+    tbl = *(u32 **)((u8 *)lbl_2_bss_340140 + 0x2D9C);
+    for (i = 0; i < 15; i++) {
+        *(u32 *)((u8 *)lbl_2_bss_340140 + 0x2DA0 + i * 4) = (u32)tbl + tbl[i];
     }
-    *(u32 *)(lbl_2_bss_34009C + 0x64) = (u32)tbl + tbl[16];
-    *(u32 *)(lbl_2_bss_34009C + 0x68) = (u32)tbl + tbl[17];
+    i++;
+    *(u32 *)(lbl_2_bss_34009C + 0x64) = (u32)tbl + tbl[i];
+    i++;
+    *(u32 *)(lbl_2_bss_34009C + 0x68) = (u32)tbl + tbl[i];
 
-    for (k = 0; k < 5; k++) {
-        u32 *p = (u32 *)((u8 *)lbl_2_bss_340140 + 0x2DA0) + k * 3;
-        LoadActorLayout((void *)p[0]);
-        convertGeometryAndSknHeader((void *)p[1], NULL);
-        haveActLayoutPointToGeoHeader((void *)p[0], (void *)p[1]);
-        convertTextureHeader((void *)p[2]);
-        UpdateTexturePalettePointers((UnkTexPalGeo *)p[1], (void *)p[2]);
+    for (i = 0; i < 5; i++) {
+        layout = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].layout;
+        geo = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].geo;
+        tex = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].tex;
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
+        convertTextureHeader(tex);
+        UpdateTexturePalettePointers(geo, tex);
     }
     convertTextureHeader(*(void **)(lbl_2_bss_34009C + 0x64));
     convertTextureHeader(*(void **)(lbl_2_bss_34009C + 0x68));
