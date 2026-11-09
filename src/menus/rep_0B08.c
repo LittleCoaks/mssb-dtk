@@ -122,6 +122,7 @@ typedef struct {
 
 #define ANIM lbl_2_bss_1A824C
 #define REP_SLOT(idx) (&MENU->slots[idx])
+#define SLOTS ((Rep0B08Slot *)(lbl_2_bss_1A8248 + 0x1610))
 
 
 extern u8 *lbl_2_bss_1A8248;
@@ -192,7 +193,7 @@ static void rep0B08TransitionSlot(s32 idx, u8 state) {
 }
 
 static void rep0B08EnableSlot(s32 idx) {
-    MENU->slots[idx].unkC0 = 1;
+    ((Rep0B08Slot *)(lbl_2_bss_1A8248 + idx * sizeof(Rep0B08Slot) + 0x1610))->unkC0 = 1;
 }
 
 static s32 rep0B08NearestSlotZeroPoint(void) {
@@ -237,7 +238,7 @@ void fn_2_71C6C(Rep0B08Slot *obj) {
     Rep0B08Slot *slot = REP_SLOT(idx);
     f32 dx;
     f32 dz;
-    MENU->slots[idx].unkC0 = 1;
+    rep0B08EnableSlot(idx);
     memcpy(&obj->unk74, lbl_2_data_2EA4 + MENU->slots[0].unkB0 * 0xC, 12);
     slot->unk0C = obj->unk74;
     slot->unk14 = obj->unk7C;
@@ -841,13 +842,8 @@ void fn_2_6FE34(Rep0B08Slot *obj) {
 void fn_2_6FB0C(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 other = MENU->slots[0].index;
-    Rep0B08Slot *sIdx = REP_SLOT(idx);
-    Rep0B08Slot *sOther;
-    u8 kind;
-    f32 limit;
-    f32 dist;
-    sIdx->unkC0 = 1;
-    fn_2_68FBC(idx, 1);
+    rep0B08EnableSlot(idx);
+    fn_2_68FBC(obj->index, 1);
     obj->unk34 = obj->unk4C;
     if (idx >= 2 && idx <= 6) {
         s32 a = fn_2_68670(0);
@@ -860,15 +856,7 @@ void fn_2_6FB0C(Rep0B08Slot *obj) {
             return;
         }
     }
-    sOther = REP_SLOT(other);
-    dist = PSVECDistance((Vec *)sIdx, (Vec *)sOther);
-    kind = lbl_2_bss_1A8248[0x441C];
-    if (idx == 0) {
-        limit = lbl_2_data_3F0C[other] + lbl_2_data_3EF4[kind];
-    } else {
-        limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-    }
-    if (dist < limit && sIdx->unkC0 != 0 && sOther->unkC0 != 0) {
+    if (fn_2_68C80(idx, other)) {
         if (idx == 1) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
@@ -968,7 +956,7 @@ void fn_2_6F104(Rep0B08Slot *obj) {
     f32 dz;
     f32 limit;
     f32 dist;
-    slot->unkC0 = 1;
+    rep0B08EnableSlot(idx);
     row = (s16 *)(lbl_2_data_3D30 + slot->unkB2 * 8);
     for (j = 0; j < 4; j++) {
         c = row[j];
@@ -1573,7 +1561,7 @@ void fn_2_6CDD4(Rep0B08Slot *obj) {
     Rep0B08Slot *slot = REP_SLOT(idx);
     f32 dx;
     f32 dz;
-    MENU->slots[idx].unkC0 = 1;
+    rep0B08EnableSlot(idx);
     memcpy(&obj->unk74, lbl_2_data_2EA4 + MENU->slots[0].unkB0 * 0xC, 12);
     slot->unk0C = obj->unk74;
     slot->unk14 = obj->unk7C;
@@ -1658,7 +1646,7 @@ void fn_2_6C988(Rep0B08Slot *obj) {
     f32 v[3];
     Mtx mtx;
     f32 r;
-    MENU->slots[idx].unkC0 = 1;
+    rep0B08EnableSlot(idx);
     PSVECSubtract((Vec *)(lbl_2_data_2EA4 + MENU->slots[0].unkB0 * 0xC),
                   (Vec *)(lbl_2_data_2EA4 + MENU->slots[0].unkAE * 0xC),
                   (Vec *)tmp);
@@ -1700,7 +1688,7 @@ void fn_2_6C5E0(Rep0B08Slot *obj) {
     Rep0B08Slot *slot = REP_SLOT(idx);
     Vec tmp;
     s32 flag;
-    slot->unkC0 = 1;
+    rep0B08EnableSlot(idx);
     obj->unkBA = 0xB;
     if (lbl_2_bss_1A8248[0x4439] == 1) {
         memcpy(&obj->unk74, lbl_2_data_2EA4 + 0x1E0, 12);
@@ -1894,7 +1882,7 @@ void fn_2_6BCAC(Rep0B08Slot *obj) {
     ANIM->curAnim[n] = 9;
     obj->unk4C = 0.0f;
     obj->unk34 = 0.0f;
-    MENU->slots[n].unkCA = 0xFF;
+    SLOTS[n].unkCA = 0xFF;
     obj->unk8C = 0.0f;
     obj->mode = 1;
 }
@@ -1972,7 +1960,7 @@ void fn_2_6B744(Rep0B08Slot *obj) {
     Vec tmp;
     f32 dx;
     f32 dz;
-    slot->unkC0 = 1;
+    rep0B08EnableSlot(idx);
     obj->unkBA = 0xC;
     obj->unkD0 = 1;
     obj->unk90 = 0.0f;
@@ -2063,7 +2051,7 @@ void fn_2_6B4C4(Rep0B08Slot *obj) {
 void fn_2_6B238(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     Rep0B08Slot *slot = REP_SLOT(idx);
-    MENU->slots[idx].unkC0 = 1;
+    rep0B08EnableSlot(idx);
     obj->unkBA = 0xE;
     obj->unkD0 = 1;
     obj->unk90 = 0.0f;
@@ -2389,15 +2377,14 @@ void fn_2_6A628(void) {
 
 // .text:0x0006A5A8 size:0x80 mapped:0x806A963C
 void fn_2_6A5A8(s32 idx) {
-    Rep0B08Slot *slot = REP_SLOT(idx);
-    slot->unk0C = slot->pos.x;
-    slot->unk10 = slot->pos.y;
-    slot->unk14 = slot->pos.z;
-    slot->unk18 = 0.0f;
-    slot->unk1C = 0.0f;
-    slot->unk20 = 0.0f;
-    slot->unk38 = 0.0f;
-    slot->unk50 = 0.0f;
+    SLOTS[idx].unk0C = SLOTS[idx].pos.x;
+    SLOTS[idx].unk10 = SLOTS[idx].pos.y;
+    SLOTS[idx].unk14 = SLOTS[idx].pos.z;
+    SLOTS[idx].unk18 = 0.0f;
+    SLOTS[idx].unk1C = 0.0f;
+    SLOTS[idx].unk20 = 0.0f;
+    SLOTS[idx].unk38 = 0.0f;
+    SLOTS[idx].unk50 = 0.0f;
 }
 
 // .text:0x0006A450 size:0x158 mapped:0x806A94E4
