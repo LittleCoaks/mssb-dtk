@@ -215,11 +215,16 @@ common_bss_32A38.s:
 common_bss_32A94.s:
 	.bss        start:0x00032A94 end:0x00032B20 align:4 common
 
-common_bss_32B20.s:
-	.bss        start:0x00032B20 end:0x00034C58 align:4 common
+game/baserunning/runner.c:
+	.text       start:0x0007D79C end:0x0008B094
+	.rodata     start:0x000013B8 end:0x00001508
 
-common_bss_34C58.s:
-	.bss        start:0x00034C58 end:0x00034C90 align:4 common
+game/sound/m_sound.c:
+	.text       start:0x0008B094 end:0x00090754
+	.rodata     start:0x00001508 end:0x00001610
+	.data       start:0x00008148 end:0x00008D88
+	.bss        start:0x00001760 end:0x000017F8
+	.bss        start:0x00032B20 end:0x00034C90 align:4 common
 
 common_bss_34C90.s:
 	.bss        start:0x00034C90 end:0x00034EF4 align:4 common
@@ -238,16 +243,6 @@ common_bss_355D4.s:
 
 common_bss_37400.s:
 	.bss        start:0x00037400 end:0x0003744E align:4 common
-
-game/baserunning/runner.c:
-	.text       start:0x0007D79C end:0x0008B094
-	.rodata     start:0x000013B8 end:0x00001508
-
-game/sound/m_sound.c:
-	.text       start:0x0008B094 end:0x00090754
-	.rodata     start:0x00001508 end:0x00001610
-	.data       start:0x00008148 end:0x00008D88
-	.bss        start:0x00001760 end:0x000017F8
 
 game/match_setup/character_loading.c:
 	.text       start:0x00090754 end:0x000910F4

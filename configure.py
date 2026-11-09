@@ -899,7 +899,7 @@ config.libs = [
             Object(Matching, "game/replay/replay_inputs.c", extra_cflags=["-common on"]),
             Object(Matching, "game/replay/replay_state.c", extra_cflags=["-common on"]),
             Object(NonMatching, "game/baserunning/runner.c"),
-            Object(NonMatching, "game/sound/m_sound.c"),
+            Object(NonMatching, "game/sound/m_sound.c", extra_cflags=["-common on"]),
             Object(NonMatching, "game/match_setup/character_loading.c"),
             Object(Matching, "game/hud/outs_indicator.c"),
             Object(Matching, "game/hud/toyfield_score_update.c"),

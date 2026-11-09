@@ -2078,7 +2078,7 @@ extern u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(s8);
 
 extern u8 swingSoundFrame[2][4];
 
-extern struct {
+extern struct SoundCrowdEffects {
     /* 0x00 */ u32 _00;
     /* 0x04 */ u32 _04;
     /* 0x08 */ u32 _08;
