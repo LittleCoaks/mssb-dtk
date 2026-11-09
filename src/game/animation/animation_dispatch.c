@@ -2309,7 +2309,7 @@ BOOL fielderThrowingAnimations(int fielderIdx) {
     }
 
     if (slot->_43 != 0) {
-        if (fielder->autoMovementFunctionIndex == 0x11) {
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_RUN_OFF_FIELD) {
             slot->_43 = 0;
             updateFielderState(fielderIdx, 0);
             return FALSE;

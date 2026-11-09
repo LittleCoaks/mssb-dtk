@@ -9,12 +9,12 @@ typedef struct _AutoMovementFunction {
     /*0x4*/ void (*fn)(int fielderIndex);
 } AutoMovementFunction;
 
-extern AutoMovementFunction autoMovementFunctions[29];
+extern AutoMovementFunction autoMovementFunctions[AUTO_MOVEMENT_COUNT];
 
 void autoMovement10_HasBall(int fielderIndex);
 
 void fielderMainFunction(void);
-void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int newLocation);
+void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int autoMovementIndex);
 
 void knockOut_setPosAndVelo(int fielderIndex);
 int processFielderKnockout(int fielderIndex, sAng knockOutAngle);

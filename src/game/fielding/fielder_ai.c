@@ -38,7 +38,7 @@ void fn_8004AFA8(int index);
 void fn_8004AE18(int index);
 extern const u8 throwWindUpFrames[];
 extern VecXZ base_MoundCoordinates[5];
-void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int newLocation);
+void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int autoMovementIndex);
 extern f32 thresholdToBeConsideredCoveringBase_ByWeight[5];
 extern u8 lbl_3_data_4908[2];
 extern int calculateChemistry(int teamFielding, int charIdA, int charIdB);
@@ -745,12 +745,12 @@ void autoMovement10_HasBall(int fielderIndex) {
                     s16 currentAssigned = assigned[fielder->locationResponsibleForCovering];
 
                     if (currentAssigned != fielderIndex && currentAssigned >= 0) {
-                        ifCurrentFielderIsTakingOverBaseCovering(currentAssigned, 9);
+                        ifCurrentFielderIsTakingOverBaseCovering(currentAssigned, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
                     }
-                    ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, 1);
+                    ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_COVER_BASE);
                     assigned[fielder->locationResponsibleForCovering] = fielderIndex;
                 } else {
-                    ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, 9);
+                    ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
                 }
                 fielder->framesSinceThrowWasMade = 0;
                 fielder->fielderMadeThrow = 0;
@@ -891,7 +891,7 @@ void autoMovement10_HasBall(int fielderIndex) {
                 fielder->framesSinceThrowWasMade = fielder->const_60;
             }
         } else {
-            ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, 0xf);
+            ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
             fielder->framesSinceThrowWasMade = 0;
             fielder->fielderMadeThrow = 0;
         }
@@ -1020,7 +1020,7 @@ void fielderBodyCheck_setStatus_Pos_Velo(int fielderIndex) {
         }
         if (g_FieldingLogic.bodyCheckStageCountdown <= 0) {
             if (fielder->bodyCheckStatus == 3) {
-                ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, 9);
+                ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
                 loc = fielder->locationResponsibleForCovering;
                 fielder->locationResponsibleForCovering = -1;
                 g_FieldingLogic.fielderAssignedLocationIndex[loc] = -1;
@@ -2575,7 +2575,7 @@ void fielderAIChaseRunner(void) {
                 s16 prev = assigned;
 
                 if (prev >= 0) {
-                    ifCurrentFielderIsTakingOverBaseCovering(prev, 9);
+                    ifCurrentFielderIsTakingOverBaseCovering(prev, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
                     g_Fielders[prev].locationResponsibleForCovering = -1;
                 }
                 fielder->locationResponsibleForCovering = g_FieldingLogic.somethingForTryingTagOutTargetBase;
@@ -2616,7 +2616,7 @@ void fielderAIChaseRunner(void) {
                 int prev = g_FieldingLogic.fielderAssignedLocationIndex[base];
 
                 if (prev >= 0) {
-                    ifCurrentFielderIsTakingOverBaseCovering(prev, 9);
+                    ifCurrentFielderIsTakingOverBaseCovering(prev, AUTO_MOVEMENT_OFF_BASE_COVER_HOME);
                     g_Fielders[prev].locationResponsibleForCovering = -1;
                 }
                 fielder->locationResponsibleForCovering = base;
