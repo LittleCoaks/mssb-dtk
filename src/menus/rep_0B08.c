@@ -132,7 +132,7 @@ extern u8 hugeAnimStruct[];
 extern u8 lbl_2_data_2EA4[];
 extern u8 lbl_2_data_3150[];
 extern u8 lbl_2_data_3C84[];
-extern u8 lbl_2_data_2E80[];
+extern s16 lbl_2_data_2E80[][3];
 extern u8 lbl_2_data_3198[];
 extern u8 lbl_2_data_3C20[];
 extern u8 lbl_2_data_3ED4[];
@@ -259,25 +259,32 @@ void fn_2_71C6C(Rep0B08Slot *obj) {
 // .text:0x00071B80 size:0xEC mapped:0x806B0C14
 void fn_2_71B80(Rep0B08Slot *obj) {
     u8 kind;
-    u8 *e;
-    s32 v0;
-    s32 v2;
-    s32 v4;
+    s32 start;
+    s32 endA;
+    s32 endB;
+    s32 frameA;
+    s32 frameB;
     fn_2_69E1C(obj->index);
     kind = lbl_2_bss_1A8248[0x441C];
-    e = lbl_2_data_2E80 + kind * 6;
-    v0 = *(s16 *)(e + 0x0) << 1;
-    v2 = *(s16 *)(e + 0x2) << 1;
-    v4 = *(s16 *)(e + 0x4) << 1;
+    start = lbl_2_data_2E80[kind][0] * 2;
+    endA = lbl_2_data_2E80[kind][2] * 2;
+    endB = lbl_2_data_2E80[kind][1] * 2;
+    frameA = start - endA;
+    frameB = start - endB;
     if (obj->index == 0) {
-        if (hugeAnimStruct + 0xC04) {
-            s16 v = *(s16 *)(hugeAnimStruct + 0xC04 + 0x68);
-            if (v == v0 - v4 || v == v0 - v2) {
-                fn_80062890(kind == 5 ? 1 : 0);
+        u8 *anim = hugeAnimStruct + 0xC04;
+        if (anim != NULL) {
+            s16 frame = *(s16 *)(anim + 0x68);
+            if (frame == frameA || frame == frameB) {
+                if (kind == 5) {
+                    fn_80062890(1);
+                } else {
+                    fn_80062890(0);
+                }
             }
         }
     }
-    if (obj->unk50 > 0.0f) {
+    if (obj->unk50 <= 0.0f) {
         obj->unkBA = 4;
         obj->unkC4 = 1;
         obj->mode = 2;
@@ -288,25 +295,32 @@ void fn_2_71B80(Rep0B08Slot *obj) {
 void fn_2_71A70(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     u8 kind;
-    u8 *e;
-    s32 v0;
-    s32 v2;
-    s32 v4;
+    s32 start;
+    s32 endA;
+    s32 endB;
+    s32 frameA;
+    s32 frameB;
     fn_2_69E1C(idx);
     kind = lbl_2_bss_1A8248[0x441C];
-    e = lbl_2_data_2E80 + kind * 6;
-    v0 = *(s16 *)(e + 0x0) << 1;
-    v2 = *(s16 *)(e + 0x2) << 1;
-    v4 = *(s16 *)(e + 0x4) << 1;
+    start = lbl_2_data_2E80[kind][0] * 2;
+    endA = lbl_2_data_2E80[kind][2] * 2;
+    endB = lbl_2_data_2E80[kind][1] * 2;
+    frameA = start - endA;
+    frameB = start - endB;
     if (obj->index == 0) {
-        if (hugeAnimStruct + 0xC04) {
-            s16 v = *(s16 *)(hugeAnimStruct + 0xC04 + 0x68);
-            if (v == v0 - v4 || v == v0 - v2) {
-                fn_80062890(kind == 5 ? 1 : 0);
+        u8 *anim = hugeAnimStruct + 0xC04;
+        if (anim != NULL) {
+            s16 frame = *(s16 *)(anim + 0x68);
+            if (frame == frameA || frame == frameB) {
+                if (kind == 5) {
+                    fn_80062890(1);
+                } else {
+                    fn_80062890(0);
+                }
             }
         }
     }
-    if (obj->unk38 > 0.0f) {
+    if (obj->unk38 <= 0.0f) {
         Rep0B08Slot *slot = REP_SLOT(idx);
         obj->unk34 = obj->unk4C;
         rep0B08TransitionSlot(idx, 3);
@@ -538,7 +552,7 @@ void fn_2_709A0(Rep0B08Slot *obj) {
     }
     kind = lbl_2_bss_1A8248[0x441C];
     if (idx == 0) {
-        s16 *ent = (s16 *)(lbl_2_data_2E80 + kind * 6);
+        s16 *ent = lbl_2_data_2E80[kind];
         s32 a = ent[0] * 2 - ent[2] * 2;
         s32 b = ent[0] * 2 - ent[1] * 2;
         {
@@ -606,7 +620,7 @@ void fn_2_705C0(Rep0B08Slot *obj) {
     f32 dist;
     fn_2_69E1C(idx);
     kind = lbl_2_bss_1A8248[0x441C];
-    ent = (s16 *)(lbl_2_data_2E80 + kind * 6);
+    ent = lbl_2_data_2E80[kind];
     if (idx == 0) {
         s32 a = ent[0] * 2 - ent[2] * 2;
         s32 b = ent[0] * 2 - ent[1] * 2;
@@ -1408,9 +1422,10 @@ void fn_2_6D968(Rep0B08Slot *obj) {
 
 // .text:0x0006D878 size:0xF0 mapped:0x806AC90C
 void fn_2_6D878(Rep0B08Slot *obj) {
-    if ((s8)MENU->slots[0].unkCD == 0) {
+    s32 idx = obj->index;
+    if (MENU->slots[0].unkCD == 0) {
         obj->unkA2 = 0x78;
-        fn_2_68FBC(obj->index, 1);
+        fn_2_68FBC(idx, 1);
         obj->unkBA = 9;
         obj->unk50 = 0.0f;
         obj->unk38 = 0.0f;
@@ -1584,25 +1599,32 @@ void fn_2_6CCB8(Rep0B08Slot *obj) {
 void fn_2_6CBB0(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     u8 kind;
-    u8 *e;
-    s32 v0;
-    s32 v2;
-    s32 v4;
+    s32 start;
+    s32 endA;
+    s32 endB;
+    s32 frameA;
+    s32 frameB;
     fn_2_69E1C(idx);
     kind = lbl_2_bss_1A8248[0x441C];
-    e = lbl_2_data_2E80 + kind * 6;
-    v0 = *(s16 *)(e + 0x0) << 1;
-    v2 = *(s16 *)(e + 0x2) << 1;
-    v4 = *(s16 *)(e + 0x4) << 1;
+    start = lbl_2_data_2E80[kind][0] * 2;
+    endA = lbl_2_data_2E80[kind][2] * 2;
+    endB = lbl_2_data_2E80[kind][1] * 2;
+    frameA = start - endA;
+    frameB = start - endB;
     if (obj->index == 0) {
-        if (hugeAnimStruct + 0xC04) {
-            s16 v = *(s16 *)(hugeAnimStruct + 0xC04 + 0x68);
-            if (v == v0 - v4 || v == v0 - v2) {
-                fn_80062890(kind == 5 ? 1 : 0);
+        u8 *anim = hugeAnimStruct + 0xC04;
+        if (anim != NULL) {
+            s16 frame = *(s16 *)(anim + 0x68);
+            if (frame == frameA || frame == frameB) {
+                if (kind == 5) {
+                    fn_80062890(1);
+                } else {
+                    fn_80062890(0);
+                }
             }
         }
     }
-    if (obj->unk38 > 0.0f) {
+    if (obj->unk38 <= 0.0f) {
         Rep0B08Slot *slot = REP_SLOT(idx);
         slot->state = 3;
         slot->mode = 0;
@@ -1983,26 +2005,9 @@ void fn_2_6B620(Rep0B08Slot *obj) {
 // .text:0x0006B4FC size:0x124 mapped:0x806AA590
 void fn_2_6B4FC(Rep0B08Slot *obj) {
     s32 idx = obj->index;
-    Rep0B08Slot *slot = REP_SLOT(idx);
-    if (slot->unkD0 != 0) {
-        f32 angle = slot->unk90;
-        f32 f2 = 1.6f * -(f32)sin(angle);
-        slot->unk90 = angle + 0.07f;
-        if (slot->pos.y > 1.5f) {
-            slot->unk90 = 0.0f;
-            f2 = 0.0f;
-            slot->unkD0 = 0;
-            if (slot->state == 0x13) {
-                MENU->slots[idx].unkC0 = 0;
-            }
-        }
-        slot->pos.y = f2;
-    } else {
-        slot->pos.y = 0.0f;
-        if (obj->unkD0 == 0) {
-            slot->state = 0;
-            slot->mode = 0;
-        }
+    fn_2_698EC(idx, 1.5f);
+    if (obj->unkD0 == 0) {
+        rep0B08TransitionSlot(idx, 0);
     }
 }
 
@@ -2181,7 +2186,9 @@ void fn_2_6ACF0(void) {
 // .text:0x0006ABFC size:0xF4 mapped:0x806A9C90
 void fn_2_6ABFC(s32 idx, s32 which) {
     Rep0B08Slot *slot = REP_SLOT(idx);
-    if (idx <= 6) {
+    if (idx < 2) {
+        memcpy(slot, lbl_2_data_2EA4 + which * 0xC, 12);
+    } else if (idx >= 2 && idx <= 6) {
         memcpy(slot, lbl_2_data_2EA4 + which * 0xC, 12);
     } else {
         memcpy(slot, lbl_2_data_3150 + (idx - 7) * 0xC, 12);
