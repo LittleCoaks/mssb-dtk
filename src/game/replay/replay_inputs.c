@@ -29,7 +29,7 @@ extern u8 g_UnkThrowing_31ACC[];
 extern u8 g_UnkAnimation_31EAC[];
 extern u8 lbl_3_common_bss_321A0[];
 extern u8 animRelated[];
-extern u8 g_ReplayCopies[];
+u8 g_ReplayCopies[0x114BC];
 
 static u32 lbl_3_bss_1748[6];
 

@@ -181,6 +181,112 @@ game/replay/replay_inputs.c:
 	.rodata     start:0x00001330 end:0x000013B8
 	.data       start:0x00008110 end:0x00008148
 	.bss        start:0x00001748 end:0x00001760
+	.bss        start:0x00013748 end:0x00024C04 align:4 common
+
+common_bss_24C04.s:
+	.bss        start:0x00024C04 end:0x00029704 align:4 common
+
+common_bss_29704.s:
+	.bss        start:0x00029704 end:0x0002DD38 align:4 common
+
+common_bss_2DD38.s:
+	.bss        start:0x0002DD38 end:0x0002E288 align:4 common
+
+common_bss_2E288.s:
+	.bss        start:0x0002E288 end:0x0002F830 align:4 common
+
+common_bss_2F830.s:
+	.bss        start:0x0002F830 end:0x0002F8E0 align:4 common
+
+common_bss_2F8E0.s:
+	.bss        start:0x0002F8E0 end:0x0002FA58 align:4 common
+
+common_bss_2FA58.s:
+	.bss        start:0x0002FA58 end:0x00031650 align:4 common
+
+common_bss_31650.s:
+	.bss        start:0x00031650 end:0x00031670 align:4 common
+
+common_bss_31670.s:
+	.bss        start:0x00031670 end:0x000317C0 align:4 common
+
+common_bss_317C0.s:
+	.bss        start:0x000317C0 end:0x00031888 align:4 common
+
+common_bss_31888.s:
+	.bss        start:0x00031888 end:0x000318AC align:4 common
+
+common_bss_318AC.s:
+	.bss        start:0x000318AC end:0x00031A04 align:4 common
+
+common_bss_31A04.s:
+	.bss        start:0x00031A04 end:0x00031AC0 align:4 common
+
+common_bss_31AC0.s:
+	.bss        start:0x00031AC0 end:0x00031ACC align:4 common
+
+common_bss_31ACC.s:
+	.bss        start:0x00031ACC end:0x00031EAC align:4 common
+
+common_bss_31EAC.s:
+	.bss        start:0x00031EAC end:0x000321A0 align:4 common
+
+common_bss_321A0.s:
+	.bss        start:0x000321A0 end:0x00032220 align:4 common
+
+common_bss_32220.s:
+	.bss        start:0x00032220 end:0x00032230 align:4 common
+
+common_bss_32230.s:
+	.bss        start:0x00032230 end:0x00032234 align:4 common
+
+common_bss_32234.s:
+	.bss        start:0x00032234 end:0x0003223C align:4 common
+
+common_bss_3223C.s:
+	.bss        start:0x0003223C end:0x00032718 align:4 common
+
+common_bss_32718.s:
+	.bss        start:0x00032718 end:0x00032724 align:4 common
+
+common_bss_32724.s:
+	.bss        start:0x00032724 end:0x00032848 align:4 common
+
+common_bss_32848.s:
+	.bss        start:0x00032848 end:0x00032888 align:4 common
+
+common_bss_32888.s:
+	.bss        start:0x00032888 end:0x00032A38 align:4 common
+
+common_bss_32A38.s:
+	.bss        start:0x00032A38 end:0x00032A94 align:4 common
+
+common_bss_32A94.s:
+	.bss        start:0x00032A94 end:0x00032B20 align:4 common
+
+common_bss_32B20.s:
+	.bss        start:0x00032B20 end:0x00034C58 align:4 common
+
+common_bss_34C58.s:
+	.bss        start:0x00034C58 end:0x00034C90 align:4 common
+
+common_bss_34C90.s:
+	.bss        start:0x00034C90 end:0x00034EF4 align:4 common
+
+common_bss_34EF4.s:
+	.bss        start:0x00034EF4 end:0x000350E4 align:4 common
+
+common_bss_350E4.s:
+	.bss        start:0x000350E4 end:0x00035154 align:4 common
+
+common_bss_35154.s:
+	.bss        start:0x00035154 end:0x000355D4 align:4 common
+
+common_bss_355D4.s:
+	.bss        start:0x000355D4 end:0x00037400 align:4 common
+
+common_bss_37400.s:
+	.bss        start:0x00037400 end:0x0003744E align:4 common
 
 game/replay/replay_state.c:
 	.text       start:0x0007CE90 end:0x0007D79C
