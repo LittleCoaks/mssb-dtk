@@ -204,9 +204,9 @@ static inline void fielderTrackingBall_applyIntendedLocation(InMemFielder* field
 static inline void fielderAIAssignmentRelated_finish(int fielderIndex) {
     InMemFielder* f = &g_Fielders[fielderIndex];
     if (fielderIndex != -1) {
-        f->autoMovementFunctionIndex = AUTO_MOVEMENT_AI_GOING_TO_BALL;
-        if (autoMovementFunctions[AUTO_MOVEMENT_AI_GOING_TO_BALL].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[AUTO_MOVEMENT_AI_GOING_TO_BALL].code;
+        f->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TO_BALL_AI;
+        if (autoMovementFunctions[AUTO_MOVEMENT_GO_TO_BALL_AI].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[AUTO_MOVEMENT_GO_TO_BALL_AI].code;
         }
         f->unknown_writeOnly = 0;
         f->fielderVeloAdjustmentCode = 0;
@@ -329,7 +329,7 @@ void ifCurrentFielderIsTakingOverBaseCovering(int fielderIndex, int autoMovement
     fielder->unknown_writeOnly_always0 = 0;
     fielder->timeSinceThrowWasCaught = 0;
     fielder->fielderTrackingBallState = 0;
-    if (autoMovementIndex != AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM) {
+    if (autoMovementIndex != AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN) {
         return;
     }
     g_FieldingLogic.someFielderIndex = fielderIndex;
@@ -1015,7 +1015,7 @@ void aITeamFielding_SelectCharWithHand(void) {
 
     for (i = 1; i < 9; i++) {
         code = g_Fielders[i].autoMovementFunctionIndex;
-        if (code == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM || code == AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM) {
+        if (code == AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI || code == AUTO_MOVEMENT_GO_TO_HIT_BALL) {
             dist = g_Fielders[i].groundDistanceFromBall;
             if (dist < secondMinDist) {
                 if (dist < minDist) {
@@ -1033,9 +1033,9 @@ void aITeamFielding_SelectCharWithHand(void) {
 
     if (bestFielder >= 0) {
         g_FieldingLogic.selectedFielder = bestFielder;
-    } else if (g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM ||
-               g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM ||
-               g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == AUTO_MOVEMENT_AI_GO_TOWARDS_HIT_BALL) {
+    } else if (g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI ||
+               g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_HIT_BALL ||
+               g_Fielders[FIELDING_POSITION_PITCHER].autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_HIT_BALL_PITCHER) {
         g_FieldingLogic.selectedFielder = FIELDING_POSITION_PITCHER;
     }
 
@@ -1487,7 +1487,7 @@ void updateFielder_SpecificValuesEachFrame(int fielderIndex) {
     }
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_FOUL && fielder->AI_Ind != 0) {
-        setFielderAutoMovementIfValid(fielderIndex, AUTO_MOVEMENT_FOUL_BALL_STAND_STILL);
+        setFielderAutoMovementIfValid(fielderIndex, AUTO_MOVEMENT_STAY_STILL_ON_FOUL);
     }
 
     if (g_Ball.framesSinceHit > 60 && g_Ball.lineDriveThroughPitcherInd != 0) {
@@ -1623,7 +1623,7 @@ void fielder_endOfInning_deadball_updateCounters(void) {
     } else if (g_Ball.deadBallReason != 0) {
         for (i = 0; i < 9; i++) {
             if (!(g_Ball.unknown_always0 >= 1 && g_Ball.unknown_always0 <= 4) &&
-                g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_GOING_TO_BALL && g_Ball.deadBallReason != 0) {
+                g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_HUMAN && g_Ball.deadBallReason != 0) {
                 continue;
             }
             if (g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS) {
@@ -2406,9 +2406,9 @@ void fielderMovementRelated(int fielderIndex) {
         return;
     }
 
-    fielder->autoMovementFunctionIndex = AUTO_MOVEMENT_FOUL_BALL_STAND_STILL;
-    if (autoMovementFunctions[AUTO_MOVEMENT_FOUL_BALL_STAND_STILL].code >= 0) {
-        g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[AUTO_MOVEMENT_FOUL_BALL_STAND_STILL].code;
+    fielder->autoMovementFunctionIndex = AUTO_MOVEMENT_STAY_STILL_ON_FOUL;
+    if (autoMovementFunctions[AUTO_MOVEMENT_STAY_STILL_ON_FOUL].code >= 0) {
+        g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[AUTO_MOVEMENT_STAY_STILL_ON_FOUL].code;
     }
     fielder->unknown_writeOnly = 0;
     fielder->fielderVeloAdjustmentCode = 0;
@@ -2720,8 +2720,8 @@ void setFielderVelocity(int fielderIndex) {
 
         if (!(g_d_GameSettings.minigamesEnabled && fielder->AI_Ind)) {
             if (fielder->AI_Ind != 0 &&
-                (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM ||
-                 fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_AI_GOING_TO_BALL) &&
+                (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI ||
+                 fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_AI) &&
                 (fielder->maybeMovementState == 4 || fielder->maybeMovementState == 5)) {
                 fielder->standingStillInd = FALSE;
                 takeElseBranch = FALSE;
@@ -4276,9 +4276,9 @@ void findClosestFieldersToLooseBallAndAssignToGoGetIt(void) {
         setIntendedLocToInterceptBall(closestFielders[j]);
 
         if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0) {
-            setFielderAutoMovementIfValid(closestFielders[j], AUTO_MOVEMENT_AI_GOING_TO_BALL);
+            setFielderAutoMovementIfValid(closestFielders[j], AUTO_MOVEMENT_GO_TO_BALL_AI);
         } else if (j == 0) {
-            setFielderAutoMovementIfValid(closestFielders[j], AUTO_MOVEMENT_GOING_TO_BALL);
+            setFielderAutoMovementIfValid(closestFielders[j], AUTO_MOVEMENT_GO_TO_BALL_HUMAN);
             g_FieldingLogic.selectedFielder = closestFielders[j];
         } else {
             setFielderAutoMovementIfValid(closestFielders[j], AUTO_MOVEMENT_TRACK_BALL);
@@ -5184,7 +5184,7 @@ void autoMovement13_GoTowardsBallAsBackUp(int fielderIndex) {
             if (dist < fielder->distanceFromBall && fielder->AI_Ind != 0) {
                 setIntendedLocToInterceptBall(fielderIndex);
                 if (fielderIndex != -1) {
-                    setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_AI_GOING_TO_BALL);
+                    setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_BALL_AI);
                 }
                 g_Ball.fielderAboutToGetBall_hasBall = -1;
             }
@@ -5362,14 +5362,14 @@ void autoMovementDetermineWhatToDo(int fielderIndex, int arg1) {
             if (fielderIndex == -1) {
                 return;
             }
-            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_HIT_BALL);
             return;
         }
 
         if (fielderIndex == -1) {
             return;
         }
-        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM);
+        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN);
         g_FieldingLogic.someFielderIndex = fielderIndex;
         return;
     }
@@ -6210,8 +6210,8 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
 
         for (pos = FIELDING_POSITION_PITCHER; pos < FIELDING_POSITION_LEFT_FIELD; pos++) {
             if (g_Fielders[pos].locationResponsibleForCovering == 6) {
-                if (!(g_Fielders[pos].autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM ||
-                      (u8)(g_Fielders[pos].autoMovementFunctionIndex - AUTO_MOVEMENT_GOING_TO_BALL) <= 1 ||
+                if (!(g_Fielders[pos].autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI ||
+                      (u8)(g_Fielders[pos].autoMovementFunctionIndex - AUTO_MOVEMENT_GO_TO_BALL_HUMAN) <= 1 ||
                       (u8)(g_Fielders[pos].autoMovementFunctionIndex - AUTO_MOVEMENT_INITIAL_SELECTED_FIELDER) <= 2 || g_Fielders[pos].autoMovementFunctionIndex == AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS ||
                       g_Fielders[pos].autoMovementFunctionIndex == AUTO_MOVEMENT_STAY_STILL)) {
                     return;
@@ -6438,7 +6438,7 @@ void autoMovement3_goTowardsHitBall_AITeam(int fielderIndex) {
 
     if (fielder->AI_Ind != 0) {
         if (fielderIndex != FIELDING_POSITION_NONE) {
-            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM);
+            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI);
         }
     } else if (fielderIndex != FIELDING_POSITION_NONE) {
         setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_BALL);
@@ -6480,7 +6480,7 @@ void autoMovement4_AI_goTowardsHitBall(int fielderIndex) {
 
     if (fielder->AI_Ind != 0) {
         if (fielderIndex != FIELDING_POSITION_NONE) {
-            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM);
+            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI);
         }
     } else if (fielderIndex != FIELDING_POSITION_NONE) {
         setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_TRACK_BALL);
@@ -7167,8 +7167,8 @@ void fielderAISomething(void) {
 
     found = FALSE;
     for (i = 0; i < 9; i++) {
-        if (g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM ||
-            (u8)(g_Fielders[i].autoMovementFunctionIndex - AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM) <= 1 || g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_AI_GOING_TO_BALL) {
+        if (g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI ||
+            (u8)(g_Fielders[i].autoMovementFunctionIndex - AUTO_MOVEMENT_GO_TO_HIT_BALL) <= 1 || g_Fielders[i].autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_AI) {
             found = TRUE;
             break;
         }
@@ -7374,56 +7374,56 @@ void fn_3_40D88(void) {
         InMemFielder *f;
 
         f = &g_Fielders[6];
-        setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         f = &g_Fielders[7];
-        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         f = &g_Fielders[8];
-        setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (!g_Fielders[8].nonCatchFlyBallStratInd) {
         InMemFielder *f;
 
         f = &g_Fielders[8];
-        setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         f = &g_Fielders[7];
-        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (!g_Fielders[6].nonCatchFlyBallStratInd) {
         InMemFielder *f;
 
         f = &g_Fielders[6];
-        setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         f = &g_Fielders[7];
-        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (!g_Fielders[7].nonCatchFlyBallStratInd) {
         InMemFielder *f;
 
         f = &g_Fielders[6];
-        setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         f = &g_Fielders[7];
-        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         f = &g_Fielders[8];
-        setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (g_Fielders[7].angleOfFieldersStartingPosition > g_Ball.Hit_HorizontalAngle) {
         InMemFielder *f;
 
         f = &g_Fielders[8];
-        setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         f = &g_Fielders[7];
-        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else {
         InMemFielder *f;
 
         f = &g_Fielders[6];
-        setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         f = &g_Fielders[7];
-        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     }
 
     setInitialFielderMovements_CoverBases();
@@ -7448,9 +7448,9 @@ void fn_3_40C04(void) {
         if (f->catchStrategy == 2) {
             InMemFielder* f2 = &g_Fielders[i];
             if (i != -1) {
-                f2->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM;
-                if (autoMovementFunctions[AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM].code >= 0) {
-                    g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM].code;
+                f2->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TO_HIT_BALL;
+                if (autoMovementFunctions[AUTO_MOVEMENT_GO_TO_HIT_BALL].code >= 0) {
+                    g_FieldingLogic.fielderAutoMovementCode[i] = autoMovementFunctions[AUTO_MOVEMENT_GO_TO_HIT_BALL].code;
                 }
                 f2->unknown_writeOnly = 0;
                 f2->fielderVeloAdjustmentCode = 0;
@@ -7464,9 +7464,9 @@ void fn_3_40C04(void) {
 
     if (i == 2) {
         InMemFielder* f3 = &g_Fielders[3];
-        f3->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM;
-        if (autoMovementFunctions[AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM].code;
+        f3->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TO_HIT_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_GO_TO_HIT_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[3] = autoMovementFunctions[AUTO_MOVEMENT_GO_TO_HIT_BALL].code;
         }
         f3->unknown_writeOnly = 0;
         f3->fielderVeloAdjustmentCode = 0;
@@ -7477,9 +7477,9 @@ void fn_3_40C04(void) {
 
     if (i == 4) {
         InMemFielder* f5 = &g_Fielders[5];
-        f5->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM;
-        if (autoMovementFunctions[AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM].code;
+        f5->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TO_HIT_BALL;
+        if (autoMovementFunctions[AUTO_MOVEMENT_GO_TO_HIT_BALL].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[5] = autoMovementFunctions[AUTO_MOVEMENT_GO_TO_HIT_BALL].code;
         }
         f5->unknown_writeOnly = 0;
         f5->fielderVeloAdjustmentCode = 0;
@@ -7528,7 +7528,7 @@ void fn_3_402A8(void) {
     if (g_Fielders[1].nonCatchFlyBallStratInd == 0 &&
         (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 7.0f ||
          (angle > 0xa00 && angle < 0xe00))) {
-        setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         goto tail;
     }
 
@@ -7537,15 +7537,15 @@ void fn_3_402A8(void) {
     if ((dist < 22.0f && angle > 0x300 && angle < 0x500) ||
         (dist < 24.0f && angle > 0x300 && angle < 0x500 && (mask & 1) != 0) ||
         (dist < 15.5f && angle > 0x200 && angle < 0x600)) {
-        setFielderAutoMovement(0, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(0, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (angle < 0x2c0) {
-        setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (angle < SANG_ANG_90) {
-        setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (angle < 0x540) {
-        setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (angle < SANG_ANG_180) {
-        setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         goto tail;
     } else {
         goto farTail;
@@ -7557,29 +7557,29 @@ farTail:
         angle = (s16)calculateAngleFromCoordinates(g_Ball.landingSpotLocation.x, g_Ball.landingSpotLocation.z);
 
         if (g_Ball.Hit_HorizontalAngle < 0x3c0) {
-            setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-            setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-            setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+            setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+            setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         } else if (g_Ball.Hit_HorizontalAngle > 0x440) {
-            setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-            setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-            setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+            setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+            setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         } else {
             f32 dist3;
             f32 dist5;
 
-            setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-            setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-            setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+            setFielderAutoMovement(7, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+            setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
             dist3 = distanceToBallLandingSpot(3);
             dist5 = distanceToBallLandingSpot(5);
 
             if (g_Ball.landingSpotZoneAwayFromHome < 3 || !(g_Ball.maxYOfHit >= 8.0f)) {
                 if (dist3 < dist5) {
-                    setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                    setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
                 } else {
-                    setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                    setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
                 }
             }
         }
@@ -7600,9 +7600,9 @@ static inline void sendAngularlyCloserFielder(int angle, int fielderIndex, int o
     int otherDist = __abs(angle - other->angleOfFieldersStartingPosition);
 
     if (dist < otherDist) {
-        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else {
-        setFielderAutoMovement(otherIndex, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(otherIndex, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     }
 }
 
@@ -7630,54 +7630,54 @@ void selectInfieldersForFlyBallByAngle(BOOL useComputedAngle) {
     }
 
     if (angle < firstAngle + (secondAngle - firstAngle) / 5) {
-        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         return;
     }
 
     if (angle < (firstAngle + secondAngle) / 2) {
-        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(FIELDING_POSITION_FIRST_BASE, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         return;
     }
 
     if (angle < secondAngle + (shortAngle - secondAngle) / 3) {
-        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(FIELDING_POSITION_SECOND_BASE, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         if (angle > g_Fielders[FIELDING_POSITION_PITCHER].angleOfFieldersStartingPosition - 0x40) {
-            setFielderAutoMovement(FIELDING_POSITION_PITCHER, AUTO_MOVEMENT_AI_GO_TOWARDS_HIT_BALL);
+            setFielderAutoMovement(FIELDING_POSITION_PITCHER, AUTO_MOVEMENT_GO_TO_HIT_BALL_PITCHER);
         }
         return;
     }
 
     if (angle < secondAngle + 2 * ((shortAngle - secondAngle) / 3)) {
-        setFielderAutoMovement(FIELDING_POSITION_PITCHER, AUTO_MOVEMENT_AI_GO_TOWARDS_HIT_BALL);
+        setFielderAutoMovement(FIELDING_POSITION_PITCHER, AUTO_MOVEMENT_GO_TO_HIT_BALL_PITCHER);
         sendAngularlyCloserFielder(angle, FIELDING_POSITION_SECOND_BASE, FIELDING_POSITION_SHORTSTOP);
         return;
     }
 
     if (angle < shortAngle + (thirdAngle - shortAngle) / 3) {
-        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
         if (angle < g_Fielders[FIELDING_POSITION_PITCHER].angleOfFieldersStartingPosition + 0x40) {
-            setFielderAutoMovement(FIELDING_POSITION_PITCHER, AUTO_MOVEMENT_AI_GO_TOWARDS_HIT_BALL);
+            setFielderAutoMovement(FIELDING_POSITION_PITCHER, AUTO_MOVEMENT_GO_TO_HIT_BALL_PITCHER);
         }
         return;
     }
 
     if (angle < shortAngle + 2 * ((thirdAngle - shortAngle) / 3)) {
-        setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+        setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         return;
     }
 
-    setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
-    setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+    setFielderAutoMovement(FIELDING_POSITION_THIRD_BASE, AUTO_MOVEMENT_GO_TO_HIT_BALL);
+    setFielderAutoMovement(FIELDING_POSITION_SHORTSTOP, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 }
 
 // .text:0x0003F760 size:0x590 mapped:0x8067E7F4
 void selectFieldersForShallowPopUp(void) {
-    setFielderAutoMovement(0, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+    setFielderAutoMovement(0, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
     if (g_Fielders[1].cantCatchFlyBallInd == 0) {
         if (g_Runners[3].runnerStatus == RUNNER_STATUS_ON_FIELD &&
@@ -7688,10 +7688,10 @@ void selectFieldersForShallowPopUp(void) {
             f32 dist = fielderSqrt(future->pos.x * future->pos.x + future->pos.z * future->pos.z);
 
             if (dist < 5.0f) {
-                setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TO_HIT_BALL);
             }
         } else {
-            setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         }
     }
 
@@ -7702,21 +7702,21 @@ void selectFieldersForShallowPopUp(void) {
 
             if (t3 - 15 < t2) {
                 if (g_Fielders[0].framesToGetToBallLandingSpot - t3 < 0x78) {
-                    setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                    setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
                 }
             } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[t2].pos.z < base_MoundCoordinates[1].z) {
                 if (g_Fielders[0].framesToGetToBallLandingSpot - t2 < 0x50) {
-                    setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                    setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TO_HIT_BALL);
                 }
             } else {
                 if (g_Fielders[0].framesToGetToBallLandingSpot - t3 < 0x78) {
-                    setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                    setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
                 }
             }
         } else {
             if (g_Fielders[3].cantCatchFlyBallInd == 0 &&
                 g_Fielders[0].framesToGetToBallLandingSpot - g_Fielders[3].framesToGetToBallLandingSpot < 0x78) {
-                setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
             }
         }
     } else {
@@ -7726,23 +7726,23 @@ void selectFieldersForShallowPopUp(void) {
 
             if (t5 - 15 < t4) {
                 if (g_Fielders[0].framesToGetToBallLandingSpot - t5 < 0x78) {
-                    setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                    setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
                 }
             } else if (g_Ball.physicsSubstruct.futureCoordsAndDist[t4].pos.z < base_MoundCoordinates[1].z) {
                 if (!(g_Runners[2].runnerStatus == RUNNER_STATUS_ON_FIELD && t4 > 0)) {
                     if (g_Fielders[0].framesToGetToBallLandingSpot - t4 < 0x50) {
-                        setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                        setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TO_HIT_BALL);
                     }
                 }
             } else {
                 if (g_Fielders[0].framesToGetToBallLandingSpot - t5 < 0x78) {
-                    setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                    setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
                 }
             }
         } else {
             if (g_Fielders[5].cantCatchFlyBallInd == 0 &&
                 g_Fielders[0].framesToGetToBallLandingSpot - g_Fielders[5].framesToGetToBallLandingSpot < 0x78) {
-                setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+                setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
             }
         }
     }
@@ -7763,52 +7763,52 @@ void fn_3_3F24C(void) {
 
     if (angle > 0xa00 && angle < 0xe00) {
         f = &g_Fielders[1];
-        setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else if (angle >= 0xe00 || angle < 0x200) {
         if (vAngle > 0x800) {
             f = &g_Fielders[2];
-            setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         } else if (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z < 10.0f) {
             f = &g_Fielders[1];
-            setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
             f = &g_Fielders[2];
-            setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         } else if (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z < 20.0f) {
             f = &g_Fielders[2];
-            setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(2, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
             f = &g_Fielders[3];
-            setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         } else {
             f = &g_Fielders[3];
-            setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
             f = &g_Fielders[8];
-            setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(8, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         }
     } else {
         if (vAngle > 0x800) {
             f = &g_Fielders[4];
-            setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         } else if (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z < 10.0f) {
             f = &g_Fielders[1];
-            setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(1, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
             f = &g_Fielders[4];
-            setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         } else if (g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z < 20.0f) {
             f = &g_Fielders[4];
-            setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(4, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
             f = &g_Fielders[5];
-            setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         } else {
             f = &g_Fielders[5];
-            setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
 
             f = &g_Fielders[6];
-            setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+            setFielderAutoMovement(6, AUTO_MOVEMENT_GO_TO_HIT_BALL);
         }
     }
 
@@ -7825,9 +7825,9 @@ void aITeam_selectInitialFielders_linedriveThroughPitcher(void) {
 
     avg = (g_Fielders[3].angleOfFieldersStartingPosition + g_Fielders[5].angleOfFieldersStartingPosition) / 2;
     if (avg > g_Ball.Hit_HorizontalAngle) {
-        setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(3, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     } else {
-        setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+        setFielderAutoMovement(5, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     }
 
     setInitialFielderMovements_CoverBases();
@@ -7873,7 +7873,7 @@ void knockoutRelated_FlyBall(void) {
         fielder = &g_Fielders[i];
         priority = fRunningTimeToDestination(i, g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x,
                                                   g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
-        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM) {
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI) {
             priority -= 15;
         }
         if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
@@ -7894,7 +7894,7 @@ void knockoutRelated_FlyBall(void) {
         }
     }
 
-    setFielderAutoMovementIfValid(best, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+    setFielderAutoMovementIfValid(best, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     calcKnockoutCatchStrategy(best, 0);
     g_Fielders[best].maybeMovementState = 0;
 
@@ -7914,7 +7914,7 @@ void knockoutRelated_Grounder_Liner(void) {
         fielder = &g_Fielders[i];
         priority = fRunningTimeToDestination(i, g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x,
                                                   g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z);
-        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM) {
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI) {
             priority -= 15;
         }
         if (fielder->locationResponsibleForCovering >= 0 && fielder->locationResponsibleForCovering <= 3) {
@@ -7938,7 +7938,7 @@ void knockoutRelated_Grounder_Liner(void) {
         }
     }
 
-    setFielderAutoMovementIfValid(best, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM);
+    setFielderAutoMovementIfValid(best, AUTO_MOVEMENT_GO_TO_HIT_BALL);
     calcKnockoutCatchStrategy(best, 0);
     g_Fielders[best].maybeMovementState = 4;
 
@@ -8040,7 +8040,7 @@ void autoMovement20_pitcherLinedriveRelated(int fielderIndex) {
             if (fielderIndex == -1) {
                 return;
             }
-            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_AI_GOING_TO_BALL);
+            setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_BALL_AI);
             return;
         }
 
@@ -8408,9 +8408,9 @@ static inline BOOL sendOutfielderAfterHitBallIfFree(int fielderIndex) {
 
     fielder = &g_Fielders[fielderIndex];
     if (fielderIndex != FIELDING_POSITION_NONE) {
-        fielder->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM;
-        if (autoMovementFunctions[AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM].code >= 0) {
-            g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM].code;
+        fielder->autoMovementFunctionIndex = AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN;
+        if (autoMovementFunctions[AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN].code >= 0) {
+            g_FieldingLogic.fielderAutoMovementCode[fielderIndex] = autoMovementFunctions[AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN].code;
         }
         g_FieldingLogic.someFielderIndex = fielderIndex;
         fielder->unknown_writeOnly = 0;
@@ -9562,7 +9562,7 @@ void updateInAirFielderSelection(void) {
 
     if (newFielder == g_FieldingLogic.secondaryFielder) {
         if (g_FieldingLogic.someFielderIndex < 0) {
-            ifCurrentFielderIsTakingOverBaseCovering(g_FieldingLogic.selectedFielder, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM);
+            ifCurrentFielderIsTakingOverBaseCovering(g_FieldingLogic.selectedFielder, AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN);
         } else {
             setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS);
         }
@@ -9570,7 +9570,7 @@ void updateInAirFielderSelection(void) {
         g_FieldingLogic.selectedFielder = g_FieldingLogic.secondaryFielder;
     } else {
         if (g_FieldingLogic.someFielderIndex < 0) {
-            ifCurrentFielderIsTakingOverBaseCovering(g_FieldingLogic.secondaryFielder, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM);
+            ifCurrentFielderIsTakingOverBaseCovering(g_FieldingLogic.secondaryFielder, AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN);
         } else {
             setFielderAutoMovementIfValid(g_FieldingLogic.secondaryFielder, AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS);
         }
@@ -9880,7 +9880,7 @@ void setNewSelectedFielder_determinePriorSelectedFielder_sAutoMovement(int newFi
     g_FieldingLogic.selectedFielder = newFielder;
 
     if (useHumanControlMovement == FALSE) {
-        setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, AUTO_MOVEMENT_GOING_TO_BALL);
+        setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, AUTO_MOVEMENT_GO_TO_BALL_HUMAN);
     } else {
         setFielderAutoMovementIfValid(g_FieldingLogic.selectedFielder, AUTO_MOVEMENT_INITIAL_SELECTED_FIELDER);
     }
@@ -11349,14 +11349,14 @@ void setInitialFielderMovements_DeepFly(void) {
                                                    g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z);
         if (g_FieldingLogic.selectedFielder == FIELDING_POSITION_CENTER_FIELD) {
             if (angle < 0x400) {
-                setFielderAutoMovement(FIELDING_POSITION_RIGHT_FIELD, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM);
+                setFielderAutoMovement(FIELDING_POSITION_RIGHT_FIELD, AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN);
                 g_FieldingLogic.someFielderIndex = FIELDING_POSITION_RIGHT_FIELD;
             } else {
-                setFielderAutoMovement(FIELDING_POSITION_LEFT_FIELD, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM);
+                setFielderAutoMovement(FIELDING_POSITION_LEFT_FIELD, AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN);
                 g_FieldingLogic.someFielderIndex = FIELDING_POSITION_LEFT_FIELD;
             }
         } else {
-            setFielderAutoMovement(FIELDING_POSITION_CENTER_FIELD, AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM);
+            setFielderAutoMovement(FIELDING_POSITION_CENTER_FIELD, AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN);
             g_FieldingLogic.someFielderIndex = FIELDING_POSITION_CENTER_FIELD;
         }
     }
@@ -12411,9 +12411,9 @@ void fielderActionsOnWildPitch(void) {
     g_FieldingLogic.fielderAssignedLocationIndex[0] = FIELDING_POSITION_PITCHER;
 
     if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0) {
-        setFielderAutoMovement(FIELDING_POSITION_CATCHER, AUTO_MOVEMENT_AI_GOING_TO_BALL);
+        setFielderAutoMovement(FIELDING_POSITION_CATCHER, AUTO_MOVEMENT_GO_TO_BALL_AI);
     } else {
-        setFielderAutoMovement(FIELDING_POSITION_CATCHER, AUTO_MOVEMENT_GOING_TO_BALL);
+        setFielderAutoMovement(FIELDING_POSITION_CATCHER, AUTO_MOVEMENT_GO_TO_BALL_HUMAN);
     }
 
     g_Fielders[FIELDING_POSITION_FIRST_BASE].locationResponsibleForCovering = 1;
@@ -13214,7 +13214,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
         g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH) {
         if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_STAY_STILL || fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_OFF_BASE_REASSIGN) {
             if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
+                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_BALL_HUMAN);
             }
         }
     } else {
@@ -13224,7 +13224,7 @@ void minigameDashUpdateFieldingVariables(int minigameFielderSlot) {
 
         if (g_Ball.framesSinceHit == 1) {
             if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
+                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_BALL_HUMAN);
             }
             goto updateEachFielder;
         }
@@ -13259,7 +13259,7 @@ void fn_3_2EA88(int minigameFielderSlot) {
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
         if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_STAY_STILL || fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_OFF_BASE_REASSIGN) {
             if (fielderIndex != -1) {
-                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
+                setFielderAutoMovement(fielderIndex, AUTO_MOVEMENT_GO_TO_BALL_HUMAN);
             }
         }
     } else {

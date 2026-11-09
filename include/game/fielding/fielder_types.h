@@ -439,9 +439,9 @@ typedef enum _DASH_STATE {
 typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {
     /*  0 */ AUTO_MOVEMENT_STAY_STILL = 0, // autoMovement0_stayStill_exceptForSpecialActions
     /*  1 */ AUTO_MOVEMENT_COVER_BASE, // autoMovement1_coverBase
-    /*  2 */ AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM, // autoMovement2_18_goTowardsBall_phase2 (keeps current code; entered from 3)
-    /*  3 */ AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_AI_TEAM, // autoMovement3_goTowardsHitBall_AITeam
-    /*  4 */ AUTO_MOVEMENT_AI_GO_TOWARDS_HIT_BALL, // autoMovement4_AI_goTowardsHitBall
+    /*  2 */ AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI, // autoMovement2_18_goTowardsBall_phase2 (keeps current code; AI fielders enter it from 3/4)
+    /*  3 */ AUTO_MOVEMENT_GO_TO_HIT_BALL, // autoMovement3_goTowardsHitBall_AITeam (either team; then -> 2 for AI, 16 for human)
+    /*  4 */ AUTO_MOVEMENT_GO_TO_HIT_BALL_PITCHER, // autoMovement4_AI_goTowardsHitBall (only set on the pitcher; -> 9 if the target is > 20 out)
     /*  5 */ AUTO_MOVEMENT_CUTOFF_ADJUST, // autoMovement5 (assigned cutoff re-aims at the targeted base during a play)
     /*  6 */ AUTO_MOVEMENT_OUTFIELDER_NO_CATCH_PHASE2, // autoMovement6_outfielderNoCatch_Phase2
     /*  7 */ AUTO_MOVEMENT_OUTFIELDER_NO_CATCH_PHASE1, // autoMovement7_8_outfiederNoCatch_Phase1 (presetLocationToStandAt != 1)
@@ -452,16 +452,16 @@ typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {
     /* 12 */ AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS, // autoMovement12_stopBetweenInstructions (stops, then -> 9)
     /* 13 */ AUTO_MOVEMENT_BACK_UP_BALL, // autoMovement13_GoTowardsBallAsBackUp
     /* 14 */ AUTO_MOVEMENT_INFIELD_SUPPORT, // autoMovement14_infieldSupport
-    /* 15 */ AUTO_MOVEMENT_GOING_TO_BALL, // autoMovement15_selectedFielderOnLooseBall
+    /* 15 */ AUTO_MOVEMENT_GO_TO_BALL_HUMAN, // autoMovement15_selectedFielderOnLooseBall
     /* 16 */ AUTO_MOVEMENT_TRACK_BALL, // autoMovement16_trackFoulBall (foul balls, and human-team fielders on fair balls)
     /* 17 */ AUTO_MOVEMENT_RUN_OFF_FIELD, // autoMovement17_runningOffField
-    /* 18 */ AUTO_MOVEMENT_AI_GOING_TO_BALL, // autoMovement2_18_goTowardsBall_phase2 (AI counterpart of 15; sets code 1)
-    /* 19 */ AUTO_MOVEMENT_FOUL_BALL_STAND_STILL, // autoMovement19_foulBall (AI fielder on a foul: just stands still)
+    /* 18 */ AUTO_MOVEMENT_GO_TO_BALL_AI, // autoMovement2_18_goTowardsBall_phase2 (AI counterpart of 15; sets code 1)
+    /* 19 */ AUTO_MOVEMENT_STAY_STILL_ON_FOUL, // autoMovement19_foulBall (AI fielder on a foul: just stands still)
     /* 20 */ AUTO_MOVEMENT_PITCHER_LINE_DRIVE, // autoMovement20_pitcherLinedriveRelated (pitcher waits until ready, then -> 18 or 0)
     /* 21 */ AUTO_MOVEMENT_INITIAL_SELECTED_FIELDER, // autoMovement21_23_humanControlInitialSelectedFielders (selectedFielder)
     /* 22 */ AUTO_MOVEMENT_INITIAL_SECONDARY_FIELDER, // autoMovement21_23_humanControlInitialSelectedFielders (secondaryFielder)
     /* 23 */ AUTO_MOVEMENT_INITIAL_TERTIARY_FIELDER, // autoMovement21_23_humanControlInitialSelectedFielders (tertiaryFielder)
-    /* 24 */ AUTO_MOVEMENT_GO_TOWARDS_HIT_BALL_HUMAN_TEAM, // autoMovement24_goTowardsHitBall_humanTeam
+    /* 24 */ AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN, // autoMovement24_goTowardsHitBall_humanTeam
     /* 25 */ AUTO_MOVEMENT_READY_TO_INTERCEPT_THROW, // autoMovement25_readyToInterceptThrownBall
     /* 26 */ AUTO_MOVEMENT_MINIGAME_WAIT_FOR_HIT, // autoMovement26_minigameRelated1 (waits for hit + lockout, then -> 27)
     /* 27 */ AUTO_MOVEMENT_MINIGAME_CHASE_BALL, // autoMovement27_minigameDashRelated2 (runs to ball until a panel is hit, then -> 28)

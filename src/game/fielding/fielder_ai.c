@@ -891,7 +891,7 @@ void autoMovement10_HasBall(int fielderIndex) {
                 fielder->framesSinceThrowWasMade = fielder->const_60;
             }
         } else {
-            ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_GOING_TO_BALL);
+            ifCurrentFielderIsTakingOverBaseCovering(fielderIndex, AUTO_MOVEMENT_GO_TO_BALL_HUMAN);
             fielder->framesSinceThrowWasMade = 0;
             fielder->fielderMadeThrow = 0;
         }
