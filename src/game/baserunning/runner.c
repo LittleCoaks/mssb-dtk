@@ -739,7 +739,7 @@ void running_checkForOuts(void) {
                         fielder = g_Ball.fielderWithBallIndexStored2;
                         g_Ball.fielderWhoGotLastOut = fielder;
                         if (fielder >= FIELDING_POSITION_LEFT_FIELD && runner->baseOfFailedBodyCheck == 0 && g_Ball.numberOfThrowsDuringPlay == 2 &&
-                            g_Ball.timeSinceBallPickedUp < specialFielderActionConstants._40[7]) {
+                            g_Ball.timeSinceBallPickedUp < specialFielderActionConstants.bigPlayMaxHoldFrames) {
                             g_UnkSound_32718.hudPopupCode = 4;
                             g_FieldingLogic.bigPlayFielderIndex = fielder;
                             if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {

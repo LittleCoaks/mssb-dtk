@@ -257,15 +257,17 @@ AutoMovementFunction autoMovementFunctions[AUTO_MOVEMENT_COUNT] = {
 
 extern void knockBallLoose(int fielderIndex, int flag);
 
+/* Per character, in cm; roster_init.c copies them (x0.01, size-scaled) into InMemFielder.hitbox[].
+ * Names are Ghidra's HitboxConsts, kept where the hitbox[] slot they feed agrees. */
 typedef struct _FielderHitboxConstsEntry {
-    /*0x00*/ s16 _00;
-    /*0x02*/ s16 _02;
-    /*0x04*/ s16 _04;
-    /*0x06*/ s16 _06;
-    /*0x08*/ s16 _08;
-    /*0x0A*/ s16 _0A;
-    /*0x0C*/ s16 _0C;
-    /*0x0E*/ s16 _0E;
+    /*0x00*/ s16 airOrFastRadius;    // -> hitbox[0]
+    /*0x02*/ s16 groundRadius;       // -> hitbox[1]
+    /*0x04*/ s16 centredCatchRadius; // -> hitbox[2]
+    /*0x06*/ s16 height;             // -> hitbox[3]
+    /*0x08*/ s16 _08;                // not copied; Ghidra: reachingUpLowerbound
+    /*0x0A*/ s16 _0A;                // -> hitbox[6]
+    /*0x0C*/ s16 diveRange;          // -> hitbox[7]
+    /*0x0E*/ s16 infieldDiveHeight;  // -> hitbox[8]
 } FielderHitboxConstsEntry;
 
 extern const FielderHitboxConstsEntry FielderHitboxConsts[55];
@@ -978,7 +980,7 @@ void updateFielderMovementAndPosition(void) {
 
     if (!(dist < 0.5f)) {
         if (fielder->someCountDown2 == 0) {
-            f32 threshold = (f32)specialFielderActionConstants._00[25] * fielder->joggingSpeed;
+            f32 threshold = (f32)specialFielderActionConstants.autoDashDistanceJogFrames * fielder->joggingSpeed;
             if (threshold < dist) {
                 g_FieldingLogic.fielderInputs |= INPUT_BUTTON_B;
             }
@@ -2275,7 +2277,7 @@ void fielding_handleCollisionsAndSpecialActions(void) {
                 if (fielder->wallActionCurrentHeight < 0.0f) {
                     fielder->wallActionCurrentHeight = 0.0f;
                     fielder->wallJumpStatus = 4;
-                    fielder->wallActionCountDown = specialFielderActionConstants._00[4];
+                    fielder->wallActionCountDown = specialFielderActionConstants.wallJumpLandCountdown;
                 }
             }
             fielder->actionYOffset = fielder->wallActionCurrentHeight;
@@ -3491,7 +3493,7 @@ int fielderMovement_findWallBounceInterceptSpot(int fielderIndex, f32* outX, f32
     angle = calculateAngleFromCoordinates(g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.x,
                                           g_Ball.physicsSubstruct.futureCoordsAndDist[frame].pos.z);
 
-    if (getDifferenceInAngle(angle, fielder->playerAngleFromHome) < specialFielderActionConstants._00[27]) {
+    if (getDifferenceInAngle(angle, fielder->playerAngleFromHome) < specialFielderActionConstants.wallBounceMinAngleDiff) {
         return 0;
     }
 
@@ -6304,7 +6306,7 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
 
         setFielderAutoMovementIfValid(bestCandidate, AUTO_MOVEMENT_CUTOFF);
 
-        g_FieldingLogic.FrameCycleCounter_20 = specialFielderActionConstants._40[11];
+        g_FieldingLogic.FrameCycleCounter_20 = specialFielderActionConstants.cutoffFrameCycleReset;
     } else {
         InMemFielder* cutoff;
         f32 targetX;
@@ -6340,7 +6342,7 @@ void updateFielderValuesSubFunction1_cuttoffRelated(void) {
             dist = fielderSqrt(sqx + sqz);
             if (dist < g_Fielders[g_FieldingLogic.cutoffFielderIndex].distanceFromAutoLocation) {
                 setFielderAutoMovementIfValid(pos, AUTO_MOVEMENT_CUTOFF);
-                g_FieldingLogic.FrameCycleCounter_20 = specialFielderActionConstants._40[11];
+                g_FieldingLogic.FrameCycleCounter_20 = specialFielderActionConstants.cutoffFrameCycleReset;
                 return;
             }
         }
@@ -9171,7 +9173,7 @@ void moveFielder_CheckForAndSetJump(int fielderIndex) {
 
                 if (g_Ball.fielderWBallIndex == fielderIndex &&
                     fielder->movingFramesCounter <=
-                        specialFielderActionConstants._00[0]) {
+                        specialFielderActionConstants.ballHolderMoveDelayFrames) {
                     fielder->currentVelocity = 0.0f;
                     fielder->standingStillInd = 1;
                 } else {
@@ -9361,11 +9363,11 @@ void updateFielderSelection(void) {
     }
 
     if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.maxYOfHit > 7.0f) {
-        if (g_Ball.framesSinceHit < specialFielderActionConstants._40[9]) {
+        if (g_Ball.framesSinceHit < specialFielderActionConstants.inAirSelectionDelayFrames) {
             return;
         }
     } else {
-        if (g_Ball.framesSinceHit < specialFielderActionConstants._40[10]) {
+        if (g_Ball.framesSinceHit < specialFielderActionConstants.selectionDelayFrames) {
             return;
         }
     }
@@ -12831,7 +12833,7 @@ void clamberJumpOffWall(int fielderIndex) {
     }
 
     if (fielder->clamberStatus == 5) {
-        if (fielder->specialActionCountdown < specialFielderActionConstants._00[6]) {
+        if (fielder->specialActionCountdown < specialFielderActionConstants.clamberJumpOffDelay) {
             return;
         }
     }
@@ -12999,7 +13001,7 @@ void wallSplat_setPosAndVelo(int fielderIndex) {
         fielder->wallSplatStageCountDown--;
         if (fielder->wallSplatStageCountDown == 0) {
             fielder->wallSplatStatus = 2;
-            fielder->wallSplatStageCountDown = specialFielderActionConstants._00[8];
+            fielder->wallSplatStageCountDown = specialFielderActionConstants.wallSplatStage2Frames;
 
             if (g_d_GameSettings.minigamesEnabled) {
                 if (g_Minigame.playerSlots.aiControlledInd[fielder->minigamePlayerSlot] == 0) {
@@ -13016,7 +13018,7 @@ void wallSplat_setPosAndVelo(int fielderIndex) {
         fielder->wallSplatStageCountDown--;
         if (fielder->wallSplatStageCountDown == 0) {
             fielder->wallSplatStatus = 3;
-            fielder->wallSplatStageCountDown = specialFielderActionConstants._00[9];
+            fielder->wallSplatStageCountDown = specialFielderActionConstants.wallSplatStage3Frames;
         }
     } else if (fielder->wallSplatStatus == 3) {
         fielder->wallActionCurrentHeight -= fielder->wallActionCurrentHeight / (f32)fielder->wallSplatStageCountDown;
@@ -13025,7 +13027,7 @@ void wallSplat_setPosAndVelo(int fielderIndex) {
         if (fielder->wallSplatStageCountDown == 0) {
             fielder->wallActionCurrentHeight = 0.0f;
             fielder->wallSplatStatus = 4;
-            fielder->wallSplatStageCountDown = specialFielderActionConstants._00[10];
+            fielder->wallSplatStageCountDown = specialFielderActionConstants.wallSplatStage4Frames;
         }
     } else if (fielder->wallSplatStatus == 4) {
         fielder->wallSplatStageCountDown--;
@@ -14137,7 +14139,7 @@ int checkIfCatchOccurs(int fielderIndex) {
     }
 
     if (canAttempt) {
-        for (i = 1; i < specialFielderActionConstants._00[11]; i++) {
+        for (i = 1; i < specialFielderActionConstants.standardCatchSearchFrames; i++) {
             f32 dx, dz;
             f32 dist;
 
@@ -14167,7 +14169,7 @@ int checkIfCatchOccurs(int fielderIndex) {
             }
         }
     } else {
-        for (i = 1; i < specialFielderActionConstants._00[11]; i++) {
+        for (i = 1; i < specialFielderActionConstants.standardCatchSearchFrames; i++) {
             f32 dx, dz;
             f32 dist;
 
@@ -14274,7 +14276,7 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
         speed *= g_FieldingLogic.dashPtr->sprintSpeedMultiplier;
     }
 
-    for (i = specialFielderActionConstants._00[17]; i <= specialFielderActionConstants._00[16]; i++) {
+    for (i = specialFielderActionConstants.runningCatchMinFrame; i <= specialFielderActionConstants.runningCatchMaxFrame; i++) {
         if (g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.y > fielder->hitbox[4]) {
             continue;
         }
@@ -14284,7 +14286,7 @@ int checkIfRunningCatchOccurs(int fielderIndex) {
 
         angleToBall = calculateAngleFromCoordinates(dx, dz);
         angleDiff = getDifferenceInAngle(angleToBall, fielder->runningAngle);
-        if (angleDiff > specialFielderActionConstants._00[18]) {
+        if (angleDiff > specialFielderActionConstants.runningCatchMaxAngleDiff) {
             continue;
         }
 
@@ -14373,7 +14375,7 @@ int catchThrownBallFun(int fielderIndex) {
             return 0;
         }
 
-        for (idx = specialFielderActionConstants._00[23]; idx <= specialFielderActionConstants._00[22]; idx++) {
+        for (idx = specialFielderActionConstants.thrownCatchSearchMinFrame; idx <= specialFielderActionConstants.thrownCatchSearchMaxFrame; idx++) {
             f32 dx, dz, dxSq, dzSq;
 
             if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > fielder->hitbox[3]) {
@@ -14387,7 +14389,7 @@ int catchThrownBallFun(int fielderIndex) {
                 break;
             }
         }
-        if (idx > specialFielderActionConstants._00[22]) {
+        if (idx > specialFielderActionConstants.thrownCatchSearchMaxFrame) {
             return 0;
         }
         goto setCatch;
@@ -14403,11 +14405,11 @@ int catchThrownBallFun(int fielderIndex) {
                 if (idx <= 2) {
                     return 0;
                 }
-                if (idx > specialFielderActionConstants._00[12]) {
+                if (idx > specialFielderActionConstants.thrownCatchMaxFrame) {
                     return 0;
                 }
                 if (fielder->baseCurrentlyOn != g_FieldingLogic.locationThrownTo &&
-                    idx > specialFielderActionConstants._00[13]) {
+                    idx > specialFielderActionConstants.thrownCatchMaxFrameOffBase) {
                     return 0;
                 }
 
@@ -14437,7 +14439,7 @@ int catchThrownBallFun(int fielderIndex) {
                 }
             }
         } else if (g_FieldingLogic.locationThrownTo == COVER_LOCATION_MOUND_CUTOFF || g_FieldingLogic.locationThrownTo == COVER_LOCATION_CUTOFF) {
-            for (idx = specialFielderActionConstants._00[23]; idx <= specialFielderActionConstants._00[22]; idx++) {
+            for (idx = specialFielderActionConstants.thrownCatchSearchMinFrame; idx <= specialFielderActionConstants.thrownCatchSearchMaxFrame; idx++) {
                 f32 dx, dz, dxSq, dzSq;
 
                 if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > fielder->hitbox[3]) {
@@ -14451,7 +14453,7 @@ int catchThrownBallFun(int fielderIndex) {
                     break;
                 }
             }
-            if (idx > specialFielderActionConstants._00[22]) {
+            if (idx > specialFielderActionConstants.thrownCatchSearchMaxFrame) {
                 return 0;
             }
             goto setCatch;
@@ -14563,11 +14565,11 @@ int ballThrownToEmptyBaseCatchAttempt(int fielderIndex) {
             return 0;
         }
 
-        if (g_Ball.framesUntilThrowReachesDest > specialFielderActionConstants._00[19]) {
+        if (g_Ball.framesUntilThrowReachesDest > specialFielderActionConstants.emptyBaseCatchMaxFrames) {
             return 0;
         }
 
-        if (g_Ball.framesUntilThrowReachesDest < specialFielderActionConstants._00[20]) {
+        if (g_Ball.framesUntilThrowReachesDest < specialFielderActionConstants.emptyBaseCatchMinFrames) {
             return 0;
         }
 
@@ -14768,7 +14770,7 @@ int divingCatch(int fielderIndex) {
         remaining = dist - outDist;
         catchDist = outDist * slidingCatchMultipliers[slidingCatchLevel * 3 + 0] + fielder->hitbox[7];
         if (remaining <= 0.0f) {
-            if (diveFrame > specialFielderActionConstants._00[14]) {
+            if (diveFrame > specialFielderActionConstants.diveMaxFrame) {
                 goto fail;
             }
             if (dist / diveFrame < 0.07f) {
@@ -14990,10 +14992,10 @@ lungeDive:
     return 1;
 
 searchBackward:
-    if (backFrame > specialFielderActionConstants._00[14]) {
+    if (backFrame > specialFielderActionConstants.diveMaxFrame) {
         return 0;
     }
-    for (diveFrame = backFrame; diveFrame > specialFielderActionConstants._00[15]; diveFrame -= 2) {
+    for (diveFrame = backFrame; diveFrame > specialFielderActionConstants.diveMinFrame; diveFrame -= 2) {
         if (isCoordinateUncatchableTerrain(g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.x,
                                            g_Ball.physicsSubstruct.futureCoordsAndDist[diveFrame].pos.z)) {
             continue;
@@ -15057,15 +15059,15 @@ int wallJumpInitialization(int fielderIndex) {
         return 0;
     }
 
-    idx = specialFielderActionConstants._00[2] - 1;
-    for (; idx < specialFielderActionConstants._00[1]; idx++) {
+    idx = specialFielderActionConstants.wallJumpSearchMinFrame - 1;
+    for (; idx < specialFielderActionConstants.wallJumpSearchMaxFrame; idx++) {
         if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].dist >
             g_Ball.wallAndBallIntersectionDistFromHome - fielderActionConstants[10]) {
             break;
         }
     }
 
-    if (idx < specialFielderActionConstants._00[2]) {
+    if (idx < specialFielderActionConstants.wallJumpSearchMinFrame) {
         return 0;
     }
 
@@ -15074,7 +15076,7 @@ int wallJumpInitialization(int fielderIndex) {
         return 0;
     }
 
-    if (idx >= specialFielderActionConstants._00[1]) {
+    if (idx >= specialFielderActionConstants.wallJumpSearchMaxFrame) {
         goto farWall;
     }
 
@@ -15128,7 +15130,7 @@ int wallJumpInitialization(int fielderIndex) {
 
     idx = j;
     for (k = 0; k < 5; k++) {
-        if (idx < specialFielderActionConstants._00[2]) {
+        if (idx < specialFielderActionConstants.wallJumpSearchMinFrame) {
             break;
         }
         if (g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y > hitboxZ + fielderActionConstants[9] &&
@@ -15167,7 +15169,7 @@ int wallJumpInitialization(int fielderIndex) {
         fielder->wallJumpApexY = g_Ball.physicsSubstruct.futureCoordsAndDist[idx].pos.y - fielder->hitbox[3];
         initCatchAnimationState(fielderIndex, CATCH_ANIMATION_WALL_JUMP, idx, FALSE, FALSE);
     }
-    fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants._00[3];
+    fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants.wallJumpFramesToWallTop;
 
     camera_zoomInDuringFielderAction_slide_clamber_wallJump(
         2, 0,
@@ -15210,7 +15212,7 @@ farWall:
     fielder->wallActionCurrentHeight = 0.0f;
 
     initCatchAnimationState(fielderIndex, CATCH_ANIMATION_WALL_JUMP, idx, TRUE, FALSE);
-    fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants._00[3];
+    fielder->wallJumpFramesTillTopOfWallContact = specialFielderActionConstants.wallJumpFramesToWallTop;
 
     return 1;
 }
@@ -15241,7 +15243,7 @@ int wallSplatInitialization(int fielderIndex) {
     }
 
     fielder->wallSplatStatus = 1;
-    fielder->wallSplatStageCountDown = specialFielderActionConstants._00[7];
+    fielder->wallSplatStageCountDown = specialFielderActionConstants.wallSplatStage1Frames;
     fielder->wallActionLocationX = collision.position.x;
     fielder->wallActionLocationY = fielderActionConstants[29];
     fielder->wallactionLocationZ = collision.position.z;
@@ -15543,7 +15545,7 @@ void updateVariablesPostCatch(int fielderIndex) {
     if (g_Ball.numberOfThrowsDuringPlay == 0) {
         int framesEstimate = fRunningTimeToDestination(fielderIndex, fielder->storedPosX, fielder->storedPosZ);
 
-        if (g_Ball.framesSinceHit - framesEstimate < specialFielderActionConstants._40[6]) {
+        if (g_Ball.framesSinceHit - framesEstimate < specialFielderActionConstants.bigPlayMaxSpareFrames) {
             g_FieldingLogic.bigPlayPotential = 1;
         }
     }
@@ -15866,7 +15868,7 @@ void fielderMovement_VelocityDuringCatchAnimations(int fielderIndex) {
                 fielder->fielderVelocityDuringAction.z = scratch.z / divisor2;
 
                 if (fielder->catchAnimation == CATCH_ANIMATION_RUNNING || fielder->catchAnimation == CATCH_ANIMATION_THROW_TO_EMPTY_BASE) {
-                    fielder->runningCatchCountDown = (u8)specialFielderActionConstants._00[21];
+                    fielder->runningCatchCountDown = (u8)specialFielderActionConstants.runningCatchCountdown;
                 }
             }
         }
@@ -15933,7 +15935,7 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
 
     if (g_Ball.catchAnimationTotalFrames == 0) {
         if (fielder->catchAnimation == CATCH_ANIMATION_DIVE) {
-            if (fielder->catchAnimationFramesCountDown > specialFielderActionConstants._00[26]) {
+            if (fielder->catchAnimationFramesCountDown > specialFielderActionConstants.suctionCatchDiveStartFrames) {
                 return;
             }
 
@@ -15945,21 +15947,21 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
             offZ = dz * ratio;
             g_Ball.diveCatchLocationOffset.x = fielder->pos.x + offX;
             g_Ball.diveCatchLocationOffset.z = fielder->pos.z + offZ;
-            g_Ball.diveCatchLocationOffset.y = 0.01f * (f32)FielderHitboxConsts[fielder->CharID]._0E;
+            g_Ball.diveCatchLocationOffset.y = 0.01f * (f32)FielderHitboxConsts[fielder->CharID].infieldDiveHeight;
         } else {
-            if (fielder->catchAnimationFramesCountDown > specialFielderActionConstants._00[24]) {
+            if (fielder->catchAnimationFramesCountDown > specialFielderActionConstants.suctionCatchStartFrames) {
                 return;
             }
 
             dx = fielder->actionStartingCoordinate.x - fielder->pos.x;
             dz = fielder->actionStartingCoordinate.z - fielder->pos.z;
             dist = fielderSqrt(dx * dx + dz * dz);
-            ratio = (0.01f * (f32)FielderHitboxConsts[fielder->CharID]._00) / dist;
+            ratio = (0.01f * (f32)FielderHitboxConsts[fielder->CharID].airOrFastRadius) / dist;
             offX = dx * ratio;
             offZ = dz * ratio;
             g_Ball.diveCatchLocationOffset.x = fielder->pos.x + offX;
             g_Ball.diveCatchLocationOffset.z = fielder->pos.z + offZ;
-            g_Ball.diveCatchLocationOffset.y = 0.01f * (f32)FielderHitboxConsts[fielder->CharID]._04;
+            g_Ball.diveCatchLocationOffset.y = 0.01f * (f32)FielderHitboxConsts[fielder->CharID].centredCatchRadius;
         }
 
         g_Ball.fielderActionCatchCoords.x = g_Ball.AtBat_Contact_BallPos.x;
@@ -15969,7 +15971,7 @@ void mag_BirdoSlidingCatchSetCoordinates(int fielderIndex) {
 
         if (fielder->suctionCatchInd == 0 && fielder->catchAnimation == CATCH_ANIMATION_DIVE) {
             g_Ball.catchAnimationTotalFrames = fielder->catchAnimationFramesCountDown =
-                specialFielderActionConstants._40[5];
+                specialFielderActionConstants.suctionCatchDiveTotalFrames;
         }
 
         g_Batter.invisibleBallForPeachStarHit = 0;
@@ -16094,7 +16096,7 @@ void fielderOnFirePosAndVelo(int fielderIndex) {
     }
 
     fielder->onFireCountUp++;
-    fielder->onFireFacingAngle = normalizeAngle(fielder->onFireFacingAngle + specialFielderActionConstants._40[0]);
+    fielder->onFireFacingAngle = normalizeAngle(fielder->onFireFacingAngle + specialFielderActionConstants.onFireSpinPerFrame);
 
     fielder->currentVelocity = fielderActionConstants[33];
     getComponentsFromSAng(fielder->onFireFacingAngle, &fielder->xMovementDir, &fielder->zMovementDir);
@@ -16145,7 +16147,7 @@ int processFielderKnockout(int fielderIndex, sAng knockOutAngle) {
     fielder->knockOutAngle = knockOutAngle;
     fielder->knockoutStatus = 1;
     fielder->knockOutCountUp = 0;
-    fielder->knockOutCountDown = specialFielderActionConstants._40[1];
+    fielder->knockOutCountDown = specialFielderActionConstants.knockOutStage1Frames;
     fielder->knockOutVelo = fielderActionConstants[34];
 
     if (fielder->catchAnimation == CATCH_ANIMATION_WALL_JUMP || fielder->catchAnimation == CATCH_ANIMATION_CLAMBER) {
@@ -16205,7 +16207,7 @@ void knockOut_setPosAndVelo(int fielderIndex) {
         if (fielder->knockOutCountDown <= 0) {
             fielder->knockoutStatus = 2;
             fielder->knockOutCountUp = 0;
-            fielder->knockOutCountDown = specialFielderActionConstants._40[2];
+            fielder->knockOutCountDown = specialFielderActionConstants.knockOutStage2Frames;
             return;
         }
 

@@ -1146,7 +1146,7 @@ void toyFieldLiveBallOutcome(void) {
     if (g_Minigame.TF_ballDespawnedInd == FALSE && g_Ball.fielderWBallIndex < 0 && g_Ball.deadBallReason == DEAD_BALL_REASON_NONE &&
         g_Ball.AtBat_ContactResult >= 0) {
         if (g_GameLogic.CountdownUntilFade <=
-            lbl_3_data_1899C[1] - 10 + specialFielderActionConstants._00[11]) {
+            lbl_3_data_1899C[1] - 10 + specialFielderActionConstants.standardCatchSearchFrames) {
             g_GameLogic.CountdownUntilFade++;
         }
     }

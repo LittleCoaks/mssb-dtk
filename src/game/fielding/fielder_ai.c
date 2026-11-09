@@ -182,7 +182,7 @@ void makeThrowVariables(int fielderIndex) {
                 sqx = xDist * xDist;
                 dist = dolsqrtf2(sqx + zDist * zDist);
                 angle = calculateAngleFromCoordinates(xDist, zDist);
-                adj = RandomInt_Game_Range(specialFielderActionConstants._40[3], specialFielderActionConstants._40[4]);
+                adj = RandomInt_Game_Range(specialFielderActionConstants.antiChemistryThrowAngleMin, specialFielderActionConstants.antiChemistryThrowAngleMax);
                 rng2 = RandomInt_Game(2);
                 ang = angle - adj;
                 if (rng2 != 0) {
@@ -1471,7 +1471,7 @@ void checkForBufferedThrow(void) {
         } else {
             g_FieldingLogic.smashThrow_framesDirectionHeld = 1;
         }
-    } else if (g_FieldingLogic.smashThrow_framesDirectionHeld >= specialFielderActionConstants._40[8]) {
+    } else if (g_FieldingLogic.smashThrow_framesDirectionHeld >= specialFielderActionConstants.smashThrowHoldFrames) {
         if (g_FieldingLogic.interceptThrowFielder >= 0) {
             return;
         }
@@ -1538,7 +1538,7 @@ void fielderHasBall(void) {
                 }
             }
             if ((controls->buttonInput & INPUT_BUTTON_A) &&
-                g_FieldingLogic.smashThrow_framesDirectionHeld <= specialFielderActionConstants._40[8]) {
+                g_FieldingLogic.smashThrow_framesDirectionHeld <= specialFielderActionConstants.smashThrowHoldFrames) {
                 if (controls->newButtonInput & INPUT_BUTTON_A) {
                     if (controls->buttonInput & INPUT_TRIGGER_L) {
                         g_FieldingLogic.locationThrownTo = COVER_LOCATION_CUTOFF;
@@ -1555,7 +1555,7 @@ void fielderHasBall(void) {
                     } else {
                         g_FieldingLogic.smashThrow_framesDirectionHeld = 1;
                     }
-                } else if (g_FieldingLogic.smashThrow_framesDirectionHeld >= specialFielderActionConstants._40[8]) {
+                } else if (g_FieldingLogic.smashThrow_framesDirectionHeld >= specialFielderActionConstants.smashThrowHoldFrames) {
                     g_FieldingLogic.throwWaitingInd = 1;
                 }
                 if (g_FieldingLogic.throwWaitingInd != 0) {

@@ -560,10 +560,51 @@ typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {
     AUTO_MOVEMENT_COUNT
 } AUTO_MOVEMENT_FUNCTION_INDEX;
 
+/* Defined as s16[44] in data_only/gameplay_tables.c; the trailing comments give those values.
+ * _0A and _38 are never read. */
 typedef struct _SpecialFieldingActionConstants {
-    /*0x00*/ s16 _00[0x1D];
+    /*0x00*/ s16 ballHolderMoveDelayFrames; // 6
+    /*0x02*/ s16 wallJumpSearchMaxFrame; // 50
+    /*0x04*/ s16 wallJumpSearchMinFrame; // 25
+    /*0x06*/ s16 wallJumpFramesToWallTop; // 15
+    /*0x08*/ s16 wallJumpLandCountdown; // 20
+    /*0x0A*/ s16 _0A; // 40
+    /*0x0C*/ s16 clamberJumpOffDelay; // 30
+    /*0x0E*/ s16 wallSplatStage1Frames; // 12
+    /*0x10*/ s16 wallSplatStage2Frames; // 30
+    /*0x12*/ s16 wallSplatStage3Frames; // 60
+    /*0x14*/ s16 wallSplatStage4Frames; // 60
+    /*0x16*/ s16 standardCatchSearchFrames; // 12
+    /*0x18*/ s16 thrownCatchMaxFrame; // 6
+    /*0x1A*/ s16 thrownCatchMaxFrameOffBase; // 2
+    /*0x1C*/ s16 diveMaxFrame; // 30
+    /*0x1E*/ s16 diveMinFrame; // 6
+    /*0x20*/ s16 runningCatchMaxFrame; // 12
+    /*0x22*/ s16 runningCatchMinFrame; // 2
+    /*0x24*/ s16 runningCatchMaxAngleDiff; // 512
+    /*0x26*/ s16 emptyBaseCatchMaxFrames; // 6
+    /*0x28*/ s16 emptyBaseCatchMinFrames; // 2
+    /*0x2A*/ s16 runningCatchCountdown; // 20
+    /*0x2C*/ s16 thrownCatchSearchMaxFrame; // 15
+    /*0x2E*/ s16 thrownCatchSearchMinFrame; // 2
+    /*0x30*/ s16 suctionCatchStartFrames; // 5
+    /*0x32*/ s16 autoDashDistanceJogFrames; // 30
+    /*0x34*/ s16 suctionCatchDiveStartFrames; // 10
+    /*0x36*/ s16 wallBounceMinAngleDiff; // 64
+    /*0x38*/ s16 _38; // 96
     /*0x3A*/ s16 fireballCountdownArray[3];
-    /*0x40*/ s16 _40[0x0C];
+    /*0x40*/ s16 onFireSpinPerFrame; // 64
+    /*0x42*/ s16 knockOutStage1Frames; // 60
+    /*0x44*/ s16 knockOutStage2Frames; // 120
+    /*0x46*/ s16 antiChemistryThrowAngleMin; // 64
+    /*0x48*/ s16 antiChemistryThrowAngleMax; // 96
+    /*0x4A*/ s16 suctionCatchDiveTotalFrames; // 45
+    /*0x4C*/ s16 bigPlayMaxSpareFrames; // 75
+    /*0x4E*/ s16 bigPlayMaxHoldFrames; // 60
+    /*0x50*/ s16 smashThrowHoldFrames; // 3
+    /*0x52*/ s16 inAirSelectionDelayFrames; // 36
+    /*0x54*/ s16 selectionDelayFrames; // 12
+    /*0x56*/ s16 cutoffFrameCycleReset; // 20
 } SpecialFieldingActionConstants; // size: 0x58
 
 extern SpecialFieldingActionConstants specialFielderActionConstants;
