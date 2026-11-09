@@ -2190,12 +2190,13 @@ typedef struct {
     /* 0x77 */ u8 aiMashCooldownFrames; // aiMashConsts[difficulty].cooldownFrames between press rolls
     /* 0x78 */ u8 AIControlFlag;
     /* 0x79 */ u8 warioStarRelated[3];
-    /* 0x7C */ VecXZ _7C[4];
-    /* 0x9C */ s16 _9C[4];
-    /* 0xA4 */ s16 _A4[4];
-    /* 0xAC */ s16 _AC[4];
-    /* 0xB4 */ u8 _B4[4];
-    /* 0xB8 */ u8 _B8[4];
+    /* Toy Field CPU fielder wander (toyFieldCpuWanderInput), per minigame slot. */
+    /* 0x7C */ VecXZ toyFieldCpuWanderTarget[4]; // spot pushed away from home (mode 0)
+    /* 0x9C */ s16 toyFieldCpuWanderFrames[4];   // frames in the current phase
+    /* 0xA4 */ s16 toyFieldCpuWanderDuration[4]; // frames to hold the random stick angle (mode 1)
+    /* 0xAC */ s16 toyFieldCpuWanderAngle[4];    // stick angle held in mode 1
+    /* 0xB4 */ u8 toyFieldCpuWanderMode[4];      // 0 walk to target, 1 random stick angles (speed/technique), 2 stand
+    /* 0xB8 */ u8 toyFieldCpuWanderPhase[4];     // 0 pick, 1 moving, 2 reached target
 } AIStruct; // size 0xBC
 
 extern AIStruct g_AiLogic;

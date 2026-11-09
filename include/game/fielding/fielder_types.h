@@ -48,7 +48,7 @@ typedef struct {
     /*0x00ba*/ s16 tertiaryFielderStored;
     /*0x00bc*/ s16 someFielderIndex;
     /*0x00be*/ s16 cutoffFielderIndex;
-    /*0x00c0*/ s16 someFrameCounterFielderRelated;
+    /*0x00c0*/ s16 cutoffReassignCooldown; // 90 after demoteCutoffToInfieldSupport; no new cutoff while nonzero
     /*0x00c2*/ s16 interceptThrowFielder;
     /*0x00c4*/ E(s16, COVER_LOCATION) locationThrownTo;          // COVER_LOCATION, or 8: hold the ball (throwWaitingInd)
     /*0x00c6*/ E(s16, COVER_LOCATION) humanSelectedPlaceToThrow; // as locationThrownTo
@@ -126,7 +126,7 @@ typedef struct {
     /*0x0136*/ u8 _0136;
     /*0x0137*/ u8 always0_0137;
     /*0x0138*/ u8 _0138;
-    /*0x0139*/ u8 unkFlagMaybeInAir;
+    /*0x0139*/ u8 secondaryFielderActiveInd; // set when the initial selection also gave a secondary/tertiary fielder
     /*0x013a*/ E(u8, BOOL) infielderSelectedOnPopFlyInd;
     /*0x013b*/ u8 knockoutFinished;
     /*0x013c*/ u8 throwInterceptionTriggered;
@@ -203,8 +203,8 @@ typedef struct _InMemFielder {
     /*0x00C*/ f32 actionYOffset;
     /*0x010*/ f32 storedPosY;
     /*0x014*/ VecXYZ IntendedLocation;
-    /*0x020*/ f32 maybeTargetPosX;
-    /*0x024*/ f32 maybeTargetPosZ;
+    /*0x020*/ f32 ballTrackingTargetX; // last ball-tracking target; 10000 = none (resetFielderSelection)
+    /*0x024*/ f32 ballTrackingTargetZ;
     /*0x028*/ f32 xPos5mAwayFromBallsCollisionSpotOnWall;
     /*0x02C*/ f32 zPos5mAwayFromBallsCollisionSpotOnWall;
     /*0x030*/ f32 velocityX;
@@ -286,7 +286,7 @@ typedef struct _InMemFielder {
     /*0x19C*/ s16 fielderReadiness;
     /*0x19E*/ s16 movementAngle;
     /*0x1A0*/ s16 framesSinceStartedMoving;
-    /*0x1A2*/ s16 someCountdownAndCountUpRelatedToStandingStill;
+    /*0x1A2*/ s16 movingFramesCounter; // counts up while moving; when stopped, capped at 45 and counts down
     /*0x1A4*/ s16 unknown_writeOnly_always0;
     /*0x1A6*/ s16 unused_rngValueRelatedToDugoutLocation;
     /*0x1A8*/ s16 someCountDown;
@@ -320,14 +320,14 @@ typedef struct _InMemFielder {
     /*0x1D2*/ u8 lockoutDuration;
     /*0x1D3*/ E(u8, AUTO_MOVEMENT_FUNCTION_INDEX) autoMovementFunctionIndex;
     /*0x1D4*/ u8 presetLocationToStandAt;
-    /*0x1D5*/ u8 unknown_writeOnly;
+    /*0x1D5*/ u8 writeOnly_stopReason; // never read: 0 on (re)start of movement, 2/3/4 when sent to AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS (2 outfielder / 3 infielder losing the ball, 4 displaced)
     /*0x1D6*/ u8 fielderVeloAdjustmentCode;
     /*0x1D7*/ E(u8, COVER_ROLE) coverRole;
     /*0x1D8*/ u8 pitcherHeadingToCover1stOr3rd;
     /*0x1D9*/ u8 goingToAutoLocationInd;
     /*0x1DA*/ u8 cantCatchFlyBallInd;
     /*0x1DB*/ u8 nonCatchFlyBallStratInd;
-    /*0x1DC*/ u8 maybeMovementState;
+    /*0x1DC*/ E(u8, BALL_TRACKING_TARGET) ballTrackingTarget;
     /*0x1DD*/ u8 catchStrategy;
     /*0x1DE*/ u8 inBasePath;
     /*0x1DF*/ u8 fielderMadeThrow;
@@ -371,12 +371,12 @@ typedef struct _InMemFielder {
     /*0x205*/ u8 clamberStatus;
     /*0x206*/ u8 wjRelated;
     /*0x207*/ u8 wallSplatStatus;
-    /*0x208*/ u8 _0208;
+    /*0x208*/ E(u8, MINIGAME_CHASE_TARGET) minigameChaseTarget;
     /*0x209*/ u8 _0209;
     /*0x20A*/ u8 _020A;
     /*0x20B*/ u8 _020B;
     /*0x20C*/ u8 _020B_stored;
-    /*0x20D*/ u8 _020D;
+    /*0x20D*/ u8 minigamePlayerSlot; // index into the g_Minigame per-player arrays
     /*0x20E*/ u8 _020E;
     /*0x20F*/ u8 onFire;
     /*0x210*/ u8 knockoutStatus;
@@ -465,6 +465,25 @@ typedef enum _COVER_ROLE {
     /* 1 */ COVER_ROLE_BASE,    // covering a base (COVER_LOCATION_HOME..THIRD), AUTO_MOVEMENT_COVER_BASE
     /* 2 */ COVER_ROLE_SUPPORT, // a support spot (COVER_LOCATION_MOUND_CUTOFF and up), AUTO_MOVEMENT_INFIELD_SUPPORT
 } COVER_ROLE;
+
+/* InMemFielder.ballTrackingTarget: where fielderTrackingBall_updateVariables steers the fielder. */
+typedef enum _BALL_TRACKING_TARGET {
+    /* 0 */ BALL_TRACKING_TARGET_LANDING_SPOT,         // ball's future position at framesRemainingToGetToLandingSpot
+    /* 1 */ BALL_TRACKING_TARGET_WALL_HIT_SPOT,        // where the ball will hit the wall (ballWillHitBallPos)
+    /* 2 */ BALL_TRACKING_TARGET_WALL_REBOUND,         // 5 m off the wall spot, adjusted for the bounce (updateFielderPosition)
+    /* 3 */ BALL_TRACKING_TARGET_ROLL_CHECK_INTERCEPT, // where the ball rolls to; fielderTrackingBall_checkSwitchToIntercept
+    /* 4 */ BALL_TRACKING_TARGET_INTERCEPT,            // setIntendedLocToInterceptBall; fielderTrackingBall_goToFutureBallPos
+    /* 5 */ BALL_TRACKING_TARGET_BALL_POS,             // ball (nearly) stopped; fielderTrackingBall_goToContactBallPos
+} BALL_TRACKING_TARGET;
+
+/* InMemFielder.minigameChaseTarget: where updateFielderPositionBasedOnBallState sends a minigame fielder. */
+typedef enum _MINIGAME_CHASE_TARGET {
+    /* 0 */ MINIGAME_CHASE_TARGET_NONE,
+    /* 1 */ MINIGAME_CHASE_TARGET_LANDING_SPOT,
+    /* 2 */ MINIGAME_CHASE_TARGET_BALL,
+    /* 3 */ MINIGAME_CHASE_TARGET_BEST_FUTURE_FRAME, // determineBestFrameForFielder (nonCatchFlyBallStratInd)
+    /* 4 */ MINIGAME_CHASE_TARGET_COIN,              // Toy Field: nearest coin
+} MINIGAME_CHASE_TARGET;
 
 /* Index into autoMovementFunctions[] (fielder.c); comments name the dispatched function. */
 typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {

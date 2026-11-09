@@ -277,7 +277,7 @@ void wallBallInitializeValues(void) {
                 int fielderIndex;
                 g_Minigame.playerSlots.participantSlot[j] = i;
                 fielderIndex = j + 2;
-                g_Fielders[fielderIndex]._020D = i;
+                g_Fielders[fielderIndex].minigamePlayerSlot = i;
                 g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[j]] = fielderIndex;
                 g_Minigame.playerSlots.playOrder[j] = i;
                 j++;

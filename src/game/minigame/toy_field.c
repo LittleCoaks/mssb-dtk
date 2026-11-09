@@ -419,7 +419,7 @@ void toyfieldSimulation(void) {
             latest[g_Minigame.rosterID] += g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[type * 3];
             latest[(s8)g_Minigame.minigamePlayerSelectedOrder] +=
                 g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[type * 3 + 1];
-            g_Minigame.miniGameLatestPoints[g_Fielders[g_Ball.fielderWBallIndex]._020D] +=
+            g_Minigame.miniGameLatestPoints[g_Fielders[g_Ball.fielderWBallIndex].minigamePlayerSlot] +=
                 g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[type * 3 + 2];
         } else {
             latest[g_Minigame.rosterID] += g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[type * 3];
@@ -819,13 +819,13 @@ void toyFieldAssignTurnRoles(void) {
     g_Minigame.playerSlots.participantSlot[0] = g_Minigame.minigamePlayerSelectedOrder;
     g_Minigame.playerSlots.batterInd[(s8)g_Minigame.minigamePlayerSelectedOrder] = FALSE;
     g_Minigame.playerSlots.fielderIndex[(s8)g_Minigame.minigamePlayerSelectedOrder] = 0;
-    g_Fielders[g_Minigame.playerSlots.fielderIndex[(s8)g_Minigame.minigamePlayerSelectedOrder]]._020D = g_Minigame.playerSlots.participantSlot[0];
+    g_Fielders[g_Minigame.playerSlots.fielderIndex[(s8)g_Minigame.minigamePlayerSelectedOrder]].minigamePlayerSlot = g_Minigame.playerSlots.participantSlot[0];
     g_Minigame.playerSlots.batterInd[g_Minigame.playerSlots.participantSlot[1]] = FALSE;
     g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[1]] = 3;
-    g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[1]]]._020D = g_Minigame.playerSlots.participantSlot[1];
+    g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[1]]].minigamePlayerSlot = g_Minigame.playerSlots.participantSlot[1];
     g_Minigame.playerSlots.batterInd[g_Minigame.playerSlots.participantSlot[2]] = FALSE;
     g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[2]] = 4;
-    g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[2]]]._020D = g_Minigame.playerSlots.participantSlot[2];
+    g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[2]]].minigamePlayerSlot = g_Minigame.playerSlots.participantSlot[2];
     for (i = 0; i < 4; i++) {
         if (g_Minigame.playerSlots.participantSlot[0] == i) {
             toyFieldTrackRole(i, 0);
@@ -990,7 +990,7 @@ void toyFieldAwardPoints(int type) {
             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[type * 3];
         g_Minigame.miniGameLatestPoints[(s8)g_Minigame.minigamePlayerSelectedOrder] +=
             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[type * 3 + 1];
-        g_Minigame.miniGameLatestPoints[g_Fielders[g_Ball.fielderWBallIndex]._020D] +=
+        g_Minigame.miniGameLatestPoints[g_Fielders[g_Ball.fielderWBallIndex].minigamePlayerSlot] +=
             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[type * 3 + 2];
     } else {
         g_Minigame.miniGameLatestPoints[g_Minigame.rosterID] +=
@@ -1611,7 +1611,7 @@ void toyFieldApplyBallResult(void) {
         }
         g_Minigame.toyField_turnPlayer = g_Minigame.minigamePlayerSelectedOrder;
         if (g_Ball.fielderWBallIndex >= 0) {
-            g_Minigame.toyField_turnPlayer = g_Fielders[g_Ball.fielderWBallIndex]._020D;
+            g_Minigame.toyField_turnPlayer = g_Fielders[g_Ball.fielderWBallIndex].minigamePlayerSlot;
         }
     } else if (g_Minigame.toyFieldBallStateResult2 == TOY_FIELD_RESULT_FOUL) {
         foulBall();
@@ -1686,7 +1686,7 @@ void toyFieldPoints(void) {
                 }
                 if (g_Minigame.toyFieldBallStateResult2 == TOY_FIELD_RESULT_CAUGHT || g_Ball.maybebuntOn2Strikes != 0) {
                     if (g_Ball.fielderWBallIndex >= 0) {
-                        g_Minigame.toyField_turnPlayer = g_Fielders[g_Ball.fielderWBallIndex]._020D;
+                        g_Minigame.toyField_turnPlayer = g_Fielders[g_Ball.fielderWBallIndex].minigamePlayerSlot;
                     } else {
                         g_Minigame.toyField_turnPlayer = g_Minigame.minigamePlayerSelectedOrder;
                     }
@@ -1760,7 +1760,7 @@ void toyFieldPoints(void) {
                             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[60];
                         g_Minigame.miniGameLatestPoints[(s8)g_Minigame.minigamePlayerSelectedOrder] +=
                             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[61];
-                        g_Minigame.miniGameLatestPoints[g_Fielders[g_Ball.fielderWBallIndex]._020D] +=
+                        g_Minigame.miniGameLatestPoints[g_Fielders[g_Ball.fielderWBallIndex].minigamePlayerSlot] +=
                             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[62];
                         toyFieldRecordPoints();
                     } else {
@@ -1768,7 +1768,7 @@ void toyFieldPoints(void) {
                             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[63];
                         g_Minigame.miniGameLatestPoints[(s8)g_Minigame.minigamePlayerSelectedOrder] +=
                             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[64];
-                        g_Minigame.miniGameLatestPoints[g_Fielders[g_Ball.fielderWBallIndex]._020D] +=
+                        g_Minigame.miniGameLatestPoints[g_Fielders[g_Ball.fielderWBallIndex].minigamePlayerSlot] +=
                             g_Minigame.toyField_pointMultiplier * lbl_3_data_18BB8[65];
                         toyFieldRecordPoints();
                     }

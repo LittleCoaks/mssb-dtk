@@ -934,7 +934,7 @@ void fielderKnockback(int fielderIndex) {
         fielder->knockbackRelatedVeloZ = 0.7f * knock.z;
         fielder->_0200 = 1;
         if (g_d_GameSettings.minigamesEnabled) {
-            fn_8004AFA8(fielder->_020D);
+            fn_8004AFA8(fielder->minigamePlayerSlot);
         } else {
             fn_8004AFA8(fielderIndex);
         }
@@ -947,7 +947,7 @@ void fielderKnockback(int fielderIndex) {
         }
         if (fielder->timeSinceThrowWasCaught > 0) {
             if (g_d_GameSettings.minigamesEnabled) {
-                fn_8004AE18(fielder->_020D);
+                fn_8004AE18(fielder->minigamePlayerSlot);
             } else {
                 fn_8004AE18(fielderIndex);
             }

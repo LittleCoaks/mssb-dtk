@@ -1628,7 +1628,7 @@ void fielderAnimations(void) {
             }
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL &&
-            (s8)fielder->_020D == (s8)g_Minigame.minigamePlayerSelectedOrder && g_Minigame.wallBallRotatePitchersInd == 0) {
+            (s8)fielder->minigamePlayerSlot == (s8)g_Minigame.minigamePlayerSelectedOrder && g_Minigame.wallBallRotatePitchersInd == 0) {
             continue;
         }
 
@@ -1840,7 +1840,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
         if (idx == 0) {
             idx = MINIGAME_SELECTED_SLOT();
         } else {
-            idx = g_Minigame.playerSlots.characterIndex[fielder->_020D];
+            idx = g_Minigame.playerSlots.characterIndex[fielder->minigamePlayerSlot];
         }
     }
 
@@ -1856,7 +1856,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
 
     if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_WALLBALL) {
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
-            u8 state = g_Minigame.pP_hitState[fielder->_020D];
+            u8 state = g_Minigame.pP_hitState[fielder->minigamePlayerSlot];
             if (state == 1) {
                 if (animId != 0x24) {
                     playCharacterSound(fielder->CharID, 10);
@@ -1873,7 +1873,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
                 goto done;
             }
         }
-        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH && g_Minigame.starDashStunType[fielder->_020D] == 2) {
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH && g_Minigame.starDashStunType[fielder->minigamePlayerSlot] == 2) {
             if (animId != 0x24 && animId != 0x25) {
                 playCharacterSound(fielder->CharID, 10);
                 AnimateCharacter(idx, 0x24, 0, 1, 0, 0, 0, -1);
@@ -2214,7 +2214,7 @@ BOOL animationsForFielding(int fielderIdx) {
             if (fielder->_0200 != 0) {
                 obj->_26F = 1;
                 if (g_d_GameSettings.minigamesEnabled) {
-                    fn_8004AE18(fielder->_020D);
+                    fn_8004AE18(fielder->minigamePlayerSlot);
                 } else {
                     fn_8004AE18(fielderIdx);
                 }
