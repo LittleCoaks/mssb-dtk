@@ -2126,7 +2126,7 @@ void offscreenFielderIndicator_update(void) {
     } else if (g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam] != 0 &&
                g_GameLogic.autoFielding[g_GameLogic.awayTeamBattingInd_battingTeam] != 0) {
         REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;
-    } else if (g_FieldingLogic.unkFlagMaybeInAir != 0) {
+    } else if (g_FieldingLogic.secondaryFielderActiveInd != 0) {
         REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;
     } else if (g_FieldingLogic.selectedFielder < 0) {
         REC(scene, 0)->flags &= ~UI_FLAG_VISIBLE;

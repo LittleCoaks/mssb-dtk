@@ -28,10 +28,14 @@ typedef struct SoundEmitterState {
     SND_EMITTER emitters[SOUND_EMITTER_COUNT];      // 0x0090, stride 0x50
     u8 emitterType[SOUND_EMITTER_COUNT];            // 0x1FD0, index into lbl_3_data_8974
     E(u8, BOOL) emitterActive[SOUND_EMITTER_COUNT]; // 0x2034
-    u8 unk_2098[0xA0];                              // 0x2098, unproven
-} SoundEmitterState; // size 0x2138
+    u8 unk_2098[0x68];                              // 0x2098, [100] per emitter + [0x64], [0x65]
+} SoundEmitterState; // size 0x2100 (0x2138 in the symbol map: mwld's common-size inflation)
 
-extern SoundEmitterState sndEmitter;
+// Common .bss owned by this TU (0x32B20-0x34C90), defined last-to-first since
+// MWCC emits common symbols in reverse order. mwld inflates the first one
+// (sndEmitter, real size 0x2100) to the whole group's size (0x2138).
+struct SoundCrowdEffects sound_crowd_EffectsStruct;
+SoundEmitterState sndEmitter;
 
 unsigned long sndRemoveListener(SND_LISTENER* li);
 unsigned long sndUpdateListener(SND_LISTENER* li, SND_FVECTOR* pos, SND_FVECTOR* dir,

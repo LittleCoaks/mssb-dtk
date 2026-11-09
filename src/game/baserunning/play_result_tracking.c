@@ -651,7 +651,7 @@ void initialize_runnersBeingTargetedWhileBatterCanBeForcedOut(void) {
         storedInningInfo.runnersTargetedWhileBatterForceable = RUNNERS_TARGETED_NONE;
     } else if (g_Runners[0].runnerStatus != RUNNER_STATUS_ON_FIELD || g_Runners[0].currentBase != 0) {
         storedInningInfo.runnersTargetedWhileBatterForceable = RUNNERS_TARGETED_NONE;
-    } else if (g_FieldingLogic.locationThrownTo == 1) {
+    } else if (g_FieldingLogic.locationThrownTo == COVER_LOCATION_FIRST) {
         storedInningInfo.runnersTargetedWhileBatterForceable = RUNNERS_TARGETED_NONE;
     } else {
         frames = howManyFramesTheRunnerIsOutOfReach(0, TRUE, &throwStrat, &runStrat) + 10;

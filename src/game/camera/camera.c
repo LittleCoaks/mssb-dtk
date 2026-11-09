@@ -60,6 +60,13 @@ static u32 lbl_3_bss_40;
 extern u8 g_UnkSimulation_31AC0[];
 extern u8* lbl_3_common_bss_1323C;
 
+// Common .bss owned by this TU (0xDE94-0x1323C), defined last-to-first since
+// MWCC emits common symbols in reverse order. mwld inflates the first one
+// (unkStructPtr, real size 0x240) to the whole group's size (0x2AF4).
+inMemCamera g_Camera;
+inMemCamera* g_pCamera;
+lbl_3_common_bss_DE94_s unkStructPtr;
+
 s16 lbl_3_data_A38[2] = { 1, 2 };
 u8 framesToSwitchCam[2] = { 25, 45 };
 

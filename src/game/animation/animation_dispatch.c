@@ -158,7 +158,7 @@ extern AnimThrowState g_UnkThrowing_31ACC[4];
 extern u8 bodyCheckFrameRelatedConstants[][4];
 extern u8 throwWindupReleaseFrames[][5];
 extern u8 lbl_3_data_7F0C[];
-extern f32 lbl_3_data_476C[];
+extern f32 fielderCollisionRadius_ByWeight[];
 extern s16 barrelCollisionHitboxes[54];
 
 // Narrower than File_0x8001b918.h: every call here truncates the frame offset to
@@ -1628,7 +1628,7 @@ void fielderAnimations(void) {
             }
         }
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL &&
-            (s8)fielder->_020D == (s8)g_Minigame.minigamePlayerSelectedOrder && g_Minigame.wallBallRotatePitchersInd == 0) {
+            (s8)fielder->minigamePlayerSlot == (s8)g_Minigame.minigamePlayerSelectedOrder && g_Minigame.wallBallRotatePitchersInd == 0) {
             continue;
         }
 
@@ -1701,7 +1701,7 @@ void latchCatchAnimation(int fielderIdx) {
     if (slot->_4C == 0) {
         slot->_4C = fielder->catchAnimation;
         slot->countdown = fielder->catchAnimationFramesCountDown;
-        if (fielder->catchAnimation == 1 || fielder->catchAnimation == 2) {
+        if (fielder->catchAnimation == CATCH_ANIMATION_STANDARD || fielder->catchAnimation == CATCH_ANIMATION_THROWN_BALL) {
             slot->_4E = fielder->catchVerticalZone;
         }
         if (slot->_4C != 0) {
@@ -1840,7 +1840,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
         if (idx == 0) {
             idx = MINIGAME_SELECTED_SLOT();
         } else {
-            idx = g_Minigame.playerSlots.characterIndex[fielder->_020D];
+            idx = g_Minigame.playerSlots.characterIndex[fielder->minigamePlayerSlot];
         }
     }
 
@@ -1856,7 +1856,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
 
     if (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_WALLBALL) {
         if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_PIRANHA_PANIC) {
-            u8 state = g_Minigame.pP_hitState[fielder->_020D];
+            u8 state = g_Minigame.pP_hitState[fielder->minigamePlayerSlot];
             if (state == 1) {
                 if (animId != 0x24) {
                     playCharacterSound(fielder->CharID, 10);
@@ -1873,7 +1873,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
                 goto done;
             }
         }
-        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH && g_Minigame.starDashStunType[fielder->_020D] == 2) {
+        if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_STAR_DASH && g_Minigame.starDashStunType[fielder->minigamePlayerSlot] == 2) {
             if (animId != 0x24 && animId != 0x25) {
                 playCharacterSound(fielder->CharID, 10);
                 AnimateCharacter(idx, 0x24, 0, 1, 0, 0, 0, -1);
@@ -2214,7 +2214,7 @@ BOOL animationsForFielding(int fielderIdx) {
             if (fielder->_0200 != 0) {
                 obj->_26F = 1;
                 if (g_d_GameSettings.minigamesEnabled) {
-                    fn_8004AE18(fielder->_020D);
+                    fn_8004AE18(fielder->minigamePlayerSlot);
                 } else {
                     fn_8004AE18(fielderIdx);
                 }
@@ -2233,7 +2233,7 @@ BOOL animationsForFielding(int fielderIdx) {
             } else {
                 if (slot->countdown == 1) {
                     u8 bobble = fielder->bobble;
-                    if ((bobble != 1 || fielder->catchAnimation != 1) && slot->_4C != 7 && slot->_4C != 8 &&
+                    if ((bobble != 1 || fielder->catchAnimation != CATCH_ANIMATION_STANDARD) && slot->_4C != 7 && slot->_4C != 8 &&
                         obj->animId != 0x29) {
                         if (bobble == 3 && slot->_4C != 3) {
                             AnimateCharacter(idx, 0x1C, 0, 1, 1, 0, slot->_40, 10);
@@ -2256,7 +2256,7 @@ BOOL animationsForFielding(int fielderIdx) {
                     }
                 }
                 if (slot->_4C == 7 || slot->_4C == 8) {
-                    if (fielder->runningCatchCountDown == 0 && fielder->catchAnimation == 0 && fielder->hitKnockbackCountdown == 0) {
+                    if (fielder->runningCatchCountDown == 0 && fielder->catchAnimation == CATCH_ANIMATION_NONE && fielder->hitKnockbackCountdown == 0) {
                         AnimateCharacter(idx, 0, 0, 1, 1, 0, slot->_40, -1);
                     } else {
                         return TRUE;
@@ -2309,7 +2309,7 @@ BOOL fielderThrowingAnimations(int fielderIdx) {
     }
 
     if (slot->_43 != 0) {
-        if (fielder->autoMovementFunctionIndex == 0x11) {
+        if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_RUN_OFF_FIELD) {
             slot->_43 = 0;
             updateFielderState(fielderIdx, 0);
             return FALSE;
@@ -2535,7 +2535,7 @@ void foulAnimationRelatedMaybe(int fielderIdx, AnimObject* obj) {
             nx *= scale;
             nz *= scale;
         } else {
-            scale = lbl_3_data_476C[fielder->Weight];
+            scale = fielderCollisionRadius_ByWeight[fielder->Weight];
             nx *= scale;
             nz *= scale;
         }

@@ -29,7 +29,26 @@ extern u8 g_UnkThrowing_31ACC[];
 extern u8 g_UnkAnimation_31EAC[];
 extern u8 lbl_3_common_bss_321A0[];
 extern u8 animRelated[];
-extern u8 g_ReplayCopies[];
+
+// Common .bss owned by this TU (0x13748-0x31ACC). MWCC emits common symbols in
+// reverse definition order, so they are defined last-to-first here. mwld
+// inflates the first one (g_ReplayCopies) to the size of the whole group
+// (0x114BC); its real size is 0x45F4 (the replay copy only reaches 0x45F0).
+UnkSimulationRelatedStruct g_UnkSimulation_31AC0;
+AIStruct g_AiLogic;
+GameControlsStruct g_GameLogic;
+inMemBallsStrikesOuts g_BallsStrikesOuts;
+GameScoresControlsStruct g_Scores;
+g_FieldingLogic_s g_FieldingLogic;
+g_RunningLogic_s g_RunningLogic;
+InMemBallType g_Ball;
+InMemPitcherType g_Pitcher;
+InMemBatterType g_Batter;
+InMemFielder g_Fielders[9];
+InMemRunnerType g_Runners[4];
+g_Stats_s g_Stats;
+ReplayFrame g_ReplayLogic[REPLAY_MAX_FRAMES];
+u8 g_ReplayCopies[0x45F4];
 
 static u32 lbl_3_bss_1748[6];
 

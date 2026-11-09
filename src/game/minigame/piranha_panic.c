@@ -230,7 +230,7 @@ void pP_LoadGame(void) {
             PP.fielderIndex[PP._18F4[p]] = p + 2;
             setFielderValues(i, PP.fielderIndex[PP._18F4[p]]);
             fielder = &g_Fielders[PP.fielderIndex[PP._18F4[p]]];
-            fielder->_020D = i;
+            fielder->minigamePlayerSlot = i;
             fielder->pos.x = pP_fielderStartPositions[p].x;
             fielder->pos.y = pP_fielderStartPositions[p].y;
             fielder->pos.z = pP_fielderStartPositions[p].z;

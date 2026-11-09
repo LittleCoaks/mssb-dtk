@@ -325,7 +325,7 @@ void sD_LoadGame(void) {
                 setFielderValues(p, g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[n]]);
                 fielder = &g_Fielders[g_Minigame.playerSlots.fielderIndex[g_Minigame.playerSlots.participantSlot[n]]];
                 g_Minigame.starDashStunType[p] = 0;
-                fielder->_020D = p;
+                fielder->minigamePlayerSlot = p;
                 fielder->pos.x = sD_fielderStartPositions[n].x;
                 fielder->pos.z = sD_fielderStartPositions[n].z;
                 fielder->pos.y = 0.0f;

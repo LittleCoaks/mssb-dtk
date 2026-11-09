@@ -286,9 +286,9 @@ typedef struct _InMemBallType {
     /*0x1BC0*/ u8 seeminglyAlways1_ballCollideWWallRelated; // seeminglyAlways1_ballCollideWallRelated;
     /*0x1BC1*/ u8 someCollisionVariable;
     /*0x1BC2*/ u8 thrownBallHasHitGround;
-    /*0x1BC3*/ u8 hitClassification1;
-    /*0x1BC4*/ u8 hitClassification2;
-    /*0x1BC5*/ u8 hitClassification3;
+    /*0x1BC3*/ E(u8, HIT_TRAJECTORY) hitClassification1;
+    /*0x1BC4*/ E(u8, HIT_PLAY_TYPE) hitClassification2;
+    /*0x1BC5*/ E(u8, HIT_SPEED_CLASS) hitClassification3;
     /*0x1BC6*/ u8 ballInitialHitDoneInd;
     /*0x1BC7*/ u8 howFoulTheBallWillBe;
     /*0x1BC8*/ u8 always0_fairFoulRelated;
@@ -2078,7 +2078,7 @@ extern u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(s8);
 
 extern u8 swingSoundFrame[2][4];
 
-extern struct {
+extern struct SoundCrowdEffects {
     /* 0x00 */ u32 _00;
     /* 0x04 */ u32 _04;
     /* 0x08 */ u32 _08;
@@ -2190,12 +2190,13 @@ typedef struct {
     /* 0x77 */ u8 aiMashCooldownFrames; // aiMashConsts[difficulty].cooldownFrames between press rolls
     /* 0x78 */ u8 AIControlFlag;
     /* 0x79 */ u8 warioStarRelated[3];
-    /* 0x7C */ VecXZ _7C[4];
-    /* 0x9C */ s16 _9C[4];
-    /* 0xA4 */ s16 _A4[4];
-    /* 0xAC */ s16 _AC[4];
-    /* 0xB4 */ u8 _B4[4];
-    /* 0xB8 */ u8 _B8[4];
+    /* Toy Field CPU fielder wander (toyFieldCpuWanderInput), per minigame slot. */
+    /* 0x7C */ VecXZ toyFieldCpuWanderTarget[4]; // spot pushed away from home (mode 0)
+    /* 0x9C */ s16 toyFieldCpuWanderFrames[4];   // frames in the current phase
+    /* 0xA4 */ s16 toyFieldCpuWanderDuration[4]; // frames to hold the random stick angle (mode 1)
+    /* 0xAC */ s16 toyFieldCpuWanderAngle[4];    // stick angle held in mode 1
+    /* 0xB4 */ u8 toyFieldCpuWanderMode[4];      // 0 walk to target, 1 random stick angles (speed/technique), 2 stand
+    /* 0xB8 */ u8 toyFieldCpuWanderPhase[4];     // 0 pick, 1 moving, 2 reached target
 } AIStruct; // size 0xBC
 
 extern AIStruct g_AiLogic;
@@ -2330,7 +2331,8 @@ typedef struct {
     /* 0x28A7 */ u8 _28A7;
     /* 0x28A8 */ u8 _28A8;
     /* 0x28A9 */ u8 _28A9;
-} inMemCamera;
+    /* 0x28AA */ u8 _28AA[0x28B0 - 0x28AA]; // not yet labelled; g_Camera's common .bss slot is 0x28B0
+} inMemCamera; // size: 0x28B0
 
 extern inMemCamera *g_pCamera;
 extern inMemCamera g_Camera;
@@ -2529,8 +2531,8 @@ extern StoredInningInfo storedInningInfo;
 
 typedef struct {
     /* 0x0000 */ struct CamScript* _0000;
-    /* 0x0004 */ u8 _0004[0x2AF4 - 0x4];   // not yet labelled
-} lbl_3_common_bss_DE94_s; // size: 0x2AF4
+    /* 0x0004 */ u8 _0004[0x240 - 0x4];   // not yet labelled
+} lbl_3_common_bss_DE94_s; // size: 0x240 (0x2AF4 in the symbol map: mwld's common-size inflation)
 
 extern lbl_3_common_bss_DE94_s unkStructPtr;
 

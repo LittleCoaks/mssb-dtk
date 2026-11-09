@@ -47,6 +47,13 @@ game/camera/camera.c:
 	.rodata     start:0x00000720 end:0x00000868
 	.data       start:0x00000A38 end:0x00001880
 	.bss        start:0x00000040 end:0x00000098
+	.bss        start:0x0000DE94 end:0x0001323C align:4 common
+
+common_bss_1323C.s:
+	.bss        start:0x0001323C end:0x000134C4 align:4 common
+
+common_bss_134C4.s:
+	.bss        start:0x000134C4 end:0x00013748 align:4 common
 
 game/match_setup/ai_tables.c:
 	.data       start:0x00001880 end:0x00001D28
@@ -181,9 +188,32 @@ game/replay/replay_inputs.c:
 	.rodata     start:0x00001330 end:0x000013B8
 	.data       start:0x00008110 end:0x00008148
 	.bss        start:0x00001748 end:0x00001760
+	.bss        start:0x00013748 end:0x00031ACC align:4 common
 
 game/replay/replay_state.c:
 	.text       start:0x0007CE90 end:0x0007D79C
+	.bss        start:0x00031ACC end:0x0003223C align:4 common
+
+common_bss_3223C.s:
+	.bss        start:0x0003223C end:0x00032718 align:4 common
+
+common_bss_32718.s:
+	.bss        start:0x00032718 end:0x00032724 align:4 common
+
+common_bss_32724.s:
+	.bss        start:0x00032724 end:0x00032848 align:4 common
+
+common_bss_32848.s:
+	.bss        start:0x00032848 end:0x00032888 align:4 common
+
+common_bss_32888.s:
+	.bss        start:0x00032888 end:0x00032A38 align:4 common
+
+common_bss_32A38.s:
+	.bss        start:0x00032A38 end:0x00032A94 align:4 common
+
+common_bss_32A94.s:
+	.bss        start:0x00032A94 end:0x00032B20 align:4 common
 
 game/baserunning/runner.c:
 	.text       start:0x0007D79C end:0x0008B094
@@ -194,6 +224,25 @@ game/sound/m_sound.c:
 	.rodata     start:0x00001508 end:0x00001610
 	.data       start:0x00008148 end:0x00008D88
 	.bss        start:0x00001760 end:0x000017F8
+	.bss        start:0x00032B20 end:0x00034C90 align:4 common
+
+common_bss_34C90.s:
+	.bss        start:0x00034C90 end:0x00034EF4 align:4 common
+
+common_bss_34EF4.s:
+	.bss        start:0x00034EF4 end:0x000350E4 align:4 common
+
+common_bss_350E4.s:
+	.bss        start:0x000350E4 end:0x00035154 align:4 common
+
+common_bss_35154.s:
+	.bss        start:0x00035154 end:0x000355D4 align:4 common
+
+common_bss_355D4.s:
+	.bss        start:0x000355D4 end:0x00037400 align:4 common
+
+common_bss_37400.s:
+	.bss        start:0x00037400 end:0x0003744E align:4 common
 
 game/match_setup/character_loading.c:
 	.text       start:0x00090754 end:0x000910F4

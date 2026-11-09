@@ -739,7 +739,7 @@ void running_checkForOuts(void) {
                         fielder = g_Ball.fielderWithBallIndexStored2;
                         g_Ball.fielderWhoGotLastOut = fielder;
                         if (fielder >= FIELDING_POSITION_LEFT_FIELD && runner->baseOfFailedBodyCheck == 0 && g_Ball.numberOfThrowsDuringPlay == 2 &&
-                            g_Ball.timeSinceBallPickedUp < specialFielderActionConstants._40[7]) {
+                            g_Ball.timeSinceBallPickedUp < specialFielderActionConstants.bigPlayMaxHoldFrames) {
                             g_UnkSound_32718.hudPopupCode = 4;
                             g_FieldingLogic.bigPlayFielderIndex = fielder;
                             if (!g_d_GameSettings.exhibitionMatchInd && scoutState.humanTeam == g_GameLogic.teamFielding) {
@@ -1877,7 +1877,7 @@ void runnerAI_updateUnusedBaseHoldFlag(int runnerIdx) {
         runner->unused_AIBaseHoldFlag = 0;
     }
 
-    if (g_FieldingLogic.locationThrownTo == 5 || g_FieldingLogic.locationThrownTo == 6 ||
+    if (g_FieldingLogic.locationThrownTo == COVER_LOCATION_MOUND_CUTOFF || g_FieldingLogic.locationThrownTo == COVER_LOCATION_CUTOFF ||
         g_FieldingLogic.locationThrownTo == runner->currentBase) {
         if (runner->percentTowardsNextBase >= 0.125f && runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS &&
             g_Ball.ballZoneAwayFromHome <= BALL_ZONE_OF_MID) {
@@ -1905,7 +1905,7 @@ int runnerAI_flyBallDecision(int runnerIdx, int dropChanceGrade) {
     int frames;
     int result;
 
-    if (g_Ball.pauseBallMovementWhenInPlant == 0 && g_Ball.hitClassification1 == 0) {
+    if (g_Ball.pauseBallMovementWhenInPlant == 0 && g_Ball.hitClassification1 == HIT_TRAJECTORY_GROUNDER) {
         result = -1;
         if (runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
             result = 1;
@@ -2450,7 +2450,7 @@ void running_liveBall_AI(void) {
         if (g_Ball.framesSinceHit < 0) {
             contact = -2;
         }
-        if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hitClassification1 == 0) {
+        if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hitClassification1 == HIT_TRAJECTORY_GROUNDER) {
             contact = BALL_RESULT_TYPE_LANDED;
         }
 
@@ -3942,7 +3942,7 @@ BOOL running_overrun1BIndicator(void) {
                   (g_Ball.ballZoneAwayFromHome <= BALL_ZONE_OF_SHALLOW && g_Ball.ballVelocity < 0.2f) ||
                   (g_Ball.fielderWBallIndex >= 0 && g_Ball.ballDistanceFromBase[1] < 25.0f) ||
                   (g_Ball.fielderWBallIndex == FIELDING_POSITION_RIGHT_FIELD && runner->fractionalBasesRan <= 0.75f) ||
-                  (g_FieldingLogic.locationThrownTo == 1 && g_Ball.ballState == BALL_STATE_THROWN &&
+                  (g_FieldingLogic.locationThrownTo == COVER_LOCATION_FIRST && g_Ball.ballState == BALL_STATE_THROWN &&
                    runner->framesToNextBase + 30 > g_Ball.framesUntilThrowReachesDest)))) {
                 goto isOverrun1st;
             }

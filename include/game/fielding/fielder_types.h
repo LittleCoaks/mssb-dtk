@@ -48,15 +48,15 @@ typedef struct {
     /*0x00ba*/ s16 tertiaryFielderStored;
     /*0x00bc*/ s16 someFielderIndex;
     /*0x00be*/ s16 cutoffFielderIndex;
-    /*0x00c0*/ s16 someFrameCounterFielderRelated;
+    /*0x00c0*/ s16 cutoffReassignCooldown; // 90 after demoteCutoffToInfieldSupport; no new cutoff while nonzero
     /*0x00c2*/ s16 interceptThrowFielder;
-    /*0x00c4*/ s16 locationThrownTo;
-    /*0x00c6*/ s16 humanSelectedPlaceToThrow;
+    /*0x00c4*/ E(s16, COVER_LOCATION) locationThrownTo;          // COVER_LOCATION, or 8: hold the ball (throwWaitingInd)
+    /*0x00c6*/ E(s16, COVER_LOCATION) humanSelectedPlaceToThrow; // as locationThrownTo
     /*0x00c8*/ s16 someHumanThrowFrameCounter;
-    /*0x00ca*/ s16 locThrownTo2;
+    /*0x00ca*/ E(s16, COVER_LOCATION) locThrownTo2;
     /*0x00cc*/ s16 somethingForTryingTagOutTargetBase;
     /*0x00ce*/ s16 xcc_Stored_0;
-    /*0x00d0*/ s16 fielderAssignedLocationIndex[5]; // fielder covering each location: bases 0..3, mound (4)
+    /*0x00d0*/ s16 fielderAssignedLocationIndex[5]; // fielder covering each location: bases (COVER_LOCATION_HOME..THIRD), mound (COVER_LOCATION_MOUND, held by the COVER_LOCATION_MOUND_CUTOFF fielder)
     /*0x00da*/ s16 fielderSelectionChangeCooldown; // frames before the human's fielder auto-switches again (set to 20/45)
     /*0x00dc*/ s16 tagChaseFromBase;              // base the ball holder chases a runner from (-1 if none)
     /*0x00de*/ s16 runnerChasingAfter;
@@ -73,7 +73,7 @@ typedef struct {
     /*0x00f4*/ s16 someRunnerNum;
     /*0x00f6*/ s16 bodyCheckStageCountdown;
     /*0x00f8*/ u8 fielderAutoMovementCode[9];
-    /*0x0101*/ u8 baseCoveredInd[4];
+    /*0x0101*/ u8 baseCoveredInd[4]; // by COVER_LOCATION_HOME..THIRD
     /*0x0105*/ u8 playerAtMoundCutoffLocation;
     /*0x0106*/ u8 throwSpeedType;
     /*0x0107*/ E(u8, PICKOFF_STEAL_CODE) liveBallReason;
@@ -126,7 +126,7 @@ typedef struct {
     /*0x0136*/ u8 _0136;
     /*0x0137*/ u8 always0_0137;
     /*0x0138*/ u8 _0138;
-    /*0x0139*/ u8 unkFlagMaybeInAir;
+    /*0x0139*/ u8 secondaryFielderActiveInd; // set when the initial selection also gave a secondary/tertiary fielder
     /*0x013a*/ E(u8, BOOL) infielderSelectedOnPopFlyInd;
     /*0x013b*/ u8 knockoutFinished;
     /*0x013c*/ u8 throwInterceptionTriggered;
@@ -203,8 +203,8 @@ typedef struct _InMemFielder {
     /*0x00C*/ f32 actionYOffset;
     /*0x010*/ f32 storedPosY;
     /*0x014*/ VecXYZ IntendedLocation;
-    /*0x020*/ f32 maybeTargetPosX;
-    /*0x024*/ f32 maybeTargetPosZ;
+    /*0x020*/ f32 ballTrackingTargetX; // last ball-tracking target; 10000 = none (resetFielderSelection)
+    /*0x024*/ f32 ballTrackingTargetZ;
     /*0x028*/ f32 xPos5mAwayFromBallsCollisionSpotOnWall;
     /*0x02C*/ f32 zPos5mAwayFromBallsCollisionSpotOnWall;
     /*0x030*/ f32 velocityX;
@@ -275,7 +275,7 @@ typedef struct _InMemFielder {
     /*0x186*/ s16 framesToGetToBallLandingSpot;
     /*0x188*/ s16 _0188;
     /*0x18A*/ s16 aiDistToStandFromWallCollision;
-    /*0x18C*/ s16 locationResponsibleForCovering;
+    /*0x18C*/ E(s16, COVER_LOCATION) locationResponsibleForCovering;
     /*0x18E*/ s16 baseCuttoffIsTargeting;
     /*0x190*/ s16 presetLocationCategory;
     /*0x192*/ s16 throwWindupEstimate;
@@ -286,7 +286,7 @@ typedef struct _InMemFielder {
     /*0x19C*/ s16 fielderReadiness;
     /*0x19E*/ s16 movementAngle;
     /*0x1A0*/ s16 framesSinceStartedMoving;
-    /*0x1A2*/ s16 someCountdownAndCountUpRelatedToStandingStill;
+    /*0x1A2*/ s16 movingFramesCounter; // counts up while moving; when stopped, capped at 45 and counts down
     /*0x1A4*/ s16 unknown_writeOnly_always0;
     /*0x1A6*/ s16 unused_rngValueRelatedToDugoutLocation;
     /*0x1A8*/ s16 someCountDown;
@@ -320,16 +320,16 @@ typedef struct _InMemFielder {
     /*0x1D2*/ u8 lockoutDuration;
     /*0x1D3*/ E(u8, AUTO_MOVEMENT_FUNCTION_INDEX) autoMovementFunctionIndex;
     /*0x1D4*/ u8 presetLocationToStandAt;
-    /*0x1D5*/ u8 unknown_writeOnly;
+    /*0x1D5*/ u8 writeOnly_stopReason; // never read: 0 on (re)start of movement, 2/3/4 when sent to AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS (2 outfielder / 3 infielder losing the ball, 4 displaced)
     /*0x1D6*/ u8 fielderVeloAdjustmentCode;
-    /*0x1D7*/ u8 isResponsibleForCoveringALocation;
+    /*0x1D7*/ E(u8, COVER_ROLE) coverRole;
     /*0x1D8*/ u8 pitcherHeadingToCover1stOr3rd;
     /*0x1D9*/ u8 goingToAutoLocationInd;
     /*0x1DA*/ u8 cantCatchFlyBallInd;
     /*0x1DB*/ u8 nonCatchFlyBallStratInd;
-    /*0x1DC*/ u8 maybeMovementState;
-    /*0x1DD*/ u8 catchStrategy;
-    /*0x1DE*/ u8 inBasePath;
+    /*0x1DC*/ E(u8, BALL_TRACKING_TARGET) ballTrackingTarget;
+    /*0x1DD*/ E(u8, CATCH_STRATEGY) catchStrategy;
+    /*0x1DE*/ E(u8, BASE_PATH) inBasePath;
     /*0x1DF*/ u8 fielderMadeThrow;
     /*0x1E0*/ u8 always0_;
     /*0x1E1*/ u8 _01E1;
@@ -355,7 +355,7 @@ typedef struct _InMemFielder {
     /*0x1F5*/ s8 baseCurrentlyOn;
     /*0x1F6*/ u8 baseOnLastFrame;
     /*0x1F7*/ s8 baseOn2;
-    /*0x1F8*/ u8 outFieldZoneCode;
+    /*0x1F8*/ E(u8, FIELDER_ZONE) outFieldZoneCode;
     /*0x1F9*/ u8 _01F9;
     /*0x1FA*/ u8 atDugoutAtEndOfInning;
     /*0x1FB*/ u8 _01FB;
@@ -371,12 +371,12 @@ typedef struct _InMemFielder {
     /*0x205*/ u8 clamberStatus;
     /*0x206*/ u8 wjRelated;
     /*0x207*/ u8 wallSplatStatus;
-    /*0x208*/ u8 _0208;
+    /*0x208*/ E(u8, MINIGAME_CHASE_TARGET) minigameChaseTarget;
     /*0x209*/ u8 _0209;
     /*0x20A*/ u8 _020A;
     /*0x20B*/ u8 _020B;
     /*0x20C*/ u8 _020B_stored;
-    /*0x20D*/ u8 _020D;
+    /*0x20D*/ u8 minigamePlayerSlot; // index into the g_Minigame per-player arrays
     /*0x20E*/ u8 _020E;
     /*0x20F*/ u8 onFire;
     /*0x210*/ u8 knockoutStatus;
@@ -402,7 +402,7 @@ typedef struct _InMemFielder {
     /*0x24C*/ s16 catchAnimationFramesCountDown;
     /*0x24E*/ s16 catchAnimationFramesCountUp;
     /*0x250*/ s16 always0;
-    /*0x252*/ u8 catchAnimation;
+    /*0x252*/ E(u8, CATCH_ANIMATION) catchAnimation;
     /*0x253*/ u8 catchVerticalZone;
     /*0x254*/ u8 catchCentreRightLeftOfBody;
     /*0x255*/ u8 catchFastBattedBallInd;
@@ -435,15 +435,176 @@ typedef enum _DASH_STATE {
     /* 2 */ DASH_STATE_SPRINTING = 2,
 } DASH_STATE;
 
+/* InMemFielder.locationResponsibleForCovering, g_FieldingLogic.locationThrownTo and the index into
+ * fielderAssignedLocationIndex[] / baseCoveredInd[] / base_MoundCoordinates[] / distanceToBases[].
+ * 0..3 are covered with COVER_ROLE_BASE (autoMovement1_coverBase); 5..15 with COVER_ROLE_SUPPORT
+ * (autoMovement14_infieldSupport, which moves the fielder to the spot named here). */
+typedef enum _COVER_LOCATION {
+    /* -1 */ COVER_LOCATION_NONE = -1,
+    /*  0 */ COVER_LOCATION_HOME,
+    /*  1 */ COVER_LOCATION_FIRST,
+    /*  2 */ COVER_LOCATION_SECOND,
+    /*  3 */ COVER_LOCATION_THIRD,
+    /*  4 */ COVER_LOCATION_MOUND,               // slot in fielderAssignedLocationIndex / base_MoundCoordinates; never a fielder's location
+    /*  5 */ COVER_LOCATION_MOUND_CUTOFF,        // beside the mound (playerAtMoundCutoffLocation); owns fielderAssignedLocationIndex[MOUND]
+    /*  6 */ COVER_LOCATION_CUTOFF,              // cutoff man (-> AUTO_MOVEMENT_CUTOFF); L-trigger throw target
+    /*  7 */ COVER_LOCATION_PRESET_POSITION,     // back to presetFielderLocations[fielder + 2]
+    /*  8 */ COVER_LOCATION_NEAR_HOME_1B_SIDE,   // extendedLocationCoordinates[0] (6, 0); never set
+    /*  9 */ COVER_LOCATION_NEAR_HOME_3B_SIDE,   // extendedLocationCoordinates[1] (-6, 0)
+    /* 10 */ COVER_LOCATION_NEAR_FIRST,          // extendedLocationCoordinates[2] (20, 27)
+    /* 11 */ COVER_LOCATION_NEAR_SECOND_1B_SIDE, // extendedLocationCoordinates[3] (8, 40)
+    /* 12 */ COVER_LOCATION_NEAR_SECOND_3B_SIDE, // extendedLocationCoordinates[4] (-8, 40)
+    /* 13 */ COVER_LOCATION_NEAR_THIRD,          // extendedLocationCoordinates[5] (-20, 27)
+    /* 14 */ COVER_LOCATION_CLEAR_BASEPATH,      // head for the mound until out of the base path (inBasePath == 0)
+    /* 15 */ COVER_LOCATION_PITCHER_BACKUP,      // pitcher's spot off the mound picked from the hit angle
+} COVER_LOCATION;
+
+/* InMemFielder.coverRole: what kind of location locationResponsibleForCovering holds. */
+typedef enum _COVER_ROLE {
+    /* 0 */ COVER_ROLE_NONE,
+    /* 1 */ COVER_ROLE_BASE,    // covering a base (COVER_LOCATION_HOME..THIRD), AUTO_MOVEMENT_COVER_BASE
+    /* 2 */ COVER_ROLE_SUPPORT, // a support spot (COVER_LOCATION_MOUND_CUTOFF and up), AUTO_MOVEMENT_INFIELD_SUPPORT
+} COVER_ROLE;
+
+/* InMemFielder.ballTrackingTarget: where fielderTrackingBall_updateVariables steers the fielder. */
+typedef enum _BALL_TRACKING_TARGET {
+    /* 0 */ BALL_TRACKING_TARGET_LANDING_SPOT,         // ball's future position at framesRemainingToGetToLandingSpot
+    /* 1 */ BALL_TRACKING_TARGET_WALL_HIT_SPOT,        // where the ball will hit the wall (ballWillHitBallPos)
+    /* 2 */ BALL_TRACKING_TARGET_WALL_REBOUND,         // 5 m off the wall spot, adjusted for the bounce (updateFielderPosition)
+    /* 3 */ BALL_TRACKING_TARGET_ROLL_CHECK_INTERCEPT, // where the ball rolls to; fielderTrackingBall_checkSwitchToIntercept
+    /* 4 */ BALL_TRACKING_TARGET_INTERCEPT,            // setIntendedLocToInterceptBall; fielderTrackingBall_goToFutureBallPos
+    /* 5 */ BALL_TRACKING_TARGET_BALL_POS,             // ball (nearly) stopped; fielderTrackingBall_goToContactBallPos
+} BALL_TRACKING_TARGET;
+
+/* InMemFielder.minigameChaseTarget: where updateFielderPositionBasedOnBallState sends a minigame fielder. */
+typedef enum _MINIGAME_CHASE_TARGET {
+    /* 0 */ MINIGAME_CHASE_TARGET_NONE,
+    /* 1 */ MINIGAME_CHASE_TARGET_LANDING_SPOT,
+    /* 2 */ MINIGAME_CHASE_TARGET_BALL,
+    /* 3 */ MINIGAME_CHASE_TARGET_BEST_FUTURE_FRAME, // determineBestFrameForFielder (nonCatchFlyBallStratInd)
+    /* 4 */ MINIGAME_CHASE_TARGET_COIN,              // Toy Field: nearest coin
+} MINIGAME_CHASE_TARGET;
+
+/* InMemFielder.catchStrategy, from setFielderCatchStrategy_calcFramesToGetToDropSpot and its
+ * catcher / knockout variants: how the fielder can get to the batted ball. */
+typedef enum _CATCH_STRATEGY {
+    /* 0 */ CATCH_STRATEGY_NONE,
+    /* 1 */ CATCH_STRATEGY_IN_REACH,      // arrives while the ball is below the top of the hitbox (hitbox[3])
+    /* 2 */ CATCH_STRATEGY_ABOVE_REACH,   // only arrives while the ball is still above the hitbox
+    /* 3 */ CATCH_STRATEGY_AFTER_LANDING, // cannot catch it in the air; goes to where it can be picked up
+    /* 4 */ CATCH_STRATEGY_TOO_FAR,       // as AFTER_LANDING but not close enough (or an infielder leaving it)
+} CATCH_STRATEGY;
+
+/* InMemFielder.catchAnimation, set through initCatchAnimationState by the catch functions. */
+typedef enum _CATCH_ANIMATION {
+    /* 0 */ CATCH_ANIMATION_NONE,
+    /* 1 */ CATCH_ANIMATION_STANDARD,            // checkIfCatchOccurs
+    /* 2 */ CATCH_ANIMATION_THROWN_BALL,         // catchThrownBallFun
+    /* 3 */ CATCH_ANIMATION_DIVE,                // divingCatch (dive / slide / lunge)
+    /* 4 */ CATCH_ANIMATION_WALL_JUMP,           // wallJumpInitialization
+    /* 5 */ CATCH_ANIMATION_CLAMBER,             // clamberCheckCatch
+    /* 6 */ CATCH_ANIMATION_JUMP,                // attemptJumpingCatch
+    /* 7 */ CATCH_ANIMATION_RUNNING,             // checkIfRunningCatchOccurs, divingCatch's running catch
+    /* 8 */ CATCH_ANIMATION_THROW_TO_EMPTY_BASE, // ballThrownToEmptyBaseCatchAttempt
+} CATCH_ANIMATION;
+
+/* InMemFielder.inBasePath: the base path the fielder stands in (setInBasePathFromPosition). */
+typedef enum _BASE_PATH {
+    /* 0 */ BASE_PATH_NONE,
+    /* 1 */ BASE_PATH_HOME_TO_FIRST,
+    /* 2 */ BASE_PATH_FIRST_TO_SECOND,
+    /* 3 */ BASE_PATH_SECOND_TO_THIRD,
+    /* 4 */ BASE_PATH_THIRD_TO_HOME,
+} BASE_PATH;
+
+/* InMemFielder.outFieldZoneCode, from getOutfieldZoneCode(pos). */
+typedef enum _FIELDER_ZONE {
+    /* 0 */ FIELDER_ZONE_INFIELD_DIAMOND,  // |x| + z < 40 (inside the diamond reaching just past second)
+    /* 1 */ FIELDER_ZONE_INFIELD_EDGE,     // < 38.8 from home or < 28 from the mound
+    /* 2 */ FIELDER_ZONE_SHALLOW_OUTFIELD, // < 37 from the mound
+    /* 3 */ FIELDER_ZONE_MID_OUTFIELD,     // < 43 from the mound
+    /* 4 */ FIELDER_ZONE_DEEP_OUTFIELD,
+} FIELDER_ZONE;
+
+/* Index into autoMovementFunctions[] (fielder.c); comments name the dispatched function. */
 typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {
-    /*  2 */ AUTO_MOVEMENT_TRACK_HIT_BALL_PHASE2_AI_TEAM = 2,
-    /* 15 */ AUTO_MOVEMENT_GOING_TO_BALL = 15,
+    /*  0 */ AUTO_MOVEMENT_STAY_STILL = 0, // autoMovement0_stayStill_exceptForSpecialActions
+    /*  1 */ AUTO_MOVEMENT_COVER_BASE, // autoMovement1_coverBase
+    /*  2 */ AUTO_MOVEMENT_GO_TO_BALL_PHASE2_AI, // autoMovement2_18_goTowardsBall_phase2 (keeps current code; AI fielders enter it from 3/4)
+    /*  3 */ AUTO_MOVEMENT_GO_TO_HIT_BALL, // autoMovement3_goTowardsHitBall_AITeam (either team; then -> 2 for AI, 16 for human)
+    /*  4 */ AUTO_MOVEMENT_GO_TO_HIT_BALL_PITCHER, // autoMovement4_AI_goTowardsHitBall (only set on the pitcher; -> 9 if the target is > 20 out)
+    /*  5 */ AUTO_MOVEMENT_CUTOFF_ADJUST, // autoMovement5 (assigned cutoff re-aims at the targeted base during a play)
+    /*  6 */ AUTO_MOVEMENT_OUTFIELDER_NO_CATCH_PHASE2, // autoMovement6_outfielderNoCatch_Phase2
+    /*  7 */ AUTO_MOVEMENT_OUTFIELDER_NO_CATCH_PHASE1, // autoMovement7_8_outfiederNoCatch_Phase1 (presetLocationToStandAt != 1)
+    /*  8 */ AUTO_MOVEMENT_OUTFIELDER_NO_CATCH_PHASE1_PRESET_1, // autoMovement7_8_outfiederNoCatch_Phase1 (presetLocationToStandAt == 1)
+    /*  9 */ AUTO_MOVEMENT_OFF_BASE_REASSIGN, // autoMovement9_OffBase_coverHome (re-picks a role; covers home as fallback)
+    /* 10 */ AUTO_MOVEMENT_HAS_BALL, // autoMovement10_HasBall
+    /* 11 */ AUTO_MOVEMENT_CUTOFF, // autoMovement11_cutoff_setInitialLocation
+    /* 12 */ AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS, // autoMovement12_stopBetweenInstructions (stops, then -> 9)
+    /* 13 */ AUTO_MOVEMENT_BACK_UP_BALL, // autoMovement13_GoTowardsBallAsBackUp
+    /* 14 */ AUTO_MOVEMENT_INFIELD_SUPPORT, // autoMovement14_infieldSupport
+    /* 15 */ AUTO_MOVEMENT_GO_TO_BALL_HUMAN, // autoMovement15_selectedFielderOnLooseBall
+    /* 16 */ AUTO_MOVEMENT_TRACK_BALL, // autoMovement16_trackFoulBall (foul balls, and human-team fielders on fair balls)
+    /* 17 */ AUTO_MOVEMENT_RUN_OFF_FIELD, // autoMovement17_runningOffField
+    /* 18 */ AUTO_MOVEMENT_GO_TO_BALL_AI, // autoMovement2_18_goTowardsBall_phase2 (AI counterpart of 15; sets code 1)
+    /* 19 */ AUTO_MOVEMENT_STAY_STILL_ON_FOUL, // autoMovement19_foulBall (AI fielder on a foul: just stands still)
+    /* 20 */ AUTO_MOVEMENT_PITCHER_LINE_DRIVE, // autoMovement20_pitcherLinedriveRelated (pitcher waits until ready, then -> 18 or 0)
+    /* 21 */ AUTO_MOVEMENT_INITIAL_SELECTED_FIELDER, // autoMovement21_23_humanControlInitialSelectedFielders (selectedFielder)
+    /* 22 */ AUTO_MOVEMENT_INITIAL_SECONDARY_FIELDER, // autoMovement21_23_humanControlInitialSelectedFielders (secondaryFielder)
+    /* 23 */ AUTO_MOVEMENT_INITIAL_TERTIARY_FIELDER, // autoMovement21_23_humanControlInitialSelectedFielders (tertiaryFielder)
+    /* 24 */ AUTO_MOVEMENT_GO_TO_HIT_BALL_HUMAN, // autoMovement24_goTowardsHitBall_humanTeam
+    /* 25 */ AUTO_MOVEMENT_READY_TO_INTERCEPT_THROW, // autoMovement25_readyToInterceptThrownBall
+    /* 26 */ AUTO_MOVEMENT_MINIGAME_WAIT_FOR_HIT, // autoMovement26_minigameRelated1 (waits for hit + lockout, then -> 27)
+    /* 27 */ AUTO_MOVEMENT_MINIGAME_CHASE_BALL, // autoMovement27_minigameDashRelated2 (runs to ball until a panel is hit, then -> 28)
+    /* 28 */ AUTO_MOVEMENT_MINIGAME_AFTER_PANEL_HIT, // autoMovement28_minigameDashRelated3 (keeps moving to intended location)
+    AUTO_MOVEMENT_COUNT
 } AUTO_MOVEMENT_FUNCTION_INDEX;
 
+/* Defined as s16[44] in data_only/gameplay_tables.c; the trailing comments give those values.
+ * _0A and _38 are never read. */
 typedef struct _SpecialFieldingActionConstants {
-    /*0x00*/ s16 _00[0x1D];
+    /*0x00*/ s16 ballHolderMoveDelayFrames; // 6
+    /*0x02*/ s16 wallJumpSearchMaxFrame; // 50
+    /*0x04*/ s16 wallJumpSearchMinFrame; // 25
+    /*0x06*/ s16 wallJumpFramesToWallTop; // 15
+    /*0x08*/ s16 wallJumpLandCountdown; // 20
+    /*0x0A*/ s16 _0A; // 40
+    /*0x0C*/ s16 clamberJumpOffDelay; // 30
+    /*0x0E*/ s16 wallSplatStage1Frames; // 12
+    /*0x10*/ s16 wallSplatStage2Frames; // 30
+    /*0x12*/ s16 wallSplatStage3Frames; // 60
+    /*0x14*/ s16 wallSplatStage4Frames; // 60
+    /*0x16*/ s16 standardCatchSearchFrames; // 12
+    /*0x18*/ s16 thrownCatchMaxFrame; // 6
+    /*0x1A*/ s16 thrownCatchMaxFrameOffBase; // 2
+    /*0x1C*/ s16 diveMaxFrame; // 30
+    /*0x1E*/ s16 diveMinFrame; // 6
+    /*0x20*/ s16 runningCatchMaxFrame; // 12
+    /*0x22*/ s16 runningCatchMinFrame; // 2
+    /*0x24*/ s16 runningCatchMaxAngleDiff; // 512
+    /*0x26*/ s16 emptyBaseCatchMaxFrames; // 6
+    /*0x28*/ s16 emptyBaseCatchMinFrames; // 2
+    /*0x2A*/ s16 runningCatchCountdown; // 20
+    /*0x2C*/ s16 thrownCatchSearchMaxFrame; // 15
+    /*0x2E*/ s16 thrownCatchSearchMinFrame; // 2
+    /*0x30*/ s16 suctionCatchStartFrames; // 5
+    /*0x32*/ s16 autoDashDistanceJogFrames; // 30
+    /*0x34*/ s16 suctionCatchDiveStartFrames; // 10
+    /*0x36*/ s16 wallBounceMinAngleDiff; // 64
+    /*0x38*/ s16 _38; // 96
     /*0x3A*/ s16 fireballCountdownArray[3];
-    /*0x40*/ s16 _40[0x0C];
+    /*0x40*/ s16 onFireSpinPerFrame; // 64
+    /*0x42*/ s16 knockOutStage1Frames; // 60
+    /*0x44*/ s16 knockOutStage2Frames; // 120
+    /*0x46*/ s16 antiChemistryThrowAngleMin; // 64
+    /*0x48*/ s16 antiChemistryThrowAngleMax; // 96
+    /*0x4A*/ s16 suctionCatchDiveTotalFrames; // 45
+    /*0x4C*/ s16 bigPlayMaxSpareFrames; // 75
+    /*0x4E*/ s16 bigPlayMaxHoldFrames; // 60
+    /*0x50*/ s16 smashThrowHoldFrames; // 3
+    /*0x52*/ s16 inAirSelectionDelayFrames; // 36
+    /*0x54*/ s16 selectionDelayFrames; // 12
+    /*0x56*/ s16 cutoffFrameCycleReset; // 20
 } SpecialFieldingActionConstants; // size: 0x58
 
 extern SpecialFieldingActionConstants specialFielderActionConstants;
