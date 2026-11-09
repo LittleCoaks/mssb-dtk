@@ -368,35 +368,7 @@ void fn_2_3624(u8 port) {
                     lbl_2_bss_F468[0x36] = 0x1e;
                     menuControlVariables->currentState = 3;
                 } else {
-                lbl_2_bss_100B8[0x2e] = 1;
-                gameSetUpStep[0x59] = 1;
-                CSS_CURSOR(gameSetUpStep[0x59]) = 10;
-                ((u8 *)&g_MatchInfo)[0xe] = 1;
-
-                if (Static_Stats_Tables.charOnCharacterGridSelected[*(u32 *)(menuCursors + 0x24)] != 0) {
-                    s32 j;
-                    for (j = 0; j < 0x20; j++) {
-                        if (Static_Stats_Tables.charOnCharacterGridSelected[characterIconsOnCSS[j]] == 0) {
-                            *(u32 *)(menuCursors + 0x24) = characterIconsOnCSS[j];
-                            break;
-                        }
-                    }
-                }
-
-                switch (Static_Stats_Tables.playerNumberByPort[1]) {
-                case 0:
-                    cssLoadingRelated_1(1, *(u32 *)(menuCursors + 0x24), -1, -1, -1, 0);
-                    break;
-                case 1:
-                    cssLoadingRelated_1(1, -1, *(u32 *)(menuCursors + 0x24), -1, -1, 0);
-                    break;
-                case 2:
-                    cssLoadingRelated_1(1, -1, -1, *(u32 *)(menuCursors + 0x24), -1, 0);
-                    break;
-                case 3:
-                    cssLoadingRelated_1(1, -1, -1, -1, *(u32 *)(menuCursors + 0x24), 0);
-                    break;
-                }
+                    fn_2_52CC();
                 }
             } else {
                 lbl_2_bss_100B8[0x2e + slot] = 1;
@@ -507,25 +479,7 @@ void fn_2_3624(u8 port) {
                 cursorPositions.roster.rosterCharID[slot][(u8)idx] = variantPairs[row][0];
             }
         PAIR_DONE:
-            if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-                charID = cursorPositions.roster.rosterCharID[slot][(u8)idx];
-                Static_Stats_Tables.charOnCharacterGridSelected[charID] = 1;
-                if (g_d_GameSettings.p2_CPU_match_code == 0 && slot != 0) {
-                    if (Static_Stats_Tables.playerNumberByPort[0] == 0) {
-                        addOrRemoveCharacterToTeam(1, charID, 1);
-                    } else {
-                        addOrRemoveCharacterToTeam(0, charID, 1);
-                    }
-                } else {
-                    addOrRemoveCharacterToTeam(Static_Stats_Tables.playerNumberByPort[slot], charID, 1);
-                }
-                addRemoveCharVariantRelated(slot, (u8)charID, 1);
-            } else {
-                charID = cursorPositions.roster.rosterCharID[0][(u8)idx];
-                addOrRemoveCharacterToTeam(0, charID, 1);
-                Static_Stats_Tables.charOnCharacterGridSelected[charID] = 1;
-                addRemoveCharVariantRelated(slot, (u8)charID, 1);
-            }
+            fn_2_C698(idx, slot);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else {
             sndFXStartEx(0x1ba, lbl_800EFBA4[3], 0x3f, 0);
@@ -798,7 +752,7 @@ void fn_2_52CC(void) {
 
     lbl_2_bss_100B8[0x2E] = 1;
     gameSetUpStep[0x59] = 1;
-    ((s32 *)lbl_2_bss_F468)[1] = 0xA;
+    CSS_CURSOR(gameSetUpStep[0x59]) = 10;
     ((u8 *)&g_MatchInfo)[0xE] = 1;
 
     if (((u8 *)&Static_Stats_Tables)[0x4757 + *(s32 *)&menuCursors[0x24]] != 0) {
