@@ -309,8 +309,7 @@ void fn_2_71A70(Rep0B08Slot *obj) {
     if (obj->unk38 > 0.0f) {
         Rep0B08Slot *slot = REP_SLOT(idx);
         obj->unk34 = obj->unk4C;
-        slot->state = 3;
-        slot->mode = 0;
+        rep0B08TransitionSlot(idx, 3);
     }
 }
 
@@ -635,8 +634,7 @@ void fn_2_705C0(Rep0B08Slot *obj) {
             if (i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
                 obj->unkC4 = 2;
                 obj->unkCB = (u8)i;
-                sIdx->state = 3;
-                sIdx->mode = 0;
+                rep0B08TransitionSlot(idx, 3);
                 return;
             }
         }
@@ -756,14 +754,12 @@ void fn_2_70110(Rep0B08Slot *obj) {
                 if (i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
                     obj->unkC4 = 2;
                     obj->unkCB = (u8)i;
-                    sidx->state = 3;
-                    sidx->mode = 0;
+                    rep0B08TransitionSlot(idx, 3);
                     return;
                 }
                 if (i >= 2 && i <= 6) {
                     obj->unkCB = (u8)i;
-                    sidx->state = 4;
-                    sidx->mode = 0;
+                    rep0B08TransitionSlot(idx, 4);
                     return;
                 }
             }
@@ -818,14 +814,12 @@ void fn_2_6FE6C(Rep0B08Slot *obj) {
             if (i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
                 obj->unkC4 = 2;
                 obj->unkCB = (u8)i;
-                sidx->state = 3;
-                sidx->mode = 0;
+                rep0B08TransitionSlot(idx, 3);
                 return;
             }
             if (i >= 2 && i <= 6) {
                 obj->unkCB = (u8)i;
-                sidx->state = 4;
-                sidx->mode = 0;
+                rep0B08TransitionSlot(idx, 4);
                 return;
             }
         }
@@ -1758,8 +1752,7 @@ void fn_2_6C2E8(Rep0B08Slot *obj) {
 // .text:0x0006C2C4 size:0x24 mapped:0x806AB358
 void fn_2_6C2C4(void) {
     lbl_2_bss_1A8248[0x442F] = 0;
-    MENU->slots[1].state = 0;
-    MENU->slots[1].mode = 0;
+    rep0B08TransitionSlot(1, 0);
 }
 
 // .text:0x0006C28C size:0x38 mapped:0x806AB320
@@ -2995,10 +2988,12 @@ s32 fn_2_684D0(s32 idx) {
 
 // .text:0x000683EC size:0xE4 mapped:0x806A7480
 void fn_2_683EC(void) {
-    Rep0B08Slot *s1 = REP_SLOT(1);
-    s1->pos.x = MENU->slots[0].pos.x;
-    s1->pos.y = MENU->slots[0].pos.y;
-    s1->pos.z = MENU->slots[0].pos.z;
+    Rep0B08Slot *s1;
+    Rep0B08Menu *menu = MENU;
+    menu->slots[1].pos.x = menu->slots[0].pos.x;
+    menu->slots[1].pos.y = menu->slots[0].pos.y;
+    menu->slots[1].pos.z = menu->slots[0].pos.z;
+    s1 = REP_SLOT(1);
     memcpy(s1, lbl_2_data_2EA4 + MENU->slots[0].unkB2 * 0xC, 12);
     s1->unk0C = 0.0f;
     s1->unk10 = 0.0f;
@@ -3016,8 +3011,7 @@ void fn_2_683EC(void) {
         s1->unk30 = v;
     }
     MENU->slots[1].unkB2 = MENU->slots[0].unkB2;
-    MENU->slots[1].state = 6;
-    MENU->slots[1].mode = 0;
+    rep0B08TransitionSlot(1, 6);
     lbl_2_bss_1A8248[0x442F] = 1;
 }
 
@@ -3041,7 +3035,6 @@ void fn_2_6832C(void) {
         slot->unk30 = v;
     }
     MENU->slots[1].unkB2 = 5;
-    MENU->slots[1].state = 6;
-    MENU->slots[1].mode = 0;
+    rep0B08TransitionSlot(1, 6);
     lbl_2_bss_1A8248[0x442F] = 1;
 }
