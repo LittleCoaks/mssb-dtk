@@ -864,7 +864,7 @@ config.libs = [
             Object(NonMatching, "game/stadium/stadium_draw.c"),
             Object(NonMatching, "game/ball/ball_physics.c"),
             Object(Matching, "game/batting/batter.c"),
-            Object(NonMatching, "game/camera/camera.c"),
+            Object(NonMatching, "game/camera/camera.c", extra_cflags=["-common on"]),
             Object(Matching, "game/match_setup/ai_tables.c"),
             Object(Matching, "game/pitching/pitcher_stamina.c"),
             Object(Matching, "game/match_setup/ai_defaults.c"),

@@ -2330,7 +2330,8 @@ typedef struct {
     /* 0x28A7 */ u8 _28A7;
     /* 0x28A8 */ u8 _28A8;
     /* 0x28A9 */ u8 _28A9;
-} inMemCamera;
+    /* 0x28AA */ u8 _28AA[0x28B0 - 0x28AA]; // not yet labelled; g_Camera's common .bss slot is 0x28B0
+} inMemCamera; // size: 0x28B0
 
 extern inMemCamera *g_pCamera;
 extern inMemCamera g_Camera;
@@ -2529,8 +2530,8 @@ extern StoredInningInfo storedInningInfo;
 
 typedef struct {
     /* 0x0000 */ struct CamScript* _0000;
-    /* 0x0004 */ u8 _0004[0x2AF4 - 0x4];   // not yet labelled
-} lbl_3_common_bss_DE94_s; // size: 0x2AF4
+    /* 0x0004 */ u8 _0004[0x240 - 0x4];   // not yet labelled
+} lbl_3_common_bss_DE94_s; // size: 0x240 (0x2AF4 in the symbol map: mwld's common-size inflation)
 
 extern lbl_3_common_bss_DE94_s unkStructPtr;
 
