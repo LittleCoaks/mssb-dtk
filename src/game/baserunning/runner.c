@@ -1905,7 +1905,7 @@ int runnerAI_flyBallDecision(int runnerIdx, int dropChanceGrade) {
     int frames;
     int result;
 
-    if (g_Ball.pauseBallMovementWhenInPlant == 0 && g_Ball.hitClassification1 == 0) {
+    if (g_Ball.pauseBallMovementWhenInPlant == 0 && g_Ball.hitClassification1 == HIT_TRAJECTORY_GROUNDER) {
         result = -1;
         if (runner->forceOutCd == FORCE_OUT_TYPE_FORCED_TO_ADVANCE) {
             result = 1;
@@ -2450,7 +2450,7 @@ void running_liveBall_AI(void) {
         if (g_Ball.framesSinceHit < 0) {
             contact = -2;
         }
-        if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hitClassification1 == 0) {
+        if (g_Ball.AtBat_ContactResult == BALL_RESULT_TYPE_IN_AIR && g_Ball.hitClassification1 == HIT_TRAJECTORY_GROUNDER) {
             contact = BALL_RESULT_TYPE_LANDED;
         }
 

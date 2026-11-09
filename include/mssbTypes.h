@@ -278,6 +278,42 @@ typedef enum _BALL_ZONE {
     /* 0xFF */ BALL_ZONE_NONE = 0xFF,
 } BALL_ZONE;
 
+/* g_Ball.hitClassification1 (classifyHitTrajectoryOrHitAnimRelated): from the hit's angles. */
+typedef enum _HIT_TRAJECTORY {
+    /* 0 */ HIT_TRAJECTORY_GROUNDER,
+    /* 1 */ HIT_TRAJECTORY_LINE_DRIVE,
+    /* 2 */ HIT_TRAJECTORY_FLY,
+    /* 3 */ HIT_TRAJECTORY_FOUL_GROUNDER, // horizontal angle outside the lines, or hit backwards
+    /* 4 */ HIT_TRAJECTORY_FOUL_LINE_DRIVE,
+    /* 5 */ HIT_TRAJECTORY_FOUL_FLY,
+} HIT_TRAJECTORY;
+
+/* g_Ball.hitClassification2 (classifyHitTrajectoryOrHitAnimRelated): where/how the ball will be played. */
+typedef enum _HIT_PLAY_TYPE {
+    /* 1 */ HIT_PLAY_TYPE_SLOW_ROLLER = 1, // weak and short (< 70 horizontal power, < 10-14 m after 60 frames)
+    /* 2 */ HIT_PLAY_TYPE_GROUNDER,        // grounder, or a short low liner
+    /* 3 */ HIT_PLAY_TYPE_INFIELD_LINER,   // lands in the infield (or low into shallow outfield)
+    /* 4 */ HIT_PLAY_TYPE_INFIELD_POPUP,   // lands in the infield after > 180 frames of hang time
+    /* 5 */ HIT_PLAY_TYPE_OUTFIELD,
+    /* 6 */ HIT_PLAY_TYPE_DEEP_OUTFIELD,   // >= 80 m, or >= 70 m with long hang time
+    /* 7 */ HIT_PLAY_TYPE_FOUL,
+    /* 8 */ HIT_PLAY_TYPE_FOUL_DEEP,       // foul landing > 60 m out
+} HIT_PLAY_TYPE;
+
+/* g_Ball.hitClassification3 (setHitClassification3): distance from home 60 frames after contact,
+ * split by side; foul balls by side of the field. */
+typedef enum _HIT_SPEED_CLASS {
+    /* 0 */ HIT_SPEED_CLASS_VERY_SLOW,      // < 3.5
+    /* 1 */ HIT_SPEED_CLASS_SLOW,           // < 8
+    /* 2 */ HIT_SPEED_CLASS_MEDIUM_1B_SIDE, // < 10, horizontal angle < 0x340
+    /* 3 */ HIT_SPEED_CLASS_MEDIUM_CENTER,
+    /* 4 */ HIT_SPEED_CLASS_MEDIUM_3B_SIDE, // horizontal angle >= 0x4C0
+    /* 5 */ HIT_SPEED_CLASS_FAST,           // hitClassification2 is an infield type
+    /* 6 */ HIT_SPEED_CLASS_FAST_OUTFIELD,
+    /* 7 */ HIT_SPEED_CLASS_FOUL_1B_SIDE,
+    /* 8 */ HIT_SPEED_CLASS_FOUL_3B_SIDE,
+} HIT_SPEED_CLASS;
+
 typedef struct _ScoreStruct {
     /*0x00*/ s16 total;
     /*0x02*/ s16 byInning[18];

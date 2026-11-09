@@ -328,8 +328,8 @@ typedef struct _InMemFielder {
     /*0x1DA*/ u8 cantCatchFlyBallInd;
     /*0x1DB*/ u8 nonCatchFlyBallStratInd;
     /*0x1DC*/ E(u8, BALL_TRACKING_TARGET) ballTrackingTarget;
-    /*0x1DD*/ u8 catchStrategy;
-    /*0x1DE*/ u8 inBasePath;
+    /*0x1DD*/ E(u8, CATCH_STRATEGY) catchStrategy;
+    /*0x1DE*/ E(u8, BASE_PATH) inBasePath;
     /*0x1DF*/ u8 fielderMadeThrow;
     /*0x1E0*/ u8 always0_;
     /*0x1E1*/ u8 _01E1;
@@ -355,7 +355,7 @@ typedef struct _InMemFielder {
     /*0x1F5*/ s8 baseCurrentlyOn;
     /*0x1F6*/ u8 baseOnLastFrame;
     /*0x1F7*/ s8 baseOn2;
-    /*0x1F8*/ u8 outFieldZoneCode;
+    /*0x1F8*/ E(u8, FIELDER_ZONE) outFieldZoneCode;
     /*0x1F9*/ u8 _01F9;
     /*0x1FA*/ u8 atDugoutAtEndOfInning;
     /*0x1FB*/ u8 _01FB;
@@ -402,7 +402,7 @@ typedef struct _InMemFielder {
     /*0x24C*/ s16 catchAnimationFramesCountDown;
     /*0x24E*/ s16 catchAnimationFramesCountUp;
     /*0x250*/ s16 always0;
-    /*0x252*/ u8 catchAnimation;
+    /*0x252*/ E(u8, CATCH_ANIMATION) catchAnimation;
     /*0x253*/ u8 catchVerticalZone;
     /*0x254*/ u8 catchCentreRightLeftOfBody;
     /*0x255*/ u8 catchFastBattedBallInd;
@@ -484,6 +484,47 @@ typedef enum _MINIGAME_CHASE_TARGET {
     /* 3 */ MINIGAME_CHASE_TARGET_BEST_FUTURE_FRAME, // determineBestFrameForFielder (nonCatchFlyBallStratInd)
     /* 4 */ MINIGAME_CHASE_TARGET_COIN,              // Toy Field: nearest coin
 } MINIGAME_CHASE_TARGET;
+
+/* InMemFielder.catchStrategy, from setFielderCatchStrategy_calcFramesToGetToDropSpot and its
+ * catcher / knockout variants: how the fielder can get to the batted ball. */
+typedef enum _CATCH_STRATEGY {
+    /* 0 */ CATCH_STRATEGY_NONE,
+    /* 1 */ CATCH_STRATEGY_IN_REACH,      // arrives while the ball is below the top of the hitbox (hitbox[3])
+    /* 2 */ CATCH_STRATEGY_ABOVE_REACH,   // only arrives while the ball is still above the hitbox
+    /* 3 */ CATCH_STRATEGY_AFTER_LANDING, // cannot catch it in the air; goes to where it can be picked up
+    /* 4 */ CATCH_STRATEGY_TOO_FAR,       // as AFTER_LANDING but not close enough (or an infielder leaving it)
+} CATCH_STRATEGY;
+
+/* InMemFielder.catchAnimation, set through initCatchAnimationState by the catch functions. */
+typedef enum _CATCH_ANIMATION {
+    /* 0 */ CATCH_ANIMATION_NONE,
+    /* 1 */ CATCH_ANIMATION_STANDARD,            // checkIfCatchOccurs
+    /* 2 */ CATCH_ANIMATION_THROWN_BALL,         // catchThrownBallFun
+    /* 3 */ CATCH_ANIMATION_DIVE,                // divingCatch (dive / slide / lunge)
+    /* 4 */ CATCH_ANIMATION_WALL_JUMP,           // wallJumpInitialization
+    /* 5 */ CATCH_ANIMATION_CLAMBER,             // clamberCheckCatch
+    /* 6 */ CATCH_ANIMATION_JUMP,                // attemptJumpingCatch
+    /* 7 */ CATCH_ANIMATION_RUNNING,             // checkIfRunningCatchOccurs, divingCatch's running catch
+    /* 8 */ CATCH_ANIMATION_THROW_TO_EMPTY_BASE, // ballThrownToEmptyBaseCatchAttempt
+} CATCH_ANIMATION;
+
+/* InMemFielder.inBasePath: the base path the fielder stands in (setInBasePathFromPosition). */
+typedef enum _BASE_PATH {
+    /* 0 */ BASE_PATH_NONE,
+    /* 1 */ BASE_PATH_HOME_TO_FIRST,
+    /* 2 */ BASE_PATH_FIRST_TO_SECOND,
+    /* 3 */ BASE_PATH_SECOND_TO_THIRD,
+    /* 4 */ BASE_PATH_THIRD_TO_HOME,
+} BASE_PATH;
+
+/* InMemFielder.outFieldZoneCode, from getOutfieldZoneCode(pos). */
+typedef enum _FIELDER_ZONE {
+    /* 0 */ FIELDER_ZONE_INFIELD_DIAMOND,  // |x| + z < 40 (inside the diamond reaching just past second)
+    /* 1 */ FIELDER_ZONE_INFIELD_EDGE,     // < 38.8 from home or < 28 from the mound
+    /* 2 */ FIELDER_ZONE_SHALLOW_OUTFIELD, // < 37 from the mound
+    /* 3 */ FIELDER_ZONE_MID_OUTFIELD,     // < 43 from the mound
+    /* 4 */ FIELDER_ZONE_DEEP_OUTFIELD,
+} FIELDER_ZONE;
 
 /* Index into autoMovementFunctions[] (fielder.c); comments name the dispatched function. */
 typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {

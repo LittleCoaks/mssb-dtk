@@ -903,7 +903,7 @@ void setFielder215(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     BOOL quickThrow = checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_QUICK_THROW);
 
-    if (fielder->outFieldZoneCode >= 3) {
+    if (fielder->outFieldZoneCode >= FIELDER_ZONE_MID_OUTFIELD) {
         fielder->throwWindUpFrames = throwWindUpFrames[quickThrow * 3 + 1];
     } else {
         fielder->throwWindUpFrames = throwWindUpFrames[quickThrow * 3];

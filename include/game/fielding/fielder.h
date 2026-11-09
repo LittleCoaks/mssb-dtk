@@ -148,7 +148,7 @@ void aITeam_selectInitialFielders_infielderThenOutfield(void);
 void aITeam_cornerOutfieldersDetermineWhatToDo(void);
 void aITeam_selectInitialFielders_outfield(void);
 void aITeamFieldingFirstFrameAfterHit(void);
-void fn_3_417D4(int fielderIndex);
+void stopUnderBallAboveReach(int fielderIndex);
 void fielderAIAssignmentRelated(int mode);
 void fielderAISomething(void);
 void decideWhenToLeaveFunction2_16_18(int fielderIndex);

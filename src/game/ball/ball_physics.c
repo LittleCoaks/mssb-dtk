@@ -1230,23 +1230,23 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
     f32 angleOffset;
     int i;
 
-    g_Ball.hitClassification1 = 1;
+    g_Ball.hitClassification1 = HIT_TRAJECTORY_LINE_DRIVE;
     if (g_Ball.Hit_HorizontalAngle < 0x1B0 || g_Ball.Hit_HorizontalAngle > 0x650 ||
         (g_Ball.Hit_VerticalAngle > 0x400 && g_Ball.Hit_VerticalAngle < 0xC00)) {
         if (g_Ball.Hit_VerticalAngle > 0x800 || g_Ball.Hit_VerticalAngle < 0) {
-            g_Ball.hitClassification1 = 3;
+            g_Ball.hitClassification1 = HIT_TRAJECTORY_FOUL_GROUNDER;
         } else if (g_Ball.Hit_VerticalAngle > 0x154) {
-            g_Ball.hitClassification1 = 5;
+            g_Ball.hitClassification1 = HIT_TRAJECTORY_FOUL_FLY;
         } else {
-            g_Ball.hitClassification1 = 4;
+            g_Ball.hitClassification1 = HIT_TRAJECTORY_FOUL_LINE_DRIVE;
         }
     } else {
         if (g_Ball.Hit_VerticalAngle > 0x800 || g_Ball.Hit_VerticalAngle < 0) {
-            g_Ball.hitClassification1 = 0;
+            g_Ball.hitClassification1 = HIT_TRAJECTORY_GROUNDER;
         } else if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 18.0f && g_Ball.Hit_VerticalAngle < 0x64) {
-            g_Ball.hitClassification1 = 0;
+            g_Ball.hitClassification1 = HIT_TRAJECTORY_GROUNDER;
         } else if (g_Ball.Hit_VerticalAngle > 0x154) {
-            g_Ball.hitClassification1 = 2;
+            g_Ball.hitClassification1 = HIT_TRAJECTORY_FLY;
         }
     }
 
@@ -1260,13 +1260,13 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
 
     if ((g_Ball.Hit_HorizontalAngle < 0x1A0 || g_Ball.Hit_HorizontalAngle > 0x660) && landingSpotVeryFoulInd) {
         if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome > 60.0f) {
-            g_Ball.hitClassification2 = 8;
+            g_Ball.hitClassification2 = HIT_PLAY_TYPE_FOUL_DEEP;
         } else {
-            g_Ball.hitClassification2 = 7;
+            g_Ball.hitClassification2 = HIT_PLAY_TYPE_FOUL;
         }
     } else if (g_Ball.Hit_VerticalAngle > 0x400 && g_Ball.Hit_VerticalAngle < 0xC00) {
-        g_Ball.hitClassification2 = 7;
-    } else if (g_Ball.hitClassification1 == 0) {
+        g_Ball.hitClassification2 = HIT_PLAY_TYPE_FOUL;
+    } else if (g_Ball.hitClassification1 == HIT_TRAJECTORY_GROUNDER) {
         f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
         f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
         f32 sqx = dx * dx;
@@ -1274,9 +1274,9 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
         f32 dist60 = dolsqrtf2(sqx + sqz);
 
         if (g_Ball.Hit_HorizontalPower < 0x46 && dist60 < 14.0f) {
-            g_Ball.hitClassification2 = 1;
+            g_Ball.hitClassification2 = HIT_PLAY_TYPE_SLOW_ROLLER;
         } else {
-            g_Ball.hitClassification2 = 2;
+            g_Ball.hitClassification2 = HIT_PLAY_TYPE_GROUNDER;
         }
     } else {
         do {
@@ -1289,28 +1289,28 @@ void classifyHitTrajectoryOrHitAnimRelated(void) {
 
                 if (g_Ball.Hit_HorizontalPower < 0x46 && dist60 < 10.0f &&
                     g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 18.0f) {
-                    g_Ball.hitClassification2 = 1;
+                    g_Ball.hitClassification2 = HIT_PLAY_TYPE_SLOW_ROLLER;
                     break;
                 }
             }
 
             if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 30.0f && g_Ball.maxYOfHit < 2.0f) {
-                g_Ball.hitClassification2 = 2;
+                g_Ball.hitClassification2 = HIT_PLAY_TYPE_GROUNDER;
             } else if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 20.0f && g_Ball.maxYOfHit < 4.0f) {
-                g_Ball.hitClassification2 = 2;
+                g_Ball.hitClassification2 = HIT_PLAY_TYPE_GROUNDER;
             } else if ((u8)zone <= 1 && g_Ball.hangtimeOfHit > 0xB4) {
-                g_Ball.hitClassification2 = 4;
+                g_Ball.hitClassification2 = HIT_PLAY_TYPE_INFIELD_POPUP;
             } else if ((u8)zone <= 1) {
-                g_Ball.hitClassification2 = 3;
+                g_Ball.hitClassification2 = HIT_PLAY_TYPE_INFIELD_LINER;
             } else if ((u8)zone == 2 && g_Ball.maxYOfHit < 4.5f) {
-                g_Ball.hitClassification2 = 3;
+                g_Ball.hitClassification2 = HIT_PLAY_TYPE_INFIELD_LINER;
             } else if ((u8)zone <= 2) {
-                g_Ball.hitClassification2 = 5;
+                g_Ball.hitClassification2 = HIT_PLAY_TYPE_OUTFIELD;
             } else if (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 70.0f ||
                        (g_Ball.physicsSubstruct.hitLandingSpotDistFromHome < 80.0f && g_Ball.hangtimeOfHit < 0xB4)) {
-                g_Ball.hitClassification2 = 5;
+                g_Ball.hitClassification2 = HIT_PLAY_TYPE_OUTFIELD;
             } else {
-                g_Ball.hitClassification2 = 6;
+                g_Ball.hitClassification2 = HIT_PLAY_TYPE_DEEP_OUTFIELD;
             }
         } while (0);
     }
@@ -1419,9 +1419,9 @@ void setHitClassification3(void) {
     }
 
     if (foulSide == 0 || foulSide == 2) {
-        g_Ball.hitClassification3 = 7;
+        g_Ball.hitClassification3 = HIT_SPEED_CLASS_FOUL_1B_SIDE;
     } else if (foulSide == 1 || foulSide == 3) {
-        g_Ball.hitClassification3 = 8;
+        g_Ball.hitClassification3 = HIT_SPEED_CLASS_FOUL_3B_SIDE;
     } else {
         f32 dx = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.x;
         f32 dz = g_Ball.physicsSubstruct.futureCoordsAndDist[60].pos.z;
@@ -1430,21 +1430,21 @@ void setHitClassification3(void) {
         f32 dist = dolsqrtf2(sqx + sqz);
 
         if (dist < lbl_3_rodata_60C) {
-            g_Ball.hitClassification3 = 0;
+            g_Ball.hitClassification3 = HIT_SPEED_CLASS_VERY_SLOW;
         } else if (dist < lbl_3_rodata_610) {
-            g_Ball.hitClassification3 = 1;
+            g_Ball.hitClassification3 = HIT_SPEED_CLASS_SLOW;
         } else if (dist < lbl_3_rodata_594) {
             if (g_Ball.Hit_HorizontalAngle < 0x340) {
-                g_Ball.hitClassification3 = 2;
+                g_Ball.hitClassification3 = HIT_SPEED_CLASS_MEDIUM_1B_SIDE;
             } else if (g_Ball.Hit_HorizontalAngle >= 0x4C0) {
-                g_Ball.hitClassification3 = 4;
+                g_Ball.hitClassification3 = HIT_SPEED_CLASS_MEDIUM_3B_SIDE;
             } else {
-                g_Ball.hitClassification3 = 3;
+                g_Ball.hitClassification3 = HIT_SPEED_CLASS_MEDIUM_CENTER;
             }
-        } else if (g_Ball.hitClassification2 <= 4) {
-            g_Ball.hitClassification3 = 5;
+        } else if (g_Ball.hitClassification2 <= HIT_PLAY_TYPE_INFIELD_POPUP) {
+            g_Ball.hitClassification3 = HIT_SPEED_CLASS_FAST;
         } else {
-            g_Ball.hitClassification3 = 6;
+            g_Ball.hitClassification3 = HIT_SPEED_CLASS_FAST_OUTFIELD;
         }
     }
 }

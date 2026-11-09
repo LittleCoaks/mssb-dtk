@@ -286,9 +286,9 @@ typedef struct _InMemBallType {
     /*0x1BC0*/ u8 seeminglyAlways1_ballCollideWWallRelated; // seeminglyAlways1_ballCollideWallRelated;
     /*0x1BC1*/ u8 someCollisionVariable;
     /*0x1BC2*/ u8 thrownBallHasHitGround;
-    /*0x1BC3*/ u8 hitClassification1;
-    /*0x1BC4*/ u8 hitClassification2;
-    /*0x1BC5*/ u8 hitClassification3;
+    /*0x1BC3*/ E(u8, HIT_TRAJECTORY) hitClassification1;
+    /*0x1BC4*/ E(u8, HIT_PLAY_TYPE) hitClassification2;
+    /*0x1BC5*/ E(u8, HIT_SPEED_CLASS) hitClassification3;
     /*0x1BC6*/ u8 ballInitialHitDoneInd;
     /*0x1BC7*/ u8 howFoulTheBallWillBe;
     /*0x1BC8*/ u8 always0_fairFoulRelated;

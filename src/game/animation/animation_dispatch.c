@@ -1701,7 +1701,7 @@ void latchCatchAnimation(int fielderIdx) {
     if (slot->_4C == 0) {
         slot->_4C = fielder->catchAnimation;
         slot->countdown = fielder->catchAnimationFramesCountDown;
-        if (fielder->catchAnimation == 1 || fielder->catchAnimation == 2) {
+        if (fielder->catchAnimation == CATCH_ANIMATION_STANDARD || fielder->catchAnimation == CATCH_ANIMATION_THROWN_BALL) {
             slot->_4E = fielder->catchVerticalZone;
         }
         if (slot->_4C != 0) {
@@ -2233,7 +2233,7 @@ BOOL animationsForFielding(int fielderIdx) {
             } else {
                 if (slot->countdown == 1) {
                     u8 bobble = fielder->bobble;
-                    if ((bobble != 1 || fielder->catchAnimation != 1) && slot->_4C != 7 && slot->_4C != 8 &&
+                    if ((bobble != 1 || fielder->catchAnimation != CATCH_ANIMATION_STANDARD) && slot->_4C != 7 && slot->_4C != 8 &&
                         obj->animId != 0x29) {
                         if (bobble == 3 && slot->_4C != 3) {
                             AnimateCharacter(idx, 0x1C, 0, 1, 1, 0, slot->_40, 10);
@@ -2256,7 +2256,7 @@ BOOL animationsForFielding(int fielderIdx) {
                     }
                 }
                 if (slot->_4C == 7 || slot->_4C == 8) {
-                    if (fielder->runningCatchCountDown == 0 && fielder->catchAnimation == 0 && fielder->hitKnockbackCountdown == 0) {
+                    if (fielder->runningCatchCountDown == 0 && fielder->catchAnimation == CATCH_ANIMATION_NONE && fielder->hitKnockbackCountdown == 0) {
                         AnimateCharacter(idx, 0, 0, 1, 1, 0, slot->_40, -1);
                     } else {
                         return TRUE;
