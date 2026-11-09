@@ -44,7 +44,7 @@ u8 lbl_2_data_2ECBC[0x28] = {
     7, 6, 8, 5, 3, 3, 5, 7, 4, 6,
 };
 
-UIRecordDescriptor lbl_2_data_2ECE4[93] = {
+static UIRecordDescriptor lbl_2_data_2ECE4[70] = {
     { 0, 14, { 0 }, 0xFFFFFFFF, 1, 20, UI_NO_PARENT, 8, { 0 }, 1, 0 },
     { 0, 15, { 0 }, 0xFFFFFFFF, 1, 19, 0, 8, { 0 }, 1, 2 },
     { 0, 15, { 0 }, 0xFFFFFFFF, 1, 19, 0, 8, { 0 }, 1, 1 },
@@ -115,6 +115,9 @@ UIRecordDescriptor lbl_2_data_2ECE4[93] = {
     { 0, 0, { 0 }, 0xFFFFFFFF, 2, 7, 2, 8, { 0 }, 1, 0 },
     { 0, 0, { 0 }, 0xFFFFFFFF, 2, 7, 3, 8, { 0 }, 1, 0 },
     { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+};
+
+static UIRecordDescriptor lbl_2_data_2F5A4[9] = {
     { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 216, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 192, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
@@ -124,6 +127,9 @@ UIRecordDescriptor lbl_2_data_2ECE4[93] = {
     { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 2 },
     { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 1 },
     { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+};
+
+static UIRecordDescriptor lbl_2_data_2F6C4[8] = {
     { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 215, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 192, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
@@ -132,6 +138,9 @@ UIRecordDescriptor lbl_2_data_2ECE4[93] = {
     { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 2 },
     { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 1 },
     { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+};
+
+static UIRecordDescriptor lbl_2_data_2F7C4[6] = {
     { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 214, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 191, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
@@ -183,11 +192,13 @@ void fn_2_8AC84(s32 slot, s32 flag) {
 }
 
 // .text:0x0008ABFC size:0x88 mapped:0x806C9C90
-void fn_2_8ABFC(void) {
-    DrawingSceneStruct *cur = currentDrawingItem;
+static inline void setupScene(DrawingSceneStruct *node) {
+    addGraphicsElementToScene(node, lbl_2_data_2ECE4);
+    fn_2_8A008(node);
+}
 
-    addGraphicsElementToScene(cur, lbl_2_data_2ECE4);
-    fn_2_8A008(cur);
+void fn_2_8ABFC(void) {
+    setupScene(currentDrawingItem);
     if (*(u8 *)((u8 *)&Static_Stats_Tables + 0x4756) == 1) {
         *(s32 *)(menuCursors + 0x50) = superstarUnlocked[0xF6];
     }
@@ -392,19 +403,18 @@ void fn_2_8A008(DrawingSceneStruct *node) {
 // .text:0x00089F70 size:0x98 mapped:0x806C9004
 void fn_2_89F70(void) {
     DrawingSceneStruct *cur = currentDrawingItem;
-    u32 base = (u32)&lbl_2_data_2E9F8;
     const UIRecordDescriptor *desc;
 
     switch (lbl_2_bss_33FBCC[5]) {
     case 0:
-        desc = (const UIRecordDescriptor *)(base + 0xDCC);
+        desc = lbl_2_data_2F7C4;
         break;
     case 1:
     case 2:
-        desc = (const UIRecordDescriptor *)(base + 0xCCC);
+        desc = lbl_2_data_2F6C4;
         break;
     case 3:
-        desc = (const UIRecordDescriptor *)(base + 0xBAC);
+        desc = lbl_2_data_2F5A4;
         break;
     }
     addGraphicsElementToScene(cur, desc);
