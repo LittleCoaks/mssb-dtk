@@ -153,7 +153,7 @@ f32 fielderStartingCoords_bunt[4][2] = {
     { -7.0f, 38.0f },
 };
 
-f32 lbl_3_data_45D4[8] = {
+f32 fielderStartingCoords_outfield[8] = {
     -34.0f, 60.0f, 0.0f, 76.0f, 34.0f, 60.0f, 0.0f, 0.0f,
 };
 
@@ -213,7 +213,7 @@ u8 fielderLockout[20] = {
     50, 50, 0, 0,
 };
 
-u8 lbl_3_data_470C[4] = {
+u8 aiLockoutExtraFramesRange[4] = {
     10, 30, 0, 0,
 };
 
@@ -249,7 +249,7 @@ f32 lbl_3_data_4760[3] = {
     0.000500000024f, 1.22000003f, 1.29999995f,
 };
 
-f32 lbl_3_data_476C[5] = {
+f32 fielderCollisionRadius_ByWeight[5] = {
     0.600000024f, 0.699999988f, 0.800000012f, 0.899999976f, 1.0f,
 };
 
@@ -275,11 +275,11 @@ f32 modWeightBasedFactors[6][5] = {
     { 4.5f, 1.0f, 2.0f, 2.25f, 1.0f },
 };
 
-f32 lbl_3_data_4848[1] = {
+f32 selectionKeepFielderLandingSpotDist[1] = {
     2.5f,
 };
 
-u32 lbl_3_data_484C[5] = {
+u32 fielderSelectionConsts[5] = {
     0x001400B4, 0x0300002D, 0x005A0024, 0x0037001E, 0x000F0000,
 };
 
@@ -303,7 +303,7 @@ f32 jumpArray[2][4] = {
     { 0.400000006f, 0.0199999996f, 0.75f, 12.0f },
 };
 
-u32 lbl_3_data_48A4[8] = {
+u32 wallBounceAIConsts_ByAILevel[8] = {
     0x000A0014, 0x0019001E, 0x001E0014, 0x001E0028, 0x00320032, 0x003C004B, 0x005A0078, 0x00780000,
 };
 
@@ -311,7 +311,7 @@ f32 lbl_3_data_48C4[1] = {
     0.5f,
 };
 
-u32 lbl_3_data_48C8[12] = {
+u32 bobbleAngleRanges[12] = {
     0x030403C8, 0xFF000100, 0x01000200, 0x08C80938, 0x030003E4, 0xF80007FF, 0x030403C8, 0xFF000100,
     0x01000200, 0x08C80938, 0x030003E4, 0xF80007FF,
 };

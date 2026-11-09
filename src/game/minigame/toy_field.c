@@ -120,7 +120,7 @@ u8 minigameChallengeAIStrength[8] = {
 u8 lbl_3_data_18980[4] = {
     2, 0, 0, 0,
 };
-f32 lbl_3_data_18984[6] = {
+f32 toyFieldFielderStartCoords[6] = {
     0.0f, 70.0f,
     12.0f, 40.0f,
     -12.0f, 40.0f,

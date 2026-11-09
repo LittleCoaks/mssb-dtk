@@ -26,23 +26,23 @@ extern f32 thresholdToBeConsideredCoveringBase_ByWeight[5];
 extern VecXZ presetFielderLocations[11];
 extern VecXZ extendedLocationCoordinates[6];
 extern void checkForBufferedThrow(void);
-extern VecXZ lbl_3_data_18984[3];
+extern VecXZ toyFieldFielderStartCoords[3];
 extern const u8 _0x18aArray[8];
 extern f32 fielderActionConstants[43];
-extern f32 lbl_3_data_476C[];
+extern f32 fielderCollisionRadius_ByWeight[];
 extern f32 ballDashEffect_1_5;
 extern f32 lbl_3_data_46F4;
 extern f32 lbl_3_data_21A14[7];
-extern f32 lbl_3_data_4848;
-extern s16 lbl_3_data_484C[10];
-extern s16 lbl_3_data_48A4[3][5];
+extern f32 selectionKeepFielderLandingSpotDist;
+extern s16 fielderSelectionConsts[10];
+extern s16 wallBounceAIConsts_ByAILevel[3][5];
 extern s16 barrelCollisionHitboxes[54];
 extern u8 hugeAnimStruct[0x3154];
 extern f32 jumpArray[2][4];
 extern u8 BobbleArray[2][4][6];
 extern f32 lbl_3_data_5FC4[12];
 extern f32 runningCatch_CatchThrowDistances[10];
-extern u8 lbl_3_data_470C[2];
+extern u8 aiLockoutExtraFramesRange[2];
 extern u8 fielderLockout[2][9];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
@@ -66,7 +66,7 @@ extern struct {
 } chemBobbleMults;
 extern int calculateChemistry(int teamFielding, int charIdA, int charIdB);
 extern f32 lbl_3_data_48C4;
-extern s16 lbl_3_data_48C8[2][12];
+extern s16 bobbleAngleRanges[2][12];
 extern f32 lbl_3_data_5CDC[11];
 extern VecXZ lbl_3_data_4300[9];
 extern f32 lbl_3_data_4348[7][2];
@@ -294,7 +294,7 @@ extern s16 slidingCatchArray[6];
 extern VecXZ base_MoundCoordinates[5];
 extern VecXZ fielderStartingCoords_bunt[4];
 extern VecXZ fielderStartingCoords_holdRunners[4][3];
-extern VecXZ lbl_3_data_45D4[4];
+extern VecXZ fielderStartingCoords_outfield[4];
 
 /* fielder.c is one translation unit. Its functions are in reverse address order (the game
  * REL is built with -inline deferred, which emits them reversed), so the sections below run
@@ -362,8 +362,8 @@ void initFielders(void) {
         aiIndex = g_GameLogic.teamAIInd[g_GameLogic.awayTeamBattingInd_battingTeam];
         fielder->lockoutDuration = fielderLockout[aiIndex][i];
         if (aiIndex != 0) {
-            diff = (s32)lbl_3_data_470C[1] - (s32)lbl_3_data_470C[0];
-            value = lbl_3_data_470C[0] +
+            diff = (s32)aiLockoutExtraFramesRange[1] - (s32)aiLockoutExtraFramesRange[0];
+            value = aiLockoutExtraFramesRange[0] +
                     (s32)((f32)diff * g_AiLogic.aIDifficultyMultiplierArray[g_GameLogic.homeTeamBattingInd_fieldingTeam]);
             if (i <= 1) {
                 fielder->lockoutDuration += value / 2;
@@ -576,8 +576,8 @@ void fielding_setStartingCoordinates(int fielderIndex, f32* outX, f32* outZ) {
         return;
     }
 
-    *outX = lbl_3_data_45D4[fielderIndex - 6].x;
-    *outZ = lbl_3_data_45D4[fielderIndex - 6].z;
+    *outX = fielderStartingCoords_outfield[fielderIndex - 6].x;
+    *outZ = fielderStartingCoords_outfield[fielderIndex - 6].z;
 }
 
 // .text:0x00058E50 size:0x108 mapped:0x80697EE4
@@ -2326,11 +2326,11 @@ void minigameFieldingRelated_collisions(void) {
             dzSq = dz * dz;
             dist = fielderSqrt(dxSq + dzSq);
 
-            sumRadius = lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight];
+            sumRadius = fielderCollisionRadius_ByWeight[outer->Weight] + fielderCollisionRadius_ByWeight[inner->Weight];
             if (!(dist < sumRadius)) {
                 continue;
             }
-            frac = lbl_3_data_476C[outer->Weight] / sumRadius;
+            frac = fielderCollisionRadius_ByWeight[outer->Weight] / sumRadius;
 
             cx = frac * (inner->pos.x - outer->pos.x) + outer->pos.x;
             cz = frac * (inner->pos.z - outer->pos.z) + outer->pos.z;
@@ -2370,20 +2370,20 @@ void minigameFieldingRelated_collisions(void) {
             }
 
             if (outer->currentVelocity <= 0.0f) {
-                inner->pos.x = dx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
+                inner->pos.x = dx * (fielderCollisionRadius_ByWeight[outer->Weight] + fielderCollisionRadius_ByWeight[inner->Weight]) +
                                outer->pos.x;
-                inner->pos.z = dz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]) +
+                inner->pos.z = dz * (fielderCollisionRadius_ByWeight[outer->Weight] + fielderCollisionRadius_ByWeight[inner->Weight]) +
                                outer->pos.z;
             } else if (inner->currentVelocity <= 0.0f) {
                 outer->pos.x = inner->pos.x -
-                               dx * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
+                               dx * (fielderCollisionRadius_ByWeight[outer->Weight] + fielderCollisionRadius_ByWeight[inner->Weight]);
                 outer->pos.z = inner->pos.z -
-                               dz * (lbl_3_data_476C[outer->Weight] + lbl_3_data_476C[inner->Weight]);
+                               dz * (fielderCollisionRadius_ByWeight[outer->Weight] + fielderCollisionRadius_ByWeight[inner->Weight]);
             } else {
-                outer->pos.x = cx - dx * lbl_3_data_476C[outer->Weight];
-                outer->pos.z = cz - dz * lbl_3_data_476C[outer->Weight];
-                inner->pos.x = dx * lbl_3_data_476C[inner->Weight] + cx;
-                inner->pos.z = dz * lbl_3_data_476C[inner->Weight] + cz;
+                outer->pos.x = cx - dx * fielderCollisionRadius_ByWeight[outer->Weight];
+                outer->pos.z = cz - dz * fielderCollisionRadius_ByWeight[outer->Weight];
+                inner->pos.x = dx * fielderCollisionRadius_ByWeight[inner->Weight] + cx;
+                inner->pos.z = dz * fielderCollisionRadius_ByWeight[inner->Weight] + cz;
             }
 
             collided = updateFielderPosition_checkFielderCollision(i, &scratch);
@@ -3131,13 +3131,13 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
     magnitude = fielderSqrt(SQ(collision.normal.x) + SQ(collision.normal.z));
     unitNormalX = collision.normal.x / magnitude;
     unitNormalZ = collision.normal.z / magnitude;
-    weightedNormalX = unitNormalX * lbl_3_data_476C[fielder->Weight];
-    weightedNormalZ = unitNormalZ * lbl_3_data_476C[fielder->Weight];
+    weightedNormalX = unitNormalX * fielderCollisionRadius_ByWeight[fielder->Weight];
+    weightedNormalZ = unitNormalZ * fielderCollisionRadius_ByWeight[fielder->Weight];
     angle1 = game_atan2(-weightedNormalX, -weightedNormalZ);
     angle2 = game_atan2(dirX, dirZ);
     diff = radianAngleReduction(angle1 - angle2);
     cosDiff = (f32)cos(diff);
-    pushRadius = lbl_3_data_476C[fielder->Weight] / cosDiff;
+    pushRadius = fielderCollisionRadius_ByWeight[fielder->Weight] / cosDiff;
     if (fielder->jumpDiveStateRelated == 2) {
         pushRadius = (f32)barrelCollisionHitboxes[fielder->CharID];
     }
@@ -3156,8 +3156,8 @@ int updateFielderPosition_checkFielderCollision(int fielderIndex, VecXYZ* out) {
         inVec.dst.z -= offsetZ;
         type = checkCollision(&inVec, &collision, 1, 0);
         if (type != BALL_COLLISION_TYPE_NONE) {
-            out->x = weightedNormalX * lbl_3_data_476C[fielder->Weight] + collision.position.x;
-            out->z = weightedNormalZ * lbl_3_data_476C[fielder->Weight] + collision.position.z;
+            out->x = weightedNormalX * fielderCollisionRadius_ByWeight[fielder->Weight] + collision.position.x;
+            out->z = weightedNormalZ * fielderCollisionRadius_ByWeight[fielder->Weight] + collision.position.z;
             return 2;
         }
 
@@ -3401,7 +3401,7 @@ int fielderMovement_updateWallBounceApproach(int fielderIndex, f32* outX, f32* o
         fielder->aiDistToStandFromWallCollision = 1;
         fielder->_0188 = 30;
     } else if (!fielder->_020E) {
-        if (fielder->aiDistToStandFromWallCollision > lbl_3_data_48A4[2][fielder->AILevel3Weak0Powerful]) {
+        if (fielder->aiDistToStandFromWallCollision > wallBounceAIConsts_ByAILevel[2][fielder->AILevel3Weak0Powerful]) {
             fielder->_020E = 1;
         } else {
             dx = fielder->ballTrackingTargetX - fielder->pos.x;
@@ -3509,7 +3509,7 @@ int fielderMovement_findWallBounceInterceptSpot(int fielderIndex, f32* outX, f32
             return 1;
         }
 
-        i = frame + lbl_3_data_48A4[0][fielder->AILevel3Weak0Powerful];
+        i = frame + wallBounceAIConsts_ByAILevel[0][fielder->AILevel3Weak0Powerful];
         *outX = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x;
         *outZ = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z;
         goto return1;
@@ -3549,7 +3549,7 @@ int fielderMovement_findWallBounceInterceptSpot(int fielderIndex, f32* outX, f32
         goto return1;
     }
 
-    i = frame + lbl_3_data_48A4[1][fielder->AILevel3Weak0Powerful];
+    i = frame + wallBounceAIConsts_ByAILevel[1][fielder->AILevel3Weak0Powerful];
     *outX = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.x;
     *outZ = g_Ball.physicsSubstruct.futureCoordsAndDist[i].pos.z;
 return1:
@@ -4384,19 +4384,19 @@ void bobbleDirection(int fielderIndex) {
         int randOffset;
 
         if (fielder->catchCentreRightLeftOfBody == 0) {
-            elevationAngle = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][0], lbl_3_data_48C8[modeFlag][1]);
-            randOffset = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][2], lbl_3_data_48C8[modeFlag][3]);
+            elevationAngle = RandomInt_Game_Range(bobbleAngleRanges[modeFlag][0], bobbleAngleRanges[modeFlag][1]);
+            randOffset = RandomInt_Game_Range(bobbleAngleRanges[modeFlag][2], bobbleAngleRanges[modeFlag][3]);
             horizAngle = normalizeAnglebetween_2048And2047(randOffset + baseAngle);
         } else if (!lowVelocityInd) {
-            elevationAngle = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][4], lbl_3_data_48C8[modeFlag][5]);
-            randOffset = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][6], lbl_3_data_48C8[modeFlag][7]);
+            elevationAngle = RandomInt_Game_Range(bobbleAngleRanges[modeFlag][4], bobbleAngleRanges[modeFlag][5]);
+            randOffset = RandomInt_Game_Range(bobbleAngleRanges[modeFlag][6], bobbleAngleRanges[modeFlag][7]);
             if (fielder->catchCentreRightLeftOfBody == 1) {
                 randOffset = -randOffset;
             }
             horizAngle = normalizeAnglebetween_2048And2047(randOffset + baseAngle);
         } else {
-            elevationAngle = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][8], lbl_3_data_48C8[modeFlag][9]);
-            randOffset = RandomInt_Game_Range(lbl_3_data_48C8[modeFlag][10], lbl_3_data_48C8[modeFlag][11]);
+            elevationAngle = RandomInt_Game_Range(bobbleAngleRanges[modeFlag][8], bobbleAngleRanges[modeFlag][9]);
+            randOffset = RandomInt_Game_Range(bobbleAngleRanges[modeFlag][10], bobbleAngleRanges[modeFlag][11]);
             if (fielder->catchCentreRightLeftOfBody == 1) {
                 randOffset = -randOffset;
             }
@@ -8963,7 +8963,7 @@ void autoMovement21_23_humanControlInitialSelectedFielders(int fielderIndex) {
     if (selectedFielder != fielderIndex) {
         InMemFielder* selFielder = &g_Fielders[selectedFielder];
 
-        if (g_Ball.framesSinceHit >= lbl_3_data_484C[0] && g_FieldingLogic.secondaryFielderActiveInd == 0 &&
+        if (g_Ball.framesSinceHit >= fielderSelectionConsts[0] && g_FieldingLogic.secondaryFielderActiveInd == 0 &&
             ((selFielder->closingInOnCatchingFlyBall == 1 &&
               fielder->distanceFromEachFielder[selectedFielder] < 15.0f) ||
              (selFielder->catchAnimation != CATCH_ANIMATION_NONE && selFielder->autoCatch0_noCatchAnimationOnly1 == 0))) {
@@ -8987,10 +8987,10 @@ void updateFielderMovementIfNoBall(int fielderIndex) {
             return;
         }
         framesSinceHit = g_Ball.framesSinceHit;
-        if (framesSinceHit < lbl_3_data_484C[0]) {
+        if (framesSinceHit < fielderSelectionConsts[0]) {
             return;
         }
-        if (framesSinceHit < lbl_3_data_484C[1]) {
+        if (framesSinceHit < fielderSelectionConsts[1]) {
             if (fielderControlStick_continuousAngleHistory[0] < 0 ||
                 (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
                 if (g_d_GameSettings.GameModeSelected != GAME_TYPE_PRACTICE ||
@@ -9011,7 +9011,7 @@ void updateFielderMovementIfNoBall(int fielderIndex) {
                             return;
                         }
                     } else {
-                        if (getDifferenceInAngle(stickDir, runAngle) >= lbl_3_data_484C[2]) {
+                        if (getDifferenceInAngle(stickDir, runAngle) >= fielderSelectionConsts[2]) {
                             return;
                         }
                     }
@@ -9029,7 +9029,7 @@ void stopFielderIfSelectedFielderCatching(int fielderIndex) {
     int selectedFielder = g_FieldingLogic.selectedFielder;
     InMemFielder* selected = &g_Fielders[selectedFielder];
 
-    if (g_Ball.framesSinceHit < lbl_3_data_484C[0]) {
+    if (g_Ball.framesSinceHit < fielderSelectionConsts[0]) {
         return;
     }
 
@@ -9505,36 +9505,36 @@ void updateInAirFielderSelection(void) {
     if (g_FieldingLogic.secondaryFielderActiveInd == 0) {
         return;
     }
-    if (g_Ball.framesSinceHit < lbl_3_data_484C[3]) {
+    if (g_Ball.framesSinceHit < fielderSelectionConsts[3]) {
         return;
     }
 
     if (fielderControlStick_continuousAngleHistory[0] < 0 || (g_FieldingLogic.fielderInputs & INPUT_BUTTON_B) == 0) {
         f32 x;
 
-        if (g_Ball.ballDistanceFromHome < (f32)lbl_3_data_484C[5]) {
+        if (g_Ball.ballDistanceFromHome < (f32)fielderSelectionConsts[5]) {
             return;
         }
-        x = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - (f32)lbl_3_data_484C[7];
-        if (x > (f32)lbl_3_data_484C[6]) {
-            x = (f32)lbl_3_data_484C[6];
+        x = g_Ball.physicsSubstruct.hitLandingSpotDistFromHome - (f32)fielderSelectionConsts[7];
+        if (x > (f32)fielderSelectionConsts[6]) {
+            x = (f32)fielderSelectionConsts[6];
         }
         if (g_Ball.ballDistanceFromHome < x) {
             return;
         }
     }
 
-    if (g_Fielders[selectedFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
+    if (g_Fielders[selectedFielderInit].distanceFromLandingSpot < selectionKeepFielderLandingSpotDist) {
         newFielder = selectedFielderInit;
-    } else if (g_Fielders[secondaryFielderInit].distanceFromLandingSpot < lbl_3_data_4848) {
+    } else if (g_Fielders[secondaryFielderInit].distanceFromLandingSpot < selectionKeepFielderLandingSpotDist) {
         newFielder = secondaryFielderInit;
     } else {
-        if (g_Ball.framesSinceHit < lbl_3_data_484C[4]) {
+        if (g_Ball.framesSinceHit < fielderSelectionConsts[4]) {
             int hist = fielderControlStick_continuousAngleHistory[0];
             if (hist > 0) {
                 int i;
 
-                for (i = 1; i < lbl_3_data_484C[8]; i++) {
+                for (i = 1; i < fielderSelectionConsts[8]; i++) {
                     s16 h = fielderControlStick_continuousAngleHistory[i];
                     if (h <= 0) {
                         break;
@@ -9543,7 +9543,7 @@ void updateInAirFielderSelection(void) {
                         break;
                     }
                 }
-                if (i < lbl_3_data_484C[8]) {
+                if (i < fielderSelectionConsts[8]) {
                     return;
                 }
             } else {
@@ -13334,16 +13334,16 @@ void toyfieldRelated(void) {
     numParticipants = g_Minigame.miniGameNumberOfParticipants;
 
     if (numParticipants >= 4) {
-        g_Fielders[3].pos.x = lbl_3_data_18984[1].x;
-        g_Fielders[3].pos.z = lbl_3_data_18984[1].z;
+        g_Fielders[3].pos.x = toyFieldFielderStartCoords[1].x;
+        g_Fielders[3].pos.z = toyFieldFielderStartCoords[1].z;
     } else if (numParticipants >= 3) {
-        g_Fielders[3].pos.x = lbl_3_data_18984[0].x;
-        g_Fielders[3].pos.z = lbl_3_data_18984[0].z;
+        g_Fielders[3].pos.x = toyFieldFielderStartCoords[0].x;
+        g_Fielders[3].pos.z = toyFieldFielderStartCoords[0].z;
     }
 
     if (numParticipants >= 4) {
-        g_Fielders[4].pos.x = lbl_3_data_18984[2].x;
-        g_Fielders[4].pos.z = lbl_3_data_18984[2].z;
+        g_Fielders[4].pos.x = toyFieldFielderStartCoords[2].x;
+        g_Fielders[4].pos.z = toyFieldFielderStartCoords[2].z;
     }
 
     for (i = 0; i < 9; i++) {

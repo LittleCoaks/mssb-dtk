@@ -158,7 +158,7 @@ extern AnimThrowState g_UnkThrowing_31ACC[4];
 extern u8 bodyCheckFrameRelatedConstants[][4];
 extern u8 throwWindupReleaseFrames[][5];
 extern u8 lbl_3_data_7F0C[];
-extern f32 lbl_3_data_476C[];
+extern f32 fielderCollisionRadius_ByWeight[];
 extern s16 barrelCollisionHitboxes[54];
 
 // Narrower than File_0x8001b918.h: every call here truncates the frame offset to
@@ -2535,7 +2535,7 @@ void foulAnimationRelatedMaybe(int fielderIdx, AnimObject* obj) {
             nx *= scale;
             nz *= scale;
         } else {
-            scale = lbl_3_data_476C[fielder->Weight];
+            scale = fielderCollisionRadius_ByWeight[fielder->Weight];
             nx *= scale;
             nz *= scale;
         }
