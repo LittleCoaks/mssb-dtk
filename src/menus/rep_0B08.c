@@ -142,7 +142,7 @@ extern f32 lbl_2_data_3EF4[];
 extern f32 lbl_2_data_3F0C[];
 extern f32 lbl_2_data_3F2C[];
 extern f32 lbl_2_data_3F5C;
-extern u8 lbl_2_data_3D30[];
+extern s16 lbl_2_data_3D30[][4];
 extern s32 lbl_2_data_3C40[];
 extern s32 lbl_2_data_3C5C[];
 
@@ -909,18 +909,12 @@ void fn_2_6F78C(Rep0B08Slot *obj) {
     obj->unk4C = (f32)atan2(-(b->pos.x - obj->pos.x),
                                       -(b->pos.z - obj->pos.z));
     r = fn_2_4A18C(obj->unk34 - obj->unk4C);
-    if (r >= 0.02 || r <= 0.0f) {
-        if (r <= -0.02 || r >= 0.0f) {
-            if (r >= 0.0f) {
-                obj->unk34 = obj->unk34 - 0.05235987901687622f;
-            } else {
-                obj->unk34 = obj->unk34 + 0.05235987901687622f;
-            }
-        } else {
-            obj->mode = 3;
-        }
-    } else {
+    if ((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f)) {
         obj->mode = 3;
+    } else if (r < 0.0f) {
+        obj->unk34 += 0.05235987901687622f;
+    } else {
+        obj->unk34 = obj->unk34 - 0.05235987901687622f;
     }
     obj->unk4C = obj->unk34;
 }
@@ -957,7 +951,7 @@ void fn_2_6F104(Rep0B08Slot *obj) {
     f32 limit;
     f32 dist;
     rep0B08EnableSlot(idx);
-    row = (s16 *)(lbl_2_data_3D30 + slot->unkB2 * 8);
+    row = lbl_2_data_3D30[slot->unkB2];
     for (j = 0; j < 4; j++) {
         c = row[j];
         if (c != -1) {
@@ -1394,28 +1388,23 @@ void fn_2_6DB30(Rep0B08Slot *obj) {
 
 // .text:0x0006D968 size:0x1C8 mapped:0x806AC9FC
 void fn_2_6D968(Rep0B08Slot *obj) {
+    s32 idx = obj->index;
     Rep0B08Slot *b = REP_SLOT(0);
     f32 r;
     obj->unk4C = (f32)atan2(-(b->pos.x - obj->pos.x),
                                       -(b->pos.z - obj->pos.z));
     r = fn_2_4A18C(obj->unk34 - obj->unk4C);
-    if (r >= 0.02 || r <= 0.0f) {
-        if (r <= -0.02 || r >= 0.0f) {
-            if (r >= 0.0f) {
-                obj->unk34 = obj->unk34 - 0.05235987901687622f;
-            } else {
-                obj->unk34 = obj->unk34 + 0.05235987901687622f;
-            }
-        } else {
-            obj->mode = 4;
-        }
-    } else {
+    if ((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f)) {
         obj->mode = 4;
+    } else if (r < 0.0f) {
+        obj->unk34 += 0.05235987901687622f;
+    } else {
+        obj->unk34 = obj->unk34 - 0.05235987901687622f;
     }
     obj->unk4C = obj->unk34;
     if ((s8)MENU->slots[0].unkCD == 0) {
         obj->unkA2 = 0x78;
-        fn_2_68FBC(obj->index, 1);
+        fn_2_68FBC(idx, 1);
         obj->unkBA = 9;
         obj->unk50 = 0.0f;
         obj->unk38 = 0.0f;
@@ -1582,23 +1571,15 @@ void fn_2_6CDD4(Rep0B08Slot *obj) {
 
 // .text:0x0006CCB8 size:0x11C mapped:0x806ABD4C
 void fn_2_6CCB8(Rep0B08Slot *obj) {
+    s32 i;
     fn_2_69E1C(obj->index);
-    if (obj->unk50 > 0.0f) {
-        s16 *row;
+    if (obj->unk50 <= 0.0f) {
         obj->unkBA = 4;
         obj->unkC4 = 1;
-        row = (s16 *)(lbl_2_data_3D30 + MENU->slots[0].unkB2 * 8);
-        if (MENU->slots[0].unkB0 == row[0]) {
-            lbl_2_bss_1A8248[0x4448] = 0;
-        }
-        if (MENU->slots[0].unkB0 == row[1]) {
-            lbl_2_bss_1A8248[0x4448] = 1;
-        }
-        if (MENU->slots[0].unkB0 == row[2]) {
-            lbl_2_bss_1A8248[0x4448] = 2;
-        }
-        if (MENU->slots[0].unkB0 == row[3]) {
-            lbl_2_bss_1A8248[0x4448] = 3;
+        for (i = 0; i < 4; i++) {
+            if (MENU->slots[0].unkB0 == lbl_2_data_3D30[MENU->slots[0].unkB2][i]) {
+                lbl_2_bss_1A8248[0x4448] = i;
+            }
         }
         MENU->slots[0].unkB2 = MENU->slots[0].unkB0;
         obj->mode = 2;
@@ -1810,18 +1791,12 @@ void fn_2_6C020(Rep0B08Slot *obj) {
     obj->unk4C = (f32)atan2(-(b->pos.x - obj->pos.x),
                                       -(b->pos.z - obj->pos.z));
     r = fn_2_4A18C(obj->unk34 - obj->unk4C);
-    if (r >= 0.02 || r <= 0.0f) {
-        if (r <= -0.02 || r >= 0.0f) {
-            if (r >= 0.0f) {
-                obj->unk34 = obj->unk34 - 0.05235987901687622f;
-            } else {
-                obj->unk34 = obj->unk34 + 0.05235987901687622f;
-            }
-        } else {
-            obj->mode = 3;
-        }
-    } else {
+    if ((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f)) {
         obj->mode = 3;
+    } else if (r < 0.0f) {
+        obj->unk34 += 0.05235987901687622f;
+    } else {
+        obj->unk34 = obj->unk34 - 0.05235987901687622f;
     }
     obj->unk4C = obj->unk34;
 }
@@ -1874,15 +1849,11 @@ void fn_2_6BD9C(Rep0B08Slot *obj) {
 
 // .text:0x0006BCAC size:0xF0 mapped:0x806AAD40
 void fn_2_6BCAC(Rep0B08Slot *obj) {
-    s32 n = obj->index;
-    u8 *ent;
-    MENU->slots[n].unkC0 = 0;
-    ent = lbl_2_data_3C84 + 9 * 6;
-    fn_2_8CD58(n, *(s16 *)(ent + 0x0), ent[0x4], 1, *(s16 *)(ent + 0x2), 0, 0);
-    ANIM->curAnim[n] = 9;
+    fn_2_68F08(obj->index, 0);
+    fn_2_68F24(obj->index, 9);
     obj->unk4C = 0.0f;
     obj->unk34 = 0.0f;
-    SLOTS[n].unkCA = 0xFF;
+    fn_2_68D90(obj->index, 0xFF);
     obj->unk8C = 0.0f;
     obj->mode = 1;
 }
