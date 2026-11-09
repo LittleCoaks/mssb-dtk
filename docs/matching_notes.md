@@ -871,7 +871,7 @@ too). Implementing a yield-0 hub buys nothing immediately.
 
 Confirmed prediction: implementing `autoMovementDetermineWhatToDo` (484 B, a
 leaf) took itself 0% -> 100% and simultaneously took `setDeepFlyCornerOutfielderPresets` and
-`fn_3_40D54` from 7.69% -> 100% each, in one build. Three functions matched
+`aITeam_cornerOutfieldersDetermineWhatToDo` from 7.69% -> 100% each, in one build. Three functions matched
 from one change.
 
 ## Pointer-local scope of assignment is a separate lever from pointer-vs-array
@@ -6306,11 +6306,11 @@ functions. These lessons are not specific to one file:
 ## Findings from the fielder.c section passes (Catching, Cover bases, Fielder selection; 2026-10)
 
 - **Hand-written blocks are usually an inlined helper.** In fielder.c most large near-misses had a
-  never-`bl`'d helper copied out by hand (catch-state setup `fn_3_2C238`, `setFielderAutoCoords`,
+  never-`bl`'d helper copied out by hand (catch-state setup `initCatchAnimationState`, `setFielderAutoCoords`,
   `stopFielderAtCurrentPosition`, `setFielderAutoMovementIfValid`, `fRunningTimeToDestination`).
   Calling the helper fixed the match and, several times, a real bug in the copy. Under
   `-inline deferred` a helper defined later in the file still inlines into an earlier one
-  (`unused_FUN_80678e58` into `updateFielderSelection`).
+  (`resetFielderSelection` into `updateFielderSelection`).
 - **A helper's load/store bases carry into every inlined copy.** `stopFielderAtCurrentPosition` loads
   through its local pointer but stores through `g_Fielders[idx]`; once the helper was written that way
   the inlined copies got the target's separate store base (autoMovement1_coverBase -> 100,
@@ -6381,7 +6381,7 @@ functions. These lessons are not specific to one file:
   local. updateSomeAutoMovementAssignments' first loop got the target's registers by re-reading
   `fielderAssignedLocationIndex[i]` at every use instead of keeping an `s16` local. MWCC's CSE value
   takes a different register than a named local would.
-- **Inlined copies can want the opposite source order from the standalone body.** In fn_3_402A8,
+- **Inlined copies can want the opposite source order from the standalone body.** In aITeam_selectInitialFielders_byLandingSpot,
   `shiftAmt += 3, i++` matched the standalone function, but its two inlined copies (in
   aITeam/humanTeamFieldingFirstFrameAfterHit) dropped from 100. Check every caller before keeping an
   order change in a function that also inlines elsewhere.
@@ -6395,7 +6395,7 @@ functions. These lessons are not specific to one file:
   helper's reuse of that base. setStandingOnBaseVariables went 94.83 -> 100 on the loop counter alone.
   The same flip on two index locals and one inline-helper parameter took
   updateSomeAutoMovementAssignments from 95.8 to 97.3, and `distanceToBallLandingSpot(s32 idx)` took
-  fn_3_402A8 from 97.8 to 99.96. Sweep it mechanically: flip one `int` local or `static inline` parameter at a
+  aITeam_selectInitialFielders_byLandingSpot from 97.8 to 99.96. Sweep it mechanically: flip one `int` local or `static inline` parameter at a
   time and re-score the whole unit. Most flips change nothing or break matched callers, so keep only
   the clean hits.
 - **A narrow local can be the whole problem.** determineBestFrameForFielder's `s16 reactionFrames`
