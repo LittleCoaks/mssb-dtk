@@ -1877,7 +1877,7 @@ void runnerAI_updateUnusedBaseHoldFlag(int runnerIdx) {
         runner->unused_AIBaseHoldFlag = 0;
     }
 
-    if (g_FieldingLogic.locationThrownTo == 5 || g_FieldingLogic.locationThrownTo == 6 ||
+    if (g_FieldingLogic.locationThrownTo == COVER_LOCATION_MOUND_CUTOFF || g_FieldingLogic.locationThrownTo == COVER_LOCATION_CUTOFF ||
         g_FieldingLogic.locationThrownTo == runner->currentBase) {
         if (runner->percentTowardsNextBase >= 0.125f && runner->runningDirectionCode == RUNNER_MOVEMENT_FORWARDS &&
             g_Ball.ballZoneAwayFromHome <= BALL_ZONE_OF_MID) {
@@ -3942,7 +3942,7 @@ BOOL running_overrun1BIndicator(void) {
                   (g_Ball.ballZoneAwayFromHome <= BALL_ZONE_OF_SHALLOW && g_Ball.ballVelocity < 0.2f) ||
                   (g_Ball.fielderWBallIndex >= 0 && g_Ball.ballDistanceFromBase[1] < 25.0f) ||
                   (g_Ball.fielderWBallIndex == FIELDING_POSITION_RIGHT_FIELD && runner->fractionalBasesRan <= 0.75f) ||
-                  (g_FieldingLogic.locationThrownTo == 1 && g_Ball.ballState == BALL_STATE_THROWN &&
+                  (g_FieldingLogic.locationThrownTo == COVER_LOCATION_FIRST && g_Ball.ballState == BALL_STATE_THROWN &&
                    runner->framesToNextBase + 30 > g_Ball.framesUntilThrowReachesDest)))) {
                 goto isOverrun1st;
             }

@@ -192,8 +192,8 @@ void initBallAndGameStateOnLoad(void) {
     g_Ball.Hit_HorizontalPower = 0x6E;
     g_Ball.Hit_VerticalAngle = 0x18D;
     g_Ball.Hit_HorizontalAngle = 0x272;
-    g_FieldingLogic.locationThrownTo = -1;
-    g_FieldingLogic.humanSelectedPlaceToThrow = -1;
+    g_FieldingLogic.locationThrownTo = COVER_LOCATION_NONE;
+    g_FieldingLogic.humanSelectedPlaceToThrow = COVER_LOCATION_NONE;
     g_BallsStrikesOuts.outs = 0;
     g_BallsStrikesOuts.strikes = 0;
     g_BallsStrikesOuts.balls = 0;
@@ -580,8 +580,8 @@ void calculateImplicationsOfTheHitTrajectory(void) {
     }
     g_Ball.ballDistanceFromBase[0] = g_Ball.ballDistanceFromHome;
     {
-        f32 dx = base_MoundCoordinates[4].x - g_Ball.AtBat_Contact_BallPos.x;
-        f32 dz = base_MoundCoordinates[4].z - g_Ball.AtBat_Contact_BallPos.z;
+        f32 dx = base_MoundCoordinates[COVER_LOCATION_MOUND].x - g_Ball.AtBat_Contact_BallPos.x;
+        f32 dz = base_MoundCoordinates[COVER_LOCATION_MOUND].z - g_Ball.AtBat_Contact_BallPos.z;
         f32 sqx = dx * dx;
         f32 sqz = dz * dz;
 
@@ -644,8 +644,8 @@ void calculateImplicationsOfTheHitTrajectory(void) {
         g_Ball.currentStarSwing2 == 0 && g_Ball.maybeBuntInd == 0 && g_Ball.hangtimeOfHit >= 0x78 &&
         g_Ball.maxYOfHit > 10.0f && g_BallsStrikesOuts.storedOuts < 2 && g_Ball.howFoulTheBallWillBe < 3 &&
         g_Ball.framesSinceHit == 0x3C && g_Ball.numFieldersWhoHandledBallDuringPlay == 0) {
-        f32 dx = base_MoundCoordinates[4].x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
-        f32 dz = base_MoundCoordinates[4].z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
+        f32 dx = base_MoundCoordinates[COVER_LOCATION_MOUND].x - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
+        f32 dz = base_MoundCoordinates[COVER_LOCATION_MOUND].z - g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.z;
         f32 sqx = dx * dx;
         f32 sqz = dz * dz;
 

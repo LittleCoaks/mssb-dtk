@@ -882,7 +882,7 @@ fixed-index access (and wrong for loop induction)" above. That entry frames
 the choice as binary (declare the pointer vs. use the index). There is a
 third, finer lever: *where in the function the pointer is assigned*.
 
-Measured on `fn_3_49EA8`, three steps, identical semantics throughout, only
+Measured on `sendFielderToPresetPosition`, three steps, identical semantics throughout, only
 the pointer's declaration/assignment placement changing:
 - `InMemFielder* fielder = &g_Fielders[i];` initialized at the top and used
   for every store: **89.86%**

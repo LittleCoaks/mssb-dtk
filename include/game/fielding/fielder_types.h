@@ -50,13 +50,13 @@ typedef struct {
     /*0x00be*/ s16 cutoffFielderIndex;
     /*0x00c0*/ s16 someFrameCounterFielderRelated;
     /*0x00c2*/ s16 interceptThrowFielder;
-    /*0x00c4*/ s16 locationThrownTo;
-    /*0x00c6*/ s16 humanSelectedPlaceToThrow;
+    /*0x00c4*/ E(s16, COVER_LOCATION) locationThrownTo;          // COVER_LOCATION, or 8: hold the ball (throwWaitingInd)
+    /*0x00c6*/ E(s16, COVER_LOCATION) humanSelectedPlaceToThrow; // as locationThrownTo
     /*0x00c8*/ s16 someHumanThrowFrameCounter;
-    /*0x00ca*/ s16 locThrownTo2;
+    /*0x00ca*/ E(s16, COVER_LOCATION) locThrownTo2;
     /*0x00cc*/ s16 somethingForTryingTagOutTargetBase;
     /*0x00ce*/ s16 xcc_Stored_0;
-    /*0x00d0*/ s16 fielderAssignedLocationIndex[5]; // fielder covering each location: bases 0..3, mound (4)
+    /*0x00d0*/ s16 fielderAssignedLocationIndex[5]; // fielder covering each location: bases (COVER_LOCATION_HOME..THIRD), mound (COVER_LOCATION_MOUND, held by the COVER_LOCATION_MOUND_CUTOFF fielder)
     /*0x00da*/ s16 fielderSelectionChangeCooldown; // frames before the human's fielder auto-switches again (set to 20/45)
     /*0x00dc*/ s16 tagChaseFromBase;              // base the ball holder chases a runner from (-1 if none)
     /*0x00de*/ s16 runnerChasingAfter;
@@ -73,7 +73,7 @@ typedef struct {
     /*0x00f4*/ s16 someRunnerNum;
     /*0x00f6*/ s16 bodyCheckStageCountdown;
     /*0x00f8*/ u8 fielderAutoMovementCode[9];
-    /*0x0101*/ u8 baseCoveredInd[4];
+    /*0x0101*/ u8 baseCoveredInd[4]; // by COVER_LOCATION_HOME..THIRD
     /*0x0105*/ u8 playerAtMoundCutoffLocation;
     /*0x0106*/ u8 throwSpeedType;
     /*0x0107*/ E(u8, PICKOFF_STEAL_CODE) liveBallReason;
@@ -275,7 +275,7 @@ typedef struct _InMemFielder {
     /*0x186*/ s16 framesToGetToBallLandingSpot;
     /*0x188*/ s16 _0188;
     /*0x18A*/ s16 aiDistToStandFromWallCollision;
-    /*0x18C*/ s16 locationResponsibleForCovering;
+    /*0x18C*/ E(s16, COVER_LOCATION) locationResponsibleForCovering;
     /*0x18E*/ s16 baseCuttoffIsTargeting;
     /*0x190*/ s16 presetLocationCategory;
     /*0x192*/ s16 throwWindupEstimate;
@@ -322,7 +322,7 @@ typedef struct _InMemFielder {
     /*0x1D4*/ u8 presetLocationToStandAt;
     /*0x1D5*/ u8 unknown_writeOnly;
     /*0x1D6*/ u8 fielderVeloAdjustmentCode;
-    /*0x1D7*/ u8 isResponsibleForCoveringALocation;
+    /*0x1D7*/ E(u8, COVER_ROLE) coverRole;
     /*0x1D8*/ u8 pitcherHeadingToCover1stOr3rd;
     /*0x1D9*/ u8 goingToAutoLocationInd;
     /*0x1DA*/ u8 cantCatchFlyBallInd;
@@ -434,6 +434,37 @@ extern InMemFielder g_Fielders[9];
 typedef enum _DASH_STATE {
     /* 2 */ DASH_STATE_SPRINTING = 2,
 } DASH_STATE;
+
+/* InMemFielder.locationResponsibleForCovering, g_FieldingLogic.locationThrownTo and the index into
+ * fielderAssignedLocationIndex[] / baseCoveredInd[] / base_MoundCoordinates[] / distanceToBases[].
+ * 0..3 are covered with COVER_ROLE_BASE (autoMovement1_coverBase); 5..15 with COVER_ROLE_SUPPORT
+ * (autoMovement14_infieldSupport, which moves the fielder to the spot named here). */
+typedef enum _COVER_LOCATION {
+    /* -1 */ COVER_LOCATION_NONE = -1,
+    /*  0 */ COVER_LOCATION_HOME,
+    /*  1 */ COVER_LOCATION_FIRST,
+    /*  2 */ COVER_LOCATION_SECOND,
+    /*  3 */ COVER_LOCATION_THIRD,
+    /*  4 */ COVER_LOCATION_MOUND,               // slot in fielderAssignedLocationIndex / base_MoundCoordinates; never a fielder's location
+    /*  5 */ COVER_LOCATION_MOUND_CUTOFF,        // beside the mound (playerAtMoundCutoffLocation); owns fielderAssignedLocationIndex[MOUND]
+    /*  6 */ COVER_LOCATION_CUTOFF,              // cutoff man (-> AUTO_MOVEMENT_CUTOFF); L-trigger throw target
+    /*  7 */ COVER_LOCATION_PRESET_POSITION,     // back to presetFielderLocations[fielder + 2]
+    /*  8 */ COVER_LOCATION_NEAR_HOME_1B_SIDE,   // extendedLocationCoordinates[0] (6, 0); never set
+    /*  9 */ COVER_LOCATION_NEAR_HOME_3B_SIDE,   // extendedLocationCoordinates[1] (-6, 0)
+    /* 10 */ COVER_LOCATION_NEAR_FIRST,          // extendedLocationCoordinates[2] (20, 27)
+    /* 11 */ COVER_LOCATION_NEAR_SECOND_1B_SIDE, // extendedLocationCoordinates[3] (8, 40)
+    /* 12 */ COVER_LOCATION_NEAR_SECOND_3B_SIDE, // extendedLocationCoordinates[4] (-8, 40)
+    /* 13 */ COVER_LOCATION_NEAR_THIRD,          // extendedLocationCoordinates[5] (-20, 27)
+    /* 14 */ COVER_LOCATION_CLEAR_BASEPATH,      // head for the mound until out of the base path (inBasePath == 0)
+    /* 15 */ COVER_LOCATION_PITCHER_BACKUP,      // pitcher's spot off the mound picked from the hit angle
+} COVER_LOCATION;
+
+/* InMemFielder.coverRole: what kind of location locationResponsibleForCovering holds. */
+typedef enum _COVER_ROLE {
+    /* 0 */ COVER_ROLE_NONE,
+    /* 1 */ COVER_ROLE_BASE,    // covering a base (COVER_LOCATION_HOME..THIRD), AUTO_MOVEMENT_COVER_BASE
+    /* 2 */ COVER_ROLE_SUPPORT, // a support spot (COVER_LOCATION_MOUND_CUTOFF and up), AUTO_MOVEMENT_INFIELD_SUPPORT
+} COVER_ROLE;
 
 /* Index into autoMovementFunctions[] (fielder.c); comments name the dispatched function. */
 typedef enum _AUTO_MOVEMENT_FUNCTION_INDEX {
