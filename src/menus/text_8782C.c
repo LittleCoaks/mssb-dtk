@@ -168,6 +168,14 @@ typedef struct ModelSlot {
     /* 0x8 */ void *tex;
 } ModelSlot;
 
+static inline BOOL isEqual(s32 a, s32 b) {
+    return a == b ? TRUE : FALSE;
+}
+
+static inline UIRecord *sceneRecord(DrawingSceneStruct *node, s32 idx) {
+    return (UIRecord *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + idx].object;
+}
+
 #define REC_OBJ(idx) ((UIRecord *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (idx)].object)
 
 // .text:0x0008ACDC size:0x4 mapped:0x806C9D70
@@ -942,91 +950,69 @@ void fn_2_883C8(DrawingSceneStruct *node) {
 }
 
 // .text:0x00088250 size:0x178 mapped:0x806C72E4
+
 void fn_2_88250(DrawingSceneStruct *node) {
-    u8 *lbl = lbl_2_bss_33FBCC;
-    u8 *rec;
-
-    if (lbl[0x18] == 0) {
-
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object;
-        *(u16 *)(rec + 0x64) = 0x14;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object;
-        *(u32 *)(rec + 0x54) |= 2;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object;
-        *(u32 *)(rec + 0x5C) = 0;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object;
-        *(u8 *)(rec + 0x68) = 1;
-
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(u32 *)(menuCursors + 0x50) + 7].object;
-        *(u16 *)(rec + 0x64) = 0x13;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(u32 *)(menuCursors + 0x50) + 7].object;
-        *(u8 *)(rec + 0x68) = 1;
-
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 0x42].object;
-        *(u32 *)(rec + 0x54) |= 2;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 0x42].object;
-        *(u8 *)(rec + 0x68) = 1;
-
-        lbl[0x18] = 1;
-        lbl[0x19] = 1;
+    if (isEqual(lbl_2_bss_33FBCC[0x18], 0)) {
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 7)->elementIndex = 0x14;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 7)->flags |= 2;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 7)->frame = 0;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 7)->playMode = 1;
+        sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->elementIndex = 0x13;
+        sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->playMode = 1;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 0x42)->flags |= 2;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 0x42)->playMode = 1;
+        lbl_2_bss_33FBCC[0x18] = 1;
+        lbl_2_bss_33FBCC[0x19] = 1;
     }
-    if (lbl[0x19] == 1) {
-        lbl[0x17] = 0;
-        lbl[0x18] = 0;
-        lbl[0x19] = 0;
+    if (isEqual(lbl_2_bss_33FBCC[0x19], 1)) {
+        lbl_2_bss_33FBCC[0x17] = 0;
+        lbl_2_bss_33FBCC[0x18] = 0;
+        lbl_2_bss_33FBCC[0x19] = 0;
     }
 }
 
 // .text:0x00087FB0 size:0x2A0 mapped:0x806C7044
 void fn_2_87FB0(DrawingSceneStruct *node) {
-    u8 *lbl = lbl_2_bss_33FBCC;
-    s8 v;
     s32 i;
-    s32 count = 0;
-    s32 total = 0;
-    u8 *table;
+    s32 count;
+    s32 total;
 
-    if (lbl[0x18] == 0) {
+    if (isEqual(lbl_2_bss_33FBCC[0x18], 0)) {
         fn_2_8A008(node);
-        v = (s8)lbl[0x10];
-
-        *(u16 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 7].object + 0x64) = 0x12;
-        *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 7].object + 0x5C) = 0;
-        *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 7].object + 0x68) = 1;
-
-        *(u16 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x64) = 0x12;
-        *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x68) = 1;
-
-        *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 4].object + 0x54) |= 2;
-        *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 0x42].object + 0x54) &= ~3;
-
-        lbl[0x18] = 1;
-        lbl[0xD] = (u8)v;
-        *(s32 *)(menuCursors + 0x50) = v;
-        lbl[0x10] = 0xFF;
-        lbl[0x19] = 1;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 7)->elementIndex = 0x12;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 7)->frame = 0;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 7)->playMode = 1;
+        sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->elementIndex = 0x12;
+        sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->playMode = 1;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 4)->flags |= 2;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 0x42)->flags &= ~2;
+        lbl_2_bss_33FBCC[0x18] = 1;
+        lbl_2_bss_33FBCC[0xD] = lbl_2_bss_33FBCC[0x10];
+        *(s32 *)(menuCursors + 0x50) = (s8)lbl_2_bss_33FBCC[0x10];
+        lbl_2_bss_33FBCC[0x10] = -1;
+        lbl_2_bss_33FBCC[0x19] = 1;
     }
 
-    if (lbl[0x19] == 1) {
-        table = lbl_80354768;
+    if (isEqual(lbl_2_bss_33FBCC[0x19], 1)) {
+        count = 0;
+        total = 0;
         for (i = 0; i < 3; i++) {
-            if (table[i + 0xCF5E] != 0) {
-                s8 b = (s8)table[i * 0x4508 + 0x444B];
-                if (b != -1) {
+            if (lbl_80354768[0xCF5E + i] != 0) {
+                if ((s8)lbl_80354768[i * 0x4508 + 0x444B] != -1) {
                     total++;
-                    count += (maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x32, 10) != 0);
-                } else if (table[i * 0x4508 + 0x1606] == 0) {
+                    count += maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x32, 10) != 0;
+                } else if ((s8)lbl_80354768[i * 0x4508 + 0x1606] == 0) {
                     total++;
-                    count += (maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x35, 0xE) != 0);
+                    count += maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x35, 0xE) != 0;
                 }
             }
         }
         if (count == total) {
-            *(u16 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x64) = 0x13;
-            *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x68) = 1;
-            lbl[0x17] = 0;
-            lbl[0x18] = 0;
-            lbl[0x19] = 0;
+            sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->elementIndex = 0x13;
+            sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->playMode = 1;
+            lbl_2_bss_33FBCC[0x17] = 0;
+            lbl_2_bss_33FBCC[0x18] = 0;
+            lbl_2_bss_33FBCC[0x19] = 0;
         }
     }
 }
