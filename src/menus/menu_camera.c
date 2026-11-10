@@ -45,7 +45,48 @@ extern PadInput AtBat_ButtonInput1[4];
 #define CAM (lbl_2_bss_1A824C + 0x190000)
 #define CAM_F(off) (*(f32 *)&CAM[off])
 #define CAM_V(off) (*(Vec *)&CAM[off])
-#define CAM_PORT ((s8)CAM[0x7863])
+/* x/y/z components of the Vec fields in menu_camera.h */
+#define MENU_CAM_EYE_X (MENU_CAM_EYE + 0)
+#define MENU_CAM_EYE_Y (MENU_CAM_EYE + 4)
+#define MENU_CAM_EYE_Z (MENU_CAM_EYE + 8)
+#define MENU_CAM_TARGET_X (MENU_CAM_TARGET + 0)
+#define MENU_CAM_TARGET_Y (MENU_CAM_TARGET + 4)
+#define MENU_CAM_TARGET_Z (MENU_CAM_TARGET + 8)
+#define MENU_CAM_EYE_PREV_X (MENU_CAM_EYE_PREV + 0)
+#define MENU_CAM_EYE_PREV_Y (MENU_CAM_EYE_PREV + 4)
+#define MENU_CAM_EYE_PREV_Z (MENU_CAM_EYE_PREV + 8)
+#define MENU_CAM_EYE_SPRING_X (MENU_CAM_EYE_SPRING + 0)
+#define MENU_CAM_EYE_SPRING_Y (MENU_CAM_EYE_SPRING + 4)
+#define MENU_CAM_EYE_SPRING_Z (MENU_CAM_EYE_SPRING + 8)
+#define MENU_CAM_TARGET_PREV_X (MENU_CAM_TARGET_PREV + 0)
+#define MENU_CAM_TARGET_PREV_Y (MENU_CAM_TARGET_PREV + 4)
+#define MENU_CAM_TARGET_PREV_Z (MENU_CAM_TARGET_PREV + 8)
+#define MENU_CAM_TARGET_SPRING_X (MENU_CAM_TARGET_SPRING + 0)
+#define MENU_CAM_TARGET_SPRING_Y (MENU_CAM_TARGET_SPRING + 4)
+#define MENU_CAM_TARGET_SPRING_Z (MENU_CAM_TARGET_SPRING + 8)
+#define MENU_CAM_CLAMPED_EYE_X (MENU_CAM_CLAMPED_EYE + 0)
+#define MENU_CAM_CLAMPED_EYE_Y (MENU_CAM_CLAMPED_EYE + 4)
+#define MENU_CAM_CLAMPED_EYE_Z (MENU_CAM_CLAMPED_EYE + 8)
+#define MENU_CAM_IN_BOUNDS_TARGET_X (MENU_CAM_IN_BOUNDS_TARGET + 0)
+#define MENU_CAM_IN_BOUNDS_TARGET_Y (MENU_CAM_IN_BOUNDS_TARGET + 4)
+#define MENU_CAM_IN_BOUNDS_TARGET_Z (MENU_CAM_IN_BOUNDS_TARGET + 8)
+#define CAM_PORT ((s8)CAM[MENU_WORK_ACTIVE_PORT])
+
+/* Fields of the camera block the scene passes in (lbl_2_bss_1A81D4). Note: Rep0DEMtxBlock in
+ * menus/rep_0DE0.h describes this block with a different layout. */
+#define CAMBLK_PITCH         0x30 /* u16: x rotation (debug free-look) */
+#define CAMBLK_YAW           0x32 /* u16: y rotation */
+#define CAMBLK_STRAFE_SPEED  0x34 /* f32: sideways speed (debug free-look) */
+#define CAMBLK_FORWARD_SPEED 0x38 /* f32: forward speed (debug free-look) */
+#define CAMBLK_FOV           0x3C /* f32 */
+#define CAMBLK_TARGET        0x40 /* Vec: look-at target */
+#define CAMBLK_TARGET_Y      (CAMBLK_TARGET + 4)
+#define CAMBLK_TARGET_Z      (CAMBLK_TARGET + 8)
+#define CAMBLK_EYE           0x4C /* Vec: eye */
+#define CAMBLK_EYE_Y         (CAMBLK_EYE + 4)
+#define CAMBLK_EYE_Z         (CAMBLK_EYE + 8)
+#define CAMBLK_58            0x58 /* s32: cleared on snap; meaning unknown */
+#define CAMBLK_F(off)        (lbl_2_bss_1A81D4[(off) / 4])
 
 static inline Vec springStep(Vec target, Vec pos, Vec prev, f32 k, f32 damping, f32 rest) {
     Vec toTarget;
@@ -70,49 +111,49 @@ void menuCamera_resetSpring(s32 arg0) {
     f32 scaleB = 0.00002f;
     f32 scaleA = 0.00001f;
 
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7668] = menuCameraSpringParams[arg0][0];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x766C] = menuCameraSpringParams[arg0][1];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7670] = menuCameraSpringParams[arg0][2];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7674] = menuCameraSpringParams[arg0][3];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7678] = menuCameraSpringParams[arg0][4];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x767C] = menuCameraSpringParams[arg0][5];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7620] = lbl_2_bss_1A81D4[19];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7624] = lbl_2_bss_1A81D4[20];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7628] = lbl_2_bss_1A81D4[21];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x762C] = scaleA + lbl_2_bss_1A81D4[19];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7630] = scaleA + lbl_2_bss_1A81D4[20];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7634] = scaleA + lbl_2_bss_1A81D4[21];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7638] = scaleA + lbl_2_bss_1A81D4[16];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x763C] = scaleA + lbl_2_bss_1A81D4[17];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7640] = scaleA + lbl_2_bss_1A81D4[18];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7644] = scaleB + lbl_2_bss_1A81D4[16];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7648] = scaleB + lbl_2_bss_1A81D4[17];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x764C] = scaleB + lbl_2_bss_1A81D4[18];
+    CAM_F(MENU_CAM_EYE_SPRING_K) = menuCameraSpringParams[arg0][0];
+    CAM_F(MENU_CAM_EYE_SPRING_DAMP) = menuCameraSpringParams[arg0][1];
+    CAM_F(MENU_CAM_EYE_SPRING_REST) = menuCameraSpringParams[arg0][2];
+    CAM_F(MENU_CAM_TARGET_SPRING_K) = menuCameraSpringParams[arg0][3];
+    CAM_F(MENU_CAM_TARGET_SPRING_DAMP) = menuCameraSpringParams[arg0][4];
+    CAM_F(MENU_CAM_TARGET_SPRING_REST) = menuCameraSpringParams[arg0][5];
+    CAM_F(MENU_CAM_EYE_PREV_X) = CAMBLK_F(CAMBLK_EYE);
+    CAM_F(MENU_CAM_EYE_PREV_Y) = CAMBLK_F(CAMBLK_EYE_Y);
+    CAM_F(MENU_CAM_EYE_PREV_Z) = CAMBLK_F(CAMBLK_EYE_Z);
+    CAM_F(MENU_CAM_EYE_SPRING_X) = scaleA + CAMBLK_F(CAMBLK_EYE);
+    CAM_F(MENU_CAM_EYE_SPRING_Y) = scaleA + CAMBLK_F(CAMBLK_EYE_Y);
+    CAM_F(MENU_CAM_EYE_SPRING_Z) = scaleA + CAMBLK_F(CAMBLK_EYE_Z);
+    CAM_F(MENU_CAM_TARGET_PREV_X) = scaleA + CAMBLK_F(CAMBLK_TARGET);
+    CAM_F(MENU_CAM_TARGET_PREV_Y) = scaleA + CAMBLK_F(CAMBLK_TARGET_Y);
+    CAM_F(MENU_CAM_TARGET_PREV_Z) = scaleA + CAMBLK_F(CAMBLK_TARGET_Z);
+    CAM_F(MENU_CAM_TARGET_SPRING_X) = scaleB + CAMBLK_F(CAMBLK_TARGET);
+    CAM_F(MENU_CAM_TARGET_SPRING_Y) = scaleB + CAMBLK_F(CAMBLK_TARGET_Y);
+    CAM_F(MENU_CAM_TARGET_SPRING_Z) = scaleB + CAMBLK_F(CAMBLK_TARGET_Z);
 }
 
 // .text:0x00094634 size:0xA8 mapped:0x806D36C8
 void menuCamera_setSpringPreset(s32 arg0) {
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7668] = menuCameraSpringParams[arg0][0];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x766C] = menuCameraSpringParams[arg0][1];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7670] = menuCameraSpringParams[arg0][2];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7674] = menuCameraSpringParams[arg0][3];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x7678] = menuCameraSpringParams[arg0][4];
-    *(f32 *)&lbl_2_bss_1A824C[0x190000 + 0x767C] = menuCameraSpringParams[arg0][5];
+    CAM_F(MENU_CAM_EYE_SPRING_K) = menuCameraSpringParams[arg0][0];
+    CAM_F(MENU_CAM_EYE_SPRING_DAMP) = menuCameraSpringParams[arg0][1];
+    CAM_F(MENU_CAM_EYE_SPRING_REST) = menuCameraSpringParams[arg0][2];
+    CAM_F(MENU_CAM_TARGET_SPRING_K) = menuCameraSpringParams[arg0][3];
+    CAM_F(MENU_CAM_TARGET_SPRING_DAMP) = menuCameraSpringParams[arg0][4];
+    CAM_F(MENU_CAM_TARGET_SPRING_REST) = menuCameraSpringParams[arg0][5];
     if (arg0 == 0) {
-        lbl_2_bss_1A824C[0x190000 + 0x7855] = 0;
+        CAM[MENU_CAM_SPRING_ENABLED] = 0;
     } else {
-        lbl_2_bss_1A824C[0x190000 + 0x7855] = 1;
+        CAM[MENU_CAM_SPRING_ENABLED] = 1;
     }
 }
 
 // .text:0x0009461C size:0x18 mapped:0x806D36B0
 void menuCamera_setFollowSlot(s16 arg0) {
-    *(s16 *)&lbl_2_bss_1A824C[0x190000 + 0x774A] = arg0;
+    *(s16 *)&CAM[MENU_CAM_FOLLOW_SLOT] = arg0;
 }
 
 // .text:0x00094604 size:0x18 mapped:0x806D3698
 void menuCamera_setEyeFollowsSlot(u8 arg0) {
-    lbl_2_bss_1A824C[0x190000 + 0x7856] = arg0;
+    CAM[MENU_CAM_EYE_FOLLOWS_SLOT] = arg0;
 }
 
 // .text:0x00093C64 size:0x9A0 mapped:0x806D2CF8
@@ -124,99 +165,99 @@ void menuCamera_snapToPreset(Mtx arg0) {
     Vec lookAt;
     s32 idx;
 
-    idx = CAM[0x7849];
-    if (CAM[0x7856] == 1) {
+    idx = CAM[MENU_CAM_PRESET];
+    if (CAM[MENU_CAM_EYE_FOLLOWS_SLOT] == 1) {
         memcpy(&ang, &menuCameraPresets[idx].eye, sizeof(Vec));
-        fn_2_68DE8(*(s16 *)&CAM[0x774A], &offset);
+        fn_2_68DE8(*(s16 *)&CAM[MENU_CAM_FOLLOW_SLOT], &offset);
         PSVECAdd(&offset, &ang, &ang);
-        memcpy(self + 0x4C, &ang, sizeof(Vec));
+        memcpy(self + CAMBLK_EYE, &ang, sizeof(Vec));
     } else {
         memcpy(&ang, &menuCameraPresets[idx].eye, sizeof(Vec));
-        memcpy(self + 0x4C, &ang, sizeof(Vec));
+        memcpy(self + CAMBLK_EYE, &ang, sizeof(Vec));
     }
 
-    if (CAM[0x7848] == 0) {
-        if (*(f32 *)(self + 0x4C) <= -10.0f) {
-            *(f32 *)(self + 0x4C) = -10.0f;
+    if (CAM[MENU_CAM_UNBOUNDED] == 0) {
+        if (*(f32 *)(self + CAMBLK_EYE) <= -10.0f) {
+            *(f32 *)(self + CAMBLK_EYE) = -10.0f;
         }
-        if (*(f32 *)(self + 0x4C) >= 11.0f) {
-            *(f32 *)(self + 0x4C) = 11.0f;
+        if (*(f32 *)(self + CAMBLK_EYE) >= 11.0f) {
+            *(f32 *)(self + CAMBLK_EYE) = 11.0f;
         }
-        if (*(f32 *)(self + 0x54) <= -50.0f) {
-            *(f32 *)(self + 0x54) = -50.0f;
+        if (*(f32 *)(self + CAMBLK_EYE_Z) <= -50.0f) {
+            *(f32 *)(self + CAMBLK_EYE_Z) = -50.0f;
         }
-        if (*(f32 *)(self + 0x54) >= -22.0f) {
-            *(f32 *)(self + 0x54) = -22.0f;
+        if (*(f32 *)(self + CAMBLK_EYE_Z) >= -22.0f) {
+            *(f32 *)(self + CAMBLK_EYE_Z) = -22.0f;
         }
-        memcpy(&CAM[0x7650], self + 0x4C, sizeof(Vec));
+        memcpy(&CAM[MENU_CAM_CLAMPED_EYE], self + CAMBLK_EYE, sizeof(Vec));
     }
-    memcpy(&CAM[0x7608], self + 0x4C, sizeof(Vec));
+    memcpy(&CAM[MENU_CAM_EYE], self + CAMBLK_EYE, sizeof(Vec));
 
-    CAM_F(0x7620) = CAM_F(0x7608);
-    CAM_F(0x7624) = CAM_F(0x760C);
-    CAM_F(0x7628) = CAM_F(0x7610);
-    CAM_F(0x762C) = 0.00001f + CAM_F(0x7608);
-    CAM_F(0x7630) = 0.00001f + CAM_F(0x760C);
-    CAM_F(0x7634) = 0.00001f + CAM_F(0x7610);
+    CAM_F(MENU_CAM_EYE_PREV_X) = CAM_F(MENU_CAM_EYE_X);
+    CAM_F(MENU_CAM_EYE_PREV_Y) = CAM_F(MENU_CAM_EYE_Y);
+    CAM_F(MENU_CAM_EYE_PREV_Z) = CAM_F(MENU_CAM_EYE_Z);
+    CAM_F(MENU_CAM_EYE_SPRING_X) = 0.00001f + CAM_F(MENU_CAM_EYE_X);
+    CAM_F(MENU_CAM_EYE_SPRING_Y) = 0.00001f + CAM_F(MENU_CAM_EYE_Y);
+    CAM_F(MENU_CAM_EYE_SPRING_Z) = 0.00001f + CAM_F(MENU_CAM_EYE_Z);
 
-    if (*(s16 *)&CAM[0x774A] != -1) {
-        fn_2_68DE8(*(s16 *)&CAM[0x774A], &lookAt);
+    if (*(s16 *)&CAM[MENU_CAM_FOLLOW_SLOT] != -1) {
+        fn_2_68DE8(*(s16 *)&CAM[MENU_CAM_FOLLOW_SLOT], &lookAt);
     } else {
         memcpy(&lookAt, &menuCameraPresets[idx].target, sizeof(Vec));
     }
-    memcpy(&CAM[0x765C], &lookAt, sizeof(Vec));
+    memcpy(&CAM[MENU_CAM_IN_BOUNDS_TARGET], &lookAt, sizeof(Vec));
 
-    if (CAM[0x7848] == 0) {
+    if (CAM[MENU_CAM_UNBOUNDED] == 0) {
         if (lookAt.x <= -10.0f) {
             lookAt.x = -10.0f;
         } else if (lookAt.x >= 11.0f) {
             lookAt.x = 11.0f;
         } else {
-            CAM_F(0x765C) = lookAt.x;
+            CAM_F(MENU_CAM_IN_BOUNDS_TARGET_X) = lookAt.x;
         }
         if (lookAt.z <= -24.0f) {
             lookAt.z = -24.0f;
         } else if (lookAt.z >= 8.0f) {
             lookAt.z = 8.0f;
         } else {
-            CAM_F(0x7664) = lookAt.z;
+            CAM_F(MENU_CAM_IN_BOUNDS_TARGET_Z) = lookAt.z;
         }
     }
-    memcpy(&CAM[0x7614], &lookAt, sizeof(Vec));
+    memcpy(&CAM[MENU_CAM_TARGET], &lookAt, sizeof(Vec));
 
-    CAM_F(0x7638) = 0.00001f + CAM_F(0x7614);
-    CAM_F(0x763C) = 0.00001f + CAM_F(0x7618);
-    CAM_F(0x7640) = 0.00001f + CAM_F(0x761C);
-    CAM_F(0x7644) = 0.00002f + CAM_F(0x7614);
-    CAM_F(0x7648) = 0.00002f + CAM_F(0x7618);
-    CAM_F(0x764C) = 0.00002f + CAM_F(0x761C);
+    CAM_F(MENU_CAM_TARGET_PREV_X) = 0.00001f + CAM_F(MENU_CAM_TARGET_X);
+    CAM_F(MENU_CAM_TARGET_PREV_Y) = 0.00001f + CAM_F(MENU_CAM_TARGET_Y);
+    CAM_F(MENU_CAM_TARGET_PREV_Z) = 0.00001f + CAM_F(MENU_CAM_TARGET_Z);
+    CAM_F(MENU_CAM_TARGET_SPRING_X) = 0.00002f + CAM_F(MENU_CAM_TARGET_X);
+    CAM_F(MENU_CAM_TARGET_SPRING_Y) = 0.00002f + CAM_F(MENU_CAM_TARGET_Y);
+    CAM_F(MENU_CAM_TARGET_SPRING_Z) = 0.00002f + CAM_F(MENU_CAM_TARGET_Z);
 
     menuCamera_springTarget(arg0, &lookAt);
-    memcpy(&CAM[0x7614], &lookAt, sizeof(Vec));
+    memcpy(&CAM[MENU_CAM_TARGET], &lookAt, sizeof(Vec));
     menuCamera_springEye(arg0, &lookAt);
 
-    memcpy(self + 0x4C, &CAM[0x7608], sizeof(Vec));
-    memcpy(self + 0x40, &CAM[0x7614], sizeof(Vec));
+    memcpy(self + CAMBLK_EYE, &CAM[MENU_CAM_EYE], sizeof(Vec));
+    memcpy(self + CAMBLK_TARGET, &CAM[MENU_CAM_TARGET], sizeof(Vec));
 
     C_MTXFrustum(proj, -0.175f, 0.175f, 0.25f, -0.25f, 1.0f, 512.0f);
     GXSetProjection(proj, 0);
 
     fn_800B806C(0, -240.0f, 240.0f, -320.0f, 320.0f, -512.0f, -1.0f, 1280.0f);
 
-    *(s32 *)(self + 0x58) = 0;
-    *(f32 *)(self + 0x38) = 0.0f;
-    *(s16 *)(self + 0x30) = menuCameraPresets[idx].pitch;
-    *(s16 *)(self + 0x32) = menuCameraPresets[idx].yaw;
-    *(f32 *)(self + 0x3C) = menuCameraPresets[idx].fov;
+    *(s32 *)(self + CAMBLK_58) = 0;
+    *(f32 *)(self + CAMBLK_FORWARD_SPEED) = 0.0f;
+    *(s16 *)(self + CAMBLK_PITCH) = menuCameraPresets[idx].pitch;
+    *(s16 *)(self + CAMBLK_YAW) = menuCameraPresets[idx].yaw;
+    *(f32 *)(self + CAMBLK_FOV) = menuCameraPresets[idx].fov;
 }
 
 // .text:0x00093BF8 size:0x6C mapped:0x806D2C8C
 void menuCamera_update(Mtx arg0) {
-    switch (lbl_2_bss_1A824C[0x190000 + 0x7845]) {
-    case 0:
+    switch (CAM[MENU_CAM_MODE]) {
+    case MENU_CAM_MODE_PRESET:
         menuCamera_updatePreset(arg0);
         break;
-    case 1:
+    case MENU_CAM_MODE_DEBUG_FREE_LOOK:
         menuCamera_updateDebugFreeLook(arg0);
         break;
     }
@@ -238,14 +279,14 @@ void menuCamera_updatePreset(Mtx arg0) {
     f32 sinY;
     s32 idx;
 
-    idx = CAM[0x7849];
-    *(u16 *)(self + 0x30) = menuCameraPresets[idx].pitch;
-    *(u16 *)(self + 0x32) = menuCameraPresets[idx].yaw;
-    *(f32 *)(self + 0x34) = 0.0f;
-    *(f32 *)(self + 0x38) = 0.0f;
+    idx = CAM[MENU_CAM_PRESET];
+    *(u16 *)(self + CAMBLK_PITCH) = menuCameraPresets[idx].pitch;
+    *(u16 *)(self + CAMBLK_YAW) = menuCameraPresets[idx].yaw;
+    *(f32 *)(self + CAMBLK_STRAFE_SPEED) = 0.0f;
+    *(f32 *)(self + CAMBLK_FORWARD_SPEED) = 0.0f;
 
-    ang.x = *(u16 *)(self + 0x30);
-    ang.y = *(u16 *)(self + 0x32);
+    ang.x = *(u16 *)(self + CAMBLK_PITCH);
+    ang.y = *(u16 *)(self + CAMBLK_YAW);
     ang.z = 0.0f;
     PSVECScale(&ang, 0.0000958738f, &ang);
 
@@ -254,73 +295,73 @@ void menuCamera_updatePreset(Mtx arg0) {
     sinY = rotY[0][2];
     cosY = rotY[0][0];
     PSMTXConcat(rotY, rotX, rot);
-    PSMTXMultVec(rot, &fwd, (Vec *)(self + 0x40));
+    PSMTXMultVec(rot, &fwd, (Vec *)(self + CAMBLK_TARGET));
 
-    *(f32 *)(self + 0x4C) += *(f32 *)(self + 0x38) * sinY - *(f32 *)(self + 0x34) * cosY;
-    *(f32 *)(self + 0x54) += *(f32 *)(self + 0x38) * cosY + *(f32 *)(self + 0x34) * sinY;
-    *(f32 *)(self + 0x40) += *(f32 *)(self + 0x4C);
-    *(f32 *)(self + 0x44) += *(f32 *)(self + 0x50);
-    *(f32 *)(self + 0x48) += *(f32 *)(self + 0x54);
+    *(f32 *)(self + CAMBLK_EYE) += *(f32 *)(self + CAMBLK_FORWARD_SPEED) * sinY - *(f32 *)(self + CAMBLK_STRAFE_SPEED) * cosY;
+    *(f32 *)(self + CAMBLK_EYE_Z) += *(f32 *)(self + CAMBLK_FORWARD_SPEED) * cosY + *(f32 *)(self + CAMBLK_STRAFE_SPEED) * sinY;
+    *(f32 *)(self + CAMBLK_TARGET) += *(f32 *)(self + CAMBLK_EYE);
+    *(f32 *)(self + CAMBLK_TARGET_Y) += *(f32 *)(self + CAMBLK_EYE_Y);
+    *(f32 *)(self + CAMBLK_TARGET_Z) += *(f32 *)(self + CAMBLK_EYE_Z);
 
-    if (CAM[0x7856] == 1) {
+    if (CAM[MENU_CAM_EYE_FOLLOWS_SLOT] == 1) {
         memcpy(&ang, &menuCameraPresets[idx].eye, sizeof(Vec));
-        fn_2_68DE8(*(s16 *)&CAM[0x774A], &offset);
+        fn_2_68DE8(*(s16 *)&CAM[MENU_CAM_FOLLOW_SLOT], &offset);
         PSVECAdd(&offset, &ang, &ang);
-        memcpy(self + 0x4C, &ang, sizeof(Vec));
+        memcpy(self + CAMBLK_EYE, &ang, sizeof(Vec));
     } else {
         memcpy(&ang, &menuCameraPresets[idx].eye, sizeof(Vec));
-        memcpy(self + 0x4C, &ang, sizeof(Vec));
+        memcpy(self + CAMBLK_EYE, &ang, sizeof(Vec));
     }
 
-    if (CAM[0x7848] == 0) {
-        if (*(f32 *)(self + 0x4C) <= -10.0f) {
-            *(f32 *)(self + 0x4C) = -10.0f;
+    if (CAM[MENU_CAM_UNBOUNDED] == 0) {
+        if (*(f32 *)(self + CAMBLK_EYE) <= -10.0f) {
+            *(f32 *)(self + CAMBLK_EYE) = -10.0f;
         }
-        if (*(f32 *)(self + 0x4C) >= 11.0f) {
-            *(f32 *)(self + 0x4C) = 11.0f;
+        if (*(f32 *)(self + CAMBLK_EYE) >= 11.0f) {
+            *(f32 *)(self + CAMBLK_EYE) = 11.0f;
         }
-        if (*(f32 *)(self + 0x54) <= -50.0f) {
-            *(f32 *)(self + 0x54) = -50.0f;
+        if (*(f32 *)(self + CAMBLK_EYE_Z) <= -50.0f) {
+            *(f32 *)(self + CAMBLK_EYE_Z) = -50.0f;
         }
-        if (*(f32 *)(self + 0x54) >= -22.0f) {
-            *(f32 *)(self + 0x54) = -22.0f;
+        if (*(f32 *)(self + CAMBLK_EYE_Z) >= -22.0f) {
+            *(f32 *)(self + CAMBLK_EYE_Z) = -22.0f;
         }
     }
-    memcpy(&CAM[0x7608], self + 0x4C, sizeof(Vec));
+    memcpy(&CAM[MENU_CAM_EYE], self + CAMBLK_EYE, sizeof(Vec));
 
-    if (*(s16 *)&CAM[0x774A] != -1) {
-        fn_2_68DE8(*(s16 *)&CAM[0x774A], &lookAt);
+    if (*(s16 *)&CAM[MENU_CAM_FOLLOW_SLOT] != -1) {
+        fn_2_68DE8(*(s16 *)&CAM[MENU_CAM_FOLLOW_SLOT], &lookAt);
     } else {
         memcpy(&lookAt, &menuCameraPresets[idx].target, sizeof(Vec));
     }
 
-    if (CAM[0x7848] == 0) {
+    if (CAM[MENU_CAM_UNBOUNDED] == 0) {
         if (lookAt.x <= -10.0f) {
             lookAt.x = -10.0f;
         } else if (lookAt.x >= 11.0f) {
             lookAt.x = 11.0f;
         } else {
-            CAM_F(0x765C) = lookAt.x;
+            CAM_F(MENU_CAM_IN_BOUNDS_TARGET_X) = lookAt.x;
         }
         if (lookAt.z <= -24.0f) {
             lookAt.z = -24.0f;
         } else if (lookAt.z >= 8.0f) {
             lookAt.z = 8.0f;
         } else {
-            CAM_F(0x7664) = lookAt.z;
+            CAM_F(MENU_CAM_IN_BOUNDS_TARGET_Z) = lookAt.z;
         }
     }
-    memcpy(&CAM[0x7614], &lookAt, sizeof(Vec));
+    memcpy(&CAM[MENU_CAM_TARGET], &lookAt, sizeof(Vec));
 
     menuCamera_springTarget(arg0, &lookAt);
-    memcpy(&CAM[0x7614], &lookAt, sizeof(Vec));
+    memcpy(&CAM[MENU_CAM_TARGET], &lookAt, sizeof(Vec));
     menuCamera_springEye(arg0, &lookAt);
 
-    memcpy(self + 0x4C, &CAM[0x7608], sizeof(Vec));
-    memcpy(self + 0x40, &CAM[0x7614], sizeof(Vec));
-    *(f32 *)(self + 0x3C) = menuCameraPresets[idx].fov;
+    memcpy(self + CAMBLK_EYE, &CAM[MENU_CAM_EYE], sizeof(Vec));
+    memcpy(self + CAMBLK_TARGET, &CAM[MENU_CAM_TARGET], sizeof(Vec));
+    *(f32 *)(self + CAMBLK_FOV) = menuCameraPresets[idx].fov;
 
-    makeLookAtMatrix(arg0, (Vec *)(self + 0x4C), &up, (Vec *)(self + 0x40));
+    makeLookAtMatrix(arg0, (Vec *)(self + CAMBLK_EYE), &up, (Vec *)(self + CAMBLK_TARGET));
 }
 
 // .text:0x00092F2C size:0x3B0 mapped:0x806D1FC0
@@ -336,22 +377,22 @@ void menuCamera_updateDebugFreeLook(Mtx arg0) {
     f32 sinY;
 
     if (!(PAD_INPUTS[CAM_PORT].hold & INPUT_TRIGGER_Z)) {
-        *(u16 *)(self + 0x30) -= PAD_INPUTS[CAM_PORT].substickY;
-        *(u16 *)(self + 0x32) += PAD_INPUTS[CAM_PORT].substickX;
-        *(f32 *)(self + 0x34) = PAD_INPUTS[CAM_PORT].stickX / -256.0f;
-        *(f32 *)(self + 0x38) = PAD_INPUTS[CAM_PORT].stickY / 256.0f;
-        *(f32 *)(self + 0x50) += PAD_INPUTS[CAM_PORT].triggerR / 1024.0f;
-        *(f32 *)(self + 0x50) -= PAD_INPUTS[CAM_PORT].triggerL / 1024.0f;
+        *(u16 *)(self + CAMBLK_PITCH) -= PAD_INPUTS[CAM_PORT].substickY;
+        *(u16 *)(self + CAMBLK_YAW) += PAD_INPUTS[CAM_PORT].substickX;
+        *(f32 *)(self + CAMBLK_STRAFE_SPEED) = PAD_INPUTS[CAM_PORT].stickX / -256.0f;
+        *(f32 *)(self + CAMBLK_FORWARD_SPEED) = PAD_INPUTS[CAM_PORT].stickY / 256.0f;
+        *(f32 *)(self + CAMBLK_EYE_Y) += PAD_INPUTS[CAM_PORT].triggerR / 1024.0f;
+        *(f32 *)(self + CAMBLK_EYE_Y) -= PAD_INPUTS[CAM_PORT].triggerL / 1024.0f;
     }
 
     if (PAD_INPUTS[CAM_PORT].rep & INPUT_BUTTON_Y) {
-        *(f32 *)(self + 0x3C) -= 0.01f;
+        *(f32 *)(self + CAMBLK_FOV) -= 0.01f;
     } else if (PAD_INPUTS[CAM_PORT].rep & INPUT_BUTTON_X) {
-        *(f32 *)(self + 0x3C) += 0.01f;
+        *(f32 *)(self + CAMBLK_FOV) += 0.01f;
     }
 
-    ang.x = *(u16 *)(self + 0x30);
-    ang.y = *(u16 *)(self + 0x32);
+    ang.x = *(u16 *)(self + CAMBLK_PITCH);
+    ang.y = *(u16 *)(self + CAMBLK_YAW);
     ang.z = 0.0f;
     PSVECScale(&ang, 0.0000958738f, &ang);
 
@@ -360,15 +401,15 @@ void menuCamera_updateDebugFreeLook(Mtx arg0) {
     sinY = rotY[0][2];
     cosY = rotY[0][0];
     PSMTXConcat(rotY, rotX, rot);
-    PSMTXMultVec(rot, &fwd, (Vec *)(self + 0x40));
+    PSMTXMultVec(rot, &fwd, (Vec *)(self + CAMBLK_TARGET));
 
-    *(f32 *)(self + 0x4C) += *(f32 *)(self + 0x38) * sinY - *(f32 *)(self + 0x34) * cosY;
-    *(f32 *)(self + 0x54) += *(f32 *)(self + 0x38) * cosY + *(f32 *)(self + 0x34) * sinY;
-    *(f32 *)(self + 0x40) += *(f32 *)(self + 0x4C);
-    *(f32 *)(self + 0x44) += *(f32 *)(self + 0x50);
-    *(f32 *)(self + 0x48) += *(f32 *)(self + 0x54);
+    *(f32 *)(self + CAMBLK_EYE) += *(f32 *)(self + CAMBLK_FORWARD_SPEED) * sinY - *(f32 *)(self + CAMBLK_STRAFE_SPEED) * cosY;
+    *(f32 *)(self + CAMBLK_EYE_Z) += *(f32 *)(self + CAMBLK_FORWARD_SPEED) * cosY + *(f32 *)(self + CAMBLK_STRAFE_SPEED) * sinY;
+    *(f32 *)(self + CAMBLK_TARGET) += *(f32 *)(self + CAMBLK_EYE);
+    *(f32 *)(self + CAMBLK_TARGET_Y) += *(f32 *)(self + CAMBLK_EYE_Y);
+    *(f32 *)(self + CAMBLK_TARGET_Z) += *(f32 *)(self + CAMBLK_EYE_Z);
 
-    makeLookAtMatrix(arg0, (Vec *)(self + 0x4C), &up, (Vec *)(self + 0x40));
+    makeLookAtMatrix(arg0, (Vec *)(self + CAMBLK_EYE), &up, (Vec *)(self + CAMBLK_TARGET));
 }
 
 
@@ -382,29 +423,29 @@ void menuCamera_springEye(void *arg0, Vec *arg1) {
     f32 y;
     f32 z;
 
-    if (CAM[0x7855] != 0) {
-        x = CAM_F(0x7608);
-        y = CAM_F(0x760C);
-        z = CAM_F(0x7610);
-        target.x = CAM_F(0x762C);
-        target.y = CAM_F(0x7630);
-        target.z = CAM_F(0x7634);
+    if (CAM[MENU_CAM_SPRING_ENABLED] != 0) {
+        x = CAM_F(MENU_CAM_EYE_X);
+        y = CAM_F(MENU_CAM_EYE_Y);
+        z = CAM_F(MENU_CAM_EYE_Z);
+        target.x = CAM_F(MENU_CAM_EYE_SPRING_X);
+        target.y = CAM_F(MENU_CAM_EYE_SPRING_Y);
+        target.z = CAM_F(MENU_CAM_EYE_SPRING_Z);
         pos.x = x;
         pos.y = y;
         pos.z = z;
-        prev.x = CAM_F(0x7620);
-        prev.y = CAM_F(0x7624);
-        prev.z = CAM_F(0x7628);
-        result = springStep(target, pos, prev, CAM_F(0x7668), CAM_F(0x766C), CAM_F(0x7670));
-        CAM_F(0x7608) = result.x;
-        CAM_F(0x760C) = result.y;
-        CAM_F(0x7610) = result.z;
-        CAM_F(0x762C) = result.x;
-        CAM_F(0x7630) = result.y;
-        CAM_F(0x7634) = result.z;
-        CAM_F(0x7620) = x;
-        CAM_F(0x7624) = y;
-        CAM_F(0x7628) = z;
+        prev.x = CAM_F(MENU_CAM_EYE_PREV_X);
+        prev.y = CAM_F(MENU_CAM_EYE_PREV_Y);
+        prev.z = CAM_F(MENU_CAM_EYE_PREV_Z);
+        result = springStep(target, pos, prev, CAM_F(MENU_CAM_EYE_SPRING_K), CAM_F(MENU_CAM_EYE_SPRING_DAMP), CAM_F(MENU_CAM_EYE_SPRING_REST));
+        CAM_F(MENU_CAM_EYE_X) = result.x;
+        CAM_F(MENU_CAM_EYE_Y) = result.y;
+        CAM_F(MENU_CAM_EYE_Z) = result.z;
+        CAM_F(MENU_CAM_EYE_SPRING_X) = result.x;
+        CAM_F(MENU_CAM_EYE_SPRING_Y) = result.y;
+        CAM_F(MENU_CAM_EYE_SPRING_Z) = result.z;
+        CAM_F(MENU_CAM_EYE_PREV_X) = x;
+        CAM_F(MENU_CAM_EYE_PREV_Y) = y;
+        CAM_F(MENU_CAM_EYE_PREV_Z) = z;
     }
 }
 
@@ -415,25 +456,25 @@ void menuCamera_springTarget2D(void *arg0, Vec *arg1) {
     Vec pos;
     Vec prev;
 
-    if (CAM[0x7855] != 0) {
+    if (CAM[MENU_CAM_SPRING_ENABLED] != 0) {
         arg1->x = fn_2_4A18C(arg1->x);
         arg1->y = fn_2_4A18C(arg1->y);
-        target.x = CAM_F(0x7644);
-        target.y = CAM_F(0x7648);
-        target.z = CAM_F(0x764C);
+        target.x = CAM_F(MENU_CAM_TARGET_SPRING_X);
+        target.y = CAM_F(MENU_CAM_TARGET_SPRING_Y);
+        target.z = CAM_F(MENU_CAM_TARGET_SPRING_Z);
         pos.x = arg1->x;
         pos.y = arg1->y;
         pos.z = 0.0f;
-        prev.x = CAM_F(0x7638);
-        prev.y = CAM_F(0x763C);
-        prev.z = CAM_F(0x7640);
-        result = springStep(target, pos, prev, CAM_F(0x7674), CAM_F(0x7678), CAM_F(0x767C));
-        CAM_F(0x7638) = arg1->x;
-        CAM_F(0x763C) = arg1->y;
-        CAM_F(0x7640) = 0.0f;
-        CAM_F(0x7644) = result.x;
-        CAM_F(0x7648) = result.y;
-        CAM_F(0x764C) = result.z;
+        prev.x = CAM_F(MENU_CAM_TARGET_PREV_X);
+        prev.y = CAM_F(MENU_CAM_TARGET_PREV_Y);
+        prev.z = CAM_F(MENU_CAM_TARGET_PREV_Z);
+        result = springStep(target, pos, prev, CAM_F(MENU_CAM_TARGET_SPRING_K), CAM_F(MENU_CAM_TARGET_SPRING_DAMP), CAM_F(MENU_CAM_TARGET_SPRING_REST));
+        CAM_F(MENU_CAM_TARGET_PREV_X) = arg1->x;
+        CAM_F(MENU_CAM_TARGET_PREV_Y) = arg1->y;
+        CAM_F(MENU_CAM_TARGET_PREV_Z) = 0.0f;
+        CAM_F(MENU_CAM_TARGET_SPRING_X) = result.x;
+        CAM_F(MENU_CAM_TARGET_SPRING_Y) = result.y;
+        CAM_F(MENU_CAM_TARGET_SPRING_Z) = result.z;
         arg1->x = result.x;
         arg1->y = result.y;
     }
@@ -447,22 +488,22 @@ void menuCamera_springTarget(void *arg0, Vec *arg1) {
     Vec prev;
     Vec in;
 
-    if (CAM[0x7855] != 0) {
+    if (CAM[MENU_CAM_SPRING_ENABLED] != 0) {
         memcpy(&in, arg1, sizeof(Vec));
-        target.x = CAM_F(0x7644);
-        target.y = CAM_F(0x7648);
-        target.z = CAM_F(0x764C);
+        target.x = CAM_F(MENU_CAM_TARGET_SPRING_X);
+        target.y = CAM_F(MENU_CAM_TARGET_SPRING_Y);
+        target.z = CAM_F(MENU_CAM_TARGET_SPRING_Z);
         memcpy(&pos, arg1, sizeof(Vec));
-        prev.x = CAM_F(0x7638);
-        prev.y = CAM_F(0x763C);
-        prev.z = CAM_F(0x7640);
-        result = springStep(target, pos, prev, CAM_F(0x7674), CAM_F(0x7678), CAM_F(0x767C));
-        CAM_F(0x7638) = arg1->x;
-        CAM_F(0x763C) = arg1->y;
-        CAM_F(0x7640) = arg1->z;
-        CAM_F(0x7644) = result.x;
-        CAM_F(0x7648) = result.y;
-        CAM_F(0x764C) = result.z;
+        prev.x = CAM_F(MENU_CAM_TARGET_PREV_X);
+        prev.y = CAM_F(MENU_CAM_TARGET_PREV_Y);
+        prev.z = CAM_F(MENU_CAM_TARGET_PREV_Z);
+        result = springStep(target, pos, prev, CAM_F(MENU_CAM_TARGET_SPRING_K), CAM_F(MENU_CAM_TARGET_SPRING_DAMP), CAM_F(MENU_CAM_TARGET_SPRING_REST));
+        CAM_F(MENU_CAM_TARGET_PREV_X) = arg1->x;
+        CAM_F(MENU_CAM_TARGET_PREV_Y) = arg1->y;
+        CAM_F(MENU_CAM_TARGET_PREV_Z) = arg1->z;
+        CAM_F(MENU_CAM_TARGET_SPRING_X) = result.x;
+        CAM_F(MENU_CAM_TARGET_SPRING_Y) = result.y;
+        CAM_F(MENU_CAM_TARGET_SPRING_Z) = result.z;
         arg1->x = result.x;
         arg1->y = result.y;
         arg1->z = result.z;
