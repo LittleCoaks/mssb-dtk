@@ -44,7 +44,7 @@ u8 lbl_2_data_2ECBC[0x28] = {
     7, 6, 8, 5, 3, 3, 5, 7, 4, 6,
 };
 
-UIRecordDescriptor lbl_2_data_2ECE4[93] = {
+static UIRecordDescriptor lbl_2_data_2ECE4[70] = {
     { 0, 14, { 0 }, 0xFFFFFFFF, 1, 20, UI_NO_PARENT, 8, { 0 }, 1, 0 },
     { 0, 15, { 0 }, 0xFFFFFFFF, 1, 19, 0, 8, { 0 }, 1, 2 },
     { 0, 15, { 0 }, 0xFFFFFFFF, 1, 19, 0, 8, { 0 }, 1, 1 },
@@ -115,6 +115,9 @@ UIRecordDescriptor lbl_2_data_2ECE4[93] = {
     { 0, 0, { 0 }, 0xFFFFFFFF, 2, 7, 2, 8, { 0 }, 1, 0 },
     { 0, 0, { 0 }, 0xFFFFFFFF, 2, 7, 3, 8, { 0 }, 1, 0 },
     { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+};
+
+static UIRecordDescriptor lbl_2_data_2F5A4[9] = {
     { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 216, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 192, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
@@ -124,6 +127,9 @@ UIRecordDescriptor lbl_2_data_2ECE4[93] = {
     { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 2 },
     { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 1 },
     { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+};
+
+static UIRecordDescriptor lbl_2_data_2F6C4[8] = {
     { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 215, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 192, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
@@ -132,6 +138,9 @@ UIRecordDescriptor lbl_2_data_2ECE4[93] = {
     { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 2 },
     { 0, 206, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 1 },
     { UI_DESC_END, 0, { 0 }, 0x00000000, 0, 0, 0, 0, { 0 }, 0, 0 },
+};
+
+static UIRecordDescriptor lbl_2_data_2F7C4[6] = {
     { 0, 209, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 214, { 0 }, 0xFFFFFFFF, 1, 2, UI_NO_PARENT, 1, { 0 }, 1, 0 },
     { 0, 191, { 0 }, 0xFFFFFFFF, 1, 2, 1, 1, { 0 }, 1, 0 },
@@ -152,6 +161,20 @@ MatchFileDescriptor ChallengeMapSceneFiles[2] = {
 E(u8, CHAR_ID) lbl_2_data_2F964[6] = {
     CHAR_ID_MARIO, CHAR_ID_PEACH, CHAR_ID_WARIO, CHAR_ID_DK, CHAR_ID_YOSHI, CHAR_ID_BOWSER
 };
+
+typedef struct ModelSlot {
+    /* 0x0 */ void *layout;
+    /* 0x4 */ void *geo;
+    /* 0x8 */ void *tex;
+} ModelSlot;
+
+static inline BOOL isEqual(s32 a, s32 b) {
+    return a == b ? TRUE : FALSE;
+}
+
+static inline UIRecord *sceneRecord(DrawingSceneStruct *node, s32 idx) {
+    return (UIRecord *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + idx].object;
+}
 
 #define REC_OBJ(idx) ((UIRecord *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (idx)].object)
 
@@ -183,11 +206,13 @@ void fn_2_8AC84(s32 slot, s32 flag) {
 }
 
 // .text:0x0008ABFC size:0x88 mapped:0x806C9C90
-void fn_2_8ABFC(void) {
-    DrawingSceneStruct *cur = currentDrawingItem;
+static inline void setupScene(DrawingSceneStruct *node) {
+    addGraphicsElementToScene(node, lbl_2_data_2ECE4);
+    fn_2_8A008(node);
+}
 
-    addGraphicsElementToScene(cur, lbl_2_data_2ECE4);
-    fn_2_8A008(cur);
+void fn_2_8ABFC(void) {
+    setupScene(currentDrawingItem);
     if (*(u8 *)((u8 *)&Static_Stats_Tables + 0x4756) == 1) {
         *(s32 *)(menuCursors + 0x50) = superstarUnlocked[0xF6];
     }
@@ -392,19 +417,18 @@ void fn_2_8A008(DrawingSceneStruct *node) {
 // .text:0x00089F70 size:0x98 mapped:0x806C9004
 void fn_2_89F70(void) {
     DrawingSceneStruct *cur = currentDrawingItem;
-    u32 base = (u32)&lbl_2_data_2E9F8;
     const UIRecordDescriptor *desc;
 
     switch (lbl_2_bss_33FBCC[5]) {
     case 0:
-        desc = (const UIRecordDescriptor *)(base + 0xDCC);
+        desc = lbl_2_data_2F7C4;
         break;
     case 1:
     case 2:
-        desc = (const UIRecordDescriptor *)(base + 0xCCC);
+        desc = lbl_2_data_2F6C4;
         break;
     case 3:
-        desc = (const UIRecordDescriptor *)(base + 0xBAC);
+        desc = lbl_2_data_2F5A4;
         break;
     }
     addGraphicsElementToScene(cur, desc);
@@ -543,55 +567,79 @@ void fn_2_8975C(void) {
 
 // .text:0x000895F8 size:0x164 mapped:0x806C868C
 s32 fn_2_895F8(u8 useLocal) {
-    u32 sel;
+    s32 ret;
+    u32 sel = *(u32 *)(menuCursors + 0x54);
+    u32 alt = *(u32 *)(lbl_2_bss_33FBCC + 0x1C);
 
-    if (useLocal != 0) {
-        sel = *(u32 *)(lbl_2_bss_33FBCC + 0x1C);
-    } else {
-        sel = *(u32 *)(menuCursors + 0x54);
+    if (useLocal) {
+        sel = alt;
     }
+    ret = 0;
 
     switch (lbl_2_bss_33FBCC[5]) {
     case 0:
-        return sel == 5 ? 1 : 0;
+        switch (sel) {
+        case 0:
+            ret = 0;
+            break;
+        case 5:
+            ret = 1;
+            break;
+        }
+        break;
     case 1:
         switch (sel) {
+        case 1:
+            ret = 0;
+            break;
         case 3:
-            return 1;
+            ret = 1;
+            break;
         case 4:
-            return 2;
+            ret = 2;
+            break;
         case 5:
-            return 3;
+            ret = 3;
+            break;
         }
-        return 0;
+        break;
     case 2:
         switch (sel) {
         case 2:
-            return 0;
+            ret = 0;
+            break;
         case 3:
-            return 1;
+            ret = 1;
+            break;
         case 4:
-            return 2;
+            ret = 2;
+            break;
         case 5:
-            return 3;
+            ret = 3;
+            break;
         }
-        return 0;
+        break;
     case 3:
         switch (sel) {
         case 1:
-            return 0;
+            ret = 0;
+            break;
         case 2:
-            return 1;
+            ret = 1;
+            break;
         case 3:
-            return 2;
+            ret = 2;
+            break;
         case 4:
-            return 3;
+            ret = 3;
+            break;
         case 5:
-            return 4;
+            ret = 4;
+            break;
         }
-        return 0;
+        break;
     }
-    return 0;
+    return ret;
 }
 
 // .text:0x00089038 size:0x5C0 mapped:0x806C80CC
@@ -693,49 +741,46 @@ void fn_2_89038(DrawingSceneStruct *node) {
 
 // .text:0x00088D90 size:0x2A8 mapped:0x806C7E24
 void fn_2_88D90(DrawingSceneStruct *node) {
-    u8 *lbl = lbl_2_bss_33FBCC;
-    u8 *table = lbl_80354768;
     s32 i;
     BOOL done;
 
-    if (lbl[0x18] == 0) {
-        *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle].object + 0x5C) = 0x190000;
-        *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle].object + 0x68) = 4;
-
+    if (isEqual(lbl_2_bss_33FBCC[0x18], 0)) {
+        sceneRecord(node, 0)->frame = 0x190000;
+        sceneRecord(node, 0)->playMode = 4;
         for (i = 0; i < 3; i++) {
-            *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + i + 4].object + 0x68) = 4;
-            if (table[i + 0xCF5E] != 0) {
-                *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + 3 * i + 0xE].object + 0x68) = 4;
-                *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + 3 * i + 0xF].object + 0x68) = 4;
-                *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + 3 * i + 0x10].object + 0x68) = 4;
-                *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + i + 0x38].object + 0x68) = 4;
-                if ((s8)table[i * 0x4508 + 0x1606] != 0 && table[i * 0x4508 + 0x441B] == 0) {
-                    *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + i + 0x3B].object + 0x68) = 4;
+            sceneRecord(node, i + 4)->playMode = 4;
+            if (lbl_80354768[0xCF5E + i] != 0) {
+                sceneRecord(node, 3 * i + 0xE)->playMode = 4;
+                sceneRecord(node, 3 * i + 0xF)->playMode = 4;
+                sceneRecord(node, 3 * i + 0x10)->playMode = 4;
+                sceneRecord(node, i + 0x38)->playMode = 4;
+                if ((s8)lbl_80354768[i * 0x4508 + 0x1606] != 0 && lbl_80354768[i * 0x4508 + 0x441B] == 0) {
+                    sceneRecord(node, i + 0x3B)->playMode = 4;
                 } else {
-                    *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + i + 0x17].object + 0x68) = 4;
-                    *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + i + 0xB].object + 0x5C) = 0x160000;
-                    *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + i + 0xB].object + 0x68) = 4;
-                    if ((s8)table[i * 0x4508 + 0x444B] != -1) {
-                        *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + i + 0x32].object + 0x68) = 4;
+                    sceneRecord(node, i + 0x17)->playMode = 4;
+                    sceneRecord(node, i + 0xB)->frame = 0x160000;
+                    sceneRecord(node, i + 0xB)->playMode = 4;
+                    if ((s8)lbl_80354768[i * 0x4508 + 0x444B] != -1) {
+                        sceneRecord(node, i + 0x32)->playMode = 4;
                     }
                 }
             }
         }
-        lbl[0x18] = 1;
-        lbl[0x19] = 1;
+        lbl_2_bss_33FBCC[0x18] = 1;
+        lbl_2_bss_33FBCC[0x19] = 1;
     }
 
-    if (lbl[0x19] == 1) {
-        done = maybeCheckAndResetGrapicsElement((MenuScene *)node, 0, 0) != FALSE;
-        if ((*(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle].object + 0x5C) >> 16) == 3) {
+    if (isEqual(lbl_2_bss_33FBCC[0x19], 1)) {
+        done = maybeCheckAndResetGrapicsElement((MenuScene *)node, 0, 0) != 0;
+        if ((sceneRecord(node, 0)->frame >> 16) == 3) {
             changeScene(3, 6);
         }
-        if (done) {
+        if (done == TRUE) {
             *(u8 *)((u8 *)&Static_Stats_Tables + 0x48AF) = 1;
-            lbl[0x1A] = 1;
-            lbl[0x17] = 0;
-            lbl[0x18] = 0;
-            lbl[0x19] = 0;
+            lbl_2_bss_33FBCC[0x1A] = 1;
+            lbl_2_bss_33FBCC[0x17] = 0;
+            lbl_2_bss_33FBCC[0x18] = 0;
+            lbl_2_bss_33FBCC[0x19] = 0;
         }
     }
 }
@@ -902,91 +947,69 @@ void fn_2_883C8(DrawingSceneStruct *node) {
 }
 
 // .text:0x00088250 size:0x178 mapped:0x806C72E4
+
 void fn_2_88250(DrawingSceneStruct *node) {
-    u8 *lbl = lbl_2_bss_33FBCC;
-    u8 *rec;
-
-    if (lbl[0x18] == 0) {
-
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object;
-        *(u16 *)(rec + 0x64) = 0x14;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object;
-        *(u32 *)(rec + 0x54) |= 2;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object;
-        *(u32 *)(rec + 0x5C) = 0;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object;
-        *(u8 *)(rec + 0x68) = 1;
-
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(u32 *)(menuCursors + 0x50) + 7].object;
-        *(u16 *)(rec + 0x64) = 0x13;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(u32 *)(menuCursors + 0x50) + 7].object;
-        *(u8 *)(rec + 0x68) = 1;
-
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 0x42].object;
-        *(u32 *)(rec + 0x54) |= 2;
-        rec = (u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 0x42].object;
-        *(u8 *)(rec + 0x68) = 1;
-
-        lbl[0x18] = 1;
-        lbl[0x19] = 1;
+    if (isEqual(lbl_2_bss_33FBCC[0x18], 0)) {
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 7)->elementIndex = 0x14;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 7)->flags |= 2;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 7)->frame = 0;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 7)->playMode = 1;
+        sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->elementIndex = 0x13;
+        sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->playMode = 1;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 0x42)->flags |= 2;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0xF] + 0x42)->playMode = 1;
+        lbl_2_bss_33FBCC[0x18] = 1;
+        lbl_2_bss_33FBCC[0x19] = 1;
     }
-    if (lbl[0x19] == 1) {
-        lbl[0x17] = 0;
-        lbl[0x18] = 0;
-        lbl[0x19] = 0;
+    if (isEqual(lbl_2_bss_33FBCC[0x19], 1)) {
+        lbl_2_bss_33FBCC[0x17] = 0;
+        lbl_2_bss_33FBCC[0x18] = 0;
+        lbl_2_bss_33FBCC[0x19] = 0;
     }
 }
 
 // .text:0x00087FB0 size:0x2A0 mapped:0x806C7044
 void fn_2_87FB0(DrawingSceneStruct *node) {
-    u8 *lbl = lbl_2_bss_33FBCC;
-    s8 v;
     s32 i;
-    s32 count = 0;
-    s32 total = 0;
-    u8 *table;
+    s32 count;
+    s32 total;
 
-    if (lbl[0x18] == 0) {
+    if (isEqual(lbl_2_bss_33FBCC[0x18], 0)) {
         fn_2_8A008(node);
-        v = (s8)lbl[0x10];
-
-        *(u16 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 7].object + 0x64) = 0x12;
-        *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 7].object + 0x5C) = 0;
-        *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 7].object + 0x68) = 1;
-
-        *(u16 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x64) = 0x12;
-        *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x68) = 1;
-
-        *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 4].object + 0x54) |= 2;
-        *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + v + 0x42].object + 0x54) &= ~3;
-
-        lbl[0x18] = 1;
-        lbl[0xD] = (u8)v;
-        *(s32 *)(menuCursors + 0x50) = v;
-        lbl[0x10] = 0xFF;
-        lbl[0x19] = 1;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 7)->elementIndex = 0x12;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 7)->frame = 0;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 7)->playMode = 1;
+        sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->elementIndex = 0x12;
+        sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->playMode = 1;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 4)->flags |= 2;
+        sceneRecord(node, (s8)lbl_2_bss_33FBCC[0x10] + 0x42)->flags &= ~2;
+        lbl_2_bss_33FBCC[0x18] = 1;
+        lbl_2_bss_33FBCC[0xD] = lbl_2_bss_33FBCC[0x10];
+        *(s32 *)(menuCursors + 0x50) = (s8)lbl_2_bss_33FBCC[0x10];
+        lbl_2_bss_33FBCC[0x10] = -1;
+        lbl_2_bss_33FBCC[0x19] = 1;
     }
 
-    if (lbl[0x19] == 1) {
-        table = lbl_80354768;
+    if (isEqual(lbl_2_bss_33FBCC[0x19], 1)) {
+        count = 0;
+        total = 0;
         for (i = 0; i < 3; i++) {
-            if (table[i + 0xCF5E] != 0) {
-                s8 b = (s8)table[i * 0x4508 + 0x444B];
-                if (b != -1) {
+            if (lbl_80354768[0xCF5E + i] != 0) {
+                if ((s8)lbl_80354768[i * 0x4508 + 0x444B] != -1) {
                     total++;
-                    count += (maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x32, 10) != 0);
-                } else if (table[i * 0x4508 + 0x1606] == 0) {
+                    count += maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x32, 10) != 0;
+                } else if ((s8)lbl_80354768[i * 0x4508 + 0x1606] == 0) {
                     total++;
-                    count += (maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x35, 0xE) != 0);
+                    count += maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x35, 0xE) != 0;
                 }
             }
         }
         if (count == total) {
-            *(u16 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x64) = 0x13;
-            *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x68) = 1;
-            lbl[0x17] = 0;
-            lbl[0x18] = 0;
-            lbl[0x19] = 0;
+            sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->elementIndex = 0x13;
+            sceneRecord(node, *(s32 *)(menuCursors + 0x50) + 7)->playMode = 1;
+            lbl_2_bss_33FBCC[0x17] = 0;
+            lbl_2_bss_33FBCC[0x18] = 0;
+            lbl_2_bss_33FBCC[0x19] = 0;
         }
     }
 }
@@ -1092,31 +1115,31 @@ void fn_2_87998(DrawingSceneStruct *node) {
 
 // .text:0x0008782C size:0x16C mapped:0x806C68C0
 void fn_2_8782C(void) {
-    Rep0DEState *st = lbl_2_bss_340140;
     u32 *tbl;
-    u32 *slots;
-    s32 i;
-    s32 j;
-    s32 k;
+    int i;
+    void *layout;
+    void *geo;
+    void *tex;
 
-    st->unk3078 = 0;
-    tbl = *(u32 **)((u8 *)st + 0x2D9C);
-    slots = (u32 *)((u8 *)st + 0x2DA0);
-    for (i = 0; i < 3; i++) {
-        for (j = 0; j < 5; j++) {
-            slots[i * 5 + j] = (u32)tbl + tbl[i * 5 + j];
-        }
+    lbl_2_bss_340140->unk3078 = 0;
+    tbl = *(u32 **)((u8 *)lbl_2_bss_340140 + 0x2D9C);
+    for (i = 0; i < 15; i++) {
+        *(u32 *)((u8 *)lbl_2_bss_340140 + 0x2DA0 + i * 4) = (u32)tbl + tbl[i];
     }
-    *(u32 *)(lbl_2_bss_34009C + 0x64) = (u32)tbl + tbl[16];
-    *(u32 *)(lbl_2_bss_34009C + 0x68) = (u32)tbl + tbl[17];
+    i++;
+    *(u32 *)(lbl_2_bss_34009C + 0x64) = (u32)tbl + tbl[i];
+    i++;
+    *(u32 *)(lbl_2_bss_34009C + 0x68) = (u32)tbl + tbl[i];
 
-    for (k = 0; k < 5; k++) {
-        u32 *p = (u32 *)((u8 *)lbl_2_bss_340140 + 0x2DA0) + k * 3;
-        LoadActorLayout((void *)p[0]);
-        convertGeometryAndSknHeader((void *)p[1], NULL);
-        haveActLayoutPointToGeoHeader((void *)p[0], (void *)p[1]);
-        convertTextureHeader((void *)p[2]);
-        UpdateTexturePalettePointers((UnkTexPalGeo *)p[1], (void *)p[2]);
+    for (i = 0; i < 5; i++) {
+        layout = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].layout;
+        geo = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].geo;
+        tex = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].tex;
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
+        convertTextureHeader(tex);
+        UpdateTexturePalettePointers(geo, tex);
     }
     convertTextureHeader(*(void **)(lbl_2_bss_34009C + 0x64));
     convertTextureHeader(*(void **)(lbl_2_bss_34009C + 0x68));
