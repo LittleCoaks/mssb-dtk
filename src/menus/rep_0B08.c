@@ -1127,10 +1127,12 @@ void fn_2_6E88C(Rep0B08Slot *obj) {
     } else {
         f31 = 0.0034906587097793818f;
     }
-    if (r >= 0.02 || r == 0.0f) {
-        obj->unk34 = obj->unk34 - f31;
-    } else if (r <= -0.02) {
-        obj->unk34 = obj->unk34 + f31;
+    if (!((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f))) {
+        if (r < 0.0f) {
+            obj->unk34 += f31;
+        } else {
+            obj->unk34 -= f31;
+        }
     }
     obj->unk4C = obj->unk34;
 }
