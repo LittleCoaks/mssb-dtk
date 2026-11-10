@@ -29,9 +29,9 @@ extern u8 lbl_800EFBA4[];
 extern u8 AtBat_ButtonInput1[];
 extern u8 g_d_GameSettings[];
 
-void fn_2_94604(s32 arg);
-void fn_2_9461C(s16 arg);
-void fn_2_94634(s32 arg);
+void menuCamera_setEyeFollowsSlot(s32 arg);
+void menuCamera_setFollowSlot(s16 arg);
+void menuCamera_setSpringPreset(s32 arg);
 void fn_2_94854(u8 value);
 void fn_2_42490(void);
 void fn_2_72054(s32 index, u8 state);
@@ -317,9 +317,9 @@ void fn_2_3E058(void) {
         if (!fn_8006862C(0x78, 0)) {
             lbl_2_bss_1A8248[0x44F2] = 4;
             fn_2_94854(0xB);
-            fn_2_9461C(0xC);
-            fn_2_94604(1);
-            fn_2_94634(1);
+            menuCamera_setFollowSlot(0xC);
+            menuCamera_setEyeFollowsSlot(1);
+            menuCamera_setSpringPreset(1);
             item->timer = 0x3C;
             item->phase = 2;
         }
@@ -360,9 +360,9 @@ void fn_2_3E058(void) {
         break;
     case 12:
         fn_2_94854(0xB);
-        fn_2_9461C(0);
-        fn_2_94604(1);
-        fn_2_94634(1);
+        menuCamera_setFollowSlot(0);
+        menuCamera_setEyeFollowsSlot(1);
+        menuCamera_setSpringPreset(1);
         item->timer = 0x3C;
         item->phase = 0xD;
         break;
@@ -881,9 +881,9 @@ void fn_2_3C168(void) {
                 item->phase = 3;
             } else {
                 fn_2_94854(0xB);
-                fn_2_9461C((s8)*WORK_ADDR(0x7851) + 7);
-                fn_2_94604(1);
-                fn_2_94634(1);
+                menuCamera_setFollowSlot((s8)*WORK_ADDR(0x7851) + 7);
+                menuCamera_setEyeFollowsSlot(1);
+                menuCamera_setSpringPreset(1);
                 item->timer = 0x3C;
                 item->phase = 2;
             }
@@ -916,9 +916,9 @@ void fn_2_3C03C(void) {
     case 1:
         if (item->timer-- == 0) {
             fn_2_94854(0xB);
-            fn_2_9461C(0);
-            fn_2_94604(1);
-            fn_2_94634(1);
+            menuCamera_setFollowSlot(0);
+            menuCamera_setEyeFollowsSlot(1);
+            menuCamera_setSpringPreset(1);
             item->timer = 0x14;
             item->phase = 2;
         }

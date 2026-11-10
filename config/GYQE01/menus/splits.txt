@@ -286,7 +286,7 @@ menus/rep_1028.c:
 menus/text_92394.c:
 	.text       start:0x00092394 end:0x000927C8
 
-menus/rep_10C0.c:
+menus/menu_camera.c:
 	.text       start:0x000927C8 end:0x00094854
 	.rodata     start:0x000010C0 end:0x000011C0
 

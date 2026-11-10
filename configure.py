@@ -1044,7 +1044,7 @@ config.libs = [
             Object(Matching, "menus/text_8ED4C.c"),
             Object(NonMatching, "menus/rep_1028.c"),
             Object(NonMatching, "menus/text_92394.c"),
-            Object(NonMatching, "menus/rep_10C0.c"),
+            Object(NonMatching, "menus/menu_camera.c"),
             Object(NonMatching, "menus/rep_11C0.c"),
             Object(NonMatching, "menus/text_94854.c"),
         ]

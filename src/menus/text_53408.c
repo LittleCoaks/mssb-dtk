@@ -50,7 +50,7 @@ void fn_2_1FFC4(s32 arg);
 void fn_2_1FF10(s32 arg);
 void fn_2_1FF14(s32 arg);
 void fn_2_1FF0C(s32 arg);
-void fn_2_93C64(void);
+void menuCamera_snapToPreset(void);
 void fn_2_489DC(void);
 void fn_2_4E878(void *item, void *data);
 void fn_2_4E858(void *item);
@@ -551,7 +551,7 @@ void fn_2_535B0(void) {
                     } else if (flags & 0x100) {
                         lbl_2_bss_9E10[0] ^= 1;
                     } else if (flags & 0x1000) {
-                        fn_2_93C64();
+                        menuCamera_snapToPreset();
                     }
                     if ((s8)lbl_2_bss_9E10[0] != 0) {
                         fn_2_489DC();
