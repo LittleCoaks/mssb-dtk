@@ -2378,16 +2378,18 @@ u8 fn_2_68B54(s32 idx, s32 otherIdx) {
 // .text:0x00068A88 size:0xCC mapped:0x806A7B1C
 BOOL fn_2_68A88(s32 idx, s32 which) {
     Rep0B08Slot *slot = REP_SLOT(idx);
-    f32 *rec = (f32 *)(lbl_2_bss_1A8248 + 0x21E0 + which * 0xBC);
-    f32 tmp[3];
+    Vec *rec = (Vec *)(lbl_2_bss_1A8248 + 0x21E0 + which * 0xBC);
+    Vec tmp;
     f32 dist;
-    f32 limit;
-    tmp[0] = rec[0] * 0.5f;
-    tmp[1] = rec[1] * 0.5f;
-    tmp[2] = rec[2] * 0.5f;
-    dist = PSVECDistance((Vec *)slot, (Vec *)tmp);
-    limit = lbl_2_data_3EF4[lbl_2_bss_1A8248[0x441C]] + lbl_2_data_3F5C;
-    if (dist < limit && slot->unkC0 != 0) {
+    f32 lhs;
+    f32 rhs;
+    tmp.x = rec->x / 2.0f;
+    tmp.y = rec->y / 2.0f;
+    tmp.z = rec->z / 2.0f;
+    dist = PSVECDistance(&slot->pos, &tmp);
+    lhs = lbl_2_data_3EF4[lbl_2_bss_1A8248[0x441C]];
+    rhs = lbl_2_data_3F5C;
+    if (dist < lhs + rhs && slot->unkC0 != 0) {
         return TRUE;
     }
     return FALSE;
