@@ -13,6 +13,7 @@
 #include "Unknown/orderchange.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/File_0x80034cec.h"
+#include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "Unknown/File_0x800b0a14.h"
 
 extern u8 lbl_2_bss_33FBCC[];
@@ -301,13 +302,14 @@ void fn_2_8A824(void) {
 // .text:0x0008A008 size:0x81C mapped:0x806C909C
 void fn_2_8A008(DrawingSceneStruct *node) {
     u8 *table;
-    u8 *menuSel;
     s32 i;
     s32 j;
     s32 sel;
     s32 writes;
     s32 v;
+    u8 unused[3];
 
+    memset(unused, 0, sizeof(unused));
     for (i = 0; i < 3; i++) {
         table = lbl_80354768 + i * 0x4508;
 
@@ -315,18 +317,18 @@ void fn_2_8A008(DrawingSceneStruct *node) {
             REC_OBJ(i + 4)->elementIndex = 0x11;
             load_Icon(node, i + 0x38, 1, 5, i);
 
-            if (table[0x1606] != 0 && table[0x441B] == 0) {
+            if ((s8)table[0x1606] != 0 && table[0x441B] == 0) {
                 REC_OBJ(i + 0x3B)->flags |= UI_FLAG_VISIBLE;
                 load_Icon(node, i + 0x3B, 1, 4, table[0x4416]);
                 REC_OBJ(i + 0x3B)->frame = 0;
                 REC_OBJ(i + 0x3B)->playMode = UI_PLAY_FORWARD;
                 load_Icon(node, i + 4, 1, 6, table[0x4416]);
-                REC_OBJ(i + 0xB)->flags &= ~3;
-                REC_OBJ(i + 0x17)->flags &= ~3;
-                REC_OBJ(i + 0x32)->flags &= ~3;
-                REC_OBJ(i + 0x35)->flags &= ~3;
+                REC_OBJ(i + 0xB)->flags &= ~UI_FLAG_VISIBLE;
+                REC_OBJ(i + 0x17)->flags &= ~UI_FLAG_VISIBLE;
+                REC_OBJ(i + 0x32)->flags &= ~UI_FLAG_VISIBLE;
+                REC_OBJ(i + 0x35)->flags &= ~UI_FLAG_VISIBLE;
             } else {
-                REC_OBJ(i + 0x3B)->flags &= ~3;
+                REC_OBJ(i + 0x3B)->flags &= ~UI_FLAG_VISIBLE;
                 REC_OBJ(i + 0xB)->flags |= UI_FLAG_VISIBLE;
                 REC_OBJ(i + 0x17)->flags |= UI_FLAG_VISIBLE;
                 REC_OBJ(i + 0x38)->flags |= UI_FLAG_VISIBLE;
@@ -336,16 +338,18 @@ void fn_2_8A008(DrawingSceneStruct *node) {
                 REC_OBJ(3 * i + 0xF)->flags |= UI_FLAG_VISIBLE;
                 REC_OBJ(3 * i + 0x10)->flags |= UI_FLAG_VISIBLE;
 
-                menuSel = lbl_2_data_2F964;
-                sel = 0;
-                for (j = 0; j < 6; j++) {
-                    if (menuSel[j] == table[0x441D]) {
-                        sel = j;
+                {
+                    u8 charId = table[0x441D];
+                    for (j = 0; j < 6; j++) {
+                        if (lbl_2_data_2F964[j] == charId) {
+                            sel = j;
+                        }
                     }
+                    table[0x441D] = charId;
                 }
                 REC_OBJ(i + 0xB)->frame = 0;
                 load_Icon(node, i + 0xB, 1, 0x54, sel);
-                REC_OBJ(i + 0xB)->rgba |= 0xFF;
+                REC_OBJ(i + 0xB)->rgba = (REC_OBJ(i + 0xB)->rgba & ~0xFF) | 0xFF;
                 REC_OBJ(i + 0xB)->playMode = UI_PLAY_FORWARD;
 
                 if ((s8)table[0x444B] != -1) {
@@ -353,12 +357,12 @@ void fn_2_8A008(DrawingSceneStruct *node) {
                     REC_OBJ(i + 0x32)->frame = 0;
                     load_Icon(node, i + 0x32, 4, 0x64, (s8)table[0x444B]);
                     REC_OBJ(i + 0x32)->playMode = UI_PLAY_FORWARD;
-                    REC_OBJ(i + 0x35)->flags &= ~3;
+                    REC_OBJ(i + 0x35)->flags &= ~UI_FLAG_VISIBLE;
                     REC_OBJ(i + 0x35)->playMode = UI_PLAY_STOP;
                 } else {
                     REC_OBJ(i + 0x35)->flags |= UI_FLAG_VISIBLE;
                     REC_OBJ(i + 0x35)->playMode = UI_PLAY_FORWARD;
-                    REC_OBJ(i + 0x32)->flags &= ~3;
+                    REC_OBJ(i + 0x32)->flags &= ~UI_FLAG_VISIBLE;
                 }
                 load_Icon(node, i + 4, 1, 6, table[0x4415]);
 
@@ -376,21 +380,21 @@ void fn_2_8A008(DrawingSceneStruct *node) {
             REC_OBJ(i + 4)->frame = 0;
             REC_OBJ(i + 4)->playMode = UI_PLAY_FORWARD;
             load_Icon(node, i + 4, 1, 6, 4);
-            REC_OBJ(i + 0xB)->flags &= ~3;
-            REC_OBJ(i + 0x17)->flags &= ~3;
-            REC_OBJ(i + 0x38)->flags &= ~3;
-            REC_OBJ(i + 0x32)->flags &= ~3;
-            REC_OBJ(i + 0x35)->flags &= ~3;
-            REC_OBJ(i + 0x3B)->flags &= ~3;
-            REC_OBJ(3 * i + 0xE)->flags &= ~3;
-            REC_OBJ(3 * i + 0xF)->flags &= ~3;
-            REC_OBJ(3 * i + 0x10)->flags &= ~3;
+            REC_OBJ(i + 0xB)->flags &= ~UI_FLAG_VISIBLE;
+            REC_OBJ(i + 0x17)->flags &= ~UI_FLAG_VISIBLE;
+            REC_OBJ(i + 0x38)->flags &= ~UI_FLAG_VISIBLE;
+            REC_OBJ(i + 0x32)->flags &= ~UI_FLAG_VISIBLE;
+            REC_OBJ(i + 0x35)->flags &= ~UI_FLAG_VISIBLE;
+            REC_OBJ(i + 0x3B)->flags &= ~UI_FLAG_VISIBLE;
+            REC_OBJ(3 * i + 0xE)->flags &= ~UI_FLAG_VISIBLE;
+            REC_OBJ(3 * i + 0xF)->flags &= ~UI_FLAG_VISIBLE;
+            REC_OBJ(3 * i + 0x10)->flags &= ~UI_FLAG_VISIBLE;
         }
 
         if (*(s32 *)(menuCursors + 0x50) == i) {
             REC_OBJ(i + 0x3F)->flags |= UI_FLAG_VISIBLE;
         } else {
-            REC_OBJ(i + 0x3F)->flags &= ~3;
+            REC_OBJ(i + 0x3F)->flags &= ~UI_FLAG_VISIBLE;
         }
     }
 }
