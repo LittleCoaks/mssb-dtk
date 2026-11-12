@@ -411,151 +411,101 @@ void fn_2_71098(Rep0B08Slot *obj) {
     rep0B08TransitionSlot(idx, 4);
 }
 
+static inline f32 rep0B08TurnToSlot(s32 idx, s32 other) {
+    Rep0B08Slot *self = REP_SLOT(idx);
+    Rep0B08Slot *o = REP_SLOT(other);
+    f32 h = atan2(-(o->pos.x - self->pos.x), -(o->pos.z - self->pos.z));
+    return fn_2_4A18C(self->unk4C) - h;
+}
+
+static inline u8 rep0B08FacingTarget(s32 idx, s32 other) {
+    s16 point = MENU->slots[0].unkB0;
+    Rep0B08Slot *self = REP_SLOT(idx);
+    Rep0B08Slot *o = REP_SLOT(other);
+    Vec target;
+    f32 h;
+    h = atan2(-(o->pos.x - self->pos.x), -(o->pos.z - self->pos.z));
+    memcpy(&target, lbl_2_data_2EA4 + point * 12, 12);
+    h -= (f32)atan2(-(target.x - self->pos.x), -(target.z - self->pos.z));
+    if (h < 1.2217305f && h > -1.2217305f) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 // .text:0x000709A0 size:0x6F8 mapped:0x806AFA34
 void fn_2_709A0(Rep0B08Slot *obj) {
     s32 idx = obj->index;
-    Rep0B08Slot *sIdx = REP_SLOT(idx);
-    u8 kind;
+    BOOL flag = FALSE;
     s32 i;
-    s32 k;
-    s32 flag = 0;
-    s32 bestIdx;
-    f32 limit;
-    f32 dist;
-    f32 best;
-    f32 h1;
-    f32 h2;
-    Vec ref;
-    Vec cand;
-    Vec tmp;
-    s8 cb;
-    s16 *bp;
+    u8 kind;
     for (i = 1; i < 7; i++) {
-        Rep0B08Slot *sI = REP_SLOT(i);
-        dist = PSVECDistance((Vec *)sIdx, (Vec *)sI);
-        kind = lbl_2_bss_1A8248[0x441C];
-        if (idx == 0) {
-            limit = lbl_2_data_3F0C[i] + lbl_2_data_3EF4[kind];
-        } else {
-            limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-        }
-        if (dist < limit && sIdx->unkC0 != 0 && sI->unkC0 != 0) {
-            if (i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
-                obj->unkC4 = 2;
-                obj->unkCB = (u8)i;
-                sIdx->state = 3;
-                sIdx->mode = 0;
-                return;
-            }
-            if (i >= 2 && i <= 6) {
-                obj->unkBA = 4;
-                obj->unkC4 = 1;
-                memcpy(&ref, REP_SLOT(0), 12);
-                best = 10000.0f;
-                bestIdx = 0;
-                for (k = 0; k < 0x33; k++) {
-                    memcpy(&cand, lbl_2_data_2EA4 + k * 12, 12);
-                    dist = PSVECDistance(&ref, &cand);
-                    if (dist < best) {
-                        best = dist;
-                        bestIdx = k;
-                    }
-                }
-                obj->unkB2 = (s16)bestIdx;
-                sIdx->state = 4;
-                sIdx->mode = 0;
-                return;
-            }
+        if (fn_2_68C80(idx, i)) {
+            obj->unkCB = i;
+            break;
         }
         obj->unkCB = -1;
     }
-    cb = (s8)obj->unkCB;
-    if (cb >= 2 && cb <= 6) {
-        Rep0B08Slot *sCb = REP_SLOT(cb);
-        h1 = atan2(-(sCb->pos.x - sIdx->pos.x), -(sCb->pos.z - sIdx->pos.z));
-        fn_2_4A18C(sIdx->unk4C);
-        memcpy(&tmp, lbl_2_data_2EA4 + MENU->slots[0].unkB0 * 12, 12);
-        h2 = atan2(-(tmp.x - sIdx->pos.x), -(tmp.z - sIdx->pos.z));
-        best = h1 - h2;
-        flag = (best < 1.2217305f && best > -1.2217305f) ? 1 : 0;
+    if (obj->unkCB >= 2 && obj->unkCB <= 6) {
+        rep0B08TurnToSlot(idx, obj->unkCB);
+        flag = rep0B08FacingTarget(idx, obj->unkCB);
     }
     for (i = 1; i < 7; i++) {
-        Rep0B08Slot *sI = REP_SLOT(i);
-        dist = PSVECDistance((Vec *)sIdx, (Vec *)sI);
-        kind = lbl_2_bss_1A8248[0x441C];
-        if (idx == 0) {
-            limit = lbl_2_data_3F0C[i] + lbl_2_data_3EF4[kind];
-        } else {
-            limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
+        BOOL hit = fn_2_68C80(idx, i);
+        if (hit && i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
+            obj->unkC4 = 2;
+            obj->unkCB = i;
+            rep0B08TransitionSlot(idx, 3);
+            return;
         }
-        if (dist < limit && sIdx->unkC0 != 0 && sI->unkC0 != 0) {
-            if (i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
-                obj->unkC4 = 2;
-                obj->unkCB = (u8)i;
-                sIdx->state = 3;
-                sIdx->mode = 0;
-                return;
-            }
-            if (i >= 2 && i <= 6) {
-                obj->unkBA = 4;
-                obj->unkC4 = 1;
-                memcpy(&ref, REP_SLOT(0), 12);
-                best = 10000.0f;
-                bestIdx = 0;
-                for (k = 0; k < 0x33; k++) {
-                    memcpy(&cand, lbl_2_data_2EA4 + k * 12, 12);
-                    dist = PSVECDistance(&ref, &cand);
-                    if (dist < best) {
-                        best = dist;
-                        bestIdx = k;
-                    }
-                }
-                obj->unkB2 = (s16)bestIdx;
-                sIdx->state = 4;
-                sIdx->mode = 0;
-                return;
-            }
+        if (hit && i >= 2 && i <= 6) {
+            obj->unkBA = 4;
+            obj->unkC4 = 1;
+            obj->unkB2 = fn_2_689CC(0);
+            rep0B08TransitionSlot(idx, 4);
+            return;
         }
         obj->unkCB = -1;
     }
-    if (flag != 0) {
+    if (flag == FALSE) {
         fn_2_69E1C(idx);
     } else {
         fn_2_699D4(idx);
     }
     kind = lbl_2_bss_1A8248[0x441C];
-    if (idx == 0) {
-        s16 *ent = lbl_2_data_2E80[kind];
-        s32 a = ent[0] * 2 - ent[2] * 2;
-        s32 b = ent[0] * 2 - ent[1] * 2;
-        {
+    {
+        s32 base = lbl_2_data_2E80[kind][0] * 2;
+        s32 a = base - lbl_2_data_2E80[kind][2] * 2;
+        s32 b = base - lbl_2_data_2E80[kind][1] * 2;
+        if (obj->index == 0) {
             u8 *hp = hugeAnimStruct + 0xC04;
             if (hp != NULL && (*(s16 *)(hp + 0x68) == a || *(s16 *)(hp + 0x68) == b)) {
-                fn_80062890(kind == 5 ? 1 : 0);
+                if (kind == 5) {
+                    fn_80062890(1);
+                } else {
+                    fn_80062890(0);
+                }
             }
         }
     }
     if (obj->unk50 <= 0.0f) {
         obj->unkBA = 4;
         obj->unkC4 = 1;
-        bp = &MENU->slots[0].unkB2;
-        if (lbl_2_bss_1A8248[0x783D] != 0) {
-            *bp = MENU->slots[0].unkB0;
+        if (ANIM->unk19783D == 0) {
+            MENU->slots[0].unkB2 = MENU->slots[0].unkB0;
         } else {
-            *bp = MENU->slots[0].unkAE;
+            MENU->slots[0].unkB2 = MENU->slots[0].unkAE;
         }
         obj->mode = 2;
         return;
     }
     if (obj->unkCD == 1) {
-        Rep0B08Slot *s1 = REP_SLOT(idx);
-        Rep0B08Slot *s2 = REP_SLOT((s8)obj->unkCE);
-        f32 dx = s1->pos.x - s2->pos.x;
-        f32 dz = s1->pos.z - s2->pos.z;
-        f32 heading = atan2(-dx, -dz);
-        f32 diff = fn_2_4A18C(s2->unk4C) - heading;
-        if (s2->state == 7 && (obj->mode == 0 || obj->mode == 1)) {
-            if (fabs(diff) < 1.5707964f) {
+        Rep0B08Slot *self = REP_SLOT(idx);
+        Rep0B08Slot *other = REP_SLOT((s8)obj->unkCE);
+        f32 heading = atan2(-(self->pos.x - other->pos.x), -(self->pos.z - other->pos.z));
+        f32 diff = fn_2_4A18C(other->unk4C) - heading;
+        if (other->state == 7 && (obj->mode == 0 || obj->mode == 1)) {
+            if ((f32)fabs(diff) < 1.5707964f) {
                 ANIM->unk1978F1 = 0;
             } else {
                 ANIM->unk1978F1 = 2;
@@ -565,20 +515,8 @@ void fn_2_709A0(Rep0B08Slot *obj) {
         }
         obj->unkBA = 4;
         obj->unkC4 = 1;
-        memcpy(&ref, REP_SLOT(0), 12);
-        best = 10000.0f;
-        bestIdx = 0;
-        for (k = 0; k < 0x33; k++) {
-            memcpy(&cand, lbl_2_data_2EA4 + k * 12, 12);
-            dist = PSVECDistance(&ref, &cand);
-            if (dist < best) {
-                best = dist;
-                bestIdx = k;
-            }
-        }
-        obj->unkB2 = (s16)bestIdx;
-        sIdx->state = 4;
-        sIdx->mode = 0;
+        obj->unkB2 = fn_2_689CC(0);
+        rep0B08TransitionSlot(idx, 4);
     }
 }
 
@@ -2113,73 +2051,30 @@ void fn_2_6AAB8(void) {
 
 // .text:0x0006A87C size:0x23C mapped:0x806A9910
 void fn_2_6A87C(void) {
-    f32 tmp[3];
-    f32 v[3];
-    Mtx mtx;
-    s32 k;
-    u8 *e;
     MENU->slots[0].unkBB = 0;
-    memcpy(tmp, REP_SLOT(0), 12);
-    PSVECSubtract((Vec *)tmp, (Vec *)lbl_2_data_2A340, (Vec *)v);
-    v[0] = v[0] * -1.0f;
-    v[2] = v[2] * -1.0f;
-    k = (s8)ANIM->unk197863;
-    e = AtBat_ButtonInput1 + k * 0x20;
-    tmp[0] = tmp[0] + (f32)(s8)e[0x10] / 768.0f;
-    tmp[2] = tmp[2] + (f32)(s8)e[0x11] / 768.0f;
-    if (v[0] != 0.0f || v[2] != 0.0f) {
-        lbl_2_bss_A170 = fn_2_4A1E8(v[2]);
-    }
-    memcpy(lbl_2_data_2A340, REP_SLOT(0), 12);
-    REP_SLOT(0)->pos.x = tmp[0];
-    REP_SLOT(0)->pos.y = tmp[1];
-    REP_SLOT(0)->pos.z = tmp[2];
-    REP_SLOT(0)->unk4C = lbl_2_bss_A170;
-    if (REP_SLOT(0)->unk38 > 0.0f) {
-        Rep0B08Slot *slot = REP_SLOT(0);
-        PSMTXRotRad(mtx, 'Y', slot->unk4C);
-        v[0] = 0.0f;
-        v[1] = 0.0f;
-        v[2] = -slot->unk38;
-        PSMTXMultVec(mtx, (Vec *)v, (Vec *)v);
-        slot->unk18 = v[0];
-        slot->unk20 = v[2];
-    }
-    {
-        Rep0B08Slot *slot = REP_SLOT(0);
-        slot->pos.x += slot->unk18;
-        slot->pos.z += slot->unk20;
-        slot->unk0C = slot->pos.x;
-        slot->unk14 = slot->pos.z;
-        if (slot->unk38 == 0.0f) {
-            slot->unk24 = 0.0f;
-            slot->unk2C = 0.0f;
-        }
-    }
+    fn_2_6A708();
+    fn_2_6A628();
 }
 
 // .text:0x0006A708 size:0x174 mapped:0x806A979C
 void fn_2_6A708(void) {
-    f32 tmp[3];
-    f32 v[3];
-    s32 k;
-    u8 *e;
-    memcpy(tmp, REP_SLOT(0), 12);
-    PSVECSubtract((Vec *)tmp, (Vec *)lbl_2_data_2A340, (Vec *)v);
-    v[0] = v[0] * -1.0f;
-    v[2] = v[2] * -1.0f;
-    k = (s8)ANIM->unk197863;
-    e = AtBat_ButtonInput1 + k * 0x20;
-    tmp[0] = tmp[0] + (f32)(s8)e[0x10] / 768.0f;
-    tmp[2] = tmp[2] + (f32)(s8)e[0x11] / 768.0f;
-    if (v[0] != 0.0f || v[2] != 0.0f) {
-        lbl_2_bss_A170 = fn_2_4A1E8(v[2]);
+    Rep0B08Slot *slot = REP_SLOT(0);
+    Vec tmp;
+    Vec v;
+    memcpy(&tmp, slot, sizeof(Vec));
+    PSVECSubtract(&tmp, (Vec *)lbl_2_data_2A340, &v);
+    v.z *= -1.0f;
+    v.x *= -1.0f;
+    tmp.x += (s8)AtBat_ButtonInput1[(s8)ANIM->unk197863 * 0x20 + 0x10] / 768.0f;
+    tmp.z += (s8)AtBat_ButtonInput1[(s8)ANIM->unk197863 * 0x20 + 0x11] / 768.0f;
+    if (v.x != 0.0f || v.z != 0.0f) {
+        lbl_2_bss_A170 = fn_2_4A1E8(v.z);
     }
-    memcpy(lbl_2_data_2A340, REP_SLOT(0), 12);
-    REP_SLOT(0)->pos.x = tmp[0];
-    REP_SLOT(0)->pos.y = tmp[1];
-    REP_SLOT(0)->pos.z = tmp[2];
-    REP_SLOT(0)->unk4C = lbl_2_bss_A170;
+    memcpy(lbl_2_data_2A340, slot, sizeof(Vec));
+    slot->pos.x = tmp.x;
+    slot->pos.y = tmp.y;
+    slot->pos.z = tmp.z;
+    slot->unk4C = lbl_2_bss_A170;
 }
 
 // .text:0x0006A628 size:0xE0 mapped:0x806A96BC
@@ -2586,7 +2481,7 @@ void fn_2_692D0(s32 idx, s32 n, f32 x, f32 z, f32 *outX, f32 *outZ, f32 *outT) {
     nx = x / len;
     nz = z / len;
     ang = fn_2_4A234(nx, nz);
-    if (slot->unk38 >= 0.05f && slot->unk9A >= 0 &&
+    if (!(slot->unk38 < 0.05f) && slot->unk9A >= 0 &&
         fn_2_4A310(ang, slot->unk9A) > 0x2A8) {
         acc = 0.0f;
     }
@@ -2599,7 +2494,8 @@ void fn_2_692D0(s32 idx, s32 n, f32 x, f32 z, f32 *outX, f32 *outZ, f32 *outT) {
         }
         t += acc;
     }
-    t += slot->unk40 * (f32)(n - (i + 1));
+    n -= i + 1;
+    t += slot->unk40 * (f32)n;
     *outT = t;
     *outX = nx * t + slot->pos.x;
     *outZ = nz * t + slot->pos.z;
@@ -2752,8 +2648,8 @@ s16 fn_2_689CC(s32 idx) {
     Vec a;
     Vec b;
     f32 best = 10000.0f;
-    s32 bestIdx = 0;
     s32 i;
+    s32 bestIdx = 0;
     memcpy(&a, REP_SLOT(idx), 12);
     for (i = 0; i < 0x33; i++) {
         f32 dist;
