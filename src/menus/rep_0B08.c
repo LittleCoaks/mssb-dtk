@@ -679,34 +679,26 @@ void fn_2_6F6F4(Rep0B08Slot *obj) {
 void fn_2_6F104(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 other = MENU->slots[0].index;
-    Rep0B08Slot *slot = REP_SLOT(idx);
     s16 cand[4];
-    s16 *row;
     s32 count = 0;
     s32 j;
-    s16 c;
-    u8 *rec;
-    Rep0B08Slot *sIdx;
-    Rep0B08Slot *sOther;
-    u8 kind;
-    f32 dx;
-    f32 dz;
-    f32 limit;
-    f32 dist;
-    rep0B08EnableSlot(idx);
-    row = lbl_2_data_3D30[slot->unkB2];
+    cand[3] = 0;
+    cand[2] = 0;
+    cand[1] = 0;
+    cand[0] = 0;
+    rep0B08EnableObj(obj);
     for (j = 0; j < 4; j++) {
-        c = row[j];
+        s16 c = lbl_2_data_3D30[MENU->slots[idx].unkB2][j];
         if (c != -1) {
-            rec = lbl_2_bss_1A8248 + c * 10;
+            u8 *rec = lbl_2_bss_1A8248 + c * 10;
             if (rec[0x40F4] == 0 && rec[0x40F2] != 7 && rec[0x40F2] != 8) {
                 cand[count] = c;
                 count++;
             }
         }
     }
-    slot->unkB0 = cand[rand() % count];
-    memcpy(&obj->unk74, lbl_2_data_2EA4 + slot->unkB0 * 12, 12);
+    SLOTS[idx].unkB0 = cand[(s16)(rand() % count)];
+    memcpy(&obj->unk74, lbl_2_data_2EA4 + SLOTS[idx].unkB0 * 12, 12);
     fn_2_6A450(idx, obj->unk74, obj->unk7C);
     obj->unkBA = 0xD;
     fn_2_69E1C(idx);
@@ -721,16 +713,7 @@ void fn_2_6F104(Rep0B08Slot *obj) {
             return;
         }
     }
-    sIdx = REP_SLOT(idx);
-    sOther = REP_SLOT(other);
-    dist = PSVECDistance((Vec *)sIdx, (Vec *)sOther);
-    kind = lbl_2_bss_1A8248[0x441C];
-    if (idx == 0) {
-        limit = lbl_2_data_3F0C[other] + lbl_2_data_3EF4[kind];
-    } else {
-        limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-    }
-    if (dist < limit && sIdx->unkC0 != 0 && sOther->unkC0 != 0) {
+    if (fn_2_68C80(idx, other)) {
         if (idx == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
@@ -742,20 +725,18 @@ void fn_2_6F104(Rep0B08Slot *obj) {
             obj->unkCB = 0;
             return;
         }
+        obj->unkCB = -1;
+        obj->mode = 1;
+    } else {
+        obj->unkCB = -1;
+        obj->mode = 1;
     }
-    obj->unkCB = -1;
-    obj->mode = 1;
 }
 
 // .text:0x0006ED30 size:0x3D4 mapped:0x806ADDC4
 void fn_2_6ED30(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 other = MENU->slots[0].index;
-    Rep0B08Slot *sIdx;
-    Rep0B08Slot *sOther;
-    u8 kind;
-    f32 limit;
-    f32 dist;
     fn_2_69E1C(idx);
     if (idx >= 2 && idx <= 6) {
         s32 b = fn_2_68690(0);
@@ -767,16 +748,7 @@ void fn_2_6ED30(Rep0B08Slot *obj) {
             return;
         }
     }
-    sIdx = REP_SLOT(idx);
-    sOther = REP_SLOT(other);
-    dist = PSVECDistance((Vec *)sIdx, (Vec *)sOther);
-    kind = lbl_2_bss_1A8248[0x441C];
-    if (idx == 0) {
-        limit = lbl_2_data_3F0C[other] + lbl_2_data_3EF4[kind];
-    } else {
-        limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-    }
-    if (dist < limit && sIdx->unkC0 != 0 && sOther->unkC0 != 0) {
+    if (fn_2_68C80(idx, other)) {
         if (idx == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
@@ -809,11 +781,6 @@ void fn_2_6ED30(Rep0B08Slot *obj) {
 void fn_2_6EA74(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 other = MENU->slots[0].index;
-    Rep0B08Slot *sIdx;
-    Rep0B08Slot *sOther;
-    u8 kind;
-    f32 limit;
-    f32 dist;
     s16 cd;
     if (idx >= 2 && idx <= 6) {
         s32 a = fn_2_68670(0);
@@ -826,16 +793,7 @@ void fn_2_6EA74(Rep0B08Slot *obj) {
             return;
         }
     }
-    sIdx = REP_SLOT(idx);
-    sOther = REP_SLOT(other);
-    dist = PSVECDistance((Vec *)sIdx, (Vec *)sOther);
-    kind = lbl_2_bss_1A8248[0x441C];
-    if (idx == 0) {
-        limit = lbl_2_data_3F0C[other] + lbl_2_data_3EF4[kind];
-    } else {
-        limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-    }
-    if (dist < limit && sIdx->unkC0 != 0 && sOther->unkC0 != 0) {
+    if (fn_2_68C80(idx, other)) {
         if (idx == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
