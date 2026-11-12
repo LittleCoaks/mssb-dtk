@@ -83,7 +83,7 @@ typedef struct Rep0B08Slot {
     /* 0xCC */ s8 unkCC;
     /* 0xCD */ s8 unkCD;
     /* 0xCE */ u8 unkCE;
-    /* 0xCF */ u8 unkCF;
+    /* 0xCF */ s8 unkCF;
     /* 0xD0 */ u8 unkD0;
     /* 0xD1 */ u8 _D1[3];
     /* 0xD4 */ void (*handler)(struct Rep0B08Slot *slot);
@@ -605,9 +605,8 @@ void fn_2_6FB0C(Rep0B08Slot *obj) {
     fn_2_68FBC(obj->index, 1);
     obj->unk34 = obj->unk4C;
     if (idx >= 2 && idx <= 6) {
-        s32 a = fn_2_68670(0);
         s32 b = fn_2_68690(0);
-        if (a == 1 && b == idx) {
+        if (fn_2_68670(0) == 1 && b == idx) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
             obj->unkCB = 0;
@@ -728,9 +727,8 @@ void fn_2_6F104(Rep0B08Slot *obj) {
     fn_2_69E1C(idx);
     fn_2_68FBC(idx, 0);
     if (idx >= 2 && idx <= 6) {
-        s32 a = fn_2_68670(0);
         s32 b = fn_2_68690(0);
-        if (a == 1 && b == idx) {
+        if (fn_2_68670(0) == 1 && b == idx) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
             obj->unkCB = 0;
@@ -775,9 +773,8 @@ void fn_2_6ED30(Rep0B08Slot *obj) {
     f32 dist;
     fn_2_69E1C(idx);
     if (idx >= 2 && idx <= 6) {
-        s32 a = fn_2_68670(0);
         s32 b = fn_2_68690(0);
-        if (a == 1 && b == idx) {
+        if (fn_2_68670(0) == 1 && b == idx) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
             obj->unkCB = 0;
@@ -955,9 +952,8 @@ void fn_2_6E1D0(Rep0B08Slot *obj) {
     fn_2_69E1C(idx);
     fn_2_68FBC(idx, 0);
     if (idx >= 2 && idx <= 6) {
-        s32 a = fn_2_68670(0);
         s32 b = fn_2_68690(0);
-        if (a == 1 && b == idx) {
+        if (fn_2_68670(0) == 1 && b == idx) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
             obj->unkCB = 0;
@@ -1011,16 +1007,10 @@ void fn_2_6E1D0(Rep0B08Slot *obj) {
 void fn_2_6DE54(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 other = MENU->slots[0].index;
-    Rep0B08Slot *sIdx;
-    Rep0B08Slot *sOther;
-    u8 kind;
-    f32 limit;
-    f32 dist;
     fn_2_69E1C(idx);
     if (idx >= 2 && idx <= 6) {
-        s32 a = fn_2_68670(0);
         s32 b = fn_2_68690(0);
-        if (a == 1 && b == idx) {
+        if (fn_2_68670(0) == 1 && b == idx) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
             obj->unkCB = 0;
@@ -1028,16 +1018,7 @@ void fn_2_6DE54(Rep0B08Slot *obj) {
             return;
         }
     }
-    sIdx = REP_SLOT(idx);
-    sOther = REP_SLOT(other);
-    dist = PSVECDistance((Vec *)sIdx, (Vec *)sOther);
-    kind = lbl_2_bss_1A8248[0x441C];
-    if (idx == 0) {
-        limit = lbl_2_data_3F0C[other] + lbl_2_data_3EF4[kind];
-    } else {
-        limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-    }
-    if (dist < limit && sIdx->unkC0 != 0 && sOther->unkC0 != 0) {
+    if (fn_2_68C80(idx, other)) {
         if (idx == 1) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
@@ -1069,17 +1050,15 @@ void fn_2_6DE54(Rep0B08Slot *obj) {
 void fn_2_6DB30(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 other = MENU->slots[0].index;
-    Rep0B08Slot *sIdx;
-    Rep0B08Slot *sOther;
-    u8 kind;
-    f32 limit;
-    f32 dist;
-    s16 cd;
+    s16 timer;
     fn_2_69E1C(idx);
     if (idx >= 2 && idx <= 6) {
-        s32 a = fn_2_68670(0);
-        s32 b = fn_2_68690(0);
-        if (a == 1 && b == idx) {
+        s32 b;
+        if (idx == 2) {
+            idx = 2;
+        }
+        b = fn_2_68690(0);
+        if (fn_2_68670(0) == 1 && b == idx) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
             obj->unkCB = 0;
@@ -1087,16 +1066,7 @@ void fn_2_6DB30(Rep0B08Slot *obj) {
             return;
         }
     }
-    sIdx = REP_SLOT(idx);
-    sOther = REP_SLOT(other);
-    dist = PSVECDistance((Vec *)sIdx, (Vec *)sOther);
-    kind = lbl_2_bss_1A8248[0x441C];
-    if (idx == 0) {
-        limit = lbl_2_data_3F0C[other] + lbl_2_data_3EF4[kind];
-    } else {
-        limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-    }
-    if (dist < limit && sIdx->unkC0 != 0 && sOther->unkC0 != 0) {
+    if (fn_2_68C80(idx, other)) {
         if (idx == 1) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
@@ -1105,9 +1075,9 @@ void fn_2_6DB30(Rep0B08Slot *obj) {
             return;
         }
         if (idx >= 2 && idx <= 6) {
-            if (sIdx->unkB2 == *lbl_2_data_3C2C[idx - 2]) {
+            if (SLOTS[idx].unkB2 == *lbl_2_data_3C2C[idx - 2]) {
                 obj->unkCB = 0;
-                obj->unkA2 = 0x78;
+                obj->unkA2 = 120;
                 obj->unkCF = 0;
             } else {
                 obj->unkCB = 0;
@@ -1118,9 +1088,9 @@ void fn_2_6DB30(Rep0B08Slot *obj) {
     } else {
         obj->unkCB = -1;
     }
-    cd = obj->unkA2;
-    obj->unkA2 = cd - 1;
-    if (cd == 0) {
+    timer = obj->unkA2;
+    obj->unkA2 = timer - 1;
+    if (timer == 0) {
         obj->mode = 0;
     }
 }
