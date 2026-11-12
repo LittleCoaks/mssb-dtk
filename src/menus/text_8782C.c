@@ -847,71 +847,69 @@ void fn_2_887F8(DrawingSceneStruct *node) {
 
 // .text:0x000883C8 size:0x430 mapped:0x806C745C
 void fn_2_883C8(DrawingSceneStruct *node) {
-    u8 *lbl = lbl_2_bss_33FBCC;
-    u8 *table;
     s32 i;
-    s32 count = 0;
-    s32 total = 0;
+    s32 count;
+    s32 total;
 
-    if (lbl[0x18] == 0 && (s8)lbl[0x0D] != *(s32 *)(menuCursors + 0x50)) {
-        table = lbl_80354768;
+    if (isEqual(lbl_2_bss_33FBCC[0x18], 0) && (s8)lbl_2_bss_33FBCC[0x0D] != *(s32 *)(menuCursors + 0x50)) {
         for (i = 0; i < 3; i++) {
-            if (table[i + 0xCF5E] != 0) {
+            if (lbl_80354768[0xCF5E + i] != 0) {
                 if (*(s32 *)(menuCursors + 0x50) == i) {
-                    REC_OBJ(i + 4)->playMode = UI_PLAY_FORWARD;
-                    REC_OBJ(i + 7)->elementIndex = 0x13;
-                    REC_OBJ(i + 7)->playMode = UI_PLAY_FORWARD;
-                    if (table[i * 0x4508 + 0x1606] == 0 || table[i * 0x4508 + 0x441B] != 0) {
-                        REC_OBJ(i + 0xB)->frame = 0x1A0000;
-                        REC_OBJ(i + 0xB)->playMode = UI_PLAY_BACKWARD;
+                    sceneRecord(node, i + 4)->playMode = UI_PLAY_FORWARD;
+                    sceneRecord(node, i + 7)->elementIndex = 0x13;
+                    sceneRecord(node, i + 7)->playMode = UI_PLAY_FORWARD;
+                    if ((s8)lbl_80354768[i * 0x4508 + 0x1606] == 0 ||
+                        ((s8)lbl_80354768[i * 0x4508 + 0x1606] != 0 && lbl_80354768[i * 0x4508 + 0x441B] != 0)) {
+                        sceneRecord(node, i + 0xB)->frame = 0x1A0000;
+                        sceneRecord(node, i + 0xB)->playMode = UI_PLAY_BACKWARD;
                     }
-                } else {
-                    if ((s8)lbl[0x0D] == i && (s8)lbl[0x0F] != i) {
-                        REC_OBJ(i + 4)->playMode = UI_PLAY_FORWARD;
-                        REC_OBJ(i + 7)->elementIndex = 0x12;
-                        REC_OBJ(i + 7)->playMode = UI_PLAY_FORWARD;
-                        if (table[i * 0x4508 + 0x1606] == 0 || table[i * 0x4508 + 0x441B] != 0) {
-                            REC_OBJ(i + 0xB)->frame = 0x160000;
-                            REC_OBJ(i + 0xB)->playMode = UI_PLAY_FORWARD;
-                        }
+                } else if ((s8)lbl_2_bss_33FBCC[0x0D] == i && i != (s8)lbl_2_bss_33FBCC[0x0F]) {
+                    sceneRecord(node, i + 4)->playMode = UI_PLAY_FORWARD;
+                    sceneRecord(node, i + 7)->elementIndex = 0x12;
+                    sceneRecord(node, i + 7)->playMode = UI_PLAY_FORWARD;
+                    if ((s8)lbl_80354768[i * 0x4508 + 0x1606] == 0 ||
+                        ((s8)lbl_80354768[i * 0x4508 + 0x1606] != 0 && lbl_80354768[i * 0x4508 + 0x441B] != 0)) {
+                        sceneRecord(node, i + 0xB)->frame = 0x160000;
+                        sceneRecord(node, i + 0xB)->playMode = UI_PLAY_FORWARD;
                     }
                 }
+            } else if (*(s32 *)(menuCursors + 0x50) == i) {
+                sceneRecord(node, i + 7)->elementIndex = 0x13;
+                sceneRecord(node, i + 7)->playMode = UI_PLAY_FORWARD;
             } else {
-                if (*(s32 *)(menuCursors + 0x50) == i) {
-                    REC_OBJ(i + 7)->elementIndex = 0x13;
-                    REC_OBJ(i + 7)->playMode = UI_PLAY_FORWARD;
-                } else {
-                    REC_OBJ(i + 7)->elementIndex = 0x12;
-                    REC_OBJ(i + 7)->playMode = UI_PLAY_FORWARD;
-                }
+                sceneRecord(node, i + 7)->elementIndex = 0x12;
+                sceneRecord(node, i + 7)->playMode = UI_PLAY_FORWARD;
             }
         }
-        lbl[0x18] = 1;
-        lbl[0x19] = 1;
+        lbl_2_bss_33FBCC[0x18] = 1;
+        lbl_2_bss_33FBCC[0x19] = 1;
     }
 
-    if (lbl[0x19] == 1 && (s8)lbl[0x0D] != *(s32 *)(menuCursors + 0x50)) {
-        table = lbl_80354768;
+    if (isEqual(lbl_2_bss_33FBCC[0x19], 1) && (s8)lbl_2_bss_33FBCC[0x0D] != *(s32 *)(menuCursors + 0x50)) {
+        count = 0;
+        total = 0;
         for (i = 0; i < 3; i++) {
-            if (table[i + 0xCF5E] != 0) {
+            if (lbl_80354768[0xCF5E + i] != 0) {
                 if (*(s32 *)(menuCursors + 0x50) == i) {
-                    if (table[i * 0x4508 + 0x1606] == 0 || table[i * 0x4508 + 0x441B] != 0) {
+                    if ((s8)lbl_80354768[i * 0x4508 + 0x1606] == 0 ||
+                        ((s8)lbl_80354768[i * 0x4508 + 0x1606] != 0 && lbl_80354768[i * 0x4508 + 0x441B] != 0)) {
                         total++;
-                        count += (maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0xB, 0x16) != 0);
+                        count += maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0xB, 0x16) != 0;
                     }
-                } else if ((s8)lbl[0x0D] == i && (s8)lbl[0x0F] != i) {
-                    if (table[i * 0x4508 + 0x1606] == 0 || table[i * 0x4508 + 0x441B] != 0) {
+                } else if ((s8)lbl_2_bss_33FBCC[0x0D] == i && i != (s8)lbl_2_bss_33FBCC[0x0F]) {
+                    if ((s8)lbl_80354768[i * 0x4508 + 0x1606] == 0 ||
+                        ((s8)lbl_80354768[i * 0x4508 + 0x1606] != 0 && lbl_80354768[i * 0x4508 + 0x441B] != 0)) {
                         total++;
-                        count += (maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0xB, 0x1A) != 0);
+                        count += maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0xB, 0x1A) != 0;
                     }
                 }
             }
         }
         if (count == total) {
-            lbl[0x0D] = (u8)*(s32 *)(menuCursors + 0x50);
-            lbl[0x17] = 0;
-            lbl[0x18] = 0;
-            lbl[0x19] = 0;
+            lbl_2_bss_33FBCC[0x0D] = *(s32 *)(menuCursors + 0x50);
+            lbl_2_bss_33FBCC[0x17] = 0;
+            lbl_2_bss_33FBCC[0x18] = 0;
+            lbl_2_bss_33FBCC[0x19] = 0;
         }
     }
 }
