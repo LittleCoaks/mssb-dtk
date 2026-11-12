@@ -225,9 +225,8 @@ void fn_2_8A824(void) {
     DrawingSceneStruct *node = currentDrawingItem;
     s32 i;
     s32 k;
-    s32 count = 0;
-    s32 total = 0;
-    u8 *table;
+    s32 count;
+    s32 total;
 
     switch (lbl[0x17]) {
     case 0x49:
@@ -243,24 +242,7 @@ void fn_2_8A824(void) {
         fn_2_883C8(node);
         break;
     case 0x4D:
-        if (lbl[0x18] == 0) {
-
-            *(u16 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object + 0x64) = 20;
-            *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object + 0x54) |= 2;
-            *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object + 0x5C) = 0;
-            *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 7].object + 0x68) = 1;
-            *(u16 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x64) = 19;
-            *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + *(s32 *)(menuCursors + 0x50) + 7].object + 0x68) = 1;
-            *(u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 0x42].object + 0x54) |= 2;
-            *(u8 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + (s8)lbl[0xF] + 0x42].object + 0x68) = 1;
-            lbl[0x18] = 1;
-            lbl[0x19] = 1;
-        }
-        if (lbl[0x19] == 1) {
-            lbl[0x17] = 0;
-            lbl[0x18] = 0;
-            lbl[0x19] = 0;
-        }
+        fn_2_88250(node);
         break;
     case 0x4E:
         fn_2_87FB0(node);
@@ -269,40 +251,39 @@ void fn_2_8A824(void) {
         fn_2_87998(node);
         break;
     case 0x50:
-        if (lbl[0x18] == 0) {
+        if (isEqual(lbl_2_bss_33FBCC[0x18], 0)) {
             fn_2_8A008(node);
-            lbl[0x18] = 1;
-            lbl[0x19] = 1;
+            lbl_2_bss_33FBCC[0x18] = 1;
+            lbl_2_bss_33FBCC[0x19] = 1;
         }
-        if (lbl[0x19] == 1) {
-            table = lbl_80354768;
+        if (isEqual(lbl_2_bss_33FBCC[0x19], 1)) {
+            count = 0;
+            total = 0;
             for (i = 0; i < 3; i++) {
-                if (table[i + 0xCF5E] != 0) {
-                    s8 b = (s8)table[i * 0x4508 + 0x444B];
-                    if (b != -1) {
+                if (lbl_80354768[0xCF5E + i] != 0) {
+                    if ((s8)lbl_80354768[i * 0x4508 + 0x444B] != -1) {
                         total++;
-                        count += (maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x32, 10) != 0);
-                    } else if (table[i * 0x4508 + 0x1606] == 0) {
+                        count += maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x32, 10) != 0;
+                    } else if ((s8)lbl_80354768[i * 0x4508 + 0x1606] == 0) {
                         total++;
-                        count += (maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x35, 0xE) != 0);
+                        count += maybeCheckAndResetGrapicsElement((MenuScene *)node, i + 0x35, 0xE) != 0;
                     }
                 }
             }
             if (count == total) {
-                lbl[0x17] = 0;
-                lbl[0x18] = 0;
-                lbl[0x19] = 0;
+                lbl_2_bss_33FBCC[0x17] = 0;
+                lbl_2_bss_33FBCC[0x18] = 0;
+                lbl_2_bss_33FBCC[0x19] = 0;
             }
         }
         break;
     }
 
     for (k = 0; k < 3; k++) {
-        u32 *flags = (u32 *)((u8 *)graphicsRelatedArray[((MenuScene *)node)->firstHandle + k + 0x3F].object + 0x54);
         if (*(s32 *)(menuCursors + 0x50) == k) {
-            *flags |= 2;
+            sceneRecord(node, k + 0x3F)->flags |= 2;
         } else {
-            *flags &= ~3;
+            sceneRecord(node, k + 0x3F)->flags &= ~2;
         }
     }
 
