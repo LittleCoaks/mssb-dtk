@@ -215,6 +215,61 @@ static s32 rep0B08NearestSlotZeroPoint(void) {
     return bestIdx;
 }
 
+static inline void rep0B08CheckAnimCue(Rep0B08Slot *obj) {
+    u8 kind = lbl_2_bss_1A8248[0x441C];
+    s32 base = lbl_2_data_2E80[kind][0] * 2;
+    s32 a = base - lbl_2_data_2E80[kind][2] * 2;
+    s32 b = base - lbl_2_data_2E80[kind][1] * 2;
+    if (obj->index == 0) {
+        u8 *hp = hugeAnimStruct + 0xC04;
+        if (hp != NULL && (*(s16 *)(hp + 0x68) == a || *(s16 *)(hp + 0x68) == b)) {
+            if (kind == 5) {
+                fn_80062890(1);
+            } else {
+                fn_80062890(0);
+            }
+        }
+    }
+}
+
+static inline void rep0B08LookAtPartner(Rep0B08Slot *obj, s32 idx) {
+    Rep0B08Slot *other = REP_SLOT((s8)obj->unkCE);
+    Rep0B08Slot *self = REP_SLOT(idx);
+    f32 heading = atan2(-(self->pos.x - other->pos.x), -(self->pos.z - other->pos.z));
+    f32 diff = fn_2_4A18C(other->unk4C) - heading;
+    if (other->state == 7 && (obj->mode == 0 || obj->mode == 1)) {
+        if ((f32)fabs(diff) < 1.5707964f) {
+            ANIM->unk1978F1 = 0;
+        } else {
+            ANIM->unk1978F1 = 2;
+        }
+    } else {
+        ANIM->unk1978F1 = 1;
+    }
+}
+
+static inline f32 rep0B08TurnToSlot(s32 idx, s32 other) {
+    Rep0B08Slot *self = REP_SLOT(idx);
+    Rep0B08Slot *o = REP_SLOT(other);
+    f32 h = atan2(-(o->pos.x - self->pos.x), -(o->pos.z - self->pos.z));
+    return fn_2_4A18C(self->unk4C) - h;
+}
+
+static inline u8 rep0B08FacingTarget(s32 idx, s32 other) {
+    s16 point = MENU->slots[0].unkB0;
+    Rep0B08Slot *self = REP_SLOT(idx);
+    Rep0B08Slot *o = REP_SLOT(other);
+    Vec target;
+    f32 h;
+    h = atan2(-(o->pos.x - self->pos.x), -(o->pos.z - self->pos.z));
+    memcpy(&target, lbl_2_data_2EA4 + point * 12, 12);
+    h -= (f32)atan2(-(target.x - self->pos.x), -(target.z - self->pos.z));
+    if (h < 1.2217305898666382f && h > -1.2217305898666382f) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
 // .text:0x00071C6C size:0x258 mapped:0x806B0D00
 void fn_2_71C6C(Rep0B08Slot *obj) {
     s32 idx = obj->index;
@@ -310,10 +365,6 @@ void fn_2_71098(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 i;
     BOOL flag = FALSE;
-    f32 h1;
-    f32 h2;
-    Vec tmp;
-    s8 cb;
     rep0B08EnableSlot(idx);
     memcpy(&obj->unk74, lbl_2_data_2EA4 + MENU->slots[0].unkB0 * 12, 12);
     fn_2_6A450(idx, obj->unk74, obj->unk7C);
@@ -325,30 +376,9 @@ void fn_2_71098(Rep0B08Slot *obj) {
         }
         obj->unkCB = -1;
     }
-    cb = (s8)obj->unkCB;
-    if (cb >= 2 && cb <= 6) {
-        {
-            Rep0B08Slot *current = REP_SLOT(idx);
-            Rep0B08Slot *neighbor = REP_SLOT(cb);
-            atan2(-(neighbor->pos.x - current->pos.x),
-                  -(neighbor->pos.z - current->pos.z));
-            fn_2_4A18C(current->unk4C);
-        }
-        {
-            Rep0B08Slot *current = REP_SLOT(idx);
-            Rep0B08Slot *neighbor = REP_SLOT((s8)obj->unkCB);
-            s16 pointIdx = MENU->slots[0].unkB0;
-            h1 = atan2(-(neighbor->pos.x - current->pos.x),
-                       -(neighbor->pos.z - current->pos.z));
-            memcpy(&tmp, lbl_2_data_2EA4 + pointIdx * 12, sizeof(Vec));
-            h2 = atan2(-(tmp.x - current->pos.x), -(tmp.z - current->pos.z));
-            h1 -= h2;
-            if (h1 < 1.2217305f && h1 > -1.2217305f) {
-                flag = (u8)TRUE;
-            } else {
-                flag = (u8)FALSE;
-            }
-        }
+    if (obj->unkCB >= 2 && obj->unkCB <= 6) {
+        rep0B08TurnToSlot(idx, obj->unkCB);
+        flag = rep0B08FacingTarget(idx, obj->unkCB);
     }
     if (flag == 0) {
         fn_2_69E1C(idx);
@@ -375,21 +405,7 @@ void fn_2_71098(Rep0B08Slot *obj) {
         obj->mode = 1;
     }
     if (obj->unkCD == 1) {
-        Rep0B08Slot *s1 = REP_SLOT(idx);
-        Rep0B08Slot *s2 = REP_SLOT((s8)obj->unkCE);
-        f32 dx = s1->pos.x - s2->pos.x;
-        f32 dz = s1->pos.z - s2->pos.z;
-        f32 heading = atan2(-dx, -dz);
-        f32 diff = fn_2_4A18C(s2->unk4C) - heading;
-        if (s2->state == 7 && (obj->mode == 0 || obj->mode == 1)) {
-            if (fabs(diff) < 1.5707964f) {
-                ANIM->unk1978F1 = 0;
-            } else {
-                ANIM->unk1978F1 = 2;
-            }
-        } else {
-            ANIM->unk1978F1 = 1;
-        }
+        rep0B08LookAtPartner(obj, idx);
         obj->unkBA = 4;
         obj->unkC4 = 1;
         obj->unkB2 = rep0B08NearestSlotZeroPoint();
@@ -411,34 +427,11 @@ void fn_2_71098(Rep0B08Slot *obj) {
     rep0B08TransitionSlot(idx, 4);
 }
 
-static inline f32 rep0B08TurnToSlot(s32 idx, s32 other) {
-    Rep0B08Slot *self = REP_SLOT(idx);
-    Rep0B08Slot *o = REP_SLOT(other);
-    f32 h = atan2(-(o->pos.x - self->pos.x), -(o->pos.z - self->pos.z));
-    return fn_2_4A18C(self->unk4C) - h;
-}
-
-static inline u8 rep0B08FacingTarget(s32 idx, s32 other) {
-    s16 point = MENU->slots[0].unkB0;
-    Rep0B08Slot *self = REP_SLOT(idx);
-    Rep0B08Slot *o = REP_SLOT(other);
-    Vec target;
-    f32 h;
-    h = atan2(-(o->pos.x - self->pos.x), -(o->pos.z - self->pos.z));
-    memcpy(&target, lbl_2_data_2EA4 + point * 12, 12);
-    h -= (f32)atan2(-(target.x - self->pos.x), -(target.z - self->pos.z));
-    if (h < 1.2217305f && h > -1.2217305f) {
-        return TRUE;
-    }
-    return FALSE;
-}
-
 // .text:0x000709A0 size:0x6F8 mapped:0x806AFA34
 void fn_2_709A0(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     BOOL flag = FALSE;
     s32 i;
-    u8 kind;
     for (i = 1; i < 7; i++) {
         if (fn_2_68C80(idx, i)) {
             obj->unkCB = i;
@@ -472,22 +465,7 @@ void fn_2_709A0(Rep0B08Slot *obj) {
     } else {
         fn_2_699D4(idx);
     }
-    kind = lbl_2_bss_1A8248[0x441C];
-    {
-        s32 base = lbl_2_data_2E80[kind][0] * 2;
-        s32 a = base - lbl_2_data_2E80[kind][2] * 2;
-        s32 b = base - lbl_2_data_2E80[kind][1] * 2;
-        if (obj->index == 0) {
-            u8 *hp = hugeAnimStruct + 0xC04;
-            if (hp != NULL && (*(s16 *)(hp + 0x68) == a || *(s16 *)(hp + 0x68) == b)) {
-                if (kind == 5) {
-                    fn_80062890(1);
-                } else {
-                    fn_80062890(0);
-                }
-            }
-        }
-    }
+    rep0B08CheckAnimCue(obj);
     if (obj->unk50 <= 0.0f) {
         obj->unkBA = 4;
         obj->unkC4 = 1;
@@ -500,19 +478,7 @@ void fn_2_709A0(Rep0B08Slot *obj) {
         return;
     }
     if (obj->unkCD == 1) {
-        Rep0B08Slot *self = REP_SLOT(idx);
-        Rep0B08Slot *other = REP_SLOT((s8)obj->unkCE);
-        f32 heading = atan2(-(self->pos.x - other->pos.x), -(self->pos.z - other->pos.z));
-        f32 diff = fn_2_4A18C(other->unk4C) - heading;
-        if (other->state == 7 && (obj->mode == 0 || obj->mode == 1)) {
-            if ((f32)fabs(diff) < 1.5707964f) {
-                ANIM->unk1978F1 = 0;
-            } else {
-                ANIM->unk1978F1 = 2;
-            }
-        } else {
-            ANIM->unk1978F1 = 1;
-        }
+        rep0B08LookAtPartner(obj, idx);
         obj->unkBA = 4;
         obj->unkC4 = 1;
         obj->unkB2 = fn_2_689CC(0);
@@ -523,83 +489,28 @@ void fn_2_709A0(Rep0B08Slot *obj) {
 // .text:0x000705C0 size:0x3E0 mapped:0x806AF654
 void fn_2_705C0(Rep0B08Slot *obj) {
     s32 idx = obj->index;
-    u8 kind;
-    s16 *ent;
-    Rep0B08Slot *slot;
     s32 i;
-    f32 limit;
-    f32 dist;
     fn_2_69E1C(idx);
-    kind = lbl_2_bss_1A8248[0x441C];
-    ent = lbl_2_data_2E80[kind];
-    if (idx == 0) {
-        s32 a = ent[0] * 2 - ent[2] * 2;
-        s32 b = ent[0] * 2 - ent[1] * 2;
-        u8 *hp = hugeAnimStruct + 0xC04;
-        if (hp != NULL && (*(s16 *)(hp + 0x68) == a || *(s16 *)(hp + 0x68) == b)) {
-            fn_80062890(kind == 5 ? 1 : 0);
-        }
-    }
+    rep0B08CheckAnimCue(obj);
     if (obj->unk38 <= 0.0f) {
         obj->unk34 = obj->unk4C;
-        slot = REP_SLOT(idx);
-        slot->state = 4;
-        slot->mode = 0;
+        rep0B08TransitionSlot(idx, 4);
     }
     for (i = 1; i < 7; i++) {
-        Rep0B08Slot *sIdx = REP_SLOT(idx);
-        Rep0B08Slot *sI = REP_SLOT(i);
-        dist = PSVECDistance((Vec *)sIdx, (Vec *)sI);
-        if (idx == 0) {
-            limit = lbl_2_data_3F0C[i] + lbl_2_data_3EF4[kind];
-        } else {
-            limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-        }
-        if (dist < limit && sIdx->unkC0 != 0 && sI->unkC0 != 0) {
-            if (i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
-                obj->unkC4 = 2;
-                obj->unkCB = (u8)i;
-                rep0B08TransitionSlot(idx, 3);
-                return;
-            }
+        if (fn_2_68C80(idx, i) && i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
+            obj->unkC4 = 2;
+            obj->unkCB = i;
+            rep0B08TransitionSlot(idx, 3);
+            return;
         }
         obj->unkCB = -1;
     }
     if (obj->unkCD == 1) {
-        Rep0B08Slot *s1 = REP_SLOT(idx);
-        Rep0B08Slot *s2 = REP_SLOT((s8)obj->unkCE);
-        f32 dx = s1->pos.x - s2->pos.x;
-        f32 dz = s1->pos.z - s2->pos.z;
-        f32 heading = atan2(-dx, -dz);
-        f32 diff = fn_2_4A18C(s2->unk4C) - heading;
-        Vec ref;
-        Vec cand;
-        f32 best = 10000.0f;
-        s32 bestIdx = 0;
-        if (s2->state == 7 && (obj->mode == 0 || obj->mode == 1)) {
-            if (fabs(diff) < 1.5707964f) {
-                ANIM->unk1978F1 = 0;
-            } else {
-                ANIM->unk1978F1 = 2;
-            }
-        } else {
-            ANIM->unk1978F1 = 1;
-        }
+        rep0B08LookAtPartner(obj, idx);
         obj->unkBA = 4;
         obj->unkC4 = 1;
-        memcpy(&ref, REP_SLOT(0), 12);
-        for (i = 0; i < 0x33; i++) {
-            memcpy(&cand, lbl_2_data_2EA4 + i * 12, 12);
-            dist = PSVECDistance(&ref, &cand);
-            if (dist < best) {
-                best = dist;
-                bestIdx = i;
-            }
-        }
-        obj->unkB2 = (s16)bestIdx;
-        slot = REP_SLOT(idx);
-        slot->state = 4;
-        slot->mode = 0;
+        obj->unkB2 = fn_2_689CC(0);
+        rep0B08TransitionSlot(idx, 4);
     }
 }
 
@@ -632,121 +543,50 @@ void fn_2_7045C(Rep0B08Slot *obj) {
 
 // .text:0x00070110 size:0x34C mapped:0x806AF1A4
 void fn_2_70110(Rep0B08Slot *obj) {
-    Rep0B08Slot *slot = REP_SLOT(obj->index);
-    slot->unkC0 = 1;
+    s32 idx = obj->index;
+    s32 i;
+    rep0B08EnableSlot(idx);
     fn_2_68FBC(obj->index, 1);
-    {
-        s32 idx;
-        s32 i;
-        u8 kind;
-        if (obj->unkCD == 1) {
-            Rep0B08Slot *s1;
-            Rep0B08Slot *s2;
-            f32 dx;
-            f32 dz;
-            f32 heading;
-            f32 diff;
-            idx = obj->index;
-            s1 = REP_SLOT(idx);
-            s2 = REP_SLOT((s8)obj->unkCE);
-            dx = s1->pos.x - s2->pos.x;
-            dz = s1->pos.z - s2->pos.z;
-            heading = atan2(-dx, -dz);
-            diff = fn_2_4A18C(s2->unk4C) - heading;
-            if (s2->state == 7 && (obj->mode == 0 || obj->mode == 1)) {
-                if (fabs(diff) < 1.5707964f) {
-                    ANIM->unk1978F1 = 0;
-                } else {
-                    ANIM->unk1978F1 = 2;
-                }
-            } else {
-                ANIM->unk1978F1 = 1;
-            }
+    if (obj->unkCD == 1) {
+        rep0B08LookAtPartner(obj, idx);
+    }
+    for (i = 1; i < 7; i++) {
+        BOOL hit = fn_2_68C80(idx, i);
+        if (hit && i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
+            obj->unkC4 = 2;
+            obj->unkCB = i;
+            rep0B08TransitionSlot(idx, 3);
+            return;
         }
-        idx = obj->index;
-        kind = lbl_2_bss_1A8248[0x441C];
-        for (i = 1; i < 7; i++) {
-            Rep0B08Slot *si = REP_SLOT(i);
-            Rep0B08Slot *sidx = REP_SLOT(idx);
-            f32 dist = PSVECDistance((Vec *)sidx, (Vec *)si);
-            f32 limit;
-            if (idx == 0) {
-                limit = lbl_2_data_3F0C[i] + lbl_2_data_3EF4[kind];
-            } else {
-                limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-            }
-            if (dist < limit && sidx->unkC0 != 0 && si->unkC0 != 0) {
-                if (i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
-                    obj->unkC4 = 2;
-                    obj->unkCB = (u8)i;
-                    rep0B08TransitionSlot(idx, 3);
-                    return;
-                }
-                if (i >= 2 && i <= 6) {
-                    obj->unkCB = (u8)i;
-                    rep0B08TransitionSlot(idx, 4);
-                    return;
-                }
-            }
-            obj->unkCB = -1;
+        if (hit && i >= 2 && i <= 6) {
+            obj->unkCB = i;
+            rep0B08TransitionSlot(idx, 4);
+            return;
         }
+        obj->unkCB = -1;
     }
     obj->mode = 1;
 }
 
 // .text:0x0006FE6C size:0x2A4 mapped:0x806AEF00
 void fn_2_6FE6C(Rep0B08Slot *obj) {
-    s32 idx;
+    s32 idx = obj->index;
     s32 i;
-    u8 kind;
     if (obj->unkCD == 1) {
-        Rep0B08Slot *s1;
-        Rep0B08Slot *s2;
-        f32 dx;
-        f32 dz;
-        f32 heading;
-        f32 diff;
-        idx = obj->index;
-        s1 = REP_SLOT(idx);
-        s2 = REP_SLOT((s8)obj->unkCE);
-        dx = s1->pos.x - s2->pos.x;
-        dz = s1->pos.z - s2->pos.z;
-        heading = atan2(-dx, -dz);
-        diff = fn_2_4A18C(s2->unk4C) - heading;
-        if (s2->state == 7 && (obj->mode == 0 || obj->mode == 1)) {
-            if (fabs(diff) < 1.5707964f) {
-                ANIM->unk1978F1 = 0;
-            } else {
-                ANIM->unk1978F1 = 2;
-            }
-        } else {
-            ANIM->unk1978F1 = 1;
-        }
+        rep0B08LookAtPartner(obj, idx);
     }
-    idx = obj->index;
-    kind = lbl_2_bss_1A8248[0x441C];
     for (i = 1; i < 7; i++) {
-        Rep0B08Slot *si = REP_SLOT(i);
-        Rep0B08Slot *sidx = REP_SLOT(idx);
-        f32 dist = PSVECDistance((Vec *)sidx, (Vec *)si);
-        f32 limit;
-        if (idx == 0) {
-            limit = lbl_2_data_3F0C[i] + lbl_2_data_3EF4[kind];
-        } else {
-            limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
+        BOOL hit = fn_2_68C80(idx, i);
+        if (hit && i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
+            obj->unkC4 = 2;
+            obj->unkCB = i;
+            rep0B08TransitionSlot(idx, 3);
+            return;
         }
-        if (dist < limit && sidx->unkC0 != 0 && si->unkC0 != 0) {
-            if (i == 1 && lbl_2_bss_1A8248[0x44F3] == 0) {
-                obj->unkC4 = 2;
-                obj->unkCB = (u8)i;
-                rep0B08TransitionSlot(idx, 3);
-                return;
-            }
-            if (i >= 2 && i <= 6) {
-                obj->unkCB = (u8)i;
-                rep0B08TransitionSlot(idx, 4);
-                return;
-            }
+        if (hit && i >= 2 && i <= 6) {
+            obj->unkCB = i;
+            rep0B08TransitionSlot(idx, 4);
+            return;
         }
         obj->unkCB = -1;
     }
@@ -2248,24 +2088,24 @@ void fn_2_69E1C(s32 idx) {
                                          -(slot->unk14 - slot->pos.z));
             r = fn_2_4A18C(slot->unk34 - slot->unk4C);
             a = fabs(r);
-            if (a > 2.268928f) {
+            if (a > 2.268928050994873f) {
                 step = 1.5707964f;
             } else if (a > 1.5707964f) {
-                step = 0.6981317f;
-            } else if (a > 0.6981317f) {
-                step = 0.3490659f;
-            } else if (a > 0.3490659f) {
-                step = 0.1745329f;
-            } else if (a > 0.1745329f) {
-                step = 0.0872665f;
-            } else if (a > 0.0872665f) {
-                step = 0.0349066f;
-            } else if (a > 0.0349066f) {
-                step = 0.0174533f;
-            } else if (a > 0.0174533f) {
-                step = 0.0087266f;
-            } else if (a < 0.0174533f) {
-                step = 0.0034907f;
+                step = 0.6981317400932312f;
+            } else if (a > 0.6981317400932312f) {
+                step = 0.3490658700466156f;
+            } else if (a > 0.3490658700466156f) {
+                step = 0.1745329350233078f;
+            } else if (a > 0.1745329350233078f) {
+                step = 0.0872664675116539f;
+            } else if (a > 0.0872664675116539f) {
+                step = 0.03490658476948738f;
+            } else if (a > 0.03490658476948738f) {
+                step = 0.01745329238474369f;
+            } else if (a > 0.01745329238474369f) {
+                step = 0.008726646192371845f;
+            } else if (a < 0.01745329238474369f) {
+                step = 0.0034906587097793818f;
             }
             if (!((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f))) {
                 if (r < 0.0f) {
@@ -2325,24 +2165,24 @@ void fn_2_699D4(s32 idx) {
                                      -(slot->unk14 - slot->pos.z));
         r = fn_2_4A18C(slot->unk34 - slot->unk4C);
         a = fabs(r);
-        if (a > 2.268928f) {
+        if (a > 2.268928050994873f) {
             step = 1.5707964f;
         } else if (a > 1.5707964f) {
-            step = 0.6981317f;
-        } else if (a > 0.6981317f) {
-            step = 0.3490659f;
-        } else if (a > 0.3490659f) {
-            step = 0.1745329f;
-        } else if (a > 0.1745329f) {
-            step = 0.0872665f;
-        } else if (a > 0.0872665f) {
-            step = 0.0349066f;
-        } else if (a > 0.0349066f) {
-            step = 0.0174533f;
-        } else if (a > 0.0174533f) {
-            step = 0.0087266f;
-        } else if (a < 0.0174533f) {
-            step = 0.0034907f;
+            step = 0.6981317400932312f;
+        } else if (a > 0.6981317400932312f) {
+            step = 0.3490658700466156f;
+        } else if (a > 0.3490658700466156f) {
+            step = 0.1745329350233078f;
+        } else if (a > 0.1745329350233078f) {
+            step = 0.0872664675116539f;
+        } else if (a > 0.0872664675116539f) {
+            step = 0.03490658476948738f;
+        } else if (a > 0.03490658476948738f) {
+            step = 0.01745329238474369f;
+        } else if (a > 0.01745329238474369f) {
+            step = 0.008726646192371845f;
+        } else if (a < 0.01745329238474369f) {
+            step = 0.0034906587097793818f;
         }
         if (!((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f))) {
             if (r < 0.0f) {
