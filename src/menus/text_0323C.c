@@ -2538,63 +2538,60 @@ void fn_2_A1A0(u8 arg0, u8 arg1) {
 void fn_2_A288(void) {
     s32 i;
     s32 m;
-    u8 found;
-    u8 count;
-    u8 c;
-    u8 x;
+    s32 found;
+    u8 count = 0;
     s32 target;
 
-    count = 0;
-
     for (i = 0; i < 12; i++) {
-        c = captainIDOrderedOnCapSS[i];
+        u8 c = captainIDOrderedOnCapSS[i];
         if (c == *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0]) {
             ((u8 *)&Static_Stats_Tables)[0x470B] = i;
-            found = i;
+            found = (u8)i;
         } else if (c == *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4]) {
             ((u8 *)&Static_Stats_Tables)[0x470C] = i;
         }
     }
 
     target = *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4];
-
-    for (m = 0; m < 2; m++) {
-        x = ((u8 *)&Static_Stats_Tables)[found * 0x48 + 0x4393 + m * 0x12 + 0];
+    for (m = 1; m < 3; m++) {
+        u8 *row = &((u8 *)&Static_Stats_Tables)[found * 0x48 + m * 0x12 + 0x4381];
+        s32 x;
+        x = row[0];
         if (x == target && x != 0xFF) {
-            lbl_2_bss_3E0[m] = -1;
+            lbl_2_bss_3E0[m - 1] = -1;
         }
-        x = ((u8 *)&Static_Stats_Tables)[found * 0x48 + 0x4393 + m * 0x12 + 1];
+        x = row[1];
         if (x == target && x != 0xFF) {
-            lbl_2_bss_3E0[m] = -1;
+            lbl_2_bss_3E0[m - 1] = -1;
         }
-        x = ((u8 *)&Static_Stats_Tables)[found * 0x48 + 0x4393 + m * 0x12 + 2];
+        x = row[2];
         if (x == target && x != 0xFF) {
-            lbl_2_bss_3E0[m] = -1;
+            lbl_2_bss_3E0[m - 1] = -1;
         }
-        x = ((u8 *)&Static_Stats_Tables)[found * 0x48 + 0x4393 + m * 0x12 + 3];
+        x = row[3];
         if (x == target && x != 0xFF) {
-            lbl_2_bss_3E0[m] = -1;
+            lbl_2_bss_3E0[m - 1] = -1;
         }
-        x = ((u8 *)&Static_Stats_Tables)[found * 0x48 + 0x4393 + m * 0x12 + 4];
+        x = row[4];
         if (x == target && x != 0xFF) {
-            lbl_2_bss_3E0[m] = -1;
+            lbl_2_bss_3E0[m - 1] = -1;
         }
-        x = ((u8 *)&Static_Stats_Tables)[found * 0x48 + 0x4393 + m * 0x12 + 5];
+        x = row[5];
         if (x == target && x != 0xFF) {
-            lbl_2_bss_3E0[m] = -1;
+            lbl_2_bss_3E0[m - 1] = -1;
         }
-        x = ((u8 *)&Static_Stats_Tables)[found * 0x48 + 0x4393 + m * 0x12 + 6];
+        x = row[6];
         if (x == target && x != 0xFF) {
-            lbl_2_bss_3E0[m] = -1;
+            lbl_2_bss_3E0[m - 1] = -1;
         }
-        x = ((u8 *)&Static_Stats_Tables)[found * 0x48 + 0x4393 + m * 0x12 + 7];
+        x = row[7];
         if (x == target && x != 0xFF) {
-            lbl_2_bss_3E0[m] = -1;
+            lbl_2_bss_3E0[m - 1] = -1;
         }
-        if ((s8)lbl_2_bss_3E0[m] == -1) {
-            lbl_2_bss_3E0[m] = 0;
+        if ((s8)lbl_2_bss_3E0[m - 1] != -1) {
+            lbl_2_bss_3E0[m - 1] = 1;
         } else {
-            lbl_2_bss_3E0[m] = 1;
+            lbl_2_bss_3E0[m - 1] = 0;
         }
     }
 
