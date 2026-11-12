@@ -935,6 +935,7 @@ void fn_2_6DB30(Rep0B08Slot *obj) {
     fn_2_69E1C(idx);
     if (idx >= 2 && idx <= 6) {
         s32 b;
+        // A no-op, but present in the original code.
         if (idx == 2) {
             idx = 2;
         }
