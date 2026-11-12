@@ -1,5 +1,6 @@
 #include "menus/text_3C03C.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "menus/menu_work.h"
 
 /* Per-frame node whose phase byte lives at +0x28 and whose timer is an s16 at +0x14. */
 typedef struct TextItem {
@@ -29,9 +30,9 @@ extern u8 lbl_800EFBA4[];
 extern u8 AtBat_ButtonInput1[];
 extern u8 g_d_GameSettings[];
 
-void fn_2_94604(s32 arg);
-void fn_2_9461C(s16 arg);
-void fn_2_94634(s32 arg);
+void menuCamera_setEyeFollowsSlot(s32 arg);
+void menuCamera_setFollowSlot(s16 arg);
+void menuCamera_setSpringPreset(s32 arg);
 void fn_2_94854(u8 value);
 void fn_2_42490(void);
 void fn_2_72054(s32 index, u8 state);
@@ -62,7 +63,7 @@ void sndFXStartEx(s32 fid, u8 vol, u8 pan, u8 studio);
 #define WORK_ADDR(off) ((u8 *)lbl_2_bss_1A824C + 0x190000 + (off))
 
 static u16 atBatButtonsOfCurrent(void) {
-    s8 idx = (s8)*WORK_ADDR(0x7863);
+    s8 idx = (s8)*WORK_ADDR(MENU_WORK_ACTIVE_PORT);
     return *(u16 *)(AtBat_ButtonInput1 + idx * 0x20 + 2);
 }
 
@@ -129,7 +130,7 @@ void fn_2_3CD34(void) {
         }
         break;
     case 2: {
-        s8 idx = (s8)*WORK_ADDR(0x7863);
+        s8 idx = (s8)*WORK_ADDR(MENU_WORK_ACTIVE_PORT);
         u16 *input = (u16 *)(AtBat_ButtonInput1 + idx * 0x20);
 
         if (input[2] == 8 || input[2] == 4) {
@@ -317,9 +318,9 @@ void fn_2_3E058(void) {
         if (!fn_8006862C(0x78, 0)) {
             lbl_2_bss_1A8248[0x44F2] = 4;
             fn_2_94854(0xB);
-            fn_2_9461C(0xC);
-            fn_2_94604(1);
-            fn_2_94634(1);
+            menuCamera_setFollowSlot(0xC);
+            menuCamera_setEyeFollowsSlot(1);
+            menuCamera_setSpringPreset(1);
             item->timer = 0x3C;
             item->phase = 2;
         }
@@ -360,9 +361,9 @@ void fn_2_3E058(void) {
         break;
     case 12:
         fn_2_94854(0xB);
-        fn_2_9461C(0);
-        fn_2_94604(1);
-        fn_2_94634(1);
+        menuCamera_setFollowSlot(0);
+        menuCamera_setEyeFollowsSlot(1);
+        menuCamera_setSpringPreset(1);
         item->timer = 0x3C;
         item->phase = 0xD;
         break;
@@ -407,7 +408,7 @@ void fn_2_3DF28(void) {
         }
         break;
     case 2: {
-        s8 idx = (s8)*WORK_ADDR(0x7863);
+        s8 idx = (s8)*WORK_ADDR(MENU_WORK_ACTIVE_PORT);
         u16 buttons = *(u16 *)(AtBat_ButtonInput1 + idx * 0x20 + 2);
 
         if (buttons & 0x300) {
@@ -632,7 +633,7 @@ void fn_2_3D5C4(void) {
         }
         break;
     case 4: {
-        s8 idx = (s8)*WORK_ADDR(0x7863);
+        s8 idx = (s8)*WORK_ADDR(MENU_WORK_ACTIVE_PORT);
         u16 buttons = *(u16 *)(AtBat_ButtonInput1 + idx * 0x20 + 2);
 
         if (buttons & 0x300) {
@@ -772,7 +773,7 @@ void fn_2_3C53C(void) {
         }
         break;
     case 4: {
-        s8 idx = *WORK_ADDR(0x7863);
+        s8 idx = *WORK_ADDR(MENU_WORK_ACTIVE_PORT);
         u16 buttons = *(u16 *)(AtBat_ButtonInput1 + idx * 0x20 + 2);
 
         if (buttons & 0x100) {
@@ -881,9 +882,9 @@ void fn_2_3C168(void) {
                 item->phase = 3;
             } else {
                 fn_2_94854(0xB);
-                fn_2_9461C((s8)*WORK_ADDR(0x7851) + 7);
-                fn_2_94604(1);
-                fn_2_94634(1);
+                menuCamera_setFollowSlot((s8)*WORK_ADDR(0x7851) + 7);
+                menuCamera_setEyeFollowsSlot(1);
+                menuCamera_setSpringPreset(1);
                 item->timer = 0x3C;
                 item->phase = 2;
             }
@@ -916,9 +917,9 @@ void fn_2_3C03C(void) {
     case 1:
         if (item->timer-- == 0) {
             fn_2_94854(0xB);
-            fn_2_9461C(0);
-            fn_2_94604(1);
-            fn_2_94634(1);
+            menuCamera_setFollowSlot(0);
+            menuCamera_setEyeFollowsSlot(1);
+            menuCamera_setSpringPreset(1);
             item->timer = 0x14;
             item->phase = 2;
         }

@@ -16,6 +16,8 @@ extern u8 lbl_2_data_2E64[];
 extern u8 lbl_2_data_3CC0[];
 extern u8 challengeCaptainCharIDs[];
 int rand(void);
+// Defined in rep_0B08.c as returning s32 (a sign-extended s8 slot field). Declared s8 here
+// because that is what this caller matches with; the original TU likely saw an s8 declaration.
 s8 fn_2_68690(s32 idx);
 
 #define WORK_BASE() (lbl_2_bss_1A824C + 0x190000)

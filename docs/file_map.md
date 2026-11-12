@@ -343,7 +343,7 @@ report) as a decompilation priority list for this module:
 | `rep_0788` | 0.65% | 150 | unnamed; likely the character-select engine (its largest function calls `changeScreenVariables` with team-select/challenge-map/main-menu targets, the css transition set) |
 | `rep_0F60` | 0.61% | 25 | unnamed |
 | `rep_0840` | 0.58% | 1 | unnamed, single function |
-| `rep_10C0` | 0.53% | 11 | unnamed |
+| `menu_camera` (was `rep_10C0`) | 0.53% | 11 | menu-scene camera: presets, spring smoothing, debug free-look |
 | `rep_0AB0` | 0.23% | 12 | 1/12 named (`recordsScreen`) |
 | `rep_0730` | 0.12% | 1 | unnamed, single function |
 

@@ -74,7 +74,7 @@ extern u8 lbl_2_bss_55C0;
 extern u8 *currentDrawingItem;
 extern u32 memoryUsedOrStorage[];
 s32 fn_80016710(s32 character, s32 item);
-void fn_2_93C64(void);
+void menuCamera_snapToPreset(void);
 void removeCurrentDrawingItem(void);
 extern u8 BatterStats_P1_P2[];
 extern u8 PitcherStats_P1_P2[];
@@ -119,7 +119,7 @@ static inline void addStatCounter(s32 delta) {
 }
 
 void fn_800ACFB0(void *obj);
-void fn_2_68690(s32 flag);
+s32 fn_2_68690(s32 idx);
 void fn_2_68DAC(void *self, Vec *out);
 void fn_80031CA4(Vec *v, u32 *dst);
 void fn_2_513E0(void *a, s32 b, s32 c, s32 d, s32 e, s32 f, s32 g, s32 h);
@@ -132,7 +132,7 @@ void *memcpy(void *dest, const void *src, u32 n);
 void PSMTXCopy(const Mtx src, Mtx dest);
 void graphics_relatedToVsScreen(void);
 void fn_2_6A87C(void);
-void fn_2_93BF8(void *arg);
+void menuCamera_update(void *arg);
 void fn_2_9007C(void);
 f64 atan2(f64 y, f64 x);
 
@@ -1053,7 +1053,7 @@ void fn_2_481F4(void) {
         LITInitDir(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
         LITInitColor(*(void **)(hugeAnimStruct + 0xB8), (GXColor *)&color3);
 
-        fn_2_93C64();
+        menuCamera_snapToPreset();
         for (i = 0; i < 9; i++) {
             for (j = 0; j < 6; j++) {
                 u32 size = allocationEntrySize(off);
@@ -1154,15 +1154,15 @@ void fn_2_47FF8(void) {
         if (base[0x7846] == 1) {
             fn_2_6A87C();
             if (base[0x7847] != 0) {
-                fn_2_93BF8(lbl_2_bss_1A81D4);
+                menuCamera_update(lbl_2_bss_1A81D4);
             }
         } else if (base[0x7846] == 2) {
             fn_2_9007C();
         } else {
-            fn_2_93BF8(lbl_2_bss_1A81D4);
+            menuCamera_update(lbl_2_bss_1A81D4);
         }
     } else {
-        fn_2_93BF8(lbl_2_bss_1A81D4);
+        menuCamera_update(lbl_2_bss_1A81D4);
     }
     memcpy((u8 *)fn_80052768_getCamera(0) + 0x70, lbl_2_bss_1A81D4 + 0x4C, 12);
     memcpy((u8 *)fn_80052768_getCamera(0) + 0x7C, lbl_2_bss_1A81D4 + 0x40, 12);

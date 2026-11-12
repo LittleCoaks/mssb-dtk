@@ -5,6 +5,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
+#include "menus/menu_work.h"
 
 // Local prototypes for symbols owned by other units.
 s16 fn_2_53BC8(void *arg0);
@@ -39,7 +40,7 @@ static inline s16 workS16(s32 off) {
 
 // Button record of the currently active AtBat input slot (index in the work area).
 static inline u16 atBatButtons(void) {
-    return *(u16 *)(AtBat_ButtonInput1 + (s8)WORK_U8(0x7863) * 0x20 + 2);
+    return *(u16 *)(AtBat_ButtonInput1 + (s8)WORK_U8(MENU_WORK_ACTIVE_PORT) * 0x20 + 2);
 }
 
 static inline TextGraphicsObject *nodeOf(TextScene *scene, TextHandleRec *rec) {

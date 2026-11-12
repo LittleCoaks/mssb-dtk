@@ -40,9 +40,9 @@ void fn_2_5AFB0(void);
 void fn_2_587F8(void);
 void fn_2_8DFB0(void);
 void fn_2_94854(int arg0);
-void fn_2_9461C(int arg0);
-void fn_2_94604(int arg0);
-void fn_2_93C64(void);
+void menuCamera_setFollowSlot(int arg0);
+void menuCamera_setEyeFollowsSlot(int arg0);
+void menuCamera_snapToPreset(void);
 void fn_2_903A8(int arg0);
 void fn_2_92654(int arg0, int arg1);
 void fn_2_4E7EC(void);
@@ -58,7 +58,7 @@ void fn_2_1FF10(int arg0);
 void fn_2_1FF14(int arg0);
 void fn_2_1FF0C(int arg0);
 void fn_2_5EB78(void);
-void fn_2_93C64(void);
+void menuCamera_snapToPreset(void);
 void fn_2_489DC(void);
 extern u8 lbl_2_bss_A168;
 extern u8 lbl_2_bss_A169;
@@ -520,9 +520,9 @@ void fn_2_5D26C(void) {
     case 1:
         if (item->state == 1) {
             fn_2_94854(1);
-            fn_2_9461C(-1);
-            fn_2_94604(0);
-            fn_2_93C64();
+            menuCamera_setFollowSlot(-1);
+            menuCamera_setEyeFollowsSlot(0);
+            menuCamera_snapToPreset();
             WCH(0x32) = 2;
         }
         break;
@@ -554,9 +554,9 @@ void fn_2_5D26C(void) {
     case 6:
         if (item->state == 1) {
             fn_2_94854(1);
-            fn_2_9461C(-1);
-            fn_2_94604(0);
-            fn_2_93C64();
+            menuCamera_setFollowSlot(-1);
+            menuCamera_setEyeFollowsSlot(0);
+            menuCamera_snapToPreset();
             WCH(0x32) = 7;
         }
         break;
@@ -1441,9 +1441,9 @@ void fn_2_5A224(void) {
         WBH(0x197708) = 1;
         WBH(0x19770A) = 0;
         fn_2_94854(lbl_2_data_35A0[WBH(0x197706)] + 2);
-        fn_2_9461C(-1);
-        fn_2_94604(0);
-        fn_2_93C64();
+        menuCamera_setFollowSlot(-1);
+        menuCamera_setEyeFollowsSlot(0);
+        menuCamera_snapToPreset();
         WCH(0x32) = 2;
         break;
     case 2:
@@ -1712,7 +1712,7 @@ void fn_2_59CF8(void) {
                         if (pad & INPUT_BUTTON_A) {
                             lbl_2_bss_A168 ^= 1;
                         } else if (pad & INPUT_BUTTON_START) {
-                            fn_2_93C64();
+                            menuCamera_snapToPreset();
                         }
                     }
                     if ((s8)lbl_2_bss_A168 != 0) {
@@ -1821,7 +1821,7 @@ void fn_2_5979C(void) {
                     } else if (pad & INPUT_BUTTON_A) {
                         lbl_2_bss_A169 ^= 1;
                     } else if (pad & INPUT_BUTTON_START) {
-                        fn_2_93C64();
+                        menuCamera_snapToPreset();
                     }
                     if ((s8)lbl_2_bss_A169 != 0) {
                         fn_2_489DC();

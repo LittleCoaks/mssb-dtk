@@ -242,7 +242,7 @@ void practice_loadCharacterData(void) {
 #pragma dont_inline on
 void practice_loadCharacter(int team, int slot, int character, int flags) {
     if (team == 0 && slot == 0) {
-        *(int*)((u8*)&g_GameLogic + team * 0x50 + 0x3C) = slot;
+        g_GameLogic.battingOrderAndPositionMapping[team][0][0] = slot;
     }
     lineUpInfoStruct[team][slot][0] = slot;
     lineUpInfoStruct[team][slot][1] = slot;
@@ -252,19 +252,17 @@ void practice_loadCharacter(int team, int slot, int character, int flags) {
     if (slot >= 0 && slot <= 8) {
         fn_80011BE4(slot);
     }
-    team *= 0x5A0;
-    slot *= 0xA0;
-    memcpy((u8*)inMemRoster + team + slot, (u8*)&Static_Stats_Tables + character * 0xA0, 0xA0);
+    memcpy(&inMemRoster[team][slot], (u8*)&Static_Stats_Tables + character * 0xA0, 0xA0);
     if (flags >= 0) {
         if (flags == 0 || flags == 1) {
-            *((u8*)inMemRoster + team + slot + 0x26) = 0;
+            inMemRoster[team][slot].stats.FieldingArm = 0;
         } else {
-            *((u8*)inMemRoster + team + slot + 0x26) = 1;
+            inMemRoster[team][slot].stats.FieldingArm = 1;
         }
         if (flags == 0 || flags == 2) {
-            *((u8*)inMemRoster + team + slot + 0x27) = 0;
+            inMemRoster[team][slot].stats.BattingStance = 0;
         } else {
-            *((u8*)inMemRoster + team + slot + 0x27) = 1;
+            inMemRoster[team][slot].stats.BattingStance = 1;
         }
     }
 }

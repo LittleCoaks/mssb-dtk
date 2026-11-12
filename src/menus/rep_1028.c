@@ -8,6 +8,7 @@
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "stl/math.h"
 #include "static/UnknownHomes_Static.h"
+#include "menus/menu_work.h"
 
 extern u8 inputParams[0x268];
 
@@ -527,14 +528,14 @@ void fn_2_8FE9C(int idx) {
     PSVECSubtract(&pos, &lbl_2_data_308F4, &diff);
     diff.x = lbl_2_rodata_1090 * diff.x;
     diff.z = lbl_2_rodata_1090 * diff.z;
-    port = lbl_2_bss_1A824C[0x190000 + 0x7863];
+    port = lbl_2_bss_1A824C[0x190000 + MENU_WORK_ACTIVE_PORT];
     rec = (u8 *) &AtBat_ButtonInput1 + port * 32;
     pos.x = pos.x + (f32) (s8) rec[0x10] / lbl_2_rodata_1094;
     pos.z = pos.z + (f32) (s8) rec[0x11] / lbl_2_rodata_1094;
     if (lbl_2_rodata_1080 != diff.x || lbl_2_rodata_1080 != diff.z) {
         lbl_2_bss_B640 = fn_2_4A1E8(diff.z);
     }
-    port = lbl_2_bss_1A824C[0x190000 + 0x7863];
+    port = lbl_2_bss_1A824C[0x190000 + MENU_WORK_ACTIVE_PORT];
     rec = (u8 *) &AtBat_ButtonInput1 + port * 32;
     flags = *(u16 *) (rec + 4);
     if (flags & 0x40) {
@@ -562,14 +563,14 @@ void fn_2_9007C(void) {
     PSVECSubtract(&pos, &lbl_2_data_308F4, &diff);
     diff.x = lbl_2_rodata_1090 * diff.x;
     diff.z = lbl_2_rodata_1090 * diff.z;
-    port = lbl_2_bss_1A824C[0x190000 + 0x7863];
+    port = lbl_2_bss_1A824C[0x190000 + MENU_WORK_ACTIVE_PORT];
     rec = (u8 *) &AtBat_ButtonInput1 + port * 32;
     pos.x = pos.x + (f32) (s8) rec[0x10] / lbl_2_rodata_1094;
     pos.z = pos.z + (f32) (s8) rec[0x11] / lbl_2_rodata_1094;
     if (!(diff.x == lbl_2_rodata_1080 && diff.z == lbl_2_rodata_1080)) {
         lbl_2_bss_B640 = fn_2_4A1E8(diff.z);
     }
-    port = lbl_2_bss_1A824C[0x190000 + 0x7863];
+    port = lbl_2_bss_1A824C[0x190000 + MENU_WORK_ACTIVE_PORT];
     rec = (u8 *) &AtBat_ButtonInput1 + port * 32;
     flags = *(u16 *) (rec + 4);
     if (flags & 0x40) {

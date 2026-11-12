@@ -6,7 +6,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "menus/text_1B1BC.h"
 #include "menus/text_94854.h"
-#include "menus/rep_10C0.h"
+#include "menus/menu_camera.h"
 #include "menus/rep_1028.h"
 #include "menus/text_92394.h"
 #include "menus/text_44F14.h"
@@ -275,7 +275,7 @@ void fn_2_3FA14(void) {
             }
             node->phase = 2;
         }
-        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
+        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(MENU_WORK_ACTIVE_PORT))->_02 & INPUT_BUTTON_A) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
@@ -290,7 +290,7 @@ void fn_2_3FA14(void) {
             WORK_S16(0x7736) = WORK_S16(0x7736) + 1;
             lbl_2_bss_1A8234[0x1627D5] = 1;
             WORK_U32(0x76A8) = fn_80062890(0x37);
-            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
+            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(MENU_WORK_ACTIVE_PORT))->_02 & INPUT_BUTTON_A) {
                 WORK_S16(0x7736) = WORK_S16(0x7734);
                 node->phase = 4;
             }
@@ -357,7 +357,7 @@ void fn_2_3F66C(void) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
-        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
+        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(MENU_WORK_ACTIVE_PORT))->_02 & INPUT_BUTTON_A) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
@@ -370,7 +370,7 @@ void fn_2_3F66C(void) {
 
         v = WORK_S16(0x7736);
         if (v > WORK_S16(0x7734)) {
-            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
+            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(MENU_WORK_ACTIVE_PORT))->_02 & INPUT_BUTTON_A) {
                 WORK_S16(0x7736) = WORK_S16(0x7734);
                 node->phase = 4;
             }
@@ -889,9 +889,9 @@ void fn_2_3E38C(void) {
         if (!fn_8006862C(0x78, 0)) {
             lbl_2_bss_1A8248->_44F2 = 4;
             fn_2_94854(0xb);
-            fn_2_9461C(0xc);
-            fn_2_94604(1);
-            fn_2_94634(1);
+            menuCamera_setFollowSlot(0xc);
+            menuCamera_setEyeFollowsSlot(1);
+            menuCamera_setSpringPreset(1);
             node->timer = 60;
             node->phase = 2;
             fn_2_8F758(0x18, 2);
@@ -959,9 +959,9 @@ void fn_2_3E38C(void) {
         break;
     case 12:
         fn_2_94854(0xb);
-        fn_2_9461C(0);
-        fn_2_94604(1);
-        fn_2_94634(1);
+        menuCamera_setFollowSlot(0);
+        menuCamera_setEyeFollowsSlot(1);
+        menuCamera_setSpringPreset(1);
         node->timer = 60;
         node->phase = 13;
         break;

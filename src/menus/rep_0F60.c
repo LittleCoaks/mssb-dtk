@@ -108,7 +108,7 @@ void removeCurrentDrawingItem(void);
 void fn_2_4E824(void);
 void fn_80052D70(void);
 void fn_2_48DB4(void);
-void fn_2_93C64(void);
+void menuCamera_snapToPreset(void);
 extern void *currentDrawingItem;
 extern s8 lbl_803C6CF8[];
 extern u8 lbl_80366158[];
@@ -143,9 +143,9 @@ void fn_80014204(s32 count);
 void *fn_80023AA4(void);
 extern void *lbl_2_bss_1A8248;
 void fn_2_94854(s32 a);
-void fn_2_9461C(s32 a);
-void fn_2_94604(s32 a);
-void fn_2_94634(s32 a);
+void menuCamera_setFollowSlot(s32 a);
+void menuCamera_setEyeFollowsSlot(s32 a);
+void menuCamera_setSpringPreset(s32 a);
 void fn_800B2B54(void *actor, u16 bone, s32 mode);
 void fn_800B2B4C(void *actor, f32 value);
 void actorRelated(void *a, u32 b, u32 c);
@@ -192,7 +192,7 @@ void fn_2_8EA80(void) {
         fn_80052D70();
         fn_2_8DCD8();
         fn_2_48DB4();
-        fn_2_93C64();
+        menuCamera_snapToPreset();
         item[0x28] = 1;
         break;
     case 1:
@@ -234,10 +234,10 @@ void fn_2_8EA80(void) {
         break;
     case 7:
         fn_2_94854(0xB);
-        fn_2_9461C(0);
-        fn_2_94604(0);
-        fn_2_94634(1);
-        fn_2_93C64();
+        menuCamera_setFollowSlot(0);
+        menuCamera_setEyeFollowsSlot(0);
+        menuCamera_setSpringPreset(1);
+        menuCamera_snapToPreset();
         lbl_2_bss_340140->_307A = 2;
         *(s16 *)(*(u8 **)((u8 *)currentDrawingItem + 0x0C) + 0x10) = 1;
         removeCurrentDrawingItem();
@@ -259,7 +259,7 @@ void fn_2_8E8A4(void) {
         fn_80052D70();
         fn_2_8DCD8();
         fn_2_48DB4();
-        fn_2_93C64();
+        menuCamera_snapToPreset();
         item[0x28] = 1;
         break;
     case 1:
@@ -304,7 +304,7 @@ void fn_2_8E6A4(void) {
         fn_80052D70();
         fn_2_8DCD8();
         fn_2_48DB4();
-        fn_2_93C64();
+        menuCamera_snapToPreset();
         item[0x28] = 1;
         break;
     case 1:
@@ -384,7 +384,7 @@ void fn_2_8DFB0(void) {
         fn_2_4E824();
         fn_80052D70();
         fn_2_48DB4();
-        fn_2_93C64();
+        menuCamera_snapToPreset();
         item[0x28] = 1;
         break;
     case 1:

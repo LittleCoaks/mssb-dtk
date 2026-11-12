@@ -7,6 +7,7 @@
 #include "menus/text_71EC4.h"
 #include "challenge/challenge_progress.h"
 #include "game/challenge/star_mission_data.h"
+#include "menus/menu_work.h"
 
 // Per-scene flow node: the DrawingSceneStruct fields that these functions use
 // are read at different offsets, so this local view names them directly.
@@ -175,7 +176,7 @@ void fn_2_399C0(void) {
         break;
     case 6:
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 2);
         if (input & INPUT_BUTTON_A) {
             cur->timer = 10;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -211,7 +212,7 @@ void fn_2_399C0(void) {
         break;
     case 8:
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 4);
         if (input & INPUT_BUTTON_LEFT) {
             BSS_1A824C_S16(0x7708)--;
             col = BSS_1A824C_S16(0x7708);
@@ -230,7 +231,7 @@ void fn_2_399C0(void) {
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 4);
         if (input & INPUT_BUTTON_UP) {
             BSS_1A824C_S16(0x770A)--;
             row = BSS_1A824C_S16(0x770A);
@@ -250,7 +251,7 @@ void fn_2_399C0(void) {
         }
         BSS_1A824C_S16(0x7706) = lbl_2_data_29700[BSS_1A824C_S16(0x7708) + 6 * BSS_1A824C_S16(0x770A)];
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 4);
         if (input & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT | INPUT_BUTTON_UP | INPUT_BUTTON_DOWN)) {
             if ((s8)BSS_1A8248_U8(0x44F4) == 0) BSS_1A8234_U8(0x27E3) = TRUE;
             else BSS_1A8234_U8(0x27B4) = TRUE;
@@ -258,7 +259,7 @@ void fn_2_399C0(void) {
             break;
         }
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 2);
         if (input & INPUT_BUTTON_A) {
             if (BSS_1A824C_S16(0x770A) == 0 && BSS_1A824C_S16(0x7708) == 5) {
                 sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -376,14 +377,14 @@ void fn_2_397AC(void) {
         break;
     case 2:
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 4);
         if ((input & INPUT_BUTTON_LEFT) && BSS_1A824C_S16(0x76DC) == 1) {
             BSS_1A824C_S16(0x76DC) = 0;
         } else if ((input & INPUT_BUTTON_RIGHT) && BSS_1A824C_S16(0x76DC) == 0) {
             BSS_1A824C_S16(0x76DC) = 1;
         }
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 2);
         if (input & INPUT_BUTTON_A) {
             cur->state = 3;
         } else if (input & INPUT_BUTTON_B) {
@@ -444,7 +445,7 @@ void fn_2_39408(void) {
         break;
     case 2:
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 4);
         if ((input & INPUT_BUTTON_LEFT) && BSS_1A824C_S16(0x76DE) == 1) {
             BSS_1A824C_S16(0x76DE) = 0;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
@@ -453,7 +454,7 @@ void fn_2_39408(void) {
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 2);
         if (input & INPUT_BUTTON_A) {
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
             cur->state = 3;
@@ -517,14 +518,14 @@ void fn_2_391B4(void) {
         break;
     case 2:
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 4);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 4);
         if ((input & INPUT_BUTTON_LEFT) && BSS_1A824C_S16(0x76E0) == 1) {
             BSS_1A824C_S16(0x76E0) = 0;
         } else if ((input & INPUT_BUTTON_RIGHT) && BSS_1A824C_S16(0x76E0) == 0) {
             BSS_1A824C_S16(0x76E0) = 1;
         }
         state = lbl_2_bss_1A824C;
-        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + 0x7863] * 0x20 + 2);
+        input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)state[0x190000 + MENU_WORK_ACTIVE_PORT] * 0x20 + 2);
         if (input & INPUT_BUTTON_A) {
             cur->state = 3;
         } else if (input & INPUT_BUTTON_B) {
@@ -596,7 +597,7 @@ void fn_2_38F48(void) {
         }
         break;
     case 2:
-        if (*(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)BSS_1A824C_U8(0x7863) * 0x20 + 2) & INPUT_BUTTON_A) {
+        if (*(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)BSS_1A824C_U8(MENU_WORK_ACTIVE_PORT) * 0x20 + 2) & INPUT_BUTTON_A) {
             cur->timer = 18;
             BSS_1A8234_U8(0x2839) = 1;
             cur->state = 3;
