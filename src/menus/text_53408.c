@@ -5,6 +5,7 @@
 #include "Unknown/File_0x80035838.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/dvdsys.h"
+#include "menus/menu_work.h"
 
 // Local prototypes and externs for symbols owned by other units.
 extern u8 *menuControlVariables;
@@ -505,7 +506,7 @@ void fn_2_535B0(void) {
             switch (i) {
             case 0:
                 if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A0) == i) {
-                    u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7863) * 0x20;
+                    u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + MENU_WORK_ACTIVE_PORT) * 0x20;
                     if ((*(u16 *)(entry + 2) & 0x100) || (*(s8 *)(AtBat_ButtonInput1 + 0x13) > 0x32)) {
                         *((u8 *)item + 0x28) = 3;
                     }
@@ -513,7 +514,7 @@ void fn_2_535B0(void) {
                 break;
             case 1:
                 if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A0) == i) {
-                    u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7863) * 0x20;
+                    u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + MENU_WORK_ACTIVE_PORT) * 0x20;
                     if (*(u16 *)(entry + 2) & 0x102) {
                         lbl_2_bss_1A824C[0x190000 + 0x784A] = 1;
                         lbl_2_bss_1A824C[0x190000 + 0x7846] = 0;
@@ -526,7 +527,7 @@ void fn_2_535B0(void) {
             }
         }
         {
-            u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7863) * 0x20;
+            u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + MENU_WORK_ACTIVE_PORT) * 0x20;
             if ((*(u16 *)(entry + 2) & 0x200) || (*(s8 *)(AtBat_ButtonInput1 + 0x13) > 0x32)) {
                 *((u8 *)item + 0x28) = 3;
             }
@@ -539,7 +540,7 @@ void fn_2_535B0(void) {
             switch (i) {
             case 0:
                 if (*(u32 *)(lbl_2_bss_1A824C + 0x190000 + 0x76A4) == i) {
-                    u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7863) * 0x20;
+                    u8 *entry = AtBat_ButtonInput1 + *(s8 *)(lbl_2_bss_1A824C + 0x190000 + MENU_WORK_ACTIVE_PORT) * 0x20;
                     u16 flags = *(u16 *)(entry + 2);
 
                     if (flags & 0x200) {

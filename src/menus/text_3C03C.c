@@ -1,5 +1,6 @@
 #include "menus/text_3C03C.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "menus/menu_work.h"
 
 /* Per-frame node whose phase byte lives at +0x28 and whose timer is an s16 at +0x14. */
 typedef struct TextItem {
@@ -62,7 +63,7 @@ void sndFXStartEx(s32 fid, u8 vol, u8 pan, u8 studio);
 #define WORK_ADDR(off) ((u8 *)lbl_2_bss_1A824C + 0x190000 + (off))
 
 static u16 atBatButtonsOfCurrent(void) {
-    s8 idx = (s8)*WORK_ADDR(0x7863);
+    s8 idx = (s8)*WORK_ADDR(MENU_WORK_ACTIVE_PORT);
     return *(u16 *)(AtBat_ButtonInput1 + idx * 0x20 + 2);
 }
 
@@ -129,7 +130,7 @@ void fn_2_3CD34(void) {
         }
         break;
     case 2: {
-        s8 idx = (s8)*WORK_ADDR(0x7863);
+        s8 idx = (s8)*WORK_ADDR(MENU_WORK_ACTIVE_PORT);
         u16 *input = (u16 *)(AtBat_ButtonInput1 + idx * 0x20);
 
         if (input[2] == 8 || input[2] == 4) {
@@ -407,7 +408,7 @@ void fn_2_3DF28(void) {
         }
         break;
     case 2: {
-        s8 idx = (s8)*WORK_ADDR(0x7863);
+        s8 idx = (s8)*WORK_ADDR(MENU_WORK_ACTIVE_PORT);
         u16 buttons = *(u16 *)(AtBat_ButtonInput1 + idx * 0x20 + 2);
 
         if (buttons & 0x300) {
@@ -632,7 +633,7 @@ void fn_2_3D5C4(void) {
         }
         break;
     case 4: {
-        s8 idx = (s8)*WORK_ADDR(0x7863);
+        s8 idx = (s8)*WORK_ADDR(MENU_WORK_ACTIVE_PORT);
         u16 buttons = *(u16 *)(AtBat_ButtonInput1 + idx * 0x20 + 2);
 
         if (buttons & 0x300) {
@@ -772,7 +773,7 @@ void fn_2_3C53C(void) {
         }
         break;
     case 4: {
-        s8 idx = *WORK_ADDR(0x7863);
+        s8 idx = *WORK_ADDR(MENU_WORK_ACTIVE_PORT);
         u16 buttons = *(u16 *)(AtBat_ButtonInput1 + idx * 0x20 + 2);
 
         if (buttons & 0x100) {

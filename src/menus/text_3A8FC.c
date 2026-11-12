@@ -3,6 +3,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "game/challenge/star_mission_data.h"
 #include "menus/text_44F14.h"
+#include "menus/menu_work.h"
 
 typedef struct MenuFlowItem {
     void (*func)(void);
@@ -60,7 +61,7 @@ static inline void finishCancelledItem(MenuFlowItem *item) {
 }
 
 static inline u16 pressedButtons(void) {
-    s8 index = (s8)*WORK(0x7863);
+    s8 index = (s8)*WORK(MENU_WORK_ACTIVE_PORT);
     return *(u16 *)(AtBat_ButtonInput1 + index * 0x20 + 2);
 }
 
@@ -78,7 +79,7 @@ static inline void setMenu(s32 menu) {
 
 static inline void updateRecordGridCursor(void) {
     u16 *repeat = (u16 *)(AtBat_ButtonInput1 + 4);
-    s8 idx = (s8)*WORK(0x7863);
+    s8 idx = (s8)*WORK(MENU_WORK_ACTIVE_PORT);
     u16 pad = repeat[idx * 16];
 
     if (pad & INPUT_BUTTON_LEFT) {
@@ -98,7 +99,7 @@ static inline void updateRecordGridCursor(void) {
         }
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
     }
-    idx = (s8)*WORK(0x7863);
+    idx = (s8)*WORK(MENU_WORK_ACTIVE_PORT);
     pad = repeat[idx * 16];
     if (pad & INPUT_BUTTON_UP) {
         WORK_S16(0x770A)--;
@@ -136,7 +137,7 @@ void fn_2_3A8FC(void) {
         break;
     case 2:
         repeat = (u16 *)(AtBat_ButtonInput1 + 4);
-        buttons = repeat[(s8)*WORK(0x7863) * 16];
+        buttons = repeat[(s8)*WORK(MENU_WORK_ACTIVE_PORT) * 16];
         if (buttons & INPUT_BUTTON_LEFT) {
             WORK_S16(0x7712) = WORK_S16(0x7710);
             WORK_S16(0x770C)--;
@@ -150,7 +151,7 @@ void fn_2_3A8FC(void) {
                 WORK_S16(0x770C) = 0;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
-        buttons = repeat[(s8)*WORK(0x7863) * 16];
+        buttons = repeat[(s8)*WORK(MENU_WORK_ACTIVE_PORT) * 16];
         if (buttons & INPUT_BUTTON_UP) {
             if (lbl_2_data_122A8[WORK_S16(0x7714)][1] != 0) {
                 WORK_S16(0x7712) = WORK_S16(0x7710);
@@ -170,7 +171,7 @@ void fn_2_3A8FC(void) {
         }
         WORK_S16(0x7710) = WORK_S16(0x770C) + WORK_S16(0x770E) *
             (lbl_2_data_122A8[WORK_S16(0x7714)][0] + 1);
-        buttons = repeat[(s8)*WORK(0x7863) * 16];
+        buttons = repeat[(s8)*WORK(MENU_WORK_ACTIVE_PORT) * 16];
         if ((buttons & INPUT_BUTTON_UP) || (buttons & INPUT_BUTTON_DOWN)) {
             if (lbl_2_data_122A8[WORK_S16(0x7714)][1] != 0) {
                 setRecordAnimation(0x270B, 0x26DD);

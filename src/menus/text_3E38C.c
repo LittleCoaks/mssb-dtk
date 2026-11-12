@@ -275,7 +275,7 @@ void fn_2_3FA14(void) {
             }
             node->phase = 2;
         }
-        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
+        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(MENU_WORK_ACTIVE_PORT))->_02 & INPUT_BUTTON_A) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
@@ -290,7 +290,7 @@ void fn_2_3FA14(void) {
             WORK_S16(0x7736) = WORK_S16(0x7736) + 1;
             lbl_2_bss_1A8234[0x1627D5] = 1;
             WORK_U32(0x76A8) = fn_80062890(0x37);
-            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
+            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(MENU_WORK_ACTIVE_PORT))->_02 & INPUT_BUTTON_A) {
                 WORK_S16(0x7736) = WORK_S16(0x7734);
                 node->phase = 4;
             }
@@ -357,7 +357,7 @@ void fn_2_3F66C(void) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
-        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
+        if (ATBAT_BUTTON_INPUT((s8)WORK_U8(MENU_WORK_ACTIVE_PORT))->_02 & INPUT_BUTTON_A) {
             WORK_S16(0x7736) = WORK_S16(0x7734);
             node->phase = 4;
         }
@@ -370,7 +370,7 @@ void fn_2_3F66C(void) {
 
         v = WORK_S16(0x7736);
         if (v > WORK_S16(0x7734)) {
-            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(0x7863))->_02 & INPUT_BUTTON_A) {
+            if (ATBAT_BUTTON_INPUT((s8)WORK_U8(MENU_WORK_ACTIVE_PORT))->_02 & INPUT_BUTTON_A) {
                 WORK_S16(0x7736) = WORK_S16(0x7734);
                 node->phase = 4;
             }

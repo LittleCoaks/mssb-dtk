@@ -4,6 +4,7 @@
 #include "mssbTypes.h"
 #include "Dolphin/vec.h"
 #include "Dolphin/mtx.h"
+#include "menus/menu_work.h"
 
 /* Fields of the menus work area (lbl_2_bss_1A824C + 0x190000) owned by the menu camera.
  * Vec fields hold x, y, z at +0, +4, +8. */
@@ -27,7 +28,6 @@
 #define MENU_CAM_PRESET             0x7849 /* u8: index into menuCameraPresets */
 #define MENU_CAM_SPRING_ENABLED     0x7855 /* u8: springs on (set by menuCamera_setSpringPreset) */
 #define MENU_CAM_EYE_FOLLOWS_SLOT   0x7856 /* u8: 1 = eye is offset by the followed slot too */
-#define MENU_WORK_ACTIVE_PORT       0x7863 /* s8: controller port driving the menus (menu-wide) */
 
 #define MENU_CAM_MODE_PRESET          0
 #define MENU_CAM_MODE_DEBUG_FREE_LOOK 1

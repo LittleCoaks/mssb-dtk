@@ -5,6 +5,7 @@
 #include "Dolphin/GX/GXFrameBuffer.h"
 #include "game/match_setup/match_loading.h"
 #include "Dolphin/pad.h"
+#include "menus/menu_work.h"
 
 // Local prototypes for symbols owned by other units.
 s16 fn_2_53BC8(void *arg0);
@@ -77,7 +78,7 @@ extern MovieWork lbl_2_bss_15A0;
 #define ITEM_S16(item, off) (*(s16 *)((u8 *)(item) + (off)))
 
 static inline u16 moviePressedButtons(void) {
-    return ((u16 (*)[16])AtBat_ButtonInput1)[(s8)WORK_BASE()[0x7863]][1];
+    return ((u16 (*)[16])AtBat_ButtonInput1)[(s8)WORK_BASE()[MENU_WORK_ACTIVE_PORT]][1];
 }
 
 static inline s16 workS16(s32 off) {

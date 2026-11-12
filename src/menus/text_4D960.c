@@ -7,6 +7,7 @@
 #include "musyx/musyx.h"
 #include "menus/text_37F04.h"
 #include "menus/rep_08E8.h"
+#include "menus/menu_work.h"
 
 extern u8 *lbl_2_bss_1A8234;
 typedef struct MenuScriptWork {
@@ -270,7 +271,7 @@ static inline void cancelMenuScript(MenuScriptWork *work) {
 }
 
 static inline u16 scriptButtonInput(s32 offset) {
-    return *(u16 *)((u8 *)&AtBat_ButtonInput1 + SCRIPT_FIELD(s8, 0x7863) * 0x20 + offset);
+    return *(u16 *)((u8 *)&AtBat_ButtonInput1 + SCRIPT_FIELD(s8, MENU_WORK_ACTIVE_PORT) * 0x20 + offset);
 }
 
 static inline void markScriptWindow(s32 window) {

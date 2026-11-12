@@ -14,6 +14,7 @@
 #include "menus/text_42BE8.h"
 #include "menus/text_44F14.h"
 #include "menus/text_50898.h"
+#include "menus/menu_work.h"
 
 // Local prototypes and externs for symbols owned by other units.
 void fn_2_399C0(void);
@@ -999,7 +1000,7 @@ void fn_2_4078C(void) {
         item->state = 1;
         break;
     case 1:
-        if (*(u16 *)(AtBat_ButtonInput1 + (*(s8 *)(WORK_BASE() + 0x7863) << 5) + 2) & INPUT_BUTTON_A) {
+        if (*(u16 *)(AtBat_ButtonInput1 + (*(s8 *)(WORK_BASE() + MENU_WORK_ACTIVE_PORT) << 5) + 2) & INPUT_BUTTON_A) {
             item->state = 2;
         }
         break;
