@@ -168,7 +168,7 @@ extern Rep0B08StateFn lbl_2_data_2A2E0[];
 
 f32 fn_2_4A18C(f32 angle);
 void fn_2_8CD58(s32 idx, s16 a, u8 b, s32 c, s16 d, s32 e, s32 f);
-s16 fn_2_4A2C4(f32 angle);
+s32 fn_2_4A2C4(f32 angle);
 s16 fn_2_4A150(s16 angle);
 f32 fn_2_4A1E8(f32 x);
 s16 fn_2_4A234(f32 x, f32 y);
@@ -2290,6 +2290,10 @@ void fn_2_69E1C(s32 idx) {
     case 8:
         slot->unkBA = slot->unkBA + 0x14;
         break;
+    case 24:
+    case 28:
+        slot->unk38 = slot->unk38 - 0.005f;
+        break;
     case 9:
         slot->unk38 = 0.0f;
         break;
@@ -2313,10 +2317,6 @@ void fn_2_69E1C(s32 idx) {
     case 14:
         slot->unk38 = 0.025f;
         break;
-    case 24:
-    case 28:
-        slot->unk38 = slot->unk38 - 0.005f;
-        break;
     default:
         break;
     }
@@ -2326,19 +2326,23 @@ void fn_2_69E1C(s32 idx) {
     slot->unk50 = slot->unk50 - slot->unk38;
     dx = slot->pos.x - slot->unk0C;
     dz = slot->pos.z - slot->unk14;
-    len = dolsqrtf2(dx * dx + dz * dz);
+    {
+        f32 squaredX = dx * dx;
+        f32 squaredZ = dz * dz;
+        len = dolsqrtf2(squaredX + squaredZ);
+    }
     if (len < slot->unk38) {
         slot->unk50 = -1.0f;
     }
-    if (slot->unk38 > 0.0f) {
+    if (!(slot->unk38 <= 0.0f)) {
         if (slot->unkBA != 4 && slot->unkBA != 0x18 && slot->unk50 > 0.0f) {
             slot->unk4C = atan2(-(slot->unk0C - slot->pos.x),
                                          -(slot->unk14 - slot->pos.z));
         }
+        PSMTXRotRad(mtx, 'Y', slot->unk34);
         v.x = 0.0f;
         v.y = 0.0f;
         v.z = -slot->unk38;
-        PSMTXRotRad(mtx, 'Y', slot->unk34);
         PSMTXMultVec(mtx, &v, &v);
         slot->unk18 = v.x;
         slot->unk20 = v.z;
@@ -2365,13 +2369,15 @@ void fn_2_69E1C(s32 idx) {
                 step = 0.0174533f;
             } else if (a > 0.0174533f) {
                 step = 0.0087266f;
-            } else {
+            } else if (a < 0.0174533f) {
                 step = 0.0034907f;
             }
-            if (r >= 0.02 || r == 0.0) {
-                slot->unk34 = slot->unk34 - step;
-            } else if (r <= -0.02) {
-                slot->unk34 = slot->unk34 + step;
+            if (!((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f))) {
+                if (r < 0.0f) {
+                    slot->unk34 = slot->unk34 + step;
+                } else {
+                    slot->unk34 = slot->unk34 - step;
+                }
             }
             slot->unk4C = slot->unk34;
         }
@@ -2398,7 +2404,11 @@ void fn_2_699D4(s32 idx) {
     slot->unk50 = slot->unk50 - slot->unk38;
     dx = slot->pos.x - slot->unk0C;
     dz = slot->pos.z - slot->unk14;
-    len = dolsqrtf2(dx * dx + dz * dz);
+    {
+        f32 squaredX = dx * dx;
+        f32 squaredZ = dz * dz;
+        len = dolsqrtf2(squaredX + squaredZ);
+    }
     if (len < slot->unk38) {
         slot->unk50 = -1.0f;
     }
@@ -2406,10 +2416,10 @@ void fn_2_699D4(s32 idx) {
         slot->unk4C = atan2(-(slot->unk0C - slot->pos.x),
                                      -(slot->unk14 - slot->pos.z));
     }
+    PSMTXRotRad(mtx, 'Y', slot->unk34);
     v.x = 0.0f;
     v.y = 0.0f;
     v.z = 0.0f;
-    PSMTXRotRad(mtx, 'Y', slot->unk34);
     PSMTXMultVec(mtx, &v, &v);
     slot->unk18 = v.x;
     slot->unk20 = v.z;
@@ -2436,13 +2446,15 @@ void fn_2_699D4(s32 idx) {
             step = 0.0174533f;
         } else if (a > 0.0174533f) {
             step = 0.0087266f;
-        } else {
+        } else if (a < 0.0174533f) {
             step = 0.0034907f;
         }
-        if (r >= 0.02 || r == 0.0) {
-            slot->unk34 = slot->unk34 - step;
-        } else if (r <= -0.02) {
-            slot->unk34 = slot->unk34 + step;
+        if (!((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f))) {
+            if (r < 0.0f) {
+                slot->unk34 = slot->unk34 + step;
+            } else {
+                slot->unk34 = slot->unk34 - step;
+            }
         }
         slot->unk4C = slot->unk34;
     }
@@ -2512,9 +2524,9 @@ void fn_2_69710(s32 idx) {
         slot->unkA0 = 0;
     } else if (slot->unkA0 != 0) {
         if (slot->unk38 >= slot->unk40) {
-            slot->unkA0 = 0;
-        } else {
             slot->unk38 = slot->unk40;
+        } else {
+            slot->unkA0 = 0;
         }
     } else {
         if (slot->unk38 > 0.12f) {
