@@ -2105,7 +2105,8 @@ void fn_2_699D4(s32 idx) {
 void fn_2_698EC(s32 idx, f32 angle) {
     Rep0B08Slot *slot = REP_SLOT(idx);
     if (slot->unkD0 != 0) {
-        f32 out = 1.6f * -(f32)sin(slot->unk90);
+        f32 s = (f32)sin(slot->unk90);
+        f32 out = 1.6f * -s;
         slot->unk90 += 0.07f;
         if (slot->pos.y > angle) {
             slot->unk90 = 0.0f;
@@ -2186,19 +2187,17 @@ void fn_2_696D4(s32 idx) {
 // .text:0x00069554 size:0x180 mapped:0x806A85E8
 s32 fn_2_69554(s32 idx, f32 x, f32 z) {
     Rep0B08Slot *slot = REP_SLOT(idx);
-    f32 dx;
-    f32 dz;
     f32 div;
     f32 t;
     s32 half;
     if (x == slot->pos.x && z == slot->pos.z) {
         return 1;
     }
-    dx = x - slot->pos.x;
-    dz = z - slot->pos.z;
+    x -= slot->pos.x;
+    z -= slot->pos.z;
     {
-        f32 squaredZ = dz * dz;
-        f32 squaredX = dx * dx;
+        f32 squaredX = x * x;
+        f32 squaredZ = z * z;
         t = dolsqrtf2(squaredX + squaredZ);
     }
     half = slot->unkB7 / 2U;
