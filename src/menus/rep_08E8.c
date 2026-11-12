@@ -119,7 +119,7 @@ static inline void addStatCounter(s32 delta) {
 }
 
 void fn_800ACFB0(void *obj);
-void fn_2_68690(s32 flag);
+s32 fn_2_68690(s32 idx);
 void fn_2_68DAC(void *self, Vec *out);
 void fn_80031CA4(Vec *v, u32 *dst);
 void fn_2_513E0(void *a, s32 b, s32 c, s32 d, s32 e, s32 f, s32 g, s32 h);
