@@ -530,7 +530,7 @@ void fn_2_7045C(Rep0B08Slot *obj) {
 void fn_2_70110(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 i;
-    rep0B08EnableSlot(idx);
+    rep0B08EnableObj(obj);
     fn_2_68FBC(obj->index, 1);
     if (obj->unkCD == 1) {
         rep0B08LookAtPartner(obj, idx);
@@ -586,7 +586,7 @@ void fn_2_6FE34(Rep0B08Slot *obj) {
 void fn_2_6FB0C(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 other = MENU->slots[0].index;
-    rep0B08EnableSlot(idx);
+    rep0B08EnableObj(obj);
     fn_2_68FBC(obj->index, 1);
     obj->unk34 = obj->unk4C;
     if (idx >= 2 && idx <= 6) {
@@ -1187,10 +1187,7 @@ void fn_2_6D040(Rep0B08Slot *obj) {
 // .text:0x0006CDD4 size:0x26C mapped:0x806ABE68
 void fn_2_6CDD4(Rep0B08Slot *obj) {
     s32 idx = obj->index;
-    Rep0B08Slot *slot = REP_SLOT(idx);
-    f32 dx;
-    f32 dz;
-    rep0B08EnableSlot(idx);
+    rep0B08EnableObj(obj);
     memcpy(&obj->unk74, lbl_2_data_2EA4 + MENU->slots[0].unkB0 * 0xC, 12);
     fn_2_6A450(idx, obj->unk74, obj->unk7C);
     obj->unkBA = 0xC;
@@ -1587,13 +1584,12 @@ void fn_2_6B4C4(Rep0B08Slot *obj) {
 // .text:0x0006B238 size:0x28C mapped:0x806AA2CC
 void fn_2_6B238(Rep0B08Slot *obj) {
     s32 idx = obj->index;
-    Rep0B08Slot *slot = REP_SLOT(idx);
     rep0B08EnableSlot(idx);
     obj->unkBA = 0xE;
     obj->unkD0 = 1;
     obj->unk90 = 0.0f;
     obj->pos.y = 0.0f;
-    if (slot->unkB0 == 0x30) {
+    if (SLOTS[idx].unkB0 == 0x30) {
         memcpy(&obj->unk74, lbl_2_data_2EA4 + 0x258, 12);
     } else {
         memcpy(&obj->unk74, lbl_2_data_2EA4 + 0xD8, 12);
@@ -1653,9 +1649,10 @@ void fn_2_6AF80(s32 idx, u8 val) {
 
 // .text:0x0006AE08 size:0x178 mapped:0x806A9E9C
 void fn_2_6AE08(void) {
+    Rep0B08Slot *slot;
     s32 i;
     for (i = 0; i < 8; i++) {
-        Rep0B08Slot *slot = REP_SLOT(i);
+        slot = REP_SLOT(i);
         memset(slot, 0, 0xD8);
         slot->index = i;
         slot->unk84 = i;
@@ -1670,7 +1667,6 @@ void fn_2_6AE08(void) {
         slot->unk96 = i;
         slot->unk98 = -1;
         slot->unkBC = 1;
-        slot->unkBA = 12;
         slot->state = 0;
         slot->mode = 0;
         slot->unkC6 = -1;
@@ -1678,10 +1674,11 @@ void fn_2_6AE08(void) {
         slot->unkC5 = 0;
         slot->unk88 = 0.0f;
         slot->unkC1 = 0;
+        slot->unkBA = 12;
         slot->unkAC = 0;
         slot->unkCA = 0xFF;
-        slot->unkCB = 0xFF;
-        slot->unkCC = 0xFF;
+        slot->unkCB = -1;
+        slot->unkCC = -1;
     }
 }
 
@@ -1765,9 +1762,13 @@ void fn_2_6AB3C(s32 idx, const void *src, f32 angle) {
     slot->unk70 = slot->pos.z;
     slot->unk38 = 0.0f;
     slot->unkBB = 0;
-    angle = (f32)atan2(slot->pos.x, slot->pos.z);
-    slot->unk34 = angle;
-    slot->unk30 = angle;
+    {
+        f32 nx = -slot->pos.x;
+        f32 nz = -slot->pos.z;
+        f32 heading = atan2(-nx, -nz);
+        slot->unk34 = heading;
+        slot->unk30 = heading;
+    }
 }
 
 // .text:0x0006AABC size:0x80 mapped:0x806A9B50
@@ -2189,17 +2190,24 @@ s32 fn_2_69554(s32 idx, f32 x, f32 z) {
     f32 dz;
     f32 div;
     f32 t;
+    s32 half;
     if (x == slot->pos.x && z == slot->pos.z) {
         return 1;
     }
     dx = x - slot->pos.x;
     dz = z - slot->pos.z;
-    t = dolsqrtf2(dx * dx + dz * dz);
-    div = slot->unk40;
-    if (div == 0.0f) {
-        div = 1.0f;
+    {
+        f32 squaredZ = dz * dz;
+        f32 squaredX = dx * dx;
+        t = dolsqrtf2(squaredX + squaredZ);
     }
-    return (slot->unkB7 >> 1) + (s32)(t / div);
+    half = slot->unkB7 / 2U;
+    if (slot->unk40 == 0.0f) {
+        div = 1.0f;
+    } else {
+        div = slot->unk40;
+    }
+    return half + (s32)(t / div);
 }
 
 // .text:0x000692D0 size:0x284 mapped:0x806A8364
