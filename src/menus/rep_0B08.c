@@ -1830,7 +1830,7 @@ void fn_2_69E1C(s32 idx) {
             slot->unk9E = 0x2D;
         }
         if (slot->unk9E != 0) {
-            slot->unk9E = slot->unk9E - 1;
+            slot->unk9E--;
         }
     }
     switch (slot->unkBA) {
@@ -1851,7 +1851,7 @@ void fn_2_69E1C(s32 idx) {
         break;
     case 4:
     case 8:
-        slot->unkBA = slot->unkBA + 0x14;
+        slot->unkBA += 0x14;
         break;
     case 24:
     case 28:
