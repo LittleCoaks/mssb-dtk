@@ -74,7 +74,7 @@ typedef struct Rep0B08Slot {
     /* 0xC3 */ u8 state;
     /* 0xC4 */ u8 unkC4;
     /* 0xC5 */ u8 unkC5;
-    /* 0xC6 */ u8 unkC6;
+    /* 0xC6 */ s8 unkC6;
     /* 0xC7 */ u8 unkC7;
     /* 0xC8 */ u8 unkC8;
     /* 0xC9 */ u8 unkC9;
@@ -821,35 +821,35 @@ void fn_2_6E88C(Rep0B08Slot *obj) {
     Rep0B08Slot *b = REP_SLOT(0);
     f32 r;
     f32 t;
-    f32 f31;
+    f32 step;
     obj->unk4C = (f32)atan2(-(b->pos.x - obj->pos.x),
                                       -(b->pos.z - obj->pos.z));
     r = fn_2_4A18C(obj->unk34 - obj->unk4C);
     t = (f32)fabs(r);
     if (t > 2.268928050994873f) {
-        f31 = 1.5707963705062866f;
+        step = 1.5707963705062866f;
     } else if (t > 1.5707963705062866f) {
-        f31 = 0.6981317400932312f;
+        step = 0.6981317400932312f;
     } else if (t > 0.6981317400932312f) {
-        f31 = 0.3490658700466156f;
+        step = 0.3490658700466156f;
     } else if (t > 0.3490658700466156f) {
-        f31 = 0.1745329350233078f;
+        step = 0.1745329350233078f;
     } else if (t > 0.1745329350233078f) {
-        f31 = 0.0872664675116539f;
+        step = 0.0872664675116539f;
     } else if (t > 0.0872664675116539f) {
-        f31 = 0.03490658476948738f;
+        step = 0.03490658476948738f;
     } else if (t > 0.03490658476948738f) {
-        f31 = 0.01745329238474369f;
+        step = 0.01745329238474369f;
     } else if (t > 0.01745329238474369f) {
-        f31 = 0.008726646192371845f;
-    } else {
-        f31 = 0.0034906587097793818f;
+        step = 0.008726646192371845f;
+    } else if (t < 0.01745329238474369f) {
+        step = 0.0034906587097793818f;
     }
     if (!((r < 0.02 && r > 0.0f) || (r > -0.02 && r < 0.0f))) {
         if (r < 0.0f) {
-            obj->unk34 += f31;
+            obj->unk34 += step;
         } else {
-            obj->unk34 -= f31;
+            obj->unk34 -= step;
         }
     }
     obj->unk4C = obj->unk34;
@@ -1264,12 +1264,14 @@ void fn_2_6C988(Rep0B08Slot *obj) {
     f32 v[3];
     Mtx mtx;
     f32 r;
+    Rep0B08Menu *menu;
     rep0B08EnableSlot(idx);
-    PSVECSubtract((Vec *)(lbl_2_data_2EA4 + MENU->slots[0].unkB0 * 0xC),
-                  (Vec *)(lbl_2_data_2EA4 + MENU->slots[0].unkAE * 0xC),
+    menu = MENU;
+    PSVECSubtract((Vec *)(lbl_2_data_2EA4 + menu->slots[0].unkB0 * 0xC),
+                  (Vec *)(lbl_2_data_2EA4 + menu->slots[0].unkAE * 0xC),
                   (Vec *)tmp);
     PSVECScale((Vec *)tmp, 0.5f, (Vec *)tmp);
-    PSMTXRotRad(mtx, 'Y', MENU->slots[0].unk4C);
+    PSMTXRotRad(mtx, 'Y', menu->slots[0].unk4C);
     v[0] = 0.0f;
     v[1] = 0.0f;
     v[2] = -1.2000000476837158f;
@@ -1278,8 +1280,8 @@ void fn_2_6C988(Rep0B08Slot *obj) {
     memcpy(obj, lbl_2_data_2EA4 + MENU->slots[0].unkAE * 0xC, 12);
     PSVECAdd((Vec *)obj, (Vec *)tmp, (Vec *)obj);
     fn_2_68FBC(obj->index, 1);
-    r = (f32)atan2(-(MENU->slots[0].pos.x - obj->pos.x),
-                   -(MENU->slots[0].pos.z - obj->pos.z));
+    r = (f32)atan2(-(menu->slots[0].pos.x - obj->pos.x),
+                   -(menu->slots[0].pos.z - obj->pos.z));
     obj->unk4C = r;
     fn_2_46C88(obj->index, 0);
     obj->mode = 1;
@@ -1536,22 +1538,21 @@ void fn_2_6BA18(Rep0B08Slot *obj) {
 // .text:0x0006B744 size:0x2D4 mapped:0x806AA7D8
 void fn_2_6B744(Rep0B08Slot *obj) {
     s32 idx = obj->index;
-    Rep0B08Slot *slot = REP_SLOT(idx);
     Vec tmp;
-    f32 dx;
-    f32 dz;
     rep0B08EnableSlot(idx);
     obj->unkBA = 0xC;
     obj->unkD0 = 1;
     obj->unk90 = 0.0f;
     obj->pos.y = 0.0f;
-    if (slot->unkB0 == 0x30) {
+    if (SLOTS[idx].unkB0 == 0x30) {
         memcpy(&tmp, lbl_2_data_3198 + 0x1F4, 12);
+        PSVECScale(&tmp, 0.5f, &tmp);
+        memcpy(&obj->unk74, &tmp, 12);
     } else {
         memcpy(&tmp, lbl_2_data_3198 + 0x208, 12);
+        PSVECScale(&tmp, 0.5f, &tmp);
+        memcpy(&obj->unk74, &tmp, 12);
     }
-    PSVECScale(&tmp, 0.5f, &tmp);
-    memcpy(&obj->unk74, &tmp, 12);
     fn_2_6A450(idx, obj->unk74, obj->unk7C);
     fn_2_68FBC(idx, 8);
     obj->mode = 1;
@@ -1672,7 +1673,7 @@ void fn_2_6AE08(void) {
         slot->unkBA = 12;
         slot->state = 0;
         slot->mode = 0;
-        slot->unkC6 = 0xFF;
+        slot->unkC6 = -1;
         slot->unkC4 = 0;
         slot->unkC5 = 0;
         slot->unk88 = 0.0f;
@@ -1686,9 +1687,10 @@ void fn_2_6AE08(void) {
 
 // .text:0x0006ACF4 size:0x114 mapped:0x806A9D88
 void fn_2_6ACF4(void) {
+    Rep0B08Slot *slot;
     s32 i;
     for (i = 0; i < 8; i++) {
-        Rep0B08Slot *slot = REP_SLOT(i);
+        slot = REP_SLOT(i);
         slot->index = i;
         slot->unk84 = i;
         slot->unk8C = 0.0f;
@@ -1704,15 +1706,15 @@ void fn_2_6ACF4(void) {
         slot->unkBC = 1;
         slot->state = 0;
         slot->mode = 0;
-        slot->unkC6 = 0xFF;
+        slot->unkC6 = -1;
         slot->unkC4 = 0;
         slot->unkC5 = 0;
         slot->unk88 = 0.0f;
         slot->unkC1 = 0;
         slot->unkAC = 0;
         slot->unkCA = 0xFF;
-        slot->unkCB = 0xFF;
-        slot->unkCC = 0xFF;
+        slot->unkCB = -1;
+        slot->unkCC = -1;
     }
 }
 
