@@ -134,8 +134,8 @@ extern u8 lbl_2_data_3150[];
 extern u8 lbl_2_data_3C84[];
 extern s16 lbl_2_data_2E80[][3];
 extern u8 lbl_2_data_3198[];
-extern u8 lbl_2_data_3C20[];
-extern u8 lbl_2_data_3ED4[];
+extern s16 lbl_2_data_3C20[];
+extern s16 lbl_2_data_3ED4[];
 extern f32 lbl_2_data_3F44[];
 extern s16 *lbl_2_data_3C2C[];
 extern f32 lbl_2_data_3EF4[];
@@ -196,23 +196,8 @@ static void rep0B08EnableSlot(s32 idx) {
     ((Rep0B08Slot *)(lbl_2_bss_1A8248 + idx * sizeof(Rep0B08Slot) + 0x1610))->unkC0 = 1;
 }
 
-static s32 rep0B08NearestSlotZeroPoint(void) {
-    Vec ref;
-    Vec cand;
-    f32 best = 10000.0f;
-    s32 bestIdx = 0;
-    s32 i;
-    memcpy(&ref, REP_SLOT(0), sizeof(Vec));
-    for (i = 0; i < 0x33; i++) {
-        f32 distance;
-        memcpy(&cand, lbl_2_data_2EA4 + i * (s32)sizeof(Vec), sizeof(Vec));
-        distance = PSVECDistance(&ref, &cand);
-        if (distance < best) {
-            best = distance;
-            bestIdx = i;
-        }
-    }
-    return bestIdx;
+static inline void rep0B08EnableObj(Rep0B08Slot *obj) {
+    rep0B08EnableSlot(obj->index);
 }
 
 static inline void rep0B08CheckAnimCue(Rep0B08Slot *obj) {
@@ -363,9 +348,9 @@ void fn_2_71A38(Rep0B08Slot *obj) {
 // .text:0x00071098 size:0x9A0 mapped:0x806B012C
 void fn_2_71098(Rep0B08Slot *obj) {
     s32 idx = obj->index;
-    s32 i;
     BOOL flag = FALSE;
-    rep0B08EnableSlot(idx);
+    s32 i;
+    rep0B08EnableObj(obj);
     memcpy(&obj->unk74, lbl_2_data_2EA4 + MENU->slots[0].unkB0 * 12, 12);
     fn_2_6A450(idx, obj->unk74, obj->unk7C);
     obj->unkBA = 0xC;
@@ -397,7 +382,7 @@ void fn_2_71098(Rep0B08Slot *obj) {
         if (nearby && i >= 2 && i <= 6) {
                 obj->unkBA = 4;
                 obj->unkC4 = 1;
-                obj->unkB2 = rep0B08NearestSlotZeroPoint();
+                obj->unkB2 = fn_2_689CC(0);
                 rep0B08TransitionSlot(idx, 4);
                 return;
             }
@@ -408,7 +393,7 @@ void fn_2_71098(Rep0B08Slot *obj) {
         rep0B08LookAtPartner(obj, idx);
         obj->unkBA = 4;
         obj->unkC4 = 1;
-        obj->unkB2 = rep0B08NearestSlotZeroPoint();
+        obj->unkB2 = fn_2_689CC(0);
         rep0B08TransitionSlot(idx, 4);
     }
     if (!(obj->unk50 <= 0.0f)) {
@@ -423,7 +408,7 @@ void fn_2_71098(Rep0B08Slot *obj) {
     }
     fn_2_68FBC(idx, 1);
     obj->unkC4 = 1;
-    obj->unkB2 = rep0B08NearestSlotZeroPoint();
+    obj->unkB2 = fn_2_689CC(0);
     rep0B08TransitionSlot(idx, 4);
 }
 
@@ -926,27 +911,23 @@ void fn_2_6E848(Rep0B08Slot *obj) {
 void fn_2_6E1D0(Rep0B08Slot *obj) {
     s32 idx = obj->index;
     s32 other = MENU->slots[0].index;
-    Rep0B08Slot *slot = REP_SLOT(idx);
-    s16 *row = lbl_2_data_3C2C[idx - 2];
-    s16 n = *(s16 *)(lbl_2_data_3C20 + idx * 2 - 4);
-    s32 pick;
+    s16 *row;
+    s16 n;
+    s16 pick;
     s16 chosen;
-    Rep0B08Slot *sIdx;
-    Rep0B08Slot *sOther;
-    u8 kind;
-    f32 limit;
-    f32 dist;
-    slot->unkC0 = 1;
+    rep0B08EnableObj(obj);
+    n = lbl_2_data_3C20[idx - 2];
+    row = lbl_2_data_3C2C[idx - 2];
     pick = rand() % n;
-    if ((s8)obj->unkCF == -1) {
+    if (obj->unkCF == -1) {
         pick = 0;
         obj->unkCF = 0;
     } else if (row[pick] == obj->unkB2) {
-        pick = pick ^ 1;
+        pick ^= 1;
     }
     chosen = row[pick];
-    slot->unkB0 = chosen;
-    memcpy(&obj->unk74, lbl_2_data_2EA4 + slot->unkB0 * 12, 12);
+    SLOTS[idx].unkB0 = chosen;
+    memcpy(&obj->unk74, lbl_2_data_2EA4 + SLOTS[idx].unkB0 * 12, 12);
     fn_2_6A450(idx, obj->unk74, obj->unk7C);
     obj->unkBA = 0xD;
     fn_2_69E1C(idx);
@@ -961,16 +942,7 @@ void fn_2_6E1D0(Rep0B08Slot *obj) {
             return;
         }
     }
-    sIdx = REP_SLOT(idx);
-    sOther = REP_SLOT(other);
-    dist = PSVECDistance((Vec *)sIdx, (Vec *)sOther);
-    kind = lbl_2_bss_1A8248[0x441C];
-    if (idx == 0) {
-        limit = lbl_2_data_3F0C[other] + lbl_2_data_3EF4[kind];
-    } else {
-        limit = lbl_2_data_3F0C[idx] + lbl_2_data_3EF4[kind];
-    }
-    if (dist < limit && sIdx->unkC0 != 0 && sOther->unkC0 != 0) {
+    if (fn_2_68C80(idx, other)) {
         if (idx == 1) {
             fn_2_68FBC(idx, 1);
             obj->unkC4 = 2;
@@ -979,14 +951,15 @@ void fn_2_6E1D0(Rep0B08Slot *obj) {
             return;
         }
         if (idx >= 2 && idx <= 6) {
-            s16 b2 = sIdx->unkB2;
-            s16 b0 = sIdx->unkB0;
-            s16 tb = *(s16 *)(lbl_2_data_3ED4 + idx * 2 - 4);
-            if ((b2 == chosen && b0 == chosen) || (b2 == tb && b0 == tb)) {
+            s16 target = SLOTS[idx].unkB2;
+            if ((target == chosen && SLOTS[idx].unkB0 == chosen) ||
+                (target == lbl_2_data_3ED4[idx - 2] && SLOTS[idx].unkB0 == lbl_2_data_3ED4[idx - 2])) {
                 if (obj->unk50 <= 0.01f) {
-                    obj->unkA2 = 0x78;
+                    obj->unkA2 = 120;
                     fn_2_68FBC(idx, 1);
                     obj->unkBA = 9;
+                    obj->unk50 = 0.0f;
+                    obj->unk38 = 0.0f;
                     obj->unkCF = 0;
                     obj->mode = 2;
                     return;
@@ -995,12 +968,11 @@ void fn_2_6E1D0(Rep0B08Slot *obj) {
             obj->unkCB = 0;
             obj->unkCF = -1;
             obj->mode = 0;
-            return;
         }
-        return;
+    } else {
+        obj->unkCB = -1;
+        obj->mode = 1;
     }
-    obj->unkCB = -1;
-    obj->mode = 1;
 }
 
 // .text:0x0006DE54 size:0x37C mapped:0x806ACEE8
