@@ -24,6 +24,7 @@
 #include "Unknown/File_0x800acf14.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
+#include "HugeAnimStruct.h"
 
 // One entry per outfield tree (10 slots; `usedFlag == 4` ends the list).
 typedef struct _MarioTreePlacement {
@@ -71,9 +72,8 @@ typedef struct _MarioCrowdSeat {
     /*0x02*/ u8 phase;
 } MarioCrowdSeat;
 
-#define MARIO_ANIM_TABLE (*(u8**)(hugeAnimStruct + 0x6C))
+#define MARIO_ANIM_TABLE (((u8*)hugeAnimStruct.actorTables[3]))
 
-extern u8 hugeAnimStruct[0x3154];
 extern u16 stadiumHazardSoundIDs[16];
 static MarioTreePlacement marioStadiumTrees[MARIO_TREE_COUNT + 1] = {
     { { 24.4f, 0.0f, 117.2f }, { 1.0f, 1.0f, 1.0f }, -16.0f, 2, 1, 0, 0 },

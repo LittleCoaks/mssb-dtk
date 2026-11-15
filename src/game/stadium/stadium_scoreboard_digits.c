@@ -9,6 +9,7 @@
 #include "Dolphin/stl.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_stadiumScoreboardDigits
 #include "header_rep_data.h"
+#include "HugeAnimStruct.h"
 
 void fn_3_16DFC4(void);
 void fn_3_16E1A0(void);
@@ -28,7 +29,6 @@ f32 lbl_3_data_2A478[8] = {
 extern void fn_80033B58(void*, int, int, int);
 extern void fn_800A7D4C(int, void*);
 extern u8 drawStadiumRelated;
-extern volatile u8 hugeAnimStruct[];
 void* lbl_3_data_2A498[2][2] = {
     {0, (void*)fn_3_16DFC4},
     {0, (void*)fn_3_16DFC4},
@@ -91,7 +91,7 @@ void fn_3_16E2FC(void* texture, int subTexture) {
 
 // .text:0x0016E1EC size:0x110 mapped:0x807AD280
 void animateScoreBoard(void) {
-    if (lbl_3_bss_D6EC | (hugeAnimStruct[0x3088] == FALSE) | (*(u32*)&lbl_3_bss_D6E4 == 0)) {
+    if (lbl_3_bss_D6EC | (hugeAnimStruct._3088 == FALSE) | (*(u32*)&lbl_3_bss_D6E4 == 0)) {
         lbl_3_bss_D6E4 = NULL;
         objOrTextureCount = -1;
         lbl_3_bss_D6EC = FALSE;

@@ -19,8 +19,8 @@
 #include "Unknown/File_0x800204cc.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_pauseMenu
 #include "header_rep_data.h"
+#include "HugeAnimStruct.h"
 
-extern u8 hugeAnimStruct[0x3154];
 extern u8 animRelated[0x124];
 extern u8 highLevelSimulationFlag[4];
 extern s8 lineUpInfoStruct[2][9][4];
@@ -220,13 +220,13 @@ void match_checkForPause(void) {
     int home;
     int away;
 
-    if (hugeAnimStruct[0x2D46] != FALSE) {
+    if (hugeAnimStruct.loadSlots[0].state != FALSE) {
         return;
     }
-    if (hugeAnimStruct[0x2D52] != FALSE) {
+    if (hugeAnimStruct.loadSlots[1].state != FALSE) {
         return;
     }
-    if (hugeAnimStruct[0x2D5E] != FALSE) {
+    if (hugeAnimStruct.loadSlots[2].state != FALSE) {
         return;
     }
     if (g_d_GameSettings.exhibitionMatchInd == FALSE && animRelated[0xB3] != FALSE) {
@@ -420,7 +420,7 @@ void fn_3_AF5A4(void) {
         pauseMenu_applyTeamControlOptions();
         fn_3_FBD70();
         fn_3_FBD58();
-        hugeAnimStruct[0x307E] = TRUE;
+        hugeAnimStruct._307E = TRUE;
         g_GameLogic.pre_PostMiniGameInd = TRUE;
         changeScene(1, 6);
         SetGameStatus(0);
@@ -756,7 +756,7 @@ void fn_3_AE770(void) {
         pauseMenu_applyTeamControlOptions();
         fn_3_FBD70();
         fn_3_FBD58();
-        hugeAnimStruct[0x307E] = TRUE;
+        hugeAnimStruct._307E = TRUE;
         g_GameLogic.pre_PostMiniGameInd = TRUE;
         changeScene(1, 6);
         SetGameStatus(0);
@@ -1009,7 +1009,7 @@ void fn_3_ADA3C(void) {
         setBatterContactConstants();
         fn_3_FBD70();
         fn_3_FBD58();
-        hugeAnimStruct[0x307E] = TRUE;
+        hugeAnimStruct._307E = TRUE;
         g_GameLogic.pre_PostMiniGameInd = TRUE;
         pauseMenu_applyTeamControlOptions();
         changeScene(1, 6);

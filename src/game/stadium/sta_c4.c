@@ -33,6 +33,7 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
+#include "HugeAnimStruct.h"
 
 // The kinds of block the garden places; `variant` is the kind a block turns
 // into when hit (a mystery block rolls one at load).
@@ -237,7 +238,6 @@ typedef struct _GardenData {
     /*0x3F8*/ u8 objTypes[0x11];
 } GardenData;
 
-extern u8 hugeAnimStruct[0x3154];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
@@ -354,7 +354,7 @@ static u8 lbl_3_data_1C068[20][3] = {
     { 0x14, 0xD, 0xE },
 };
 
-#define GARDEN_ANIM_TABLE (*(u8**)(hugeAnimStruct + 0x6C))
+#define GARDEN_ANIM_TABLE (((u8*)hugeAnimStruct.actorTables[3]))
 
 static const Vec sprayOrigin = {0.0f, 0.5f, 60.0f};
 

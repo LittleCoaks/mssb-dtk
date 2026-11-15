@@ -42,6 +42,7 @@
 #include "C3/actor/act.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
+#include "HugeAnimStruct.h"
 
 /* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
  * __fabs intrinsic, which allocates registers differently. The functions that use
@@ -51,7 +52,6 @@ static inline f64 fabsInline(f64 x) {
 }
 
 extern u16 stadiumHazardSoundIDs[16];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
 
@@ -181,7 +181,7 @@ static inline void dkPlayHazardSfx(int sfx) {
 
 // .text:0x000F6FDC size:0x1468 mapped:0x80736070
 void loadDKJungle(void** files) {
-    u8** animTable = (u8**)(hugeAnimStruct + 0x6C);
+    u8** animTable = (u8**)&hugeAnimStruct.actorTables[3];
     DKJungleBarrelLauncher* launcherCfg;
     DKJungleBarrelLauncher* barrelCfg;
     DKJungleKlaptrapData* klapCfg;
@@ -1311,7 +1311,7 @@ void fn_3_F3BB0(DKJungleBarrel* obj) {
     fn_3_F3AE0(obj);
     obj->_C1 = 0;
     obj->hasShadow = 1;
-    obj->actor = (DKJungleActor*)(*(u8**)(hugeAnimStruct + 0x6C) + (lbl_3_bss_B219 + obj->index) * 0x90 + 0x34);
+    obj->actor = (DKJungleActor*)(((u8*)hugeAnimStruct.actorTables[3]) + (lbl_3_bss_B219 + obj->index) * 0x90 + 0x34);
     obj->_C4 = 0;
     obj->_99 = 1;
 }
@@ -1765,7 +1765,7 @@ void handleDKJungleBarrel(DKJungleBarrel* barrel) {
 void fn_3_F18A4(DKJungleBarrel* obj) {
     DKJungleActor* actor;
 
-    obj->actor = actor = (DKJungleActor*)(*(u8**)(hugeAnimStruct + 0x6C) + lbl_3_bss_B218 * 0x90 + 0x34);
+    obj->actor = actor = (DKJungleActor*)(((u8*)hugeAnimStruct.actorTables[3]) + lbl_3_bss_B218 * 0x90 + 0x34);
     actor->animFrame = 0.0f;
     actor->_59 = 1;
     setActorAnimFrame(actor->list, actor->animFrame);
@@ -1793,7 +1793,7 @@ void fn_3_F1750(DKJungleBarrel* obj) {
         CTRLSetRotation((Control*)obj, 0.0f, angle, 0.0f);
         obj->_C1 = 0;
         obj->hasShadow = 1;
-        obj->actor = (DKJungleActor*)(*(u8**)(hugeAnimStruct + 0x6C) + (lbl_3_bss_B219 + obj->index) * 0x90 + 0x34);
+        obj->actor = (DKJungleActor*)(((u8*)hugeAnimStruct.actorTables[3]) + (lbl_3_bss_B219 + obj->index) * 0x90 + 0x34);
         obj->_C4 = 0;
         obj->_99 = 1;
     } else {
@@ -2008,7 +2008,7 @@ void dkKlaptrapChaseUpdate(StadiumObject* o) {
     Vec dir;
     Vec axisX = {1.0f, 0.0f, 0.0f};
     InMemFielder* fielder = &g_Fielders[obj->_C1];
-    DKJungleCarrier* carrier = *(DKJungleCarrier**)(hugeAnimStruct + obj->_C1 * 4 + 0x2C50);
+    DKJungleCarrier* carrier = (DKJungleCarrier*)hugeAnimStruct.objects[obj->_C1];
     DKJungleKlaptrapTuning* tune = (DKJungleKlaptrapTuning*)&barrelRollSfxEmitterId;
     u8* base = (u8*)&lbl_3_bss_AEE0;
     f32 deg;
@@ -2110,11 +2110,11 @@ void fn_3_EFB54(DKJungleKlaptrap* obj) {
     s8 sel;
     int i;
 
-    carrier = (DKJungleCarrier*)*(void**)(hugeAnimStruct + obj->_C1 * 4 + 0x2C50);
+    carrier = (DKJungleCarrier*)hugeAnimStruct.objects[obj->_C1];
     if (carrier != NULL) {
         if (carrier->ownerId != obj->_C3) {
             for (i = 0; i < 9; i++) {
-                carrier = (DKJungleCarrier*)*(void**)(hugeAnimStruct + i * 4 + 0x2C50);
+                carrier = (DKJungleCarrier*)hugeAnimStruct.objects[i];
                 if (carrier != NULL && obj->_C3 == carrier->ownerId) {
                     obj->_C1 = carrier->animIdx;
                     break;
@@ -2434,9 +2434,9 @@ void fn_3_EEFA4(void) {
 
 // .text:0x000EEF24 size:0x80 mapped:0x8072DFB8
 void fn_3_EEF24(void) {
-    if (hugeAnimStruct[0x3088] == 0) {
+    if (hugeAnimStruct._3088 == 0) {
         removeCurrentDrawingItem();
-    } else if (hugeAnimStruct[0x307E] != 0) {
+    } else if (hugeAnimStruct._307E != 0) {
         fn_800BDA24((void*)lbl_3_bss_B55C);
         fn_3_EE388();
         fn_3_EEB94();

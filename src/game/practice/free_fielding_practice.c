@@ -10,9 +10,9 @@
 #include "game/ball/ball_physics.h"
 #include "game/fielding/fielder.h"
 #include "Unknown/File_0x80014d4c.h"
+#include "HugeAnimStruct.h"
 
 extern u8 animRelated[0x124];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 constantList[0x1C];
 extern s16 practiceFrameConsts;
 
@@ -39,13 +39,13 @@ void freeFieldingPracticeControl(void) {
 void freeFieldingPracticeSwitcher(void) {
     switch (g_Practice.practiceState) {
     case PRACTICE_STATE_0:
-        hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D7B] = 0;
-        hugeAnimStruct[0x2D7C] = 0;
+        HUGE_ANIM_FLAG(0x2D77) = 0;
+        HUGE_ANIM_FLAG(0x2D7B) = 0;
+        HUGE_ANIM_FLAG(0x2D7C) = 0;
         animRelated[0x9C] = 0;
         g_Practice.characterLoadStarted = 0;
         g_Practice.completionMenuActive = 0;
-        hugeAnimStruct[0x307D] = 0;
+        hugeAnimStruct._307D = 0;
         freeFieldingPracticeLoadCharacters();
         fieldingPractice_resetMem();
         fn_80011BE4(9);

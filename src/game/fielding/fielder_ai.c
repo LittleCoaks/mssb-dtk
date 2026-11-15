@@ -16,10 +16,10 @@
 #include "static/UnknownHomes_static.h"
 #include "game/sound/m_sound.h"
 #include "Unknown/sub.h"
+#include "HugeAnimStruct.h"
 
 extern u8 lbl_3_data_4710[2];
 extern f32 lbl_3_data_4760[3];
-extern u8 hugeAnimStruct[0x3154];
 extern void fieldingRelatedAnimations(void* anim, int state);
 extern u8 lbl_3_data_1C38[2];
 extern s16 lbl_3_data_1C40;
@@ -530,7 +530,7 @@ void initializeThrowAngle_Speed_Length(int framesForFielderToGetToLoc, f32* thro
     g_Ball.framesUntilThrowReachesDest = frames;
     g_Ball.throwTimeEstimatesCompleteInd = 0;
     if (g_FieldingLogic.laserThrowInFlight != 0) {
-        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[g_Ball.fielderWBallIndex], 4);
+        fieldingRelatedAnimations(hugeAnimStruct.objects[g_Ball.fielderWBallIndex], 4);
     }
 }
 

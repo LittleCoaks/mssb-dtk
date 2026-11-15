@@ -26,13 +26,13 @@
 #include "Unknown/File_0x800c0770.h"
 #include "Unknown/File_0x8003a688.h"
 #include "text/text.h"
+#include "HugeAnimStruct.h"
 
 struct {
     void* fanObject;
     u8 _04[20];
 } lbl_3_bss_18;
 extern u8 drawStadiumRelated;
-extern u8 hugeAnimStruct[];
 extern void* fn_80009028(void);
 extern void fn_800BCDBC(void* block);
 static const GXColor fogBlack = {0, 0, 0, 0};
@@ -345,11 +345,11 @@ void updateStadiumFileHeaders(void* file) {
 }
 
 void fn_3_5E60(void) {
-    u8* block = *(u8**)(hugeAnimStruct + 4);
+    u8* block = (u8*)hugeAnimStruct.stadiumFileHeader;
     unregisterObjectByID(5);
     fn_800BCDBC(block + *(u32*)(block + 0x10));
     fn_800BCDBC(block + *(u32*)(block + 0xC));
-    fn_800ACFB0(*(void**)(hugeAnimStruct + 4));
+    fn_800ACFB0(hugeAnimStruct.stadiumFileHeader);
 }
 
 // .text:0x00005C68 size:0x1F8 mapped:0x80644CFC
@@ -447,7 +447,7 @@ void drawStadiumObjects(void) {
         sunData = ((u8*)&g_UNK_StadiumDetails) + 0x758;
         break;
     }
-    if (hugeAnimStruct[0x307E] == 0) {
+    if (hugeAnimStruct._307E == 0) {
         return;
     }
     notFirst = mode != 1;

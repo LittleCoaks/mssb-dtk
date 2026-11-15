@@ -38,11 +38,11 @@
 #include "Unknown/File_0x800203e0.h"
 #include "Unknown/File_0x80052f98.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "HugeAnimStruct.h"
 
 
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_8037169C[0x1C];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 highLevelSimulationFlag[3];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
@@ -585,9 +585,9 @@ void toyFieldGameStartMovie(void) {
         if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
             g_Minigame.toyField_selectedTurns = lbl_3_data_189A4[5];
         }
-        hugeAnimStruct[0x307E] = 1;
-        hugeAnimStruct[0x2D8E] = 0;
-        hugeAnimStruct[0x307A] = 3;
+        hugeAnimStruct._307E = 1;
+        HUGE_ANIM_FLAG(0x2D8E) = 0;
+        hugeAnimStruct._307A = 3;
         if (g_Minigame.challengeModeInd != 0) {
             g_GameLogic._125 = 1;
         } else {
@@ -644,7 +644,7 @@ void toyFieldGameStartMovie(void) {
         toyFieldInitCoinModels();
         g_Minigame.retryInd = 0;
         g_Minigame._19A2 = 0;
-        hugeAnimStruct[0x307A] = 1;
+        hugeAnimStruct._307A = 1;
         SetGameStatus(GAME_STATUS_TRANSITION_TO_MINIGAME_START);
         break;
     }
@@ -1461,7 +1461,7 @@ void toyFieldPostMenu(void) {
         break;
     case 5: {
         BOOL start;
-        hugeAnimStruct[0x307A] = 0;
+        hugeAnimStruct._307A = 0;
         pauseControl._1D9 = 2;
         start = FALSE;
         if (pauseControl.cursor == 0) {

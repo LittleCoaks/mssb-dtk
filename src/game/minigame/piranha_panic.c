@@ -27,6 +27,7 @@
 #include "stl/math.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/sub.h"
+#include "HugeAnimStruct.h"
 #undef g_Minigame
 
 extern u8 lbl_80366158[0x30];
@@ -70,7 +71,6 @@ extern void piranhaPanic_emitFielderHitFire(int arg);
 extern void piranhaPanic_spawnBombExplosion(VecXYZ* pos);
 extern void bobOmbFuseSpark_removeFollow(s16 index);
 extern void fn_80062BE4(Vec* pos);
-extern u8 hugeAnimStruct[0x3154];
 extern VecXYZ pP_goalBallPositions[4][3];
 extern u8 lbl_3_data_21E20[3];
 extern u8 lbl_3_data_21E18[4];
@@ -725,7 +725,7 @@ void pP_UpdatePlayers(void) {
                 fielder->pos.z = fielder->zMovementDir * pP_ballPhysicsConsts[14] + fielder->pos.z;
                 fielder->currentVelocity -= pP_ballPhysicsConsts[16];
             }
-            piranhaPanic_emitFielderHitFire(*(int*)(hugeAnimStruct + 0x2C50 + i * 4));
+            piranhaPanic_emitFielderHitFire((int)hugeAnimStruct.objects[i]);
         } else if (PP.hitState[i] == 2) {
             if (g_Minigame.turnOverStatus != 0) {
                 continue;

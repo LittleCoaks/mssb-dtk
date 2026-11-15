@@ -48,10 +48,10 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_matchFlow
 #include "header_rep_data.h"
 #include "game/stadium/stadium_draw.h"
+#include "HugeAnimStruct.h"
 
 extern UnkSimulationRelatedStruct g_UnkSimulation_31AC0;
 extern u8 highLevelSimulationFlag[4];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 animRelated[0x124];
 extern void* lbl_3_common_bss_1323C[];
 
@@ -288,7 +288,7 @@ void exhibitionGameTransitionCalculations(void) {
             u32 state = g_GameLogic._125;
 
             if (state == 1) {
-                hugeAnimStruct[0x3082] = 1;
+                hugeAnimStruct._3082 = 1;
             }
             if (state == 1 || state >= 8 || g_GameLogic.framesInGameStatus_copy == 1) {
                 changeScene(3, 6);
@@ -315,15 +315,15 @@ void exhibitionGameTransitionCalculations(void) {
         animRelated[0x9C] = 0;
         highLevelSimulationFlag[2] = 0;
         highLevelSimulationFlag[3] = 0;
-        hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D7B] = 0;
-        hugeAnimStruct[0x2D7C] = 0;
+        HUGE_ANIM_FLAG(0x2D77) = 0;
+        HUGE_ANIM_FLAG(0x2D7B) = 0;
+        HUGE_ANIM_FLAG(0x2D7C) = 0;
         break;
     case 1:
         if (fn_3_59BCC(g_GameLogic.framesInGameStatus_copy) != 0) {
             g_GameLogic._125 = 2;
             g_GameLogic.framesInGameStatus_copy = 0;
-            hugeAnimStruct[0x2D77] = 0;
+            HUGE_ANIM_FLAG(0x2D77) = 0;
             if (animRelated[0xA4] != 0) {
                 fn_8002024C();
             }
@@ -345,7 +345,7 @@ void exhibitionGameTransitionCalculations(void) {
         }
         if (loadFielderActors(charID) != 0) {
             g_GameLogic.framesInGameStatus_copy = 0;
-            hugeAnimStruct[0x3081] = 0;
+            hugeAnimStruct._3081 = 0;
             g_GameLogic._125 = 6;
         }
         break;
@@ -1120,11 +1120,11 @@ void inningChange(void) {
         animRelated[0x9B] = 0;
         animRelated[0x9C] = 0;
         highLevelSimulationFlag[3] = 0;
-        hugeAnimStruct[0x3087] = 0;
+        hugeAnimStruct._3087 = 0;
         g_GameLogic._125 = 1;
     } else if (g_GameLogic._125 == 1) {
         if (championshipScreenGraphics() != 0) {
-            hugeAnimStruct[0x3081] = 0;
+            hugeAnimStruct._3081 = 0;
             g_GameLogic._125 = 2;
         }
     } else if (g_GameLogic._125 == 2) {
@@ -1136,7 +1136,7 @@ void inningChange(void) {
             }
         }
         if (loadFielderActors(charID) != 0) {
-            hugeAnimStruct[0x3081] = 0;
+            hugeAnimStruct._3081 = 0;
             g_GameLogic._125 = 3;
         }
     } else if (g_GameLogic._125 == 3) {
@@ -1162,7 +1162,7 @@ void inningChange(void) {
     } else if (g_GameLogic._125 == 9) {
         pauseAnimations();
         pauseStateOnStadiums();
-        hugeAnimStruct[0x3087] = 1;
+        hugeAnimStruct._3087 = 1;
         fn_3_FBD70();
         fn_3_FBD58();
         SetGameStatus(GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY);

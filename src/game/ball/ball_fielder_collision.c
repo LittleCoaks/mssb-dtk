@@ -16,15 +16,15 @@
 #include "Dolphin/rand.h"
 #include "stl/math.h"
 #include "stl/string.h"
+#include "HugeAnimStruct.h"
 
-extern u8 hugeAnimStruct[0x3154];
 
 typedef struct _FielderAnimObject {
     /*0x000*/ u8 _000[0x276];
     /*0x276*/ u8 _276;
 } FielderAnimObject;
 
-#define FIELDER_ANIM_OBJECTS ((FielderAnimObject**)(hugeAnimStruct + 0x2C50))
+#define FIELDER_ANIM_OBJECTS ((FielderAnimObject**)&hugeAnimStruct.objects[0])
 
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];

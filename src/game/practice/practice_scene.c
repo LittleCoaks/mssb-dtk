@@ -27,11 +27,11 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x8004e5b4.h"
 #include "game/match_setup/pause_menu.h"
+#include "HugeAnimStruct.h"
 
 extern u8 animRelated[0x124];
 extern u8 menuNumber[0x28];
 extern u8 lbl_800FEF70[0x5D0];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 constantList[0x1C];
 extern u8 guidedPracticeThresholds[][4];
 extern s16 practiceGoalHud_entries[4][4][4][2];

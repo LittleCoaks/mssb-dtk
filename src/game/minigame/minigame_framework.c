@@ -52,6 +52,7 @@
 #include "Unknown/File_0x800acf14.h"
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/sub.h"
+#include "HugeAnimStruct.h"
 
 #define SATURATING_INCREMENT(counter) \
     if ((counter) < 0x7FFE) {         \
@@ -85,7 +86,6 @@ extern void fn_8004CC4C(int, int, int, int, int);
 extern void fn_8004D0F0(void);
 extern s16 challenge_baseCoinsAwarded[];
 extern void starMissionsMinigamesTotalPoints(void);
-extern u8 hugeAnimStruct[0x3154];
 extern u8 lbl_8037169C[0x1C];
 extern SuperstarStatBonus superstarStatBonus;
 extern u8 lbl_800E854C[];
@@ -798,7 +798,7 @@ void minigames_0x1B(void) {
         g_GameLogic._125++;
         break;
     }
-    hugeAnimStruct[0x307A] = 0;
+    hugeAnimStruct._307A = 0;
     SetGameStatus(GAME_STATUS_TOY_STADIUM_LOAD);
 }
 
@@ -885,7 +885,7 @@ static inline void minigameStadiumSetup(void) {
 
 void minigames_startStadiumLoad(void) {
     if (g_Minigame.loadedStadiumID >= 0) {
-        hugeAnimStruct[0x307E] = 0;
+        hugeAnimStruct._307E = 0;
         cleanupMinigameResources();
         fn_3_5E60();
     }
@@ -954,7 +954,7 @@ void minigameSelectSwitcher(void) {
         changeScene(6, 6);
         g_GameLogic._125++;
         g_GameLogic.framesInGameStatus_copy = 0;
-        hugeAnimStruct[0x307E] = 0;
+        hugeAnimStruct._307E = 0;
         g_Minigame.selectedDifficulty = 0;
         break;
     case TRANSITION_CALCULATION_TYPE_1:
@@ -1101,9 +1101,9 @@ void toyFieldCharSelectSwitcher(void) {
             g_Minigame.selectSlots[i].confirmedInd = FALSE;
             g_Minigame.charChangeFrames[i] = 20;
         }
-        hugeAnimStruct[0x307E] = 0;
-        hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x307A] = 5;
+        hugeAnimStruct._307E = 0;
+        HUGE_ANIM_FLAG(0x2D77) = 0;
+        hugeAnimStruct._307A = 5;
         g_Minigame.charSelectOpponentSlot = -1;
         g_GameLogic.framesInGameStatus_copy = 0;
         g_Minigame.charSelectState = 0;
@@ -1175,7 +1175,7 @@ void toyFieldCharSelectSwitcher(void) {
                 SetGameStatus(GAME_STATUS_MINIGAME_SELECT);
             }
         }
-        hugeAnimStruct[0x307A] = 0;
+        hugeAnimStruct._307A = 0;
         break;
     case TRANSITION_CALCULATION_TYPE_5:
         unregisterMatchHudObjects();
@@ -1204,7 +1204,7 @@ void toyFieldCharSelectSwitcher(void) {
     case TRANSITION_CALCULATION_TYPE_7:
         resetAnimTracks();
         minigames_fillRoster();
-        hugeAnimStruct[0x307A] = 0;
+        hugeAnimStruct._307A = 0;
         g_Minigame.helpMenuResult = 0;
         if (g_Minigame.grandPrixInd != 0) {
             minigameStartGrandPrix();
@@ -1830,7 +1830,7 @@ void minigameCharLoadQueueUpdate(void) {
                 g_Minigame.selectSlots[slot].loadedCharID = g_Minigame.selectSlots[slot].pendingCharID;
                 g_Minigame.selectSlots[slot].pendingCharID = CHAR_ID_NONE;
                 g_Minigame.selectSlots[slot].loadedHandedness = g_Minigame.selectSlots[slot].wantedHandedness;
-                hugeAnimStruct[0x2D77] = 0;
+                HUGE_ANIM_FLAG(0x2D77) = 0;
                 g_Minigame.charLoadSlot = -1;
                 g_Minigame.charLoadQueue[0] = -1;
                 g_Minigame.charLoadPending[slot] = FALSE;
@@ -2028,7 +2028,7 @@ void minigameReadySwitcher(void) {
 
     switch (g_GameLogic._125) {
     case TRANSITION_CALCULATION_TYPE_0:
-        hugeAnimStruct[0x307E] = 0;
+        hugeAnimStruct._307E = 0;
         if ((g_Minigame.grandPrixInd == 0 || g_Minigame.grandPrixRound <= 1) && g_Minigame.retryInd == 0) {
             fn_80062A74();
             fn_800189B8();
@@ -2285,7 +2285,7 @@ void minigameHelpMenuUpdate(void) {
 
 void minigameBackToCharSelect(void) {
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
-        *(s16*)&hugeAnimStruct[0x3078] = 0;
+        hugeAnimStruct.actorCount = 0;
     }
     fn_80035B50(0xD);
     cleanupMinigameResources();
@@ -2307,8 +2307,8 @@ void minigameStartSwitcher(void) {
         g_Minigame.minigameInactiveInd = 0;
         g_Minigame._19A7 = lbl_3_data_21270[g_Minigame.GameMode_MiniGame];
         g_Minigame.grandPrixFinalInd = FALSE;
-        hugeAnimStruct[0x307E] = 1;
-        hugeAnimStruct[0x2D8E] = 0;
+        hugeAnimStruct._307E = 1;
+        HUGE_ANIM_FLAG(0x2D8E) = 0;
         g_GameLogic._125 = TRANSITION_CALCULATION_TYPE_1;
         if (g_d_GameSettings.exhibitionMatchInd == FALSE) {
             g_d_GameSettings._36 = g_Minigame.playerSlots.charID[g_Minigame.soloPlayerSlot];
@@ -2356,7 +2356,7 @@ void minigameStartSwitcher(void) {
     case TRANSITION_CALCULATION_TYPE_8:
         g_Minigame.retryInd = FALSE;
         g_Minigame.nextDifficultyInd = 0;
-        hugeAnimStruct[0x307A] = 1;
+        hugeAnimStruct._307A = 1;
         for (i = 0; i < 4; i++) {
             if (g_Minigame.playerSlots.characterIndex[i] >= 0) {
                 g_Minigame.playerSlots.playOrder[i] = i;
@@ -2989,7 +2989,7 @@ void postMinigame(void) {
         g_Minigame.endSequencePhase = 0;
         minigameWinnerSpotlight_stop();
         minigameWinnerStars_stop();
-        hugeAnimStruct[0x307A] = 0;
+        hugeAnimStruct._307A = 0;
         pauseControl._1D9 = 2;
         break;
     case 8:
@@ -3157,7 +3157,7 @@ void minigamePause(void) {
         }
         break;
     case 7:
-        hugeAnimStruct[0x307A] = 0;
+        hugeAnimStruct._307A = 0;
         g_Minigame.minigameInactiveInd = TRUE;
         pauseControl._1D9 = 2;
         g_Minigame.pauseInd = FALSE;
@@ -3210,7 +3210,7 @@ void minigamePause(void) {
     case 13:
         g_Minigame.retryInd = TRUE;
         mm_UnloadModels();
-        hugeAnimStruct[0x307A] = 0;
+        hugeAnimStruct._307A = 0;
         fn_3_6AB30();
         g_Minigame.minigameInactiveInd = TRUE;
         pauseControl._1D9 = 2;
@@ -3524,7 +3524,7 @@ void minigameStartGrandPrix(void) {
     memset(&g_Minigame.resultsScene, 0, 0x28);
     g_Minigame.grandPrixFinalHumanCount = 0;
     g_Minigame.grandPrixWonInd = FALSE;
-    hugeAnimStruct[0x307E] = 0;
+    hugeAnimStruct._307E = 0;
     k = 0;
     do {
         g_Minigame.grandPrixOrder[k] = k + 1;

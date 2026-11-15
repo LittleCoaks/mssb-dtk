@@ -12,10 +12,10 @@
 #include "game/sound/m_sound.h"
 #include "game/match_setup/pause_menu.h"
 #include "game/minigame/chain_chomp_sprint.h"
+#include "HugeAnimStruct.h"
 
 extern f32 overrunBaseDistance;
 extern u8 bodyCheckProbabiliities[][5];
-extern u8 hugeAnimStruct[0x3154];
 extern void fieldingRelatedAnimations(void* anim, int state);
 extern s16 runnerAIDropGradeAdjust[];
 extern s16 chemThresholds[4];
@@ -3900,7 +3900,7 @@ int running_triggerSlideOrBodyCheck(int runnerIdx) {
                     setCharacterAnimations(g_GameLogic.teamBatting, 2);
                 }
             }
-            fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[runnerIdx + 9], 12);
+            fieldingRelatedAnimations(hugeAnimStruct.objects[runnerIdx + 9], 12);
             playCharacterSound(runner->charID, 10);
             playSoundEffect(0x19C);
             camera_zoomInDuringFielderAction_slide_clamber_wallJump(4, 0, base_MoundCoordinates[runner->baseRunningTowards].x,

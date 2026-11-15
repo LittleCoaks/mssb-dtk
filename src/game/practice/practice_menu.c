@@ -16,8 +16,8 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80062a94.h"
 #include "text/text.h"
+#include "HugeAnimStruct.h"
 
-extern u8 hugeAnimStruct[];
 extern u8 lbl_800EFBA4[];
 extern u8 lbl_8037169C[];
 extern u8 lbl_80366158[];
@@ -41,7 +41,6 @@ extern int fn_3_5B220(int arg0);
 extern int exitMenu_main(int buttons);
 extern void fn_8004CC18(void);
 
-#define ANIM_BYTE(offset) (hugeAnimStruct[(offset)])
 #define CHAR_STATS(charID) (((CharacterStats*)&Static_Stats_Tables)[(charID)])
 #define PLAYER_KEY(charID) (CHAR_STATS(charID).stats.FieldingArm * 2 + CHAR_STATS(charID).stats.BattingStance)
 
@@ -134,7 +133,7 @@ void practice_mainMenu_stateHandling(void) {
         g_Practice.showMenuIntro = FALSE;
         break;
     case PRACTICE_STATE_1:
-        if (ANIM_BYTE(0x2D7B) >= 10) {
+        if (HUGE_ANIM_FLAG(0x2D7B) >= 10) {
             updatePracticeTransitionState(PRACTICE_STATE_2);
         }
         break;
@@ -241,7 +240,7 @@ void practice_mainMenu_stateHandling(void) {
             fn_80062A74();
             fn_8004CC18();
             switchSecondaryGameMode(0x11);
-            ANIM_BYTE(0x307A) = FALSE;
+            hugeAnimStruct._307A = FALSE;
         }
         break;
     default:
@@ -295,9 +294,9 @@ void practice_subMenu_stateHandling(void) {
     switch (g_Practice.practiceState) {
     case PRACTICE_STATE_0:
         g_Practice.subMenuGraphicsLoaded = FALSE;
-        ANIM_BYTE(0x2D77) = FALSE;
-        ANIM_BYTE(0x2D7B) = FALSE;
-        ANIM_BYTE(0x2D7C) = FALSE;
+        HUGE_ANIM_FLAG(0x2D77) = FALSE;
+        HUGE_ANIM_FLAG(0x2D7B) = FALSE;
+        HUGE_ANIM_FLAG(0x2D7C) = FALSE;
         practice_loadCharacterData();
         if (g_Practice.practiceType_2 == PRACTICE_TYPE_PITCHING) {
             practice_loadCharacter(0, 0, 0, -1);
@@ -451,8 +450,8 @@ void practiceRelatedMenu(void) {
             g_Minigame.charChangeFrames[i] = 20;
             g_Minigame.battingHandedness[i] = PLAYER_KEY(g_Minigame.selectSlots[i].charID);
         }
-        ANIM_BYTE(0x2D77) = FALSE;
-        ANIM_BYTE(0x307A) = 5;
+        HUGE_ANIM_FLAG(0x2D77) = FALSE;
+        hugeAnimStruct._307A = 5;
         g_Minigame.charLoadSlot = -1;
         g_GameLogic.framesInGameStatus_copy = 0;
         g_Practice.characterLoadStarted = FALSE;

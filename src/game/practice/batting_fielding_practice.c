@@ -18,9 +18,9 @@
 #include "Unknown/File_0x800204cc.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_battingFieldingPractice
 #include "header_rep_data.h"
+#include "HugeAnimStruct.h"
 
 extern u8 animRelated[0x124];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 highLevelSimulationFlag[4];
 extern u8 lbl_80354768[];
 #define PRACTICE_PROGRESS_FLAGS ((u8 (*)[4])(&lbl_80354768[0xCF4E]))
@@ -86,7 +86,7 @@ void fieldingPracticeRelated(void) {
 
     switch (g_Practice.practiceState) {
     case PRACTICE_STATE_0:
-        hugeAnimStruct[0x307D] = 0;
+        hugeAnimStruct._307D = 0;
         setPitcherStatsToInMemPitcher(0);
         running_resetRunners();
         i = 0;
@@ -638,7 +638,7 @@ void battingPracticeResetTutorialState(void) {
 void battingPracticeSwitcher(void) {
     switch (g_Practice.practiceState) {
     case PRACTICE_STATE_0:
-        hugeAnimStruct[0x307D] = 0;
+        hugeAnimStruct._307D = 0;
         running_resetRunners();
         if (g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY) {
             practice_loadCharacter(1, 0, g_Minigame.selectSlots[g_Practice.homeAway].charID,

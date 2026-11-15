@@ -48,11 +48,11 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_matchMain
 #include "header_rep_data.h"
 #include "game/stadium/stadium_draw.h"
+#include "HugeAnimStruct.h"
 
 extern u8 lbl_80366158[0x30];
 extern UnkSimulationRelatedStruct g_UnkSimulation_31AC0;
 extern u8 highLevelSimulationFlag[4];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 animRelated[0x124];
 extern void* lbl_3_common_bss_1323C[];
 extern u8 lbl_3_common_bss_134C4[];
@@ -123,21 +123,21 @@ void transferSomeValuesOnMatchLoad(void) {
     g_GameLogic.framesOfExitingToMenu = 0;
     g_UnkSimulation_31AC0._04 = 0;
     g_UnkSimulation_31AC0._09 = 0;
-    hugeAnimStruct[0x307E] = 0;
+    hugeAnimStruct._307E = 0;
     g_d_GameSettings.minigamesEnabled = 0;
     g_d_GameSettings._13 = 0;
     g_d_GameSettings.someChallengeModeFlag = 0;
-    hugeAnimStruct[0x307A] = 0;
-    *(int*)&hugeAnimStruct[0x6C] = 0;
-    hugeAnimStruct[0x307C] = 0;
-    hugeAnimStruct[0x307D] = 0;
+    hugeAnimStruct._307A = 0;
+    hugeAnimStruct.actorTables[3] = NULL;
+    hugeAnimStruct._307C = 0;
+    hugeAnimStruct._307D = 0;
     animRelated[0xA4] = 0;
     g_d_GameSettings._55 = 0;
     g_d_GameSettings.challengeMinigame_baseCoinsEarned = 0;
     g_d_GameSettings.bJMatchRelated = 0;
-    *(s16*)&hugeAnimStruct[0x2D44] = -1;
-    *(s16*)&hugeAnimStruct[0x2D50] = -1;
-    *(s16*)&hugeAnimStruct[0x2D5C] = -1;
+    hugeAnimStruct.loadSlots[0]._8 = -1;
+    hugeAnimStruct.loadSlots[1]._8 = -1;
+    hugeAnimStruct.loadSlots[2]._8 = -1;
     g_GameLogic.teams[0] = g_d_GameSettings.PlayerPorts[0];
     g_GameLogic.teams[1] = g_d_GameSettings.PlayerPorts[1] % 4;
     g_GameLogic.logo[0].ID = Static_Stats_Tables.teamName[g_d_GameSettings.home_AwaySetting];
@@ -156,7 +156,7 @@ void transferSomeValuesOnMatchLoad(void) {
     sndVolume(0x7F, 0xA, 0xFF);
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD ||
         g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-        hugeAnimStruct[0x2D7D] = 0;
+        HUGE_ANIM_FLAG(0x2D7D) = 0;
         animRelated[0xD7] = 0;
         currentDrawingItem->func = fn_3_59F40;
     } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
@@ -221,7 +221,7 @@ void simulate1FrameOfTheGame(void) {
         matchAnimations();
     }
     spriteAnimations();
-    if (hugeAnimStruct[0x3088] != 0) {
+    if (hugeAnimStruct._3088 != 0) {
         hazardSimulationRelated();
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_DEMO && lbl_80366158[0x2A] == 0) {
