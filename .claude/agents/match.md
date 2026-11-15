@@ -45,6 +45,31 @@ Two tools keep this cheap:
   hand-editing and reverting one hypothesis at a time, and log every variant
   it measured in the checkpoint.
 
+Three more decide what to work on and take the mechanical attempts off your
+hands. Run them before opening a hypothesis log:
+
+- `tools/match_pool.py UNIT` — lines the unit's literal pool up against the
+  target's. A function that fails only on relocations (`NONREG:reloc` in
+  `match_survey.py scan`) has correct code; the fix is file-level (a missing
+  or extra literal, first-use order, function definition order, an inline
+  helper's local statics), and this says which. Do this first on any unit
+  with such functions: one fix there can complete many functions at once.
+- `tools/match_families.py --no-pool` — groups unmatched functions that share
+  the same mismatching instruction window. A family has one cause (an inline
+  helper, an accessor, an idiom), so solve it on the smallest member and
+  apply the fix to the rest instead of grinding each alone.
+- `tools/match_sweep.py SRC FUNCTION` — builds and scores the standard
+  respellings of that function (declaration order, local integer types,
+  abs idioms, compound assignment, loop form, cast placement, and so on),
+  keeps only what improves it without regressing its neighbours, and
+  restores the file unless `--apply` is given. It writes every variant to
+  `docs/match_grind/<unit>.sweep.md` and never repeats one recorded there,
+  so run it before hand-grinding a function and do not re-try by hand what
+  that log already shows. Commit the `.sweep.md` and
+  `docs/match_grind/sweep_wins.json` with the rest of the work. When a
+  hand-found fix is a respelling the sweeper could have made, add it as a
+  rule there.
+
 ## Scope
 
 One invocation = one source file (`src/**/*.c`), covering every one of its

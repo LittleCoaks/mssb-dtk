@@ -22,6 +22,10 @@ reaches 100% (mark it `Status: complete`) rather than deleting it. Only
 throwaway artifacts -- source backups, diff JSON, trial scripts -- belong in
 the gitignored `build/.match_grind/`.
 
+`docs/match_grind/<unit>.sweep.md` is the machine-written companion: the log of
+variants `tools/match_sweep.py` has already built for that unit. It is not a
+checkpoint and does not change which agent a file goes to.
+
 ## After a function reaches 100%
 
 Matching is not the finish line. Both agents must run a readability pass over
