@@ -2,7 +2,6 @@
 #define __HUGE_ANIM_STRUCT_H_
 
 #include "mssbTypes.h"
-#include "Unknown/File_0x800bdd74.h"
 
 /*
  * hugeAnimStruct (DOL .bss 0x8036E548, size 0x3154): the actor / model /
@@ -19,11 +18,18 @@
  * those are unified in their own right, a file casts at the point of use,
  * normally through one local accessor macro, e.g.
  *
- *     #define ANIM_OBJ(i) ((AnimObject*)hugeAnimStruct.objects[i])
+ *     #define ANIM_OBJ(i) (((AnimObject**)hugeAnimStruct.objects)[i])
+ *
+ * Cast the member's address or array, as above, not the value loaded from it:
+ * casting the value changes codegen. The embedded arrays cannot be cast at all
+ * without changing codegen, so a file that needs typed access to them defines
+ * HUGE_ANIM_OBJECT_T (and HUGE_ANIM_RECORD_T) to its own 0x27C / 0xD4 struct
+ * before including this header and uses `poolObjects` / `objectPtrs` / `recordObjects`.
  */
 
 #define HUGE_ANIM_OBJECT_COUNT 13
 #define HUGE_ANIM_OBJECT_SIZE 0x27C
+#define HUGE_ANIM_RECORD_SIZE 0xD4
 #define HUGE_ANIM_ACTOR_TABLE_COUNT 7
 #define HUGE_ANIM_LIGHT_COUNT 4
 #define HUGE_ANIM_BANK_COUNT 16
@@ -54,17 +60,33 @@ typedef struct HugeAnimStruct {
     /*0x000C*/ s32 _000C[21];
     /* Actor object tables, one per category of thing drawn. [0] holds the
      * characters, [2] the minigame / practice models, [3] the stadium objects. */
-    /*0x0060*/ ActorObjectTable* actorTables[HUGE_ANIM_ACTOR_TABLE_COUNT];
+    /*0x0060*/ struct ActorObjectTable* actorTables[HUGE_ANIM_ACTOR_TABLE_COUNT];
     /*0x007C*/ u8 _007C[0xAC - 0x7C];
     /*0x00AC*/ void* lights[HUGE_ANIM_LIGHT_COUNT];
     /*0x00BC*/ s32 _00BC[21];
     /*0x0110*/ s32 _0110;
     /*0x0114*/ u8 _0114[0x13C - 0x114];
     /*0x013C*/ void* _013C;
-    /*0x0140*/ u8 _0140[0xC04 - 0x140];
+    /* One 0xD4-byte record per animation object. */
+    /*0x0140*/ union {
+        u8 records[HUGE_ANIM_OBJECT_COUNT][HUGE_ANIM_RECORD_SIZE];
+#ifdef HUGE_ANIM_RECORD_T
+        HUGE_ANIM_RECORD_T recordObjects[HUGE_ANIM_OBJECT_COUNT];
+#endif
+    };
     /* The animation objects themselves, and a pointer to each. */
-    /*0x0C04*/ u8 pool[HUGE_ANIM_OBJECT_COUNT][HUGE_ANIM_OBJECT_SIZE];
-    /*0x2C50*/ void* objects[HUGE_ANIM_OBJECT_COUNT];
+    /*0x0C04*/ union {
+        u8 pool[HUGE_ANIM_OBJECT_COUNT][HUGE_ANIM_OBJECT_SIZE];
+#ifdef HUGE_ANIM_OBJECT_T
+        HUGE_ANIM_OBJECT_T poolObjects[HUGE_ANIM_OBJECT_COUNT];
+#endif
+    };
+    /*0x2C50*/ union {
+        void* objects[HUGE_ANIM_OBJECT_COUNT];
+#ifdef HUGE_ANIM_OBJECT_T
+        HUGE_ANIM_OBJECT_T* objectPtrs[HUGE_ANIM_OBJECT_COUNT];
+#endif
+    };
     /* +0x2C84 .. +0x2D67, also addressable as plain words: the reset code clears
      * this whole run with word indices. */
     /*0x2C84*/ union {
@@ -74,7 +96,7 @@ typedef struct HugeAnimStruct {
             /*0x2C8C*/ void* modelData;
             /*0x2C90*/ u32 _2C90;
             /*0x2C94*/ s32 _2C94[6];
-            /*0x2CAC*/ ANIMBank* animBanks[HUGE_ANIM_BANK_COUNT];
+            /*0x2CAC*/ struct ANIMBank* animBanks[HUGE_ANIM_BANK_COUNT];
             /*0x2CEC*/ s32 _2CEC[20];
             /*0x2D3C*/ HugeAnimLoadSlot loadSlots[HUGE_ANIM_LOAD_SLOT_COUNT];
             /*0x2D60*/ s32 _2D60;

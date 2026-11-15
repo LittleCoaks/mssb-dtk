@@ -188,10 +188,10 @@ void fn_2_8ACDC(void) {
 void fn_2_8ACB0(s32 slot, s32 flag) {
     Rep0DERec28 *rec;
 
-    if (lbl_2_bss_340140->unk2D94 != NULL) {
+    if ((*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries) != NULL) {
         return;
     }
-    rec = &lbl_2_bss_340140->unk2D94[slot];
+    rec = &(*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[slot];
     if (rec == NULL) {
         return;
     }
@@ -200,7 +200,7 @@ void fn_2_8ACB0(s32 slot, s32 flag) {
 
 // .text:0x0008AC84 size:0x2C mapped:0x806C9D18
 void fn_2_8AC84(s32 slot, s32 flag) {
-    if (lbl_2_bss_340140->unk2D94 == NULL) {
+    if ((*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries) == NULL) {
         return;
     }
     lbl_2_bss_3401BC[slot + 0x50] = flag;
@@ -1089,7 +1089,7 @@ void fn_2_8782C(void) {
     void *geo;
     void *tex;
 
-    lbl_2_bss_340140->unk3078 = 0;
+    lbl_2_bss_340140->actorCount = 0;
     tbl = *(u32 **)((u8 *)lbl_2_bss_340140 + 0x2D9C);
     for (i = 0; i < 15; i++) {
         *(u32 *)((u8 *)lbl_2_bss_340140 + 0x2DA0 + i * 4) = (u32)tbl + tbl[i];
@@ -1100,9 +1100,9 @@ void fn_2_8782C(void) {
     *(u32 *)(lbl_2_bss_34009C + 0x68) = (u32)tbl + tbl[i];
 
     for (i = 0; i < 5; i++) {
-        layout = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].layout;
-        geo = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].geo;
-        tex = ((ModelSlot *)lbl_2_bss_340140->unk2DA0)[i].tex;
+        layout = ((ModelSlot *)lbl_2_bss_340140->sources)[i].layout;
+        geo = ((ModelSlot *)lbl_2_bss_340140->sources)[i].geo;
+        tex = ((ModelSlot *)lbl_2_bss_340140->sources)[i].tex;
         LoadActorLayout(layout);
         convertGeometryAndSknHeader(geo, NULL);
         haveActLayoutPointToGeoHeader(layout, geo);

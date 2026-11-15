@@ -109,22 +109,9 @@ typedef struct DbgActor {
     /*0x279*/ u8 pad279[0x27C - 0x279];
 } DbgActor; // size 0x27C
 
-typedef struct DbgHuge {
-    /*0x000*/ u8 pad0[0x60];
-    /*0x060*/ DbgActorTbl *objs;
-    /*0x064*/ u8 pad64[0xAC - 0x64];
-    /*0x0AC*/ DbgLight *lights[4];
-    /*0x0BC*/ u8 padBC[0xC04 - 0xBC];
-    /*0xC04*/ DbgActor slots[4];
-    /*0x15F4*/ u8 pad15F4[0x2C50 - 0x15F4];
-    /*0x2C50*/ DbgActor *actors[13];
-    /*0x2C84*/ void *f2C84;
-    /*0x2C88*/ u8 pad2C88[0x3083 - 0x2C88];
-    /*0x3083*/ u8 f3083;
-    /*0x3084*/ u8 f3084;
-} DbgHuge;
+#define HUGE_ANIM_OBJECT_T DbgActor
+#include "HugeAnimStruct.h"
 
-extern DbgHuge hugeAnimStruct;
 
 typedef struct DbgGauge {
     /*0x00*/ u8 pad0[0x54];

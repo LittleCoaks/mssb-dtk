@@ -190,11 +190,11 @@ void fn_2_20258(void) {
 void fn_2_2025C(void) {
     ChallengeState *challenge = lbl_2_bss_1A8248;
     if (challenge->_44F2 == 2) {
-        hugeAnimStruct.unk307A = 0;
+        hugeAnimStruct._307A = 0;
     } else if (lbl_2_bss_1A824C[0x190000 + 0x78F3] != 0) {
-        hugeAnimStruct.unk307A = 4;
+        hugeAnimStruct._307A = 4;
     }
-    if (hugeAnimStruct.unk307A == 4 && challenge->_44F2 != 3) {
+    if (hugeAnimStruct._307A == 4 && challenge->_44F2 != 3) {
         if (challenge->_44F2 != 4) {
             fn_2_68E68();
         }

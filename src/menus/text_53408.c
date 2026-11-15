@@ -6,6 +6,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/dvdsys.h"
 #include "menus/menu_work.h"
+#include "HugeAnimStruct.h"
 
 // Local prototypes and externs for symbols owned by other units.
 extern u8 *menuControlVariables;
@@ -22,7 +23,6 @@ extern u8 Static_Stats_Tables[];
 extern u8 inningSetting[];
 extern u8 cardCheck[];
 extern int menuCursors[];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 menuNumber[];
 extern u8 lbl_800FEF70[];
 extern u8 lbl_2_data_205D4[];
@@ -99,7 +99,7 @@ void fn_2_54BAC(void) {
 
 // .text:0x00054B38 size:0x74 mapped:0x80693BCC
 void fn_2_54B38(void) {
-    if (hugeAnimStruct[0x307A] == 2) {
+    if (hugeAnimStruct._307A == 2) {
         if (*(u8 *)(lbl_2_bss_1A8248 + 0x44F2) != 4) {
             fn_2_68E68();
         }

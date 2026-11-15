@@ -15,6 +15,7 @@
 #include "menus/text_44F14.h"
 #include "menus/text_50898.h"
 #include "menus/menu_work.h"
+#include "HugeAnimStruct.h"
 
 // Local prototypes and externs for symbols owned by other units.
 void fn_2_399C0(void);
@@ -34,7 +35,6 @@ extern u8 *lbl_2_bss_1A8234;
 extern u8 *lbl_2_bss_1A8230;
 extern u8 lbl_803C6CF8[];
 extern u8 AtBat_ButtonInput1[];
-extern u8 hugeAnimStruct[];
 extern u8 menuNumber[];
 extern u8 challengeDialogueTextFileDescriptor[];
 extern void *lbl_2_data_12C0C[];
@@ -882,7 +882,7 @@ void fn_2_40B90(void) {
         item->state = 1;
         break;
     case 1:
-        hugeAnimStruct[0x307A] = 0;
+        hugeAnimStruct._307A = 0;
         fn_2_20218();
         *(u8 *)(UI_1A8234() + 0x2992) = 1;
         *(u8 *)(UI_1A8230() + 0x2A86) = 1;
@@ -917,7 +917,7 @@ void fn_2_40A9C(void) {
         item->state = 1;
         break;
     case 1:
-        hugeAnimStruct[0x307A] = 0;
+        hugeAnimStruct._307A = 0;
         fn_2_20218();
         *(u8 *)(UI_1A8234() + 0x2992) = 1;
         *(u8 *)(UI_1A8230() + 0x2A86) = 1;

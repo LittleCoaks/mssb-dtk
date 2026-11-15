@@ -68,14 +68,8 @@ typedef struct DbgSlot {
     /*0x25E*/ u8 pad25E[0x1E];
 } DbgSlot;
 
-typedef struct DbgAnim {
-    /*0x000*/ u8 pad000[0x60];
-    /*0x060*/ ActorObjectTable *table;
-    /*0x064*/ u8 pad064[0x48];
-    /*0x0AC*/ void *lights[4];
-    /*0x0BC*/ u8 pad0BC[0xC04 - 0xBC];
-    /*0xC04*/ DbgSlot slots[24];
-} DbgAnim;
+#define HUGE_ANIM_OBJECT_T DbgSlot
+#include "HugeAnimStruct.h"
 
 typedef struct DbgCamera {
     /*0x00*/ Mtx view;

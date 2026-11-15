@@ -289,6 +289,8 @@ def cmd_show(args):
     found = False
     for path in sorted(CACHE.glob("*.json")):
         data = json.loads(path.read_text())
+        if "left" not in data or "right" not in data:
+            continue  # not a diff dump
         left, right = data["left"]["symbols"], data["right"]["symbols"]
         for s in left:
             if s.get("name") != args.function or "instructions" not in s or s.get("target_symbol") is None:

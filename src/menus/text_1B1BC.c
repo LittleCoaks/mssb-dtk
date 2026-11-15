@@ -11,6 +11,7 @@
 #include "menus/text_53408.h"
 #include "menus/rep_0B08.h"
 #include "menus/rep_0F60.h"
+#include "HugeAnimStruct.h"
 
 extern u8 lbl_2_bss_1034C[];
 extern u8 *lbl_2_bss_1A8234;
@@ -26,7 +27,6 @@ extern u8 g_d_GameSettings[];
 extern u8 AtBat_ButtonInput1[];
 extern u8 inningSetting[];
 extern u8 superstarUnlocked[];
-extern u8 hugeAnimStruct[];
 extern u8 *lbl_2_bss_1A8230;
 extern u8 *lbl_2_bss_1A8238;
 extern u8 *lbl_2_bss_1A8244;
@@ -619,7 +619,7 @@ void fn_2_1B7B4(void) {
     lbl_2_bss_1A823C = inningSetting + 0x28;
     lbl_2_bss_1A8234 = lbl_2_bss_1A8250;
     lbl_2_bss_1A8230 = lbl_2_bss_1A8250 + 0x162998;
-    lbl_2_bss_340140 = hugeAnimStruct;
+    lbl_2_bss_340140 = HUGE_ANIM_BYTES;
 
     switch (SCENE_STATE) {
     case 0:

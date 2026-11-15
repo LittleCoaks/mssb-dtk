@@ -196,18 +196,18 @@ void fn_2_87654(s32 unused, s32 start, s32 count, s32 a, s32 b) {
         s32 cell1 = cell[1];
         s32 cell2 = cell[2];
 
-        animateBallRelated(lbl_2_bss_340140->unk68, i, i, lbl_2_bss_340140->unk2DA0[cell0].unk0, a, b);
-        fn_800BD548(&lbl_2_bss_340140->unk68->entries[i], 4, lbl_2_bss_340140->unkAC[0], lbl_2_bss_340140->unkAC[1],
-                    lbl_2_bss_340140->unkAC[2], lbl_2_bss_340140->unkAC[3]);
-        CTRLSetTranslation(&lbl_2_bss_340140->unk68->entries[i].control, 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation(&lbl_2_bss_340140->unk68->entries[i].control, -90.0f, 0.0f, 0.0f);
+        animateBallRelated(lbl_2_bss_340140->actorTables[2], i, i, lbl_2_bss_340140->sources[cell0].layout, a, b);
+        fn_800BD548(&lbl_2_bss_340140->actorTables[2]->entries[i], 4, lbl_2_bss_340140->lights[0], lbl_2_bss_340140->lights[1],
+                    lbl_2_bss_340140->lights[2], lbl_2_bss_340140->lights[3]);
+        CTRLSetTranslation(&lbl_2_bss_340140->actorTables[2]->entries[i].control, 0.0f, 0.0f, 0.0f);
+        CTRLSetRotation(&lbl_2_bss_340140->actorTables[2]->entries[i].control, -90.0f, 0.0f, 0.0f);
 
         if (cell2 != 0) {
             s32 k;
             s32 j;
 
             for (k = 0; k < lbl_2_data_2E608.unk2D0[cell0]; k++) {
-                TextureData *tex = lbl_2_bss_340140->unk68->entries[i].actor->boneArray[k]->dispObj->textureData;
+                TextureData *tex = lbl_2_bss_340140->actorTables[2]->entries[i].actor->boneArray[k]->dispObj->textureData;
                 s16 *src = lbl_2_data_2E608.unk2E8[cell1];
 
                 for (j = 0; j < lbl_2_data_2E608.unk2DC[cell0]; j++) {
@@ -222,30 +222,30 @@ void fn_2_87654(s32 unused, s32 start, s32 count, s32 a, s32 b) {
 void fn_2_87350(void) {
     s32 i;
 
-    lbl_2_bss_340140->unk3078 = lbl_2_data_2E608.unk338[lbl_2_bss_33FBF5];
-    lbl_2_bss_340140->unk2D94 = _OSAllocFromHeap(0x20, lbl_2_bss_340140->unk3078 * sizeof(Rep0DERec28));
-    lbl_2_bss_340140->unk68 = ActorObjectInitTable(lbl_2_bss_340140->unk3078);
-    fn_2_87654(0, 0, lbl_2_bss_340140->unk3078, 0, 0);
+    lbl_2_bss_340140->actorCount = lbl_2_data_2E608.unk338[lbl_2_bss_33FBF5];
+    (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries) = _OSAllocFromHeap(0x20, lbl_2_bss_340140->actorCount * sizeof(Rep0DERec28));
+    lbl_2_bss_340140->actorTables[2] = ActorObjectInitTable(lbl_2_bss_340140->actorCount);
+    fn_2_87654(0, 0, lbl_2_bss_340140->actorCount, 0, 0);
 
-    for (i = 0; i < lbl_2_bss_340140->unk3078; i++) {
-        lbl_2_bss_340140->unk2D94[i].pos.x = 0.0f;
-        lbl_2_bss_340140->unk2D94[i].pos.y = 0.0f;
-        lbl_2_bss_340140->unk2D94[i].pos.z = 0.0f;
-        lbl_2_bss_340140->unk2D94[i].unk10 = 0.0f;
-        lbl_2_bss_340140->unk2D94[i].unk14 = 0.0f;
-        lbl_2_bss_340140->unk2D94[i].unk18 = 0.0f;
-        lbl_2_bss_340140->unk2D94[i].unk26 = 0;
-        lbl_2_bss_340140->unk2D94[i].unk0 = NULL;
-        lbl_2_bss_340140->unk68->entries[i].applyControl = 0;
+    for (i = 0; i < lbl_2_bss_340140->actorCount; i++) {
+        (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i].pos.x = 0.0f;
+        (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i].pos.y = 0.0f;
+        (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i].pos.z = 0.0f;
+        (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i].unk10 = 0.0f;
+        (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i].unk14 = 0.0f;
+        (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i].unk18 = 0.0f;
+        (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i].unk26 = 0;
+        (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i].unk0 = NULL;
+        lbl_2_bss_340140->actorTables[2]->entries[i].applyControl = 0;
     }
 }
 
 // .text:0x00087118 size:0x238 mapped:0x806C61AC
 void fn_2_87118(void) {
-    lbl_2_bss_340140->unk3078 = lbl_2_data_2E608.unk338[lbl_2_bss_33FBF5];
-    lbl_2_bss_340140->unk2D94 = _OSAllocFromHeap(0x20, lbl_2_bss_340140->unk3078 * sizeof(Rep0DERec28));
-    lbl_2_bss_340140->unk68 = ActorObjectInitTable(lbl_2_bss_340140->unk3078);
-    fn_2_87654(0, 0, lbl_2_bss_340140->unk3078, 0, 0);
+    lbl_2_bss_340140->actorCount = lbl_2_data_2E608.unk338[lbl_2_bss_33FBF5];
+    (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries) = _OSAllocFromHeap(0x20, lbl_2_bss_340140->actorCount * sizeof(Rep0DERec28));
+    lbl_2_bss_340140->actorTables[2] = ActorObjectInitTable(lbl_2_bss_340140->actorCount);
+    fn_2_87654(0, 0, lbl_2_bss_340140->actorCount, 0, 0);
 }
 
 // .text:0x00087114 size:0x4 mapped:0x806C61A8
@@ -256,9 +256,9 @@ void fn_2_87114(void) {
 // .text:0x000870D4 size:0x40 mapped:0x806C6168
 void fn_2_870D4(f32 arg) {
     if (arg) {
-        lbl_2_bss_340140->unk307A = 3;
+        lbl_2_bss_340140->_307A = 3;
     } else {
-        lbl_2_bss_340140->unk307A = 0;
+        lbl_2_bss_340140->_307A = 0;
     }
 }
 
@@ -276,7 +276,7 @@ void fn_2_86FEC(void) {
     PSMTXCopy(lbl_2_bss_1A81D4.mtx, cam->view);
     fn_800A7D4C(0, &lbl_2_data_2E9B4[drawStadiumRelated]);
     cam = fn_80052768_getCamera(0);
-    fn_2_190DC(lbl_2_bss_340140->unk68, cam->view);
+    fn_2_190DC(lbl_2_bss_340140->actorTables[2], cam->view);
 }
 
 // .text:0x00086F40 size:0xAC mapped:0x806C5FD4
@@ -284,11 +284,11 @@ void fn_2_86F40(void) {
     ActorObjectEntry *entry;
     s32 i;
 
-    for (i = 0; i < hugeAnimStruct.unk68->count; i++) {
-        entry = &hugeAnimStruct.unk68->entries[i];
-        if (hugeAnimStruct.unk68->entries[i].actor != NULL && hugeAnimStruct.unk68->entries[i].applyControl) {
-            if (hugeAnimStruct.unk2D94[i].unk0 != NULL) {
-                hugeAnimStruct.unk2D94[i].unk0(i);
+    for (i = 0; i < hugeAnimStruct.actorTables[2]->count; i++) {
+        entry = &hugeAnimStruct.actorTables[2]->entries[i];
+        if (hugeAnimStruct.actorTables[2]->entries[i].actor != NULL && hugeAnimStruct.actorTables[2]->entries[i].applyControl) {
+            if ((*(Rep0DERec28**)&hugeAnimStruct.actorEntries)[i].unk0 != NULL) {
+                (*(Rep0DERec28**)&hugeAnimStruct.actorEntries)[i].unk0(i);
             }
             sknRelated(entry, fn_80052768_getCamera(0)->view);
         }
@@ -323,31 +323,31 @@ void fn_2_86A80(void) {
     GXColor red = { 0xFF, 0x00, 0x00, 0xFF };
     GXColor white2 = { 0xFF, 0xFF, 0xFF, 0xFF };
 
-    LITAlloc(&lbl_2_bss_340140->unkAC[0]);
-    LITAlloc(&lbl_2_bss_340140->unkAC[1]);
-    LITAlloc(&lbl_2_bss_340140->unkAC[2]);
-    LITAlloc(&lbl_2_bss_340140->unkAC[3]);
+    LITAlloc(&lbl_2_bss_340140->lights[0]);
+    LITAlloc(&lbl_2_bss_340140->lights[1]);
+    LITAlloc(&lbl_2_bss_340140->lights[2]);
+    LITAlloc(&lbl_2_bss_340140->lights[3]);
 
-    LITInitAttn(lbl_2_bss_340140->unkAC[0], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    LITInitPos(lbl_2_bss_340140->unkAC[0], 5.0f, 0.0f, 5.0f);
-    LITInitDir(lbl_2_bss_340140->unkAC[0], 0.0f, 0.0f, 0.0f);
-    initLightColor(lbl_2_bss_340140->unkAC[0], red);
-    LITInitDir(lbl_2_bss_340140->unkAC[0], -5.0f, 0.0f, -5.0f);
+    LITInitAttn(lbl_2_bss_340140->lights[0], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    LITInitPos(lbl_2_bss_340140->lights[0], 5.0f, 0.0f, 5.0f);
+    LITInitDir(lbl_2_bss_340140->lights[0], 0.0f, 0.0f, 0.0f);
+    initLightColor(lbl_2_bss_340140->lights[0], red);
+    LITInitDir(lbl_2_bss_340140->lights[0], -5.0f, 0.0f, -5.0f);
 
-    LITInitAttn(lbl_2_bss_340140->unkAC[1], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    LITInitPos(lbl_2_bss_340140->unkAC[1], -5.0f, 5.0f, 0.0f);
-    LITInitDir(lbl_2_bss_340140->unkAC[1], 0.0f, 0.0f, 0.0f);
-    initLightColor(lbl_2_bss_340140->unkAC[1], blue);
+    LITInitAttn(lbl_2_bss_340140->lights[1], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    LITInitPos(lbl_2_bss_340140->lights[1], -5.0f, 5.0f, 0.0f);
+    LITInitDir(lbl_2_bss_340140->lights[1], 0.0f, 0.0f, 0.0f);
+    initLightColor(lbl_2_bss_340140->lights[1], blue);
 
-    LITInitAttn(lbl_2_bss_340140->unkAC[2], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    LITInitPos(lbl_2_bss_340140->unkAC[2], 0.0f, 0.0f, 5.0f);
-    LITInitDir(lbl_2_bss_340140->unkAC[2], 0.0f, 0.0f, 0.0f);
-    initLightColor(lbl_2_bss_340140->unkAC[2], white);
+    LITInitAttn(lbl_2_bss_340140->lights[2], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    LITInitPos(lbl_2_bss_340140->lights[2], 0.0f, 0.0f, 5.0f);
+    LITInitDir(lbl_2_bss_340140->lights[2], 0.0f, 0.0f, 0.0f);
+    initLightColor(lbl_2_bss_340140->lights[2], white);
 
-    LITInitAttn(lbl_2_bss_340140->unkAC[3], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-    LITInitPos(lbl_2_bss_340140->unkAC[3], 0.0f, 0.0f, -5.0f);
-    LITInitDir(lbl_2_bss_340140->unkAC[3], 0.0f, 0.0f, 0.0f);
-    initLightColor(lbl_2_bss_340140->unkAC[3], white);
+    LITInitAttn(lbl_2_bss_340140->lights[3], 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    LITInitPos(lbl_2_bss_340140->lights[3], 0.0f, 0.0f, -5.0f);
+    LITInitDir(lbl_2_bss_340140->lights[3], 0.0f, 0.0f, 0.0f);
+    initLightColor(lbl_2_bss_340140->lights[3], white);
 }
 
 // .text:0x00086A0C size:0x74 mapped:0x806C5AA0
@@ -356,7 +356,7 @@ void fn_2_86A0C(void) {
 
     for (i = 0; i < 3; i++) {
         camera_803c639c_s *cam = fn_80052768_getCamera(0);
-        LITXForm(lbl_2_bss_340140->unkAC[i], cam->view);
+        LITXForm(lbl_2_bss_340140->lights[i], cam->view);
     }
 }
 
@@ -364,8 +364,8 @@ void fn_2_86A0C(void) {
 void fn_2_869B4(void) {
     s32 i;
 
-    for (i = 0; i < lbl_2_bss_340140->unk3078; i++) {
-        Rep0DERec28 *rec = &lbl_2_bss_340140->unk2D94[i];
+    for (i = 0; i < lbl_2_bss_340140->actorCount; i++) {
+        Rep0DERec28 *rec = &(*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i];
         rec->pos.x = 0.0f;
         rec->pos.y = 0.0f;
         rec->pos.z = 0.0f;
@@ -380,7 +380,7 @@ void fn_2_869B4(void) {
 void fn_2_868C8(void) {
     Vec prev;
     Vec delta;
-    Rep0DERec28 *rec = lbl_2_bss_340140->unk2D94;
+    Rep0DERec28 *rec = (*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries);
 
     memcpy(&prev, &rec->pos, sizeof(Vec));
     PSVECSubtract(&prev, &lbl_2_data_2E9D0, &delta);
@@ -402,8 +402,8 @@ void fn_2_868C8(void) {
 void fn_2_86470(void) {
     s32 i;
 
-    for (i = 0; i < lbl_2_bss_340140->unk3078; i++) {
-        Rep0DERec28 *rec = &lbl_2_bss_340140->unk2D94[i];
+    for (i = 0; i < lbl_2_bss_340140->actorCount; i++) {
+        Rep0DERec28 *rec = &(*(Rep0DERec28**)&lbl_2_bss_340140->actorEntries)[i];
         Vec pos;
         Vec delta;
 
@@ -423,22 +423,22 @@ void fn_2_86470(void) {
         rec->unk18 = lbl_2_data_2E9DC[2];
 
         if (lbl_2_bss_33FBF5 == 0) {
-            CTRLSetTranslation(&lbl_2_bss_340140->unk68->entries[i].control, pos.x + (i % 5) * 0.79f, pos.y,
+            CTRLSetTranslation(&lbl_2_bss_340140->actorTables[2]->entries[i].control, pos.x + (i % 5) * 0.79f, pos.y,
                                pos.z - (i / 5) * 0.614f);
         } else if (lbl_2_bss_33FBF5 == 1) {
-            CTRLSetTranslation(&lbl_2_bss_340140->unk68->entries[i].control, pos.x + (i % 6) * 0.75f, pos.y,
+            CTRLSetTranslation(&lbl_2_bss_340140->actorTables[2]->entries[i].control, pos.x + (i % 6) * 0.75f, pos.y,
                                pos.z - (i / 6) * 0.69f);
         } else if (lbl_2_bss_33FBF5 == 2) {
-            CTRLSetTranslation(&lbl_2_bss_340140->unk68->entries[i].control, pos.x + (i % 5) * 0.89f, pos.y,
+            CTRLSetTranslation(&lbl_2_bss_340140->actorTables[2]->entries[i].control, pos.x + (i % 5) * 0.89f, pos.y,
                                pos.z - (i / 5) * 0.544f);
         } else {
-            CTRLSetTranslation(&lbl_2_bss_340140->unk68->entries[i].control, pos.x + (i % 6) * 0.742f, pos.y,
+            CTRLSetTranslation(&lbl_2_bss_340140->actorTables[2]->entries[i].control, pos.x + (i % 6) * 0.742f, pos.y,
                                pos.z - (i / 6) * 0.542f);
         }
 
-        CTRLSetRotation(&lbl_2_bss_340140->unk68->entries[i].control, RAD2DEG * lbl_2_data_2E9DC[0],
+        CTRLSetRotation(&lbl_2_bss_340140->actorTables[2]->entries[i].control, RAD2DEG * lbl_2_data_2E9DC[0],
                         RAD2DEG * lbl_2_data_2E9DC[1], RAD2DEG * lbl_2_data_2E9DC[2]);
-        lbl_2_bss_340140->unk68->entries[i].applyControl = lbl_2_bss_33FBF0[i];
+        lbl_2_bss_340140->actorTables[2]->entries[i].applyControl = lbl_2_bss_33FBF0[i];
     }
 }
 
