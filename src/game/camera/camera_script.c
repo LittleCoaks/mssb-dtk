@@ -2255,10 +2255,10 @@ void fn_3_104740(void) {
 
 // .text:0x001045A8 size:0x198 mapped:0x8074363C
 void fn_3_1045A8(void) {
-    f32 pitch;
-    f32 yaw;
-    f32 cy;
     f32 sp;
+    f32 cy;
+    f32 yaw;
+    f32 pitch;
     f32 reach;
     f32 sy;
     f32 rx;

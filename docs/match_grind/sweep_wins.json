@@ -16,5 +16,14 @@
   "from": 97.412,
   "to": 100.0,
   "desc": "L1: fold single-use local `data` into its use"
+ },
+ {
+  "rule": "perm",
+  "bucket": "REG:fs",
+  "unit": "game/game/camera/camera_script",
+  "function": "fn_3_1045A8",
+  "from": 99.706,
+  "to": 100.0,
+  "desc": "order sp,cy,yaw,pitch,reach"
  }
 ]

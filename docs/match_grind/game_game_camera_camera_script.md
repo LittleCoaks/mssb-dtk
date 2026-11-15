@@ -32,7 +32,7 @@ Sections {'.text': 98.70458, '.rodata': 100.0, '.data': 100.0, '.bss': 100.0}
 | camFilterAngles | matched | 100.0 |
 | camFilterPosition | matched | 100.0 |
 | fn_3_104338 | matched | 100.0 |
-| fn_3_1045A8 | pending | 99.70588 |
+| fn_3_1045A8 | matched | 100.0% |
 | fn_3_104740 | matched | 100.0 |
 | camEvalViewAtTime | matched | 100.0 |
 | fn_3_104A3C | matched | 100.0 |
@@ -153,3 +153,12 @@ manageDrawingItemState: readability pass done; _22 is a multi-valued 0/1/2 drawi
 - 10617C result pointer alias local: {}; sections {'.text': 98.71921, '.rodata': 100.0, '.data': 100.0, '.bss': 100.0}; reverted
 
 - camera replay fixed shot context loaded before scene: {'camera_replay': (99.870964, 99.77419)}; sections {'.text': 98.71656, '.rodata': 100.0, '.data': 100.0, '.bss': 100.0}; reverted
+
+## fn_3_1045A8 (2026-11-15)
+baseline 99.71% REG:fs (sp/pitch/yaw permuted between f29 and f31; instructions identical).
+  [sweep] 8 statement-shape variants (single angle var, ry early/late, cos/reach var reuse) -> no gain or worse.
+  [sweep --perm] all 119 orderings of pitch,yaw,cy,sp,reach declarations: 3 gave 99.90, 1 gave 99.80, ONE gave 100:
+      `f32 sp; f32 cy; f32 yaw; f32 pitch; f32 reach;` -> 100%. Applied.
+  readability pass: done (no enum-shaped values; field names are still offsets, `_2874`/`_2870`).
+  Same cos/sin pattern fails in camera.c (cameraRelated, gameplay_Camera, cameraControl, fn_3_19FA4); the target
+  allocates it differently per unit, so each needs its own --perm sweep.

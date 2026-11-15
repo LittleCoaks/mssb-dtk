@@ -29,7 +29,10 @@ What it does
 Rules (--list prints how many variants each yields for FUNCTION)
   abs        hand-written abs / ABS() / abs()  <->  __abs()
   compound   `a = a op b;`  <->  `a op= b;`
-  decl       reorder the function's leading local declarations
+  decl       reorder the function's leading local declarations (adjacent swaps, moves)
+  perm       EVERY ordering of the locals (opt-in: --perm, --perm-vars a,b,c, --perm-samples N).
+             Declaration order is a proven lever for float/int register permutations; use
+             --perm-vars to keep it exhaustive (6 names = 720 builds).
   declarator reorder names inside `int i, j;`
   type       int / s32 / u32 on a local; u8, s8, s16, u16 local -> int
   loop       `for` -> `while`, `for` -> `do { } while`
@@ -252,6 +255,42 @@ def rule_decl(body, m):
                 yield from emit(rest + [i], f"move `{names[i]}` last")
 
 
+PERM = {"on": False, "vars": None, "samples": 150}
+
+
+def rule_perm(body, m):
+    """Every ordering of the (selected) leading local declarations. Opt-in: the
+    count is factorial, so it is capped by a seeded sample."""
+    import itertools
+    import random
+    spans = leading_declarations(body, m)
+    texts = [body[a:b] for a, b in spans]
+    names = []
+    for a, b in spans:
+        d = re.match(r"\s*(?:(?:const|volatile|register|static|unsigned|signed|struct|union|enum)\s+)*"
+                     + IDENT + r"(?:\s*\*+\s*|\s+)\**\s*(" + IDENT + r")", m[a:b])
+        names.append(d.group(1) if d else None)
+    pick = [i for i, n in enumerate(names)
+            if n and (PERM["vars"] is None or n in PERM["vars"]) and not top_level_split(m, *spans[i], ",")]
+    if len(pick) < 2:
+        return
+    orders = (p for p in itertools.permutations(pick) if list(p) != pick)
+    total = 1
+    for k in range(2, len(pick) + 1):
+        total *= k
+    if total - 1 > PERM["samples"]:
+        orders = random.Random(1).sample(list(itertools.islice(itertools.permutations(pick), 200000)), PERM["samples"])
+    lo, hi = spans[0][0], spans[-1][1]
+    for order in orders:
+        placed = list(range(len(spans)))
+        for slot, src in zip(pick, order):
+            placed[slot] = src
+        if placed == list(range(len(spans))):
+            continue
+        yield Variant("perm", "order " + ",".join(names[i] or "?" for i in placed if i in pick),
+                      splice(body, lo, hi, "".join(texts[i] for i in placed)))
+
+
 def rule_declarator(body, m):
     for a, b in leading_declarations(body, m):
         stmt = m[a:b - 1]
@@ -419,7 +458,8 @@ def rule_retbool(body, m):
                       splice(body, s, e, f"if ({expr}) {{\n{indent}    return 1;\n{indent}}}\n{indent}return 0;"))
 
 
-RULES = [("abs", rule_abs), ("decl", rule_decl), ("type", rule_type), ("compound", rule_compound),
+OPT_IN = {"perm"}
+RULES = [("perm", rule_perm), ("abs", rule_abs), ("decl", rule_decl), ("type", rule_type), ("compound", rule_compound),
          ("inline", rule_inline), ("deinit", rule_deinit), ("cast", rule_cast), ("declarator", rule_declarator), ("loop", rule_loop),
          ("invert", rule_invert), ("ternary", rule_ternary), ("retbool", rule_retbool)]
 
@@ -429,6 +469,8 @@ def generate(body, only=None):
     out = []
     for name, fn in RULES:
         if only and name not in only:
+            continue
+        if name in OPT_IN and not (PERM["on"] or (only and name in only)):
             continue
         try:
             out += [v for v in fn(body, m) if v.body != body]
@@ -502,6 +544,9 @@ def main():
     ap.add_argument("--rounds", type=int, default=3, help="greedy rounds (default 3)")
     ap.add_argument("--max", type=int, default=120, help="most variants to build per round (default 120)")
     ap.add_argument("--rules", help="comma-separated subset of rules")
+    ap.add_argument("--perm", action="store_true", help="also try every ordering of the local declarations (capped)")
+    ap.add_argument("--perm-vars", help="comma-separated locals to permute among their own slots (default: all)")
+    ap.add_argument("--perm-samples", type=int, default=150, help="sample size when there are more orderings (default 150)")
     ap.add_argument("--list", action="store_true", help="only list the variants that would be tried")
     ap.add_argument("--no-log", action="store_true", help="do not write the sweep log or the wins file")
     ap.add_argument("--retry", action="store_true", help="re-run variants the log says were already tried")
@@ -510,6 +555,9 @@ def main():
     unit = resolve(args.src)
     path = REPO / unit["metadata"]["source_path"]
     only = set(args.rules.split(",")) if args.rules else None
+    PERM["on"] = args.perm
+    PERM["samples"] = args.perm_samples
+    PERM["vars"] = set(args.perm_vars.split(",")) if args.perm_vars else None
     unknown = (only or set()) - {n for n, _ in RULES}
     if unknown:
         raise SystemExit(f"unknown rule(s): {', '.join(sorted(unknown))}")
