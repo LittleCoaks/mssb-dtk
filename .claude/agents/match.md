@@ -31,6 +31,20 @@ JSON) when you need to see mismatches. Filter `ninja` output down to
 errors. Never paste a whole diff JSON into your context when a script can
 extract the numbers you need.
 
+Two tools keep this cheap:
+
+- `tools/match_survey.py` — `dump` caches every unit's diff, `scan` buckets
+  the module's unmatched functions by cause (size difference, reordering,
+  relocation-only, pure register swap), and `show FUNCTION` prints just the
+  mismatching rows as TARGET | OURS with our source line numbers. Check the
+  bucket before grinding: a function that differs in size or only in a
+  relocation is not a register-allocation problem, whatever its percentage.
+- `tools/match_variants.py SRC REGEX SPEC.json` — builds and scores several
+  candidate rewrites of one piece of source in one run, reports whole-unit
+  regressions, and restores the original bytes afterwards. Use it instead of
+  hand-editing and reverting one hypothesis at a time, and log every variant
+  it measured in the checkpoint.
+
 ## Scope
 
 One invocation = one source file (`src/**/*.c`), covering every one of its
@@ -224,10 +238,19 @@ Rules for this pass:
 
 State lives on disk, not in conversation memory — a fresh spawn of this
 agent has zero memory of any prior run. One checkpoint file per target
-source file: `build/.match_grind/<objdiff-unit-name-with-slashes-as-underscores>.md`
+source file: `docs/match_grind/<objdiff-unit-name-with-slashes-as-underscores>.md`
 (e.g. unit `game/game/batting/charge_effects` →
 `game_game_batting_charge_effects.md`) — every checkpoint from prior grind
 sessions uses this same format.
+
+**Checkpoints are tracked in git, and kept.** `docs/match_grind/` is a
+committed folder, so the hypothesis log survives between sessions, machines
+and clones, and nobody re-runs an attempt that has already been logged.
+Commit a file's checkpoint together with the source changes it describes.
+Never delete one, including when the file reaches 100%. Throwaway
+artifacts — source backups, diff JSON, trial scripts — do not belong
+there; put those in the gitignored `build/.match_grind/`. Keep machine-
+specific paths and usernames out of the checkpoint.
 
 It holds two things:
 
@@ -511,7 +534,10 @@ Once the status table has no `exhausted`/`pending` rows left:
    someone grinding a *different* file. Append each as a new entry to
    `docs/matching_notes.md` — short: what the pattern looks like, what it
    means, where it was first seen.
-2. Delete the checkpoint file.
+2. Keep the checkpoint file. Put `Status: complete` and the date on its
+   first line so a later session can tell at a glance that nothing is
+   pending, and leave the status table and hypothesis log intact as the
+   record of what worked.
 3. **Flip the unit to `Object(Matching, ...)`** in `configure.py` so the
    linker consumes our compiled object. Follow the checklist in
    `docs/matching_notes.md` ("Flipping a 100% unit to Object(Matching)"):
@@ -531,7 +557,7 @@ Once the status table has no `exhausted`/`pending` rows left:
    (leave NonMatching) and report why.
 
 If the file is *not* fully matched, skip all of this — leave the checkpoint
-in place for the next resume.
+as it is for the next resume.
 
 ## Report
 

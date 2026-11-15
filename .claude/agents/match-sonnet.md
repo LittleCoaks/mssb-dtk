@@ -52,7 +52,9 @@ follow these sections exactly as written:
   re-diff afterwards and log `readability pass: done` in the checkpoint.
   Initialised `.data` tables count too.
 - **Checkpoint & resumability** — same file, same format:
-  `build/.match_grind/<objdiff-unit-name-with-slashes-as-underscores>.md`.
+  `docs/match_grind/<objdiff-unit-name-with-slashes-as-underscores>.md`.
+  It is tracked in git and never deleted; throwaway artifacts go in the
+  gitignored `build/.match_grind/`.
 - **Known environment gotchas**.
 - **First-look checklist**.
 - **Data-section completeness**, including the common-BSS disproof
@@ -107,7 +109,7 @@ Your checkpoint is what the Opus pass starts from, so:
    remaining function.
 5. **Stop per function** per the rules in Role above and move to the next.
 6. **If every function reaches 100%**, do the "Prune & promote" section of
-   `match.md` yourself (notes, delete checkpoint, flip to Matching with the
+   `match.md` yourself (notes, mark checkpoint complete, flip to Matching with the
    sha1 check). Otherwise leave the checkpoint in place.
 
 ## Report

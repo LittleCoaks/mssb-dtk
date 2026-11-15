@@ -571,7 +571,7 @@ DOL function, `0x80026130`, is likewise reduced to a bare `blr` stub.
 Both are called from real, live call sites inside `debug.rel` (three for
 `fn_80048BEC`, two for `0x80026130`) — the REL is functional, it is only
 the DOL-side developer-only renderers it depends on that were removed
-from the shipped game. See `build/.match_grind/debug_debug_rep_7BF0.md`
+from the shipped game. See `docs/match_grind/debug_debug_rep_7BF0.md`
 for the full finding, exact call-site offsets, and the renderer's
 struct-argument layout.
 
