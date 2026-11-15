@@ -107,3 +107,21 @@ Next: fn_3_F2FFC, fn_3_F2724, isPosOutsideKlaptrapZone, dkBarrel_collisionWithFi
 Moved .data 0x1B820-0x1BA88 into the unit (DKJungleBarrelLauncherTable/KlaptrapTable/DrawHooks types): .data 100%, loadDKJungle 83.70 -> 87.41. Tried routing lbl_3_bss_B154 slots through DKJungleBss in the loader: worse (86.74, extra spill), reverted. Chained _34 alloc: -0.02, not applied.
 
 Matched 43/73; .text 94.19%.
+
+## Literal-pool pass with tools/match_pool.py (2026-11-15)
+
+.rodata 93.12% -> 100%, .text 97.05% -> 97.56%. No function changed status (the report already scored
+the reloc-only ones as matched); the point is the section, which the Matching flip needs.
+Pool was 0x2FC bytes vs target 0x308 with 93 of 94 aligned literals shifted. Causes, in the order they were found:
+  [P1] fn_3_F5E78 panic text was the wrong sentence (36 bytes, a named static pooled FIRST). Target is the
+       28-byte inline literal "//OZ <modori-atai ga arimasen>
+" (96 DF 82 E8 92 6C 82 AA 82 A0 82 E8 82 DC 82 B9 82 F1).
+       Inlined into the OSPanic call so it pools in use order.
+  [P2] dkJungleBarrelCannonCutsceneUpdate: target pools a second Vec {0,1,0} right after `forward`, with no
+       user. A dead `Vec up = {0.0f, 1.0f, 0.0f};` local reproduces it (dead locals still pool).
+       match_pool.py shows this as one 24-byte target object only because dtk's symbol is gap-sized.
+  [P3] fn_3_EFB54: pooled order is offset {0,0,0} then axisX {1,0,0}; declarations swapped to match.
+  [P4] two doubles are f-suffixed floats promoted: `0.0005f *` and `2.5e-05f *` (not the double literals).
+  [P5] fn_3_EE96C: the target literal is 3e4ccccc, one ulp below 0.2f; written as 0.19999999f.
+Every other function still scores as before (project-wide diff, no regressions).
+Remaining in this unit is .text only: 27 functions, none reloc-only.

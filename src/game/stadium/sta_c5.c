@@ -903,9 +903,6 @@ int fn_3_F5EFC(const u32* a, const u32* b) {
 }
 
 // .text:0x000F5E78 size:0x84 mapped:0x80734F0C
-static const char noReturnValueString[] =
-    "//OZ \x96\xDF\x82\xE8\x92\x6C\x82\xCC\x96\xB3\x82\xA2\x95\x94\x95\xAA\x82\xC9\x97\x88\x82\xDC\x82\xB5\x82\xBD\x81\x42\n";
-
 int fn_3_F5E78(u8 id) {
     StadiumDrawOrder* p = stadiumObjectCollision.objectScratch + stadiumObjectCollision.objectCount;
     u32 i;
@@ -915,7 +912,7 @@ int fn_3_F5E78(u8 id) {
             return i - 1;
         }
     }
-    OSPanic("sta_c5.c", 0x637, noReturnValueString);
+    OSPanic("sta_c5.c", 0x637, "//OZ \x96\xDF\x82\xE8\x92\x6C\x82\xAA\x82\xA0\x82\xE8\x82\xDC\x82\xB9\x82\xF1\n");
     return 0;
 }
 
@@ -1179,6 +1176,7 @@ void dkJungleBarrelCannonCutsceneUpdate(StadiumObject* o) {
     DKJungleCannon* cannon = (DKJungleCannon*)o;
     Vec v;
     Vec forward = {0.0f, 0.0f, -1.0f};
+    Vec up = {0.0f, 1.0f, 0.0f};
     f32 angle;
 
     v.x = lbl_3_bss_AEEC - cannon->pos.x;
@@ -2100,9 +2098,9 @@ void fn_3_EFB54(DKJungleKlaptrap* obj) {
     Vec axis;
     Vec side;
     Vec flat;
-    Vec axisX = {1.0f, 0.0f, 0.0f};
     Vec p;
     Vec offset = {0.0f, 0.0f, 0.0f};
+    Vec axisX = {1.0f, 0.0f, 0.0f};
     DKJungleCarrier* carrier;
     f32 ang;
     f32 h;
@@ -2569,7 +2567,7 @@ void fn_3_EE96C(Vec* pos) {
     }
     PSMTXCopy(cam->view, mtx);
     tilt = down.y * mtx[1][1];
-    scale = 0.2f / clamped;
+    scale = 0.19999999f / clamped;
     ind = &bss->indMtx[0][0];
     ind[0] = scale;
     ind[4] = scale * (f32)(1.0 - fabs(0.5f * tilt));
@@ -2688,11 +2686,11 @@ void fn_3_EE388(void) {
         lbl_3_data_1BA6D = 1;
     }
     if (lbl_3_data_1BA6E != 0) {
-        step = 0.0005 * (2.0 * ((f64)((f32)rand() / 32767.0f) - 0.5));
+        step = 0.0005f * (2.0 * ((f64)((f32)rand() / 32767.0f) - 0.5));
         lbl_3_data_1BA6E = 0;
         lbl_3_bss_AF08 = step;
         lbl_3_bss_AF04 = 0.0f;
-        lbl_3_bss_AF00 = 2.5e-05 * (fabs(step) / step);
+        lbl_3_bss_AF00 = 2.5e-05f * (fabs(step) / step);
     }
     {
         f64 absPhase;
