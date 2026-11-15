@@ -544,6 +544,8 @@ def main():
     ap.add_argument("--rounds", type=int, default=3, help="greedy rounds (default 3)")
     ap.add_argument("--max", type=int, default=120, help="most variants to build per round (default 120)")
     ap.add_argument("--rules", help="comma-separated subset of rules")
+    ap.add_argument("--with", dest="with_fns", help="comma-separated functions scored together with FUNCTION "
+                    "(for an inline helper: name its host functions). The objective is their average.")
     ap.add_argument("--perm", action="store_true", help="also try every ordering of the local declarations (capped)")
     ap.add_argument("--perm-vars", help="comma-separated locals to permute among their own slots (default: all)")
     ap.add_argument("--perm-samples", type=int, default=150, help="sample size when there are more orderings (default 150)")
@@ -588,11 +590,15 @@ def main():
         base, data = measure(ninja, unit)
         if base is None:
             raise SystemExit("the unit does not build as it stands; fix that first")
-        if args.function not in base:
-            raise SystemExit(f"'{args.function}' is not a function objdiff scores in {unit['name']}")
-        start_pct = base[args.function]
+        objset = [args.function] + [f for f in (args.with_fns or "").split(",") if f]
+        missing = [f for f in objset if f not in base]
+        if missing:
+            raise SystemExit(f"not functions objdiff scores in {unit['name']}: {', '.join(missing)}")
+        obj = lambda d: sum(d[f] for f in objset) / len(objset)
+        start_pct = obj(base)
         bkt = mismatch_bucket(data, args.function)
-        print(f"{args.function} in {unit['name']}: {start_pct:.2f}%  [{bkt}]")
+        print(f"{args.function}" + (f" (+{len(objset) - 1} scored with it)" if len(objset) > 1 else "")
+              + f" in {unit['name']}: {start_pct:.2f}%  [{bkt}]")
         lines.append(f"baseline: {start_pct:.2f}% [{bkt}]")
         if start_pct >= 100:
             print("already matching")
@@ -618,16 +624,16 @@ def main():
                 if got is None:
                     status, pct = "build failed", None
                 else:
-                    pct = got.get(args.function, 0.0)
-                    worse = [g for g, p in got.items() if g != args.function and p < base.get(g, 0) - 1e-6]
+                    pct = obj(got)
+                    worse = [g for g, p in got.items() if g not in objset and p < base.get(g, 0) - 1e-6]
                     if worse:
                         status = f"regresses {worse[0]}" + (f" +{len(worse) - 1}" if len(worse) > 1 else "")
-                    elif pct > base[args.function] + 1e-6:
+                    elif pct > obj(base) + 1e-6:
                         status = "better"
                         if best is None or pct > best[0]:
                             best = (pct, v, candidate, got)
                     else:
-                        status = "same" if abs(pct - base[args.function]) <= 1e-6 else "worse"
+                        status = "same" if abs(pct - obj(base)) <= 1e-6 else "worse"
                 shown = f"{pct:.2f}%" if pct is not None else "-"
                 lines.append(f"  [sweep {vid}] {v.rule}: {v.desc} -> {shown} ({status})")
                 if status == "better" or pct is None or n % 10 == 0 or n == len(todo):
@@ -641,7 +647,7 @@ def main():
             print(f"  kept: {v.rule}: {v.desc} -> {pct:.2f}%")
             lines.append(f"  kept after round {rnd}: {v.rule}: {v.desc} -> {pct:.2f}%")
             kept.append({"rule": v.rule, "bucket": bkt, "unit": unit["name"], "function": args.function,
-                         "from": round(base[args.function], 3), "to": round(pct, 3), "desc": v.desc})
+                         "from": round(obj(base), 3), "to": round(pct, 3), "desc": v.desc})
             current, base, best_overall = candidate, got, pct
             if pct >= 100:
                 break
