@@ -11208,7 +11208,7 @@ void decideHowToTrackFoulBall(int fielderIndex) {
                         f32 angle = ATAN2F(g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z,
                                             g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x);
                         int diff = fielderControlStick_continuousAngleHistory[0] - radToShortAngle(angle);
-                        diff = (diff ^ (diff >> 31)) - (diff >> 31);
+                        diff = __abs(diff);
                         if (diff > 0x80) {
                             fielder->fielderVeloAdjustmentCode = 8;
                         }
