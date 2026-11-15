@@ -10,6 +10,7 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Dolphin/stl.h"
 #include "game/match_setup/match_loading.h"
+#include "HugeAnimStruct.h"
 
 // Practice-mode model load. The practice loading flow in match_loading.c
 // (fn_3_59C2C, installed by match_main only for GAME_TYPE_PRACTICE) polls
@@ -17,18 +18,6 @@
 // (actor layout, geometry, texture and an animation), and practiceModel_setup
 // unpacks it into a one-actor hugeAnimStruct model table. Which model this is
 // has not been identified; the names are inferred from the caller.
-
-typedef struct {
-    u8 _00[0x68];
-    void* actorTable;
-    u8 _6C[0x2D94 - 0x6C];
-    void* actorEntries;
-    u8 _2D98[4];
-    u32* packedFile;
-    void* files[3]; /* actor layout, geometry, texture */
-    u8 _2DAC[0x3078 - 0x2DAC];
-    u16 actorCount;
-} PracticeModelAnimView;
 
 typedef struct {
     void* animation;
@@ -41,7 +30,6 @@ typedef struct {
     u8 loadStep;
 } PracticeModelEffect;
 
-extern PracticeModelAnimView hugeAnimStruct;
 extern PracticeModelEffect animRelated;
 extern void convertGeometryAndSknHeader(void*, void*);
 extern void convertTextureHeader(void*);
@@ -59,7 +47,7 @@ static MatchFileDescriptor practiceModelFiles[2] = {
 int practiceModel_loadStep(void) {
     switch (animRelated.loadStep) {
     case 0:
-        hugeAnimStruct.packedFile = ARAMTransfer(&practiceModelFiles[1], 0, 0, 0);
+        hugeAnimStruct.archive = ARAMTransfer(&practiceModelFiles[1], 0, 0, 0);
         animRelated.loadStep++;
         break;
     case 1:
@@ -86,19 +74,19 @@ static void setEffectAnim(PracticeModelEffect* effect, u32* packed, u32* offsets
 // .text:0x00166448 size:0x19C mapped:0x807A54DC
 void practiceModel_setup(void) {
     PracticeModelEffect* effect = &animRelated;
-    u32* packed = hugeAnimStruct.packedFile;
+    u32* packed = hugeAnimStruct.archive;
     void* layout;
     void* geometry;
     void* texture;
     s32 i, j;
 
     for (i = 0; i < 3; i++) {
-        hugeAnimStruct.files[i] = (u8*)packed + packed[i];
+        ((void**)hugeAnimStruct.sources)[i] = (u8*)packed + packed[i];
     }
     setEffectAnim(effect, packed, packed + i++);
-    layout = hugeAnimStruct.files[0];
-    geometry = hugeAnimStruct.files[1];
-    texture = hugeAnimStruct.files[2];
+    layout = ((void**)hugeAnimStruct.sources)[0];
+    geometry = ((void**)hugeAnimStruct.sources)[1];
+    texture = ((void**)hugeAnimStruct.sources)[2];
 
     LoadActorLayout(layout);
     convertGeometryAndSknHeader(geometry, 0);
@@ -118,9 +106,9 @@ void practiceModel_setup(void) {
     hugeAnimStruct.actorCount = 1;
     hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);
     memset(hugeAnimStruct.actorEntries, 0, hugeAnimStruct.actorCount * 0x28);
-    hugeAnimStruct.actorTable = ActorObjectInitTable(hugeAnimStruct.actorCount);
+    hugeAnimStruct.actorTables[2] = ActorObjectInitTable(hugeAnimStruct.actorCount);
     mm_LoadModelAsset(0, 0, 1, 0, 0);
     animRelated.speed = lbl_3_rodata_3E50;
-    ACTActorRelated(animRelated.animation, (u8*)hugeAnimStruct.actorTable + 0x34);
+    ACTActorRelated(animRelated.animation, (u8*)hugeAnimStruct.actorTables[2] + 0x34);
 }
 #pragma dont_inline reset

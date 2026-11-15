@@ -7,6 +7,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "HugeAnimStruct.h"
 
 /* The drawing-script node in currentDrawingItem, with the fields this file uses. */
 typedef struct RunnerDrawingNode {
@@ -20,7 +21,7 @@ typedef struct RunnerDrawingNode {
 } RunnerDrawingNode;
 
 extern AnimScreenState *lbl_3_common_bss_1323C;
-extern AnimActorView hugeAnimStruct;
+#define ANIM_OBJ(i) ((AnimObject*)hugeAnimStruct.objects[i])
 
 // .text:0x00021C7C size:0x14
 void fn_3_21C7C(int slot, int value) {
@@ -53,7 +54,7 @@ void fn_3_21BDC(void) {
 void fn_3_21AA8(void) {
     RunnerDrawingNode *node = (RunnerDrawingNode *)currentDrawingItem;
     InMemRunnerType *runner = &g_Runners[0];
-    AnimObject *obj = hugeAnimStruct.objects[9];
+    AnimObject *obj = ANIM_OBJ(9);
 
     switch (node->_22) {
     case 0:
@@ -96,7 +97,7 @@ void fn_3_219CC(void) {
 
     for (i = 0; i < PLAYERS_PER_TEAM; i++) {
         fielder = &g_Fielders[i];
-        if (game->Team_CaptainRosterLoc[settings->humanTeamNumber] == hugeAnimStruct.objects[i]->_257) {
+        if (game->Team_CaptainRosterLoc[settings->humanTeamNumber] == ANIM_OBJ(i)->_257) {
             fielder->rosterLocSkippingCap = 0;
         } else {
             fielder->rosterLocSkippingCap = ++count;

@@ -43,11 +43,6 @@ typedef struct AnimObject {
     /*0x279*/ u8 _279;
 } AnimObject;
 
-typedef struct AnimActorView {
-    /*0x0000*/ u8 _0000[0x2C50];
-    /*0x2C50*/ AnimObject *objects[ANIM_SLOT_COUNT];
-} AnimActorView;
-
 /* The block pointed to by lbl_3_common_bss_1323C. */
 typedef struct AnimScreenState {
     /*0x000*/ AnimStateSlot slots[ANIM_SLOT_COUNT];

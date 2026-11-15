@@ -81,9 +81,12 @@ typedef struct HugeAnimStruct {
     /*0x2D94*/ void* actorEntries;
     /*0x2D98*/ s32 _2D98;
     /*0x2D9C*/ u32* archive;
-    /*0x2DA0*/ HugeAnimModelSource sources[HUGE_ANIM_MODEL_SOURCE_COUNT];
-    /*0x3070*/ void (*hookA)(void);
-    /*0x3074*/ void (*hookB)(void);
+    /*0x2DA0*/ union {
+        HugeAnimModelSource sources[HUGE_ANIM_MODEL_SOURCE_COUNT];
+        u32 sourceWords[HUGE_ANIM_MODEL_SOURCE_COUNT * 3];
+    };
+    /*0x3070*/ void (*hookA)(int);
+    /*0x3074*/ void (*hookB)(int);
     /*0x3078*/ u16 actorCount;
     /*0x307A*/ u8 _307A;
     /*0x307B*/ u8 _307B;

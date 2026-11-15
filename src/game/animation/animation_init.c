@@ -8,6 +8,7 @@
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x8001b918.h"
+#include "HugeAnimStruct.h"
 
 /* Trailing fields of one vsSituations row (0x40 bytes each). */
 typedef struct AnimVsRow {
@@ -20,7 +21,7 @@ typedef struct AnimVsRow {
 #define VS_ROW_COUNT 33
 
 extern AnimScreenState *lbl_3_common_bss_1323C;
-extern AnimActorView hugeAnimStruct;
+#define ANIM_OBJ(i) ((AnimObject*)hugeAnimStruct.objects[i])
 extern AnimVsRow vsSituations[VS_ROW_COUNT];
 extern AnimSetupEntry lbl_3_data_1E434[];
 extern AnimSetupEntry lbl_3_data_1F090[];
@@ -125,7 +126,7 @@ void fn_3_24ADC(int setupIndex, int queueAnim) {
 
     lbl_3_common_bss_1323C->_240[slot] = setupIndex;
     if (slot <= 8) {
-        obj = hugeAnimStruct.objects[slot];
+        obj = ANIM_OBJ(slot);
         if (entry->_19 == 0) {
             memcpy(&g_Fielders[slot], entry, 0xC);
             if (obj != NULL) {
@@ -146,7 +147,7 @@ void fn_3_24ADC(int setupIndex, int queueAnim) {
         lbl_3_common_bss_1323C->_261[slot] = 1;
         lbl_3_common_bss_1323C->_26E[slot] = 1;
     } else if (slot <= 12) {
-        obj = hugeAnimStruct.objects[slot];
+        obj = ANIM_OBJ(slot);
         if (slot == 10) {
             if (obj == NULL) {
                 return;

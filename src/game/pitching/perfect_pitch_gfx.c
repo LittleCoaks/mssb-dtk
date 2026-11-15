@@ -16,6 +16,7 @@
 #include "Unknown/File_0x80052734.h"
 #include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bda94.h"
+#include "HugeAnimStruct.h"
 
 // The perfect-pitch trail model: a stadium model whose root actor is driven
 // by ACTSetAnimation.
@@ -88,10 +89,7 @@ typedef struct _PerfectPitchSharedBlock {
 } PerfectPitchSharedBlock;
 
 extern PerfectPitchSharedBlock lbl_3_common_bss_35154;
-extern struct {
-    /*0x0000*/ u8 _0000[0x2C50];
-    /*0x2C50*/ PerfectPitchActor* actors[(0x3154 - 0x2C50) / 4];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((PerfectPitchActor*)hugeAnimStruct.objects[i])
 extern u8 drawStadiumRelated;
 extern struct {
     u8 _00[0x28];
@@ -131,7 +129,7 @@ void fn_3_CB284(int actorIndex, int frame, f32 charge) {
         || (g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BOBOMB_DERBY
             && g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BARREL_BATTER)) {
         if (lbl_3_common_bss_35154.starHitPitch != 0 && frame == 0x23) {
-            actor = hugeAnimStruct.actors[actorIndex];
+            actor = ANIM_OBJ(actorIndex);
             lbl_3_common_bss_35154.starHitPos.x = actor->pos.x;
             lbl_3_common_bss_35154.starHitPos.y = -actor->pos.y;
             lbl_3_common_bss_35154.starHitPos.z = actor->pos.z;
@@ -159,7 +157,7 @@ void fn_3_CB1B0(int actorIndex, u8 pitch, int frame) {
             && g_Minigame.GameMode_MiniGame != MINI_GAME_ID_BARREL_BATTER)) {
         if (frame == 0x23) {
             lbl_3_common_bss_35154.starHitPitch = pitch;
-            actor = hugeAnimStruct.actors[actorIndex];
+            actor = ANIM_OBJ(actorIndex);
             lbl_3_common_bss_35154.starHitPos.x = actor->pos.x;
             lbl_3_common_bss_35154.starHitPos.y = -actor->pos.y;
             lbl_3_common_bss_35154.starHitPos.z = actor->pos.z;
@@ -218,7 +216,7 @@ void perfectPitchGraphicsRelated(void) {
 // .text:0x000CAE00 size:0x19C mapped:0x80709E94
 void fn_3_CAE00(void) {
     PerfectPitchNode* node = (PerfectPitchNode*)currentDrawingItem;
-    PerfectPitchActor* actor = hugeAnimStruct.actors[node->actorIndex];
+    PerfectPitchActor* actor = ANIM_OBJ(node->actorIndex);
 
     if (node->stop == FALSE && actor != NULL) {
         fn_800A7D4C(0, &lbl_3_data_17D18.entries[node->slot][drawStadiumRelated]);

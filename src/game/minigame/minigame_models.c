@@ -48,6 +48,7 @@
 #include "stl/stdlib.h"
 #include "stl/math.h"
 #include "game/match_setup/pause_menu.h"
+#include "HugeAnimStruct.h"
 #undef g_Minigame
 
 extern f32 lbl_3_data_21A64[9];
@@ -726,43 +727,17 @@ typedef struct {
     /*0x04*/ u8 _04[0x90 - 0x4];
 } PMModelObj; // size: 0x90
 
-/* A 12-byte record in the table at hugeAnimStruct+0x2DA0; data is the model
- * source handed to animateBallRelated. */
-typedef struct {
-    /*0x0*/ void* data;
-    /*0x4*/ void* geo;
-    /*0x8*/ void* tex;
-} PMModelSource; // size: 0xC
+#define PM_EFFECTS ((PMEffect*)hugeAnimStruct.actorEntries)
+#define PM_MODEL_TABLE ((u8*)hugeAnimStruct.actorTables[2])
 
-typedef struct {
-    /*0x0000*/ u8 _0000[0x68];
-    /*0x0068*/ u8* modelTable;
-    /*0x006C*/ u8 _006C[0xAC - 0x6C];
-    /*0x00AC*/ void* _AC[4];
-    /*0x00BC*/ u8 _00BC[0x2D94 - 0xBC];
-    /*0x2D94*/ PMEffect* effects;
-    /*0x2D98*/ u8 _2D98[0x2D9C - 0x2D98];
-    /*0x2D9C*/ u32* archive;
-    /*0x2DA0*/ union {
-        PMModelSource sources[27];
-        u32 sourceWords[81];
-    };
-    /*0x2EE4*/ u8 _2EE4[0x3078 - 0x2EE4];
-    /*0x3078*/ u16 effectCount;
-    /*0x307A*/ u8 _307A[4];
-    /*0x307E*/ u8 _307E;
-} PMHugeAnimStruct;
-
-extern PMHugeAnimStruct hugeAnimStruct;
-
-#define FX(i) (hugeAnimStruct.effects[i])
-#define PM_MODEL(i) ((PMModelObj*)(hugeAnimStruct.modelTable + (i) * 0x90 + 0x34))
-#define PM_ACTORS ((ActorObjectTable*)hugeAnimStruct.modelTable)
-#define PM_ENTRY(i) ((ActorObjectEntry*)(hugeAnimStruct.modelTable + (i) * 0x90 + 0x34))
-#define PM_MODEL_AT(i) (&((PMModelObj*)(hugeAnimStruct.modelTable + 0x34))[i])
+#define FX(i) (PM_EFFECTS[i])
+#define PM_MODEL(i) ((PMModelObj*)(PM_MODEL_TABLE + (i) * 0x90 + 0x34))
+#define PM_ACTORS ((ActorObjectTable*)PM_MODEL_TABLE)
+#define PM_ENTRY(i) ((ActorObjectEntry*)(PM_MODEL_TABLE + (i) * 0x90 + 0x34))
+#define PM_MODEL_AT(i) (&((PMModelObj*)(PM_MODEL_TABLE + 0x34))[i])
 
 static inline Actor* pmGetActor(int idx) {
-    ActorObjectEntry* e = ((ActorObjectTable*)hugeAnimStruct.modelTable)->entries;
+    ActorObjectEntry* e = ((ActorObjectTable*)PM_MODEL_TABLE)->entries;
 
     e += idx;
     return e->actor;
@@ -1419,7 +1394,7 @@ void mm_ParseCommonArchive(void) {
     int i;
     int j;
 
-    hugeAnimStruct.effectCount = 0;
+    hugeAnimStruct.actorCount = 0;
     for (i = 0; i < 0x51; i++) {
         hugeAnimStruct.sourceWords[i] = (u32)file + offsets[i];
     }
@@ -1436,10 +1411,10 @@ void mm_ParseCommonArchive(void) {
     ANIM_PTR(0x68) = file + offsets[i++];
     ANIM_PTR(0x6C) = file + offsets[i++];
     for (j = 0; j < 27; j++) {
-        PMModelSource* src = &hugeAnimStruct.sources[j];
-        void* layout = src->data;
-        void* geo = src->geo;
-        void* tex = src->tex;
+        HugeAnimModelSource* src = &hugeAnimStruct.sources[j];
+        void* layout = src->layout;
+        void* geo = src->geometry;
+        void* tex = src->texture;
 
         LoadActorLayout(layout);
         if (j == 0x11) {
@@ -1465,9 +1440,9 @@ void mm_LoadModelAsset(int asset, int start, int count, int a, int b) {
     int i;
 
     for (i = start; i < start + count; i++) {
-        animateBallRelated(hugeAnimStruct.modelTable, i, i, hugeAnimStruct.sources[asset].data, a, b);
-        fn_800BD548(&PM_ACTORS->entries[i], 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1], hugeAnimStruct._AC[2],
-                    hugeAnimStruct._AC[3]);
+        animateBallRelated(PM_MODEL_TABLE, i, i, hugeAnimStruct.sources[asset].layout, a, b);
+        fn_800BD548(&PM_ACTORS->entries[i], 4, hugeAnimStruct.lights[0], hugeAnimStruct.lights[1], hugeAnimStruct.lights[2],
+                    hugeAnimStruct.lights[3]);
         CTRLSetTranslation(&PM_ACTORS->entries[i].control, 0.0f, 0.0f, 0.0f);
         CTRLSetRotation(&PM_ACTORS->entries[i].control, 0.0f, 0.0f, 0.0f);
     }
@@ -1497,7 +1472,7 @@ void mm_LoadModels(void) {
         mm_LoadPiranhaPanicModels();
         break;
     }
-    for (i = 0; i < hugeAnimStruct.effectCount; i++) {
+    for (i = 0; i < hugeAnimStruct.actorCount; i++) {
         FX(i).pos.x = 0.0f;
         FX(i).pos.y = 0.0f;
         FX(i).pos.z = 0.0f;
@@ -1518,18 +1493,18 @@ void mm_UnloadModels(void) {
             fn_80011B64(i);
         }
     }
-    for (i = hugeAnimStruct.effectCount - 1; i >= 0; i--) {
-        hugeAnimStruct.modelTable[i * 0x90 + 0xA0] = 0;
+    for (i = hugeAnimStruct.actorCount - 1; i >= 0; i--) {
+        PM_MODEL_TABLE[i * 0x90 + 0xA0] = 0;
     }
-    for (i = hugeAnimStruct.effectCount - 1; i >= 0; i--) {
+    for (i = hugeAnimStruct.actorCount - 1; i >= 0; i--) {
         fn_800B4CDC(PM_MODEL(i)->model);
     }
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-        for (i = hugeAnimStruct.effectCount - 1; i >= 0; i--) {
+        for (i = hugeAnimStruct.actorCount - 1; i >= 0; i--) {
             fn_800B4278(PM_MODEL(i)->model);
         }
-        fn_800ACFB0(hugeAnimStruct.modelTable);
-        fn_800ACFB0(hugeAnimStruct.effects);
+        fn_800ACFB0(PM_MODEL_TABLE);
+        fn_800ACFB0(PM_EFFECTS);
     }
     fn_800B993C();
     cleanupCharacters();
@@ -1541,7 +1516,7 @@ void mm_UnloadModels(void) {
 // .text:0x0011CF04 size:0x80 mapped:0x8075BF98
 void mm_CleanupResources(void) {
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_TOY_FIELD) {
-        hugeAnimStruct.effectCount = 0;
+        hugeAnimStruct.actorCount = 0;
     }
     hugeAnimStruct._307E = 0;
     minigamesSetSomePointers();
@@ -1559,9 +1534,9 @@ void mm_CleanupResources(void) {
 // .text:0x0011CD00 size:0x204 mapped:0x8075BD94
 #pragma dont_inline on
 void mm_LoadBobombDerbyModels(void) {
-    hugeAnimStruct.effectCount = 3;
-    hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
-    hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
+    hugeAnimStruct.actorCount = 3;
+    hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);
+    hugeAnimStruct.actorTables[2] = ActorObjectInitTable(hugeAnimStruct.actorCount);
     mm_LoadModelAsset(13, 0, 1, 0, 0);
     mm_LoadModelAsset(14, 1, 1, 0, 0);
     mm_LoadModelAsset(15, 2, 1, 0, 0);
@@ -1573,9 +1548,9 @@ void mm_LoadBobombDerbyModels(void) {
 void mm_LoadWallBallModels(void) {
     u16 i;
 
-    hugeAnimStruct.effectCount = 0x111;
-    hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
-    hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
+    hugeAnimStruct.actorCount = 0x111;
+    hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);
+    hugeAnimStruct.actorTables[2] = ActorObjectInitTable(hugeAnimStruct.actorCount);
     mm_LoadModelAsset(0, 0, 0x82, 0, 0);
     mm_LoadModelAsset(21, 0x82, 0x64, 0, 0);
     mm_LoadModelAsset(1, 0xE6, 7, 0, 0);
@@ -1595,9 +1570,9 @@ void mm_LoadWallBallModels(void) {
 void mm_LoadBarrelBatterModels(void) {
     int i;
 
-    hugeAnimStruct.effectCount = 0x20;
-    hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
-    hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
+    hugeAnimStruct.actorCount = 0x20;
+    hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);
+    hugeAnimStruct.actorTables[2] = ActorObjectInitTable(hugeAnimStruct.actorCount);
     mm_LoadModelAsset(8, 0, 0xF, 0, 0);
     mm_LoadModelAsset(9, 0xF, 1, 0, 0);
     mm_LoadModelAsset(10, 0x10, 0xF, 0, 0);
@@ -1609,9 +1584,9 @@ void mm_LoadBarrelBatterModels(void) {
 
 // .text:0x0011C02C size:0x2A0 mapped:0x8075B0C0
 void mm_LoadChainChompModels(void) {
-    hugeAnimStruct.effectCount = 0xA7;
-    hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
-    hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
+    hugeAnimStruct.actorCount = 0xA7;
+    hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);
+    hugeAnimStruct.actorTables[2] = ActorObjectInitTable(hugeAnimStruct.actorCount);
     mm_LoadModelAsset(0, 0, 0x82, 0, 0);
     mm_LoadModelAsset(11, 0x82, 0x23, 0, 0);
     mm_LoadModelAsset(12, 0xA5, 1, 0, 0);
@@ -1620,9 +1595,9 @@ void mm_LoadChainChompModels(void) {
 
 // .text:0x0011BBA4 size:0x488 mapped:0x8075AC38
 void mm_LoadStarDashModels(void) {
-    hugeAnimStruct.effectCount = 0xEE;
-    hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
-    hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
+    hugeAnimStruct.actorCount = 0xEE;
+    hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);
+    hugeAnimStruct.actorTables[2] = ActorObjectInitTable(hugeAnimStruct.actorCount);
     mm_LoadModelAsset(0, 0, 0x82, 0, 0);
     mm_LoadModelAsset(21, 0x82, 0x64, 0, 0);
     mm_LoadModelAsset(22, 0xE6, 1, 0, 0);
@@ -1634,9 +1609,9 @@ void mm_LoadStarDashModels(void) {
 
 // .text:0x0011B75C size:0x448 mapped:0x8075A7F0
 void mm_LoadPiranhaPanicModels(void) {
-    hugeAnimStruct.effectCount = 0xF4;
-    hugeAnimStruct.effects = _OSAllocFromHeap(0x20, hugeAnimStruct.effectCount * 0x28);
-    hugeAnimStruct.modelTable = ActorObjectInitTable(hugeAnimStruct.effectCount);
+    hugeAnimStruct.actorCount = 0xF4;
+    hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, hugeAnimStruct.actorCount * 0x28);
+    hugeAnimStruct.actorTables[2] = ActorObjectInitTable(hugeAnimStruct.actorCount);
     mm_LoadModelAsset(0, 0, 0x82, 0, 0);
     mm_LoadModelAsset(17, 0x82, 3, ANIM_WORD(0x78), ANIM_WORD(0x60));
     mm_LoadModelAsset(18, 0x85, 0x32, 0, 0);
@@ -1652,9 +1627,9 @@ void mm_UpdateModels(void) {
     int i;
 
     if (g_GameLogic.gameStatus >= GAME_STATUS_0x1B && g_GameLogic.gameStatus <= GAME_STATUS_0x29) {
-        if (hugeAnimStruct.effectCount != 0) {
-            for (i = 0; i < hugeAnimStruct.effectCount; i++) {
-                fx = &hugeAnimStruct.effects[i];
+        if (hugeAnimStruct.actorCount != 0) {
+            for (i = 0; i < hugeAnimStruct.actorCount; i++) {
+                fx = &PM_EFFECTS[i];
                 if (fx != NULL) {
                     fx->visible = FALSE;
                 }
@@ -1705,7 +1680,7 @@ void mm_UpdatePitchingMachine(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
         idx = 0;
     }
-    fx = &hugeAnimStruct.effects[idx];
+    fx = &PM_EFFECTS[idx];
     if (fx != NULL) {
         fx->visible = TRUE;
         mm_PlacePitchingMachine(fx, idx);
@@ -1948,7 +1923,7 @@ void mm_UpdateBarrels(void) {
     u8 flag;
 
     flag = 0;
-    fx = hugeAnimStruct.effects;
+    fx = PM_EFFECTS;
     special = &fx[15];
     fx[15].visible = FALSE;
     for (i = 0; i < 15; i++) {
@@ -2039,7 +2014,7 @@ void mm_FlashBombBarrel(int idx) {
 
 // .text:0x00119D34 size:0xFC mapped:0x80758DC8
 void mm_UpdateBarrelBatterMachine(void) {
-    PMEffect* fx = &hugeAnimStruct.effects[0x1F];
+    PMEffect* fx = &PM_EFFECTS[0x1F];
 
     fx->visible = TRUE;
     mm_PlacePitchingMachine(fx, 0x1F);
@@ -2102,7 +2077,7 @@ void mm_UpdateChainChompItems(void) {
     int i;
     PMEffect* fx;
 
-    fx = hugeAnimStruct.effects;
+    fx = PM_EFFECTS;
     fx[0xA5].visible = FALSE;
     for (i = 0; i < 15; i++) {
         e = &FX(0x82 + i);
@@ -2167,7 +2142,7 @@ void mm_UpdateChainChompItems(void) {
 // .text:0x00119878 size:0xBC mapped:0x8075890C
 void mm_UpdateChainChompPowerup(void) {
     PMMinigame* g = &g_Minigame;
-    PMEffect* fx = &hugeAnimStruct.effects[0xA6];
+    PMEffect* fx = &PM_EFFECTS[0xA6];
 
     fx->visible = FALSE;
     fx->update = NULL;
@@ -2510,7 +2485,7 @@ void mm_RemoveFlameSprites(void) {
 
 // .text:0x001183FC size:0x10C mapped:0x80757490
 static inline void pmPlaceMarker(int i) {
-    PMEffect* fx = &hugeAnimStruct.effects[0xF0 + i];
+    PMEffect* fx = &PM_EFFECTS[0xF0 + i];
 
     fx->pos.x = pP_fielderStartPositions[i].x;
     fx->pos.y = -pP_fielderStartPositions[i].y;
@@ -2590,7 +2565,7 @@ void mm_UpdateStarDashCoins(void) {
 
 // .text:0x001180A4 size:0xC0 mapped:0x80757138
 void mm_UpdateCoinBag(void) {
-    PMEffect* fx = hugeAnimStruct.effects;
+    PMEffect* fx = PM_EFFECTS;
 
     fx[100].visible = FALSE;
     fx[0xE6].visible = FALSE;
@@ -2613,7 +2588,7 @@ void mm_UpdateCoinBag(void) {
 
 // .text:0x00117FC8 size:0xDC mapped:0x8075705C
 void mm_UpdateStar(void) {
-    PMEffect* fx = hugeAnimStruct.effects;
+    PMEffect* fx = PM_EFFECTS;
 
     fx[0xE8].visible = FALSE;
     FX(0x65).visible = FALSE;
@@ -2676,7 +2651,7 @@ void mm_DrawStarGlow(int idx) {
 
 // .text:0x00117AE4 size:0x94 mapped:0x80756B78
 void mm_UpdateFireBarHub(void) {
-    PMEffect* fx = hugeAnimStruct.effects;
+    PMEffect* fx = PM_EFFECTS;
 
     fx[0xE7].visible = TRUE;
     fx[0xE7].pos.x = lbl_3_data_21A48.x;
@@ -2760,7 +2735,7 @@ void mm_DrawThwompShadow(int idx) {
 // .text:0x00117494 size:0xF4 mapped:0x80756528
 void mm_UpdateStarDashPowerup(void) {
     PMMinigame* g = &g_Minigame;
-    PMEffect* fx = hugeAnimStruct.effects;
+    PMEffect* fx = PM_EFFECTS;
 
     fx[0xED].visible = FALSE;
     fx[0x65].visible = FALSE;
@@ -2836,7 +2811,7 @@ void mm_ResetPitchingMachine(void) {
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BARREL_BATTER) {
         idx = 0x1F;
     }
-    ((u8*)hugeAnimStruct.effects)[idx * 0x28 + 0x26] = 0;
+    ((u8*)PM_EFFECTS)[idx * 0x28 + 0x26] = 0;
 }
 
 // .text:0x001169D0 size:0x168 mapped:0x80755A64

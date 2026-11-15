@@ -11,6 +11,7 @@
 #include "Dolphin/rand.h"
 #include "Dolphin/stl.h"
 #include "stl/math.h"
+#include "HugeAnimStruct.h"
 
 // One 0x50-byte spark record, copied from a .data template and handed to fn_80026998.
 typedef struct _StarSparkParams {
@@ -67,10 +68,7 @@ typedef struct _MagiBallModel {
     /*0x10*/ u8 _10[0x28 - 0x10];
 } MagiBallModel; // size: 0x28
 
-extern struct {
-    /*0x0000*/ u8 _0000[0x2D90];
-    /*0x2D90*/ MagiBallModel* ballModels;
-} hugeAnimStruct;
+#define BALL_MODELS ((MagiBallModel*)hugeAnimStruct.starAnimRelated)
 
 typedef struct _MagiSharedBlock {
     /*0x000*/ u8 _000[0x479];
@@ -477,25 +475,25 @@ void applyStarRelatedTransformations(void) {
     PSMTXMultVecSR(mtx, &offset, &offset);
     switch (g_Ball.currentStarSwing) {
     case CAPTAIN_STAR_TYPE_DK:
-        model = &hugeAnimStruct.ballModels[7];
+        model = &BALL_MODELS[7];
         break;
     case CAPTAIN_STAR_TYPE_DIDDY:
-        model = &hugeAnimStruct.ballModels[7];
+        model = &BALL_MODELS[7];
         break;
     case CAPTAIN_STAR_TYPE_BOWSER:
-        model = &hugeAnimStruct.ballModels[10];
+        model = &BALL_MODELS[10];
         break;
     case CAPTAIN_STAR_TYPE_BOWSERJR:
-        model = &hugeAnimStruct.ballModels[11];
+        model = &BALL_MODELS[11];
         break;
     case CAPTAIN_STAR_TYPE_YOSHI:
-        model = &hugeAnimStruct.ballModels[8];
+        model = &BALL_MODELS[8];
         break;
     case CAPTAIN_STAR_TYPE_BIRDO:
-        model = &hugeAnimStruct.ballModels[9];
+        model = &BALL_MODELS[9];
         break;
     default:
-        model = &hugeAnimStruct.ballModels[0];
+        model = &BALL_MODELS[0];
         break;
     }
     memcpy(&tmp, &model->pos, sizeof(Vec));

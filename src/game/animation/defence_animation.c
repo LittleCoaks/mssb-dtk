@@ -6,6 +6,7 @@
 #include "static/UnknownHomes_Static.h"
 
 #include "game/math/game_math.h"
+#include "HugeAnimStruct.h"
 
 typedef struct {
     u8 _00[0x28];
@@ -28,10 +29,7 @@ typedef struct {
 } FielderAnimObject;
 
 extern FielderAnimSlot g_UnkAnimation_31EAC[9];
-extern struct {
-    u8 _00[0x2C50];
-    FielderAnimObject* objects[13];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((FielderAnimObject*)hugeAnimStruct.objects[i])
 extern u8 lbl_3_data_69C0[];
 extern u8 animRelated[0x124];
 extern u8* lbl_3_common_bss_1323C;
@@ -59,7 +57,7 @@ void animateDefence(void) {
         int j;
 
         for (j = 0; j < 9; j++) {
-            model = hugeAnimStruct.objects[j];
+            model = ANIM_OBJ(j);
             if (model != 0) {
                 model->displayState = 0;
             }
@@ -68,7 +66,7 @@ void animateDefence(void) {
     }
 
     for (i = 0; i < 9; i++) {
-        model = hugeAnimStruct.objects[i];
+        model = ANIM_OBJ(i);
         fielder = &g_Fielders[i];
         anim = &g_UnkAnimation_31EAC[i];
         if (model == 0) {
@@ -199,7 +197,7 @@ void resetAnimationFlags(void) {
     int i;
 
     for (i = 0; i < 9; i++) {
-        FielderAnimObject* model = hugeAnimStruct.objects[i];
+        FielderAnimObject* model = ANIM_OBJ(i);
         if (model != 0) {
             model->displayState = 0;
         }

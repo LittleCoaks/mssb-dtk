@@ -19,6 +19,7 @@
 #include "Unknown/File_0x80052734.h"
 #include "Dolphin/mtxext.h"
 #include "Unknown/File_0x800a7568.h"
+#include "HugeAnimStruct.h"
 
 /* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
  * __fabs intrinsic, which allocates registers differently. */
@@ -182,20 +183,8 @@ typedef struct _ScenePoolObj {
     /*0x05C*/ u32 _5C;
     /*0x060*/ u8 _060[0x21C];
 } ScenePoolObj; // size: 0x27C
-typedef struct _SceneAnimView {
-    /*0x000*/ u8 _000[0x70];
-    /*0x070*/ void* model;
-    /*0x074*/ u8 _074[0x38];
-    /*0x0AC*/ u32 _AC[4];
-    /*0x0BC*/ u8 _0BC[0xB48];
-    /*0xC04*/ ScenePoolObj pool[13];
-    /*0x2C50*/ SceneActor* actors[13];
-    /*0x2C84*/ u8 _2C84[0x3EC];
-    /*0x3070*/ SceneAnimHook hookA;
-    /*0x3074*/ SceneAnimHook hookB;
-    /*0x3078*/ u8 _3078[0xDC];
-} SceneAnimView; // size: 0x3154
-extern SceneAnimView hugeAnimStruct;
+#define ANIM_OBJ(i) ((SceneActor*)hugeAnimStruct.objects[i])
+#define ANIM_POOL(i) ((ScenePoolObj*)hugeAnimStruct.pool[i])
 typedef struct _SceneFireSlot {
     /*0x00*/ s32 word0;
     /*0x04*/ s32 _04[2];
@@ -1344,7 +1333,7 @@ int fn_3_C0134(void) {
 
     charId = (s8)g_Batter.charID;
     for (i = 0; i < 13; i++) {
-        actor = hugeAnimStruct.actors[i];
+        actor = ANIM_OBJ(i);
         if (actor != NULL && actor->charId == charId) {
             break;
         }
@@ -1636,14 +1625,14 @@ void maybeHudRelated(void) {
         lbl_3_common_bss_35154.texture = *(u32*)lbl_3_common_bss_35154.hudModel;
         fn_8004B1B8((void*)lbl_3_common_bss_35154.texture);
         fn_80035750(((void**)lbl_3_common_bss_35154.hudModel)[1], ((void**)lbl_3_common_bss_35154.hudModel)[2], 4);
-        hugeAnimStruct.model = ActorObjectInitTable(1);
-        animateBallRelated(hugeAnimStruct.model, 0, 0, ((void**)lbl_3_common_bss_35154.hudModel)[out[4]], 0, 0);
+        hugeAnimStruct.actorTables[4] = ActorObjectInitTable(1);
+        animateBallRelated(hugeAnimStruct.actorTables[4], 0, 0, ((void**)lbl_3_common_bss_35154.hudModel)[out[4]], 0, 0);
         fn_8003A85C(lbl_3_data_111A8[g_d_GameSettings.StadiumID]);
         fn_8003A848(lbl_3_data_111B0[g_d_GameSettings.StadiumID * 3], lbl_3_data_111B0[g_d_GameSettings.StadiumID * 3 + 1], lbl_3_data_111B0[g_d_GameSettings.StadiumID * 3 + 2]);
         hud = *(u8**)((u8*)lbl_3_common_bss_35154.hudModel + 0x18);
         lbl_3_common_bss_35154._3B1 = 1;
         for (i = 0; i < 13; i++) {
-            actor = hugeAnimStruct.actors[i];
+            actor = ANIM_OBJ(i);
             if (actor != NULL) {
                 fn_8003A6B0(i, hud + 4, lbl_3_data_111C8[actor->charId][0], lbl_3_data_111C8[actor->charId][1]);
             } else {
@@ -1860,7 +1849,7 @@ void pauseAnimations(void) {
     fn_3_CABB4();
     i = 12;
     do {
-        hugeAnimStruct.pool[i]._5C = 0;
+        ANIM_POOL(i)->_5C = 0;
     } while (i-- != 0);
     lbl_3_common_bss_35154.paused = TRUE;
 }
@@ -1887,7 +1876,7 @@ void fn_3_BF070(void) {
     hud = *(u8**)((u8*)lbl_3_common_bss_35154.hudModel + 0x18);
     lbl_3_common_bss_35154._3B1 = 1;
     for (i = 0; i < 13; i++) {
-        actor = hugeAnimStruct.actors[i];
+        actor = ANIM_OBJ(i);
         if (actor != NULL) {
             fn_8003A6B0(i, hud + 4, lbl_3_data_111C8[actor->charId][0], lbl_3_data_111C8[actor->charId][1]);
         } else {
@@ -1913,7 +1902,7 @@ static inline SceneAnimModel* findActorModel(int charId) {
     int i;
 
     for (i = 0; i < 9; i++) {
-        actor = hugeAnimStruct.actors[i];
+        actor = ANIM_OBJ(i);
         if (actor != NULL && actor->charId == charId) {
             model = getAnimObjectActor(actor);
             break;
@@ -2296,19 +2285,19 @@ void fn_3_BD8D8(void) {
 // .text:0x000BD80C size:0xCC mapped:0x806FC8A0
 void fn_3_BD80C(int arg) {
     f32* star = (f32*)&lbl_3_common_bss_35154._3E4;
-    SceneAnimView* h = &hugeAnimStruct;
+    HugeAnimStruct* h = &hugeAnimStruct;
 
     if (lbl_3_common_bss_35154.starActive != 0) {
-        CTRLSetTranslation((Control*)((u8*)h->model + 0x44), star[1], star[2], star[3]);
-        CTRLSetRotation((Control*)((u8*)h->model + 0x44), 57.295776f * star[4], 57.295776f * star[5], 57.295776f * star[6]);
-        fn_800BD548((u8*)h->model + 0x34, 4, h->_AC[0], h->_AC[1], h->_AC[2], h->_AC[3]);
+        CTRLSetTranslation((Control*)((u8*)h->actorTables[4] + 0x44), star[1], star[2], star[3]);
+        CTRLSetRotation((Control*)((u8*)h->actorTables[4] + 0x44), 57.295776f * star[4], 57.295776f * star[5], 57.295776f * star[6]);
+        fn_800BD548((u8*)h->actorTables[4] + 0x34, 4, h->lights[0], h->lights[1], h->lights[2], h->lights[3]);
     }
-    fn_800BD8C4(h->model, arg);
+    fn_800BD8C4(h->actorTables[4], arg);
 }
 
 // .text:0x000BD7DC size:0x30 mapped:0x806FC870
 void fn_3_BD7DC(int arg) {
-    fn_800BD670(hugeAnimStruct.model, arg);
+    fn_800BD670(hugeAnimStruct.actorTables[4], arg);
 }
 
 // .text:0x000BD7D8 size:0x4 mapped:0x806FC86C
@@ -2692,7 +2681,7 @@ void fn_3_BC888(void) {
     Vec vel;
 
     for (i = 0; i < 13; i++) {
-        actor = hugeAnimStruct.actors[i];
+        actor = ANIM_OBJ(i);
         if (actor == NULL) {
             continue;
         }
@@ -2756,7 +2745,7 @@ void animateDustCloudsBehindFielder_Runner(void) {
     FielderDash* dash;
 
     for (i = 0; i < 13; i++) {
-        actor = hugeAnimStruct.actors[i];
+        actor = ANIM_OBJ(i);
         if (actor != NULL) {
             actor->_276 >>= 1;
             actor->_276 = (actor->_276 & 0x1F) << 3;
@@ -2769,20 +2758,20 @@ void animateDustCloudsBehindFielder_Runner(void) {
     if (g_d_GameSettings.minigamesEnabled != 0) {
         dash = (FielderDash*)&g_FieldingLogic;
         for (i = 0; i < 4; i++) {
-            if (hugeAnimStruct.actors[i] != NULL && dash[i].sprintingState != 0 && i == dash[i].dashingFielderIndex) {
-                hugeAnimStruct.actors[i]->_276 |= 1;
+            if (ANIM_OBJ(i) != NULL && dash[i].sprintingState != 0 && i == dash[i].dashingFielderIndex) {
+                ANIM_OBJ(i)->_276 |= 1;
             }
         }
     } else {
         dash = (FielderDash*)&g_FieldingLogic;
         for (i = 0; i < 9; i++) {
-            if (hugeAnimStruct.actors[i] != NULL && dash->sprintingState != 0 && i == dash->dashingFielderIndex) {
-                hugeAnimStruct.actors[i]->_276 |= 1;
+            if (ANIM_OBJ(i) != NULL && dash->sprintingState != 0 && i == dash->dashingFielderIndex) {
+                ANIM_OBJ(i)->_276 |= 1;
             }
         }
     }
     for (i = 0; i < 4; i++) {
-        actor = hugeAnimStruct.actors[9 + i];
+        actor = ANIM_OBJ(9 + i);
         if (actor != NULL && g_Runners[i].mashPercent >= 0.75f) {
             actor->_276 |= 1;
         }
@@ -2857,7 +2846,7 @@ void spriteAnimations(void) {
     mode = g_GameLogic.gameStatus;
     if (mode == 1 || (u8)(mode - 2) <= 1 || (u8)(mode - 0x13) <= 1 || mode == 0x16 || mode == 0x17) {
         for (i = 0; i < 13; i++) {
-            actor = hugeAnimStruct.actors[i];
+            actor = ANIM_OBJ(i);
             if (actor == NULL) {
                 continue;
             }
