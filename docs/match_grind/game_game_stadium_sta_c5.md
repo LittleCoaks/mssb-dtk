@@ -125,3 +125,11 @@ Pool was 0x2FC bytes vs target 0x308 with 93 of 94 aligned literals shifted. Cau
   [P5] fn_3_EE96C: the target literal is 3e4ccccc, one ulp below 0.2f; written as 0.19999999f.
 Every other function still scores as before (project-wide diff, no regressions).
 Remaining in this unit is .text only: 27 functions, none reloc-only.
+
+## Sweep (tools/match_sweep.py, 2026-11-15)
+Variants are in game_game_stadium_sta_c5.sweep.md; do not repeat them by hand.
+  jungleStadiumObjectRelated 97.41 -> 100: folding the single-use local `data` into its one use
+      (`jungleKlaptrapData[obj->index].pos.z`). Applied.
+  no variant improved: fn_3_F1750, fn_3_F2FFC, fn_3_F2724, isPosOutsideKlaptrapZone, fn_3_EDFAC
+      (decl order, int types, abs idioms, compound assignment, casts, loop form and so on all tried).
+  These five are now candidates for hand work, not for more sweeping.

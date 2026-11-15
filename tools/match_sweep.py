@@ -58,7 +58,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from match_classify import REPO, objdiff_unit
-from match_variants import find_ninja
+from match_variants import find_ninja, write_source
 from match_survey import classify, bucket as survey_bucket
 
 GRIND = REPO / "docs" / "match_grind"
@@ -329,6 +329,8 @@ def rule_inline(body, m):
         expr = body[a + x.start(3):b - 1].strip()
         new = splice(body, u.start(), u.end(), f"({expr})")
         new = splice(new, a, b, "") if u.start() > b else new
+        # the fold yields `(&arr[i])->f`; `arr[i].f` is what anyone would write
+        new = re.sub(r"\(&(" + IDENT + r"(?:\s*(?:\.|->)\s*" + IDENT + r"|\[[^\[\]]*\])*)\)\s*->", r"\1.", new)
         yield Variant("inline", f"L{line_of(body, a)}: fold single-use local `{name}` into its use", new)
 
 
@@ -563,7 +565,7 @@ def main():
                 vid = variant_id(args.function, v.body)
                 tried.add(vid)
                 candidate = current[:start] + v.body + current[end:]
-                path.write_bytes(candidate.encode("utf-8"))
+                write_source(path, candidate.encode("utf-8"))
                 got, _ = measure(ninja, unit)
                 if got is None:
                     status, pct = "build failed", None
@@ -597,7 +599,7 @@ def main():
                 break
     finally:
         final = current if (args.apply and best_overall is not None) else original
-        path.write_bytes(final.encode("utf-8"))
+        write_source(path, final.encode("utf-8"))
         subprocess.run([ninja, unit["base_path"]], cwd=REPO, capture_output=True, text=True) if "ninja" in dir() else None
 
     if best_overall is None:

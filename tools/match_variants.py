@@ -33,6 +33,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from match_classify import REPO, objdiff_unit
 
 
+def write_source(path, data, attempts=40, delay=0.25):
+    """Write bytes to a source file, retrying while Windows (an editor, an indexer,
+    antivirus) briefly holds it open. Raises only after ~10 seconds of trying."""
+    import time
+    for i in range(attempts):
+        try:
+            Path(path).write_bytes(data)
+            return
+        except PermissionError:
+            if i == attempts - 1:
+                raise
+            time.sleep(delay)
+
+
 def find_ninja():
     ninja = os.environ.get("NINJA") or shutil.which("ninja")
     if not ninja:
@@ -81,10 +95,10 @@ def main():
         print(f"{'BASE':10s}", score(ninja, rel, module, args.regex))
         for name, new in spec["variants"].items():
             new = new.replace("\r\n", "\n").replace("\n", newline)
-            path.write_bytes(original.replace(old, new).encode("utf-8"))
+            write_source(path, original.replace(old, new).encode("utf-8"))
             print(f"{name:10s}", score(ninja, rel, module, args.regex))
     finally:
-        path.write_bytes(original.encode("utf-8"))
+        write_source(path, original.encode("utf-8"))
         print(f"{'RESTORED':10s}", score(ninja, rel, module, args.regex))
 
 

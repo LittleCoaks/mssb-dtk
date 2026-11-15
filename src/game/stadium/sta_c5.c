@@ -2322,7 +2322,6 @@ u8 isPosOutsideKlaptrapZone(Vec pos, u8 zone) {
 
 // .text:0x000EF408 size:0x154 mapped:0x8072E49C
 void jungleStadiumObjectRelated(DKJungleKlaptrap* obj) {
-    DKJungleKlaptrapData* data = &jungleKlaptrapData[obj->index];
     Vec toTarget;
     Vec heading;
     Vec cross;
@@ -2331,7 +2330,7 @@ void jungleStadiumObjectRelated(DKJungleKlaptrap* obj) {
 
     toTarget.x = jungleKlaptrapData[obj->index].pos.x - obj->pos.x;
     toTarget.y = 0.0f;
-    toTarget.z = data->pos.z - obj->pos.z;
+    toTarget.z = jungleKlaptrapData[obj->index].pos.z - obj->pos.z;
     PSVECNormalize(&toTarget, &toTarget);
     rad = -(0.017453292f * obj->rotY);
     heading.x = (f32)cos(rad);
