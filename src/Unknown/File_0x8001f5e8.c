@@ -9,30 +9,10 @@
 #include "Unknown/File_0x800bdd74.h"
 #include "Unknown/File_0x800c0770.h"
 #include "game/minigame/minigame_models.h"
+#include "HugeAnimStruct.h"
 
-typedef struct {
-    void* data;
-    void* geo;
-    void* tex;
-} PMModelSource;
-
-typedef struct {
-    u8 _0000[0x68];
-    u8* modelTable;
-    u8 _006C[0xAC - 0x6C];
-    void* _AC[4];
-    u8 _00BC[0x2D94 - 0xBC];
-    PMEffect* effects;
-    u8 _2D98[0x2D9C - 0x2D98];
-    u32* archive;
-    PMModelSource sources[27];
-    u8 _2EE4[0x3078 - 0x2EE4];
-    u16 effectCount;
-    u8 _307A[4];
-    u8 _307E;
-} PMHugeAnimStruct;
-
-extern PMHugeAnimStruct hugeAnimStruct;
+#define PM_EFFECTS ((PMEffect*)hugeAnimStruct.actorEntries)
+#define PM_MODEL_TABLE ((u8*)hugeAnimStruct.actorTables[2])
 
 void somethingFileHandlingLoadingRelated(void) {
     u32* archive;
@@ -44,15 +24,15 @@ void somethingFileHandlingLoadingRelated(void) {
     int off;
 
     count = 30;
-    hugeAnimStruct.effectCount = count;
+    hugeAnimStruct.actorCount = count;
 
     archive = hugeAnimStruct.archive;
-    hugeAnimStruct.sources[0].data = (u8*)archive + archive[0];
-    hugeAnimStruct.sources[0].geo = (u8*)archive + archive[1];
-    hugeAnimStruct.sources[0].tex = (u8*)archive + archive[2];
-    data = hugeAnimStruct.sources[0].data;
-    geo = hugeAnimStruct.sources[0].geo;
-    tex = hugeAnimStruct.sources[0].tex;
+    hugeAnimStruct.sources[0].layout = (u8*)archive + archive[0];
+    hugeAnimStruct.sources[0].geometry = (u8*)archive + archive[1];
+    hugeAnimStruct.sources[0].texture = (u8*)archive + archive[2];
+    data = hugeAnimStruct.sources[0].layout;
+    geo = hugeAnimStruct.sources[0].geometry;
+    tex = hugeAnimStruct.sources[0].texture;
 
     LoadActorLayout(data);
     convertGeometryAndSknHeader(geo, 0);
@@ -60,19 +40,19 @@ void somethingFileHandlingLoadingRelated(void) {
     convertTextureHeader(tex);
     UpdateTexturePalettePointers(geo, tex);
 
-    hugeAnimStruct.modelTable = ActorObjectInitTable(count);
+    hugeAnimStruct.actorTables[2] = ActorObjectInitTable(count);
 
     for (i = 0, off = 0; i < 30; i++, off += 0x90) {
-        animateBallRelated(hugeAnimStruct.modelTable, i, i, hugeAnimStruct.sources[0].data, 0, 0);
-        fn_800BD548(hugeAnimStruct.modelTable + off + 0x34, 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1],
-                    hugeAnimStruct._AC[2], hugeAnimStruct._AC[3]);
-        CTRLSetTranslation((Control*)(hugeAnimStruct.modelTable + off + 0x44), 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation((Control*)(hugeAnimStruct.modelTable + off + 0x44), 0.0f, 0.0f, 0.0f);
+        animateBallRelated(PM_MODEL_TABLE, i, i, hugeAnimStruct.sources[0].layout, 0, 0);
+        fn_800BD548(PM_MODEL_TABLE + off + 0x34, 4, hugeAnimStruct.lights[0], hugeAnimStruct.lights[1],
+                    hugeAnimStruct.lights[2], hugeAnimStruct.lights[3]);
+        CTRLSetTranslation((Control*)(PM_MODEL_TABLE + off + 0x44), 0.0f, 0.0f, 0.0f);
+        CTRLSetRotation((Control*)(PM_MODEL_TABLE + off + 0x44), 0.0f, 0.0f, 0.0f);
     }
 
-    hugeAnimStruct.effects = _OSAllocFromHeap(0x20, count * sizeof(PMEffect));
+    hugeAnimStruct.actorEntries = _OSAllocFromHeap(0x20, count * sizeof(PMEffect));
     for (i = 0; i < 30; i++) {
-        PMEffect* fx = &hugeAnimStruct.effects[i];
+        PMEffect* fx = &PM_EFFECTS[i];
         fx->update = 0;
         fx->pos.x = 0.0f;
         fx->pos.y = 0.0f;

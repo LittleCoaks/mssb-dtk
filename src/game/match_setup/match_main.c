@@ -135,9 +135,9 @@ void transferSomeValuesOnMatchLoad(void) {
     g_d_GameSettings._55 = 0;
     g_d_GameSettings.challengeMinigame_baseCoinsEarned = 0;
     g_d_GameSettings.bJMatchRelated = 0;
-    hugeAnimStruct.loadSlots[0]._8 = -1;
-    hugeAnimStruct.loadSlots[1]._8 = -1;
-    hugeAnimStruct.loadSlots[2]._8 = -1;
+    hugeAnimStruct.loadSlots[0].index = -1;
+    hugeAnimStruct.loadSlots[1].index = -1;
+    hugeAnimStruct.loadSlots[2].index = -1;
     g_GameLogic.teams[0] = g_d_GameSettings.PlayerPorts[0];
     g_GameLogic.teams[1] = g_d_GameSettings.PlayerPorts[1] % 4;
     g_GameLogic.logo[0].ID = Static_Stats_Tables.teamName[g_d_GameSettings.home_AwaySetting];

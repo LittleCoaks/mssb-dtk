@@ -1,5 +1,6 @@
 #include "Unknown/File_0x8001f4c0.h"
 #include "Dolphin/mtx.h"
+#include "HugeAnimStruct.h"
 
 #define ANIM_OBJECT_COUNT 13
 #define BALL_MODEL_COUNT 25
@@ -43,21 +44,15 @@ typedef struct BallModel {
 } BallModel; // size 0x28
 
 /* This unit's view of hugeAnimStruct (0x3154 bytes). */
-extern struct {
-    /* 0x0000 */ u8 _0000[0xC04];
-    /* 0x0C04 */ AnimObject pool[ANIM_OBJECT_COUNT];
-    /* 0x2C50 */ AnimObject* objects[ANIM_OBJECT_COUNT];
-    /* 0x2C84 */ u8 _2C84[0x2D90 - 0x2C84];
-    /* 0x2D90 */ BallModel* ballModels;
-    /* 0x2D94 */ u8 _2D94[0x3078 - 0x2D94];
-    /* 0x3078 */ u16 _3078;
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((AnimObject*)hugeAnimStruct.objects[i])
+#define ANIM_POOL(i) ((AnimObject*)hugeAnimStruct.pool[i])
+#define BALL_MODELS ((BallModel*)hugeAnimStruct.starAnimRelated)
 
 void challengeMapMaybe(void) {
     int i;
 
     for (i = 0; i < ANIM_OBJECT_COUNT; i++) {
-        AnimObject* obj = &hugeAnimStruct.pool[i];
+        AnimObject* obj = ANIM_POOL(i);
 
         obj->_25C = 0;
         obj->_25D = 0;
@@ -81,18 +76,18 @@ void challengeMapMaybe(void) {
         obj->_70 = -1;
     }
     for (i = 0; i < ANIM_OBJECT_COUNT; i++) {
-        if (hugeAnimStruct.objects[i] != NULL) {
-            hugeAnimStruct.objects[i]->_25C = 1;
+        if (ANIM_OBJ(i) != NULL) {
+            ANIM_OBJ(i)->_25C = 1;
         }
     }
     for (i = 0; i < BALL_MODEL_COUNT; i++) {
-        hugeAnimStruct.ballModels[i].visible = FALSE;
-        hugeAnimStruct.ballModels[i].pos.x = 0.0f;
-        hugeAnimStruct.ballModels[i].pos.y = 0.0f;
-        hugeAnimStruct.ballModels[i].pos.z = 0.0f;
-        hugeAnimStruct.ballModels[i].rot.x = 0.0f;
-        hugeAnimStruct.ballModels[i].rot.y = 0.0f;
-        hugeAnimStruct.ballModels[i].rot.z = 0.0f;
+        BALL_MODELS[i].visible = FALSE;
+        BALL_MODELS[i].pos.x = 0.0f;
+        BALL_MODELS[i].pos.y = 0.0f;
+        BALL_MODELS[i].pos.z = 0.0f;
+        BALL_MODELS[i].rot.x = 0.0f;
+        BALL_MODELS[i].rot.y = 0.0f;
+        BALL_MODELS[i].rot.z = 0.0f;
     }
-    hugeAnimStruct._3078 = 0;
+    hugeAnimStruct.actorCount = 0;
 }

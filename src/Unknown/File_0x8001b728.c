@@ -1,4 +1,5 @@
 #include "Unknown/File_0x8001b728.h"
+#include "HugeAnimStruct.h"
 
 typedef struct CollisionObject {
     /*0x000*/ u8 _000[0x34];
@@ -9,7 +10,6 @@ typedef struct CollisionObject {
     /*0x255*/ s8 slot;
 } CollisionObject;
 
-extern u8 hugeAnimStruct[0x3154];
 extern void fn_800B2C10(void* actor, u16 bone, Vec* vec);
 
 BOOL getAnimationCollisionOffset(int animIdx, int node, Vec* out) {
@@ -18,7 +18,7 @@ BOOL getAnimationCollisionOffset(int animIdx, int node, Vec* out) {
     u8* trackBlock;
     void* actor;
 
-    obj = ((CollisionObject**)(hugeAnimStruct + 0x2C50))[animIdx];
+    obj = ((CollisionObject**)hugeAnimStruct.objects)[animIdx];
     if (obj == NULL) {
         return FALSE;
     }
@@ -32,7 +32,7 @@ BOOL getAnimationCollisionOffset(int animIdx, int node, Vec* out) {
         return FALSE;
     }
 
-    trackBlock = *(u8**)(hugeAnimStruct + 0x60);
+    trackBlock = ((u8*)hugeAnimStruct.actorTables[0]);
     actor = *(void**)(trackBlock + obj->slot * 0x90 + 0x34);
     fn_800B2C10(actor, (u16)bone, out);
 

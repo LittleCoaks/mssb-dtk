@@ -1,4 +1,5 @@
 #include "Unknown/File_0x8001b918.h"
+#include "HugeAnimStruct.h"
 
 #define ANIM_OBJECT_COUNT 13
 
@@ -32,13 +33,10 @@ typedef struct AnimObject {
 } AnimObject; // size 0x27C
 
 /* This unit's view of hugeAnimStruct (0x3154 bytes). */
-extern struct {
-    /* 0x0000 */ u8 _0000[0x2C50];
-    /* 0x2C50 */ AnimObject* objects[ANIM_OBJECT_COUNT];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((AnimObject*)hugeAnimStruct.objects[i])
 
 void QueueCharacterAnimation(int objIndex, int animId, int a2, int a3, int a4, int a5, int a6) {
-    AnimObject* obj = hugeAnimStruct.objects[objIndex];
+    AnimObject* obj = ANIM_OBJ(objIndex);
 
     obj->queuedAnimId = animId;
     obj->_6E = a4;
@@ -52,12 +50,12 @@ void QueueCharacterAnimation(int objIndex, int animId, int a2, int a3, int a4, i
         obj->_26B = a6;
     }
     if ((animId >= 0x3F && animId < 0x4B) || (animId >= 0x4B && animId < 0x69)) {
-        hugeAnimStruct.objects[objIndex]->_26E = 1;
+        ANIM_OBJ(objIndex)->_26E = 1;
     }
 }
 
 void AnimateCharacter(int objIndex, int animId, int a2, int a3, int a4, int a5, int a6, int a7) {
-    AnimObject* obj = hugeAnimStruct.objects[objIndex];
+    AnimObject* obj = ANIM_OBJ(objIndex);
 
     if (obj == NULL) {
         return;
@@ -82,6 +80,6 @@ void AnimateCharacter(int objIndex, int animId, int a2, int a3, int a4, int a5, 
     }
     obj->queuedAnimId = -1;
     if ((animId >= 0x3F && animId < 0x4B) || (animId >= 0x4B && animId < 0x69)) {
-        hugeAnimStruct.objects[objIndex]->_26D = 1;
+        ANIM_OBJ(objIndex)->_26D = 1;
     }
 }

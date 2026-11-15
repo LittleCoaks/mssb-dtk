@@ -1,6 +1,7 @@
 #include "Unknown/File_0x8001b80c.h"
 #include "C3/actor/act.h"
 #include "Unknown/File_0x800bdd74.h"
+#include "HugeAnimStruct.h"
 
 #define NO_BONE 0xFFFF
 
@@ -15,12 +16,7 @@ typedef struct AnimObject {
 } AnimObject;
 
 /* This unit's view of hugeAnimStruct (0x3154 bytes). */
-extern struct {
-    /* 0x0000 */ u8 _0000[0x60];
-    /* 0x0060 */ ActorObjectTable* actorTable;
-    /* 0x0064 */ u8 _0064[0x2C50 - 0x64];
-    /* 0x2C50 */ AnimObject* objects[(0x3154 - 0x2C50) / 4];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((AnimObject*)hugeAnimStruct.objects[i])
 
 static inline int getPartBone(AnimObject* obj, int part) {
     if (obj != NULL) {
@@ -30,7 +26,7 @@ static inline int getPartBone(AnimObject* obj, int part) {
 }
 
 BOOL getAnimRelatedCoordinates(int objIndex, int part, Vec* out) {
-    AnimObject* obj = hugeAnimStruct.objects[objIndex];
+    AnimObject* obj = ANIM_OBJ(objIndex);
     int bone;
     Vec v;
 
@@ -44,7 +40,7 @@ BOOL getAnimRelatedCoordinates(int objIndex, int part, Vec* out) {
         out->z = 0.0f;
         return FALSE;
     }
-    maybeTransformVectorByAnimationMatrix(*(Actor**)((u8*)hugeAnimStruct.actorTable + obj->actorIdx * sizeof(ActorObjectEntry) + 0x34), bone, &v);
+    maybeTransformVectorByAnimationMatrix(*(Actor**)((u8*)hugeAnimStruct.actorTables[0] + obj->actorIdx * sizeof(ActorObjectEntry) + 0x34), bone, &v);
     out->x = v.x;
     out->y = v.y;
     out->z = v.z;

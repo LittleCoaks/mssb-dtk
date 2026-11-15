@@ -6,6 +6,7 @@
 #include "Unknown/File_0x80025c58.h"
 #include "Unknown/File_0x80025ddc.h"
 #include "Unknown/File_0x800a7568.h"
+#include "HugeAnimStruct.h"
 
 #define MODEL_ENTRY_SIZE 0x90
 #define NO_BONE          0xFFFF
@@ -61,12 +62,8 @@ typedef struct ModelObject {
     /* 0x254 */ s8 slot;
 } ModelObject;
 
-extern struct {
-    /* 0x0000 */ u8 _0000[0x13C];
-    /* 0x013C */ ModelEntry* entries;
-    /* 0x0140 */ u8 _0140[0x2C50 - 0x140];
-    /* 0x2C50 */ ModelObject* objects[(0x3154 - 0x2C50) / 4];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) (((ModelObject**)hugeAnimStruct.objects)[i])
+#define MODEL_ENTRIES (*(ModelEntry**)&hugeAnimStruct._013C)
 
 extern struct {
     /* 0x000 */ u8 _000[0x1E8];
@@ -146,13 +143,13 @@ BOOL LoadModel(void* objPtr) {
     slot = block->slot;
     layout = loaded[lbl_803CB7C4[0]];
     geo = loaded[lbl_803CB7C4[1]];
-    partSlot = &hugeAnimStruct.entries[slot].parts;
+    partSlot = &MODEL_ENTRIES[slot].parts;
 
     LoadActorLayout(layout);
     convertGeometryAndSknHeader(geo, NULL);
     haveActLayoutPointToGeoHeader(layout, geo);
     UpdateTexturePalettePointers(geo, texPalette);
-    fn_800238E0(hugeAnimStruct.entries, slot, slot, layout);
+    fn_800238E0(MODEL_ENTRIES, slot, slot, layout);
 
     if (loaded[2] != NULL) {
         adjustInternalPointers(loaded[lbl_803CB7C4[2]]);
@@ -163,7 +160,7 @@ BOOL LoadModel(void* objPtr) {
     actRelated(loaded[lbl_803CB7C4[2]], &block->_04);
 
     flag = lbl_803CBC15;
-    hugeObj = hugeAnimStruct.objects[obj->slot];
+    hugeObj = ANIM_OBJ(obj->slot);
     if (hugeObj != NULL) {
         bone = hugeObj->partBones[handAttachBoneIDs[flag]];
     } else {
@@ -180,9 +177,9 @@ BOOL LoadModel(void* objPtr) {
             partNodes = actor->nodes;
             node = (ModelLinkNode*)partNodes[bone];
             if (flag & 1) {
-                parts = hugeAnimStruct.entries[owner->blocks[1].slot].parts;
+                parts = MODEL_ENTRIES[owner->blocks[1].slot].parts;
             } else {
-                parts = hugeAnimStruct.entries[owner->blocks[0].slot].parts;
+                parts = MODEL_ENTRIES[owner->blocks[0].slot].parts;
             }
             if (parts != NULL) {
                 for (i = parts->count; i != 0; i--) {

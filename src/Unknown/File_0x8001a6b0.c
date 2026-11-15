@@ -5,6 +5,7 @@
 #include "Unknown/File_0x8001f4c0.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
+#include "HugeAnimStruct.h"
 
 /* Node of the challenge map drawing script (the object currentDrawingItem points at). */
 typedef struct ChallengeMapNode {
@@ -19,25 +20,6 @@ typedef struct ChallengeMapNode {
 } ChallengeMapNode;
 
 /* This unit's view of hugeAnimStruct (0x3154 bytes). */
-extern struct {
-    /* 0x0000 */ u8 _0000[0x2C84];
-    /* 0x2C84 */ u32 *offsetTable;
-    /* 0x2C88 */ u8 _2C88[0x2D77 - 0x2C88];
-    /* 0x2D77 */ u8 _2D77;
-    /* 0x2D78 */ u8 _2D78[0x2D7A - 0x2D78];
-    /* 0x2D7A */ u8 _2D7A;
-    /* 0x2D7B */ u8 _2D7B;
-    /* 0x2D7C */ u8 _2D7C;
-    /* 0x2D7D */ u8 _2D7D[0x307B - 0x2D7D];
-    /* 0x307B */ u8 _307B;
-    /* 0x307C */ u8 _307C;
-    /* 0x307D */ u8 _307D;
-    /* 0x307E */ u8 _307E[0x3082 - 0x307E];
-    /* 0x3082 */ u8 _3082;
-    /* 0x3083 */ u8 _3083[0x3086 - 0x3083];
-    /* 0x3086 */ u8 _3086;
-    /* 0x3087 */ u8 _3087;
-} hugeAnimStruct;
 
 extern Vec lbl_80367318;
 
@@ -56,10 +38,10 @@ void challengeMapRelated(void) {
     node = (ChallengeMapNode *)currentDrawingItem;
     switch (node->step) {
     case 0:
-        hugeAnimStruct._2D77 = 0;
-        hugeAnimStruct._2D7B = 0;
-        hugeAnimStruct._2D7C = 0;
-        hugeAnimStruct._2D7A = 0;
+        HUGE_ANIM_FLAG(0x2D77) = 0;
+        HUGE_ANIM_FLAG(0x2D7B) = 0;
+        HUGE_ANIM_FLAG(0x2D7C) = 0;
+        HUGE_ANIM_FLAG(0x2D7A) = 0;
         node->_16 = 0;
         node->_18 = 0;
         node->step = 1;
@@ -103,7 +85,7 @@ void challengeMapRelated(void) {
         fn_800BF058(fn_8001AB10);
         for (i = 0; i < 80; i += 8) {
             for (k = 0; k < 8; k++) {
-                hugeAnimStruct.offsetTable[i + k] += (u32)hugeAnimStruct.offsetTable;
+                ((u32*)hugeAnimStruct.actLayout)[i + k] += (u32)((u32*)hugeAnimStruct.actLayout);
             }
         }
         hugeAnimStruct._3082 = 0;

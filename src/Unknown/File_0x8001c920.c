@@ -3,6 +3,7 @@
 #include "Unknown/File_0x800a7568.h"
 #include "static/UnknownHomes_Static.h"
 #include "C3/anim.h"
+#include "HugeAnimStruct.h"
 
 typedef struct CompressedFileEntry {
     /*0x00*/ u8 _00[0x10];
@@ -13,12 +14,6 @@ typedef struct {
     /*0x1C*/ ANIMBank* animBank;
 } AnimObjectView;
 
-extern struct {
-    /*0x0000*/ u8 _0000[0x2C50];
-    /*0x2C50*/ AnimObjectView* objects;
-    /*0x2C54*/ u8 _2C54[0x2CE4 - 0x2C54];
-    /*0x2CE4*/ ANIMBank* characterAnimBank;
-} hugeAnimStruct;
 
 extern CompressedFileEntry* lbl_803CB790;
 extern u8 highLevelSimulationFlag[2];
@@ -38,12 +33,12 @@ BOOL loadCharacterAnimation(int charID) {
         } else {
             file = charID * 0x13 + 5;
         }
-        ARAMTransfer(&lbl_803CB790[file], (s32)hugeAnimStruct.characterAnimBank, 0, 0);
+        ARAMTransfer(&lbl_803CB790[file], (s32)hugeAnimStruct.animBanks[14], 0, 0);
         highLevelSimulationFlag[1] = 2;
     } else if (highLevelSimulationFlag[1] == 2 && lbl_803C6CF8.cancel.bytes[1] == 1) {
-        ANIMGet(hugeAnimStruct.characterAnimBank);
-        if (hugeAnimStruct.objects->animBank == NULL) {
-            hugeAnimStruct.objects->animBank = hugeAnimStruct.characterAnimBank;
+        ANIMGet(hugeAnimStruct.animBanks[14]);
+        if (((AnimObjectView*)hugeAnimStruct.objects[0])->animBank == NULL) {
+            ((AnimObjectView*)hugeAnimStruct.objects[0])->animBank = hugeAnimStruct.animBanks[14];
         }
         return TRUE;
     }

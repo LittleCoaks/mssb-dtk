@@ -30,11 +30,12 @@
 #define HUGE_ANIM_LOAD_SLOT_COUNT 3
 #define HUGE_ANIM_MODEL_SOURCE_COUNT 60
 
-/* One of the three records at +0x2D3C. */
+/* One of the three load requests at +0x2D3C: [0] the batter's model, [1] a
+ * model, [2] a file. `index` is -1 when nothing is requested. */
 typedef struct HugeAnimLoadSlot {
-    /*0x0*/ void* _0;
+    /*0x0*/ void* dest;
     /*0x4*/ u32 _4;
-    /*0x8*/ s16 _8;
+    /*0x8*/ s16 index;
     /*0xA*/ u8 state;
     /*0xB*/ u8 _B;
 } HugeAnimLoadSlot; // size: 0xC
@@ -64,16 +65,23 @@ typedef struct HugeAnimStruct {
     /* The animation objects themselves, and a pointer to each. */
     /*0x0C04*/ u8 pool[HUGE_ANIM_OBJECT_COUNT][HUGE_ANIM_OBJECT_SIZE];
     /*0x2C50*/ void* objects[HUGE_ANIM_OBJECT_COUNT];
-    /*0x2C84*/ void* actLayout;
-    /*0x2C88*/ void* animBank;
-    /*0x2C8C*/ void* modelData;
-    /*0x2C90*/ u32 _2C90;
-    /*0x2C94*/ s32 _2C94[6];
-    /*0x2CAC*/ void* animBanks[HUGE_ANIM_BANK_COUNT];
-    /*0x2CEC*/ s32 _2CEC[20];
-    /*0x2D3C*/ HugeAnimLoadSlot loadSlots[HUGE_ANIM_LOAD_SLOT_COUNT];
-    /*0x2D60*/ s32 _2D60;
-    /*0x2D64*/ u32 _2D64;
+    /* +0x2C84 .. +0x2D67, also addressable as plain words: the reset code clears
+     * this whole run with word indices. */
+    /*0x2C84*/ union {
+        struct {
+            /*0x2C84*/ void* actLayout;
+            /*0x2C88*/ void* animBank;
+            /*0x2C8C*/ void* modelData;
+            /*0x2C90*/ u32 _2C90;
+            /*0x2C94*/ s32 _2C94[6];
+            /*0x2CAC*/ ANIMBank* animBanks[HUGE_ANIM_BANK_COUNT];
+            /*0x2CEC*/ s32 _2CEC[20];
+            /*0x2D3C*/ HugeAnimLoadSlot loadSlots[HUGE_ANIM_LOAD_SLOT_COUNT];
+            /*0x2D60*/ s32 _2D60;
+            /*0x2D64*/ u32 _2D64;
+        };
+        s32 words2C84[(0x2D68 - 0x2C84) / 4];
+    };
     /*0x2D68*/ s16 _2D68;
     /* Byte flags at +0x2D6A .. +0x2D8F; index with HUGE_ANIM_FLAG(offset). */
     /*0x2D6A*/ u8 flags[0x2D90 - 0x2D6A];
@@ -109,6 +117,11 @@ typedef struct HugeAnimStruct {
 } HugeAnimStruct; // size: 0x3154
 
 extern HugeAnimStruct hugeAnimStruct;
+
+/* Raw byte view, for the few places that still reach into a region with no
+ * known structure (the insides of `pool`, the records below +0x140). New code
+ * should name a member instead; give the region a member if it lacks one. */
+#define HUGE_ANIM_BYTES ((u8*)&hugeAnimStruct)
 
 /* The byte flag at absolute offset `offset` (0x2D6A .. 0x2D8F). */
 #define HUGE_ANIM_FLAG(offset) (hugeAnimStruct.flags[(offset) - 0x2D6A])

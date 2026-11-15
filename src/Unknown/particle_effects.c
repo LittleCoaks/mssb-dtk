@@ -38,7 +38,6 @@ BOOL fn_8002E828(u8* group);
 BOOL fn_80027968(u8* group);
 BOOL maybeTexOrSpriteRelated(u8* group);
 extern u8 g_d_GameSettings[];
-extern u8 hugeAnimStruct[];
 extern f32 lbl_803CC658;
 extern f32 lbl_803CC628;
 extern f64 lbl_803CC660;
@@ -83,6 +82,7 @@ extern u8 lbl_800F7860[];
 #include "Dolphin/GX/GXGeometry.h"
 #include "Dolphin/GX/GXLight.h"
 #include "Dolphin/GX/GXTransform.h"
+#include "HugeAnimStruct.h"
 void fn_80027300(u8* group, s32 a0, s32 a1, u8* cfg, f32 scale);
 BOOL fn_80026E58(u8* group);
 extern u8 lbl_800E6778[];
@@ -4057,11 +4057,11 @@ void fn_800324EC(u16 id, s32 kind, s32 kind2, Vec* extra) {
     s32 taken = 0;
     s32 remaining = 1;
 
-    if (kind < 0 || kind >= 13 || *(u32*)(hugeAnimStruct + 0x2C50 + kind * 4) == 0) {
+    if (kind < 0 || kind >= 13 || hugeAnimStruct.objects[kind] == NULL) {
         return;
     }
     getAnimRelatedCoordinates(kind, id, &pos);
-    if (kind2 >= 0 && kind2 < 13 && *(u32*)(hugeAnimStruct + 0x2C50 + kind2 * 4) != 0) {
+    if (kind2 >= 0 && kind2 < 13 && hugeAnimStruct.objects[kind2] != NULL) {
         getAnimRelatedCoordinates(kind2, id, &pos2);
         PSVECSubtract(&pos2, &pos, &pos2);
         PSVECScale(&pos2, lbl_803CC5F0, &pos2);

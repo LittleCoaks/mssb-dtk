@@ -5,8 +5,8 @@
 #include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800a7568.h"
 #include "static/UnknownHomes_Static.h"
+#include "HugeAnimStruct.h"
 
-extern u8 hugeAnimStruct[0x3154];
 extern u8 highLevelSimulationFlag[4];
 extern u32 lbl_803CB790;
 extern f32 lbl_803CC4B8;
@@ -18,7 +18,7 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
             return 0;
         }
         {
-            u8* charObj = *(u8**)(hugeAnimStruct + 0x64);
+            u8* charObj = ((u8*)hugeAnimStruct.actorTables[1]);
             Actor* actor = *(Actor**)(charObj + 0x274);
             u8* firstBoneExtra = *(u8**)((u8*)actor->boneArray[0] + 0xE8);
 
@@ -45,17 +45,17 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
             } else {
                 idx = charSlot * 0x13 + 2;
             }
-            ARAMTransfer((void*)(lbl_803CB790 + (idx << 4)), *(s32*)(hugeAnimStruct + 0x2CF8), 0, 0);
-        } else if (charSlot == *(s16*)(hugeAnimStruct + 0x2D50)) {
-            memcpy(*(void**)(hugeAnimStruct + 0x2CAC), *(void**)(hugeAnimStruct + 0x2D48), *(u32*)(hugeAnimStruct + 0x2D4C));
-            ANIMGet(*(ANIMBank**)(hugeAnimStruct + 0x2CAC));
+            ARAMTransfer((void*)(lbl_803CB790 + (idx << 4)), hugeAnimStruct._2CEC[3], 0, 0);
+        } else if (charSlot == hugeAnimStruct.loadSlots[1].index) {
+            memcpy(hugeAnimStruct.animBanks[0], hugeAnimStruct.loadSlots[1].dest, hugeAnimStruct.loadSlots[1]._4);
+            ANIMGet(((ANIMBank*)hugeAnimStruct.animBanks[0]));
             {
-                u8* obj = ((u8**)(hugeAnimStruct + 0x2C50))[objSlot];
+                u8* obj = ((u8**)hugeAnimStruct.objects)[objSlot];
                 if (*(void**)(obj + 0x10) == NULL) {
-                    *(void**)(obj + 0x10) = *(void**)(hugeAnimStruct + 0x2CAC);
+                    *(void**)(obj + 0x10) = hugeAnimStruct.animBanks[0];
                 }
             }
-            *(s16*)(hugeAnimStruct + 0x2D68) = (s16)charSlot;
+            hugeAnimStruct._2D68 = (s16)charSlot;
             return 1;
         } else {
             s32 idx;
@@ -64,28 +64,28 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
             } else {
                 idx = charSlot * 0x13 + 2;
             }
-            ARAMTransfer((void*)(lbl_803CB790 + (idx << 4)), *(s32*)(hugeAnimStruct + 0x2CAC), 0, 0);
+            ARAMTransfer((void*)(lbl_803CB790 + (idx << 4)), ((s32)hugeAnimStruct.animBanks[0]), 0, 0);
         }
         highLevelSimulationFlag[2] = 2;
     } else if (highLevelSimulationFlag[2] == 2 && lbl_803C6CF8.cancel.bytes[1] == 1) {
         if (g_d_GameSettings.minigamesEnabled) {
-            ANIMGet(*(ANIMBank**)(hugeAnimStruct + 0x2CF8));
+            ANIMGet(((ANIMBank*)hugeAnimStruct._2CEC[3]));
             {
-                u8* obj = ((u8**)(hugeAnimStruct + 0x2C50))[objSlot];
+                u8* obj = ((u8**)hugeAnimStruct.objects)[objSlot];
                 if (*(void**)(obj + 0x10) == NULL) {
-                    *(void**)(obj + 0x10) = *(void**)(hugeAnimStruct + 0x2CF8);
+                    *(void**)(obj + 0x10) = ((void*)hugeAnimStruct._2CEC[3]);
                 }
             }
         } else {
-            ANIMGet(*(ANIMBank**)(hugeAnimStruct + 0x2CAC));
+            ANIMGet(((ANIMBank*)hugeAnimStruct.animBanks[0]));
             {
-                u8* obj = ((u8**)(hugeAnimStruct + 0x2C50))[objSlot];
+                u8* obj = ((u8**)hugeAnimStruct.objects)[objSlot];
                 if (*(void**)(obj + 0x10) == NULL) {
-                    *(void**)(obj + 0x10) = *(void**)(hugeAnimStruct + 0x2CAC);
+                    *(void**)(obj + 0x10) = hugeAnimStruct.animBanks[0];
                 }
             }
         }
-        *(s16*)(hugeAnimStruct + 0x2D68) = (s16)charSlot;
+        hugeAnimStruct._2D68 = (s16)charSlot;
         return 1;
     }
 

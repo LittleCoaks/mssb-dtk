@@ -1,13 +1,13 @@
 #include "Unknown/File_0x80018270.h"
 #include "game/UnknownHomes_Game.h"
+#include "HugeAnimStruct.h"
 
 extern void *_OSAllocFromHeap(s32 alignment, s32 size);
 extern void *lbl_803CB790;
-extern u8 hugeAnimStruct[];
 
-#define HUGE_U32(off) (*(u32 *)(hugeAnimStruct + (off)))
-#define HUGE_S16(off) (*(s16 *)(hugeAnimStruct + (off)))
-#define HUGE_U8(off) (*(u8 *)(hugeAnimStruct + (off)))
+#define HUGE_U32(off) (*(u32 *)(HUGE_ANIM_BYTES + (off)))
+#define HUGE_S16(off) (*(s16 *)(HUGE_ANIM_BYTES + (off)))
+#define HUGE_U8(off) (*(u8 *)(HUGE_ANIM_BYTES + (off)))
 #define CHAR_RECORD_U32(id, off) (*(u32 *)((u8 *)lbl_803CB790 + (id) * 0x130 + (off)))
 
 #define CHAR_RECORD_COUNT 54

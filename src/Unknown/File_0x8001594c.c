@@ -1,7 +1,7 @@
 #include "Unknown/File_0x8001594c.h"
 #include "game/UnknownHomes_Game.h"
+#include "HugeAnimStruct.h"
 
-extern u8 hugeAnimStruct[0x3154];
 extern u8 lineUpInfoStruct[];
 extern u8 lbl_80118220[0x520];
 extern s16 lbl_800EEB18[];
@@ -149,7 +149,7 @@ void actRelated(void *file, void *effect);
 
 BOOL practice_loadAllGraphics(int team)
 {
-    u8 *anim = hugeAnimStruct;
+    u8 *anim = HUGE_ANIM_BYTES;
     u8 *lineUp;
     int i;
     int k;

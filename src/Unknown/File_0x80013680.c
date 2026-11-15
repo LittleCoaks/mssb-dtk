@@ -5,6 +5,7 @@
 #include "Unknown/File_0x80025ddc.h"
 #include "C3/actor/act.h"
 #include "C3/geoPalette/geoPalette.h"
+#include "HugeAnimStruct.h"
 
 extern void fn_800238E0(void* entries, s32 slot, s32 slot2, void* layout);
 
@@ -18,7 +19,6 @@ extern u8* lbl_803CBC20;
 extern u8 lbl_803CB7C4[4];
 extern u8 handAttachBoneIDs[8];
 extern s16 lbl_800EEAAC[0x36];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 lbl_803716B8[0x578];
 
 #define FIELD_U8(p, off) (*(u8*)((u8*)(p) + (off)))
@@ -29,14 +29,12 @@ extern u8 lbl_803716B8[0x578];
 
 #define RECORD_COUNT 13
 #define RECORD_STRIDE 0xD4
-#define RECORD(i) (hugeAnimStruct + (i) * RECORD_STRIDE)
-#define OBJECT_TABLE_OFFSET 0x2C50
-#define ENTRY_TABLE_OFFSET 0x13C
+#define RECORD(i) (HUGE_ANIM_BYTES + (i) * RECORD_STRIDE)
 #define ENTRY_STRIDE 0x90
 #define NO_BONE 0xFFFF
 
 static u8* getObject(s32 slot) {
-    return ((u8**)(hugeAnimStruct + OBJECT_TABLE_OFFSET))[slot];
+    return ((u8**)hugeAnimStruct.objects)[slot];
 }
 
 static u16 getHandAttachBone(u8* obj, s32 which) {
@@ -66,7 +64,7 @@ static void clearBoneSlot(u8* obj, u16 bone, s32 subIndexOffset) {
     }
     list = FIELD_PTR(FIELD_PTR(obj, 0), 0x18);
     bonePtr = ((u8**)list)[bone];
-    entry = FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET) + FIELD_U8(sub, subIndexOffset) * ENTRY_STRIDE;
+    entry = (u8*)hugeAnimStruct._013C + FIELD_U8(sub, subIndexOffset) * ENTRY_STRIDE;
     data = FIELD_PTR(entry, 0x34);
     if (data == NULL) {
         return;
@@ -108,7 +106,7 @@ static BOOL attachHandModelTail(void) {
     }
 
     idx = FIELD_U8(p, 0x60);
-    table = FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET);
+    table = (u8*)hugeAnimStruct._013C;
     entry = table + idx * ENTRY_STRIDE;
     a = ((u8**)h)[lbl_803CB7C4[0]];
     b = ((u8**)h)[lbl_803CB7C4[1]];

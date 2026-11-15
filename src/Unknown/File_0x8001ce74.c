@@ -7,6 +7,7 @@
 #include "Unknown/File_0x800bd478.h"
 #include "Unknown/File_0x800bde8c.h"
 #include "Unknown/File_0x80023b90.h"
+#include "HugeAnimStruct.h"
 
 typedef struct _StadiumLightInput {
     Vec pos;
@@ -23,15 +24,6 @@ extern StadiumLightInput lbl_80367318[4];
 extern f32 lbl_803CC4B8;
 extern f32 lbl_803CC4F0;
 
-extern struct {
-    /*0x0000*/ u8 _00[0x6C];
-    /*0x006C*/ void* propEntries;
-    /*0x0070*/ u8 _70[0xAC - 0x70];
-    /*0x00AC*/ void* lights[4];
-    /*0x00BC*/ u8 _BC[0x3085 - 0xBC];
-    /*0x3085*/ u8 _3085;
-    /*0x3086*/ u8 _3086[0x3154 - 0x3086];
-} hugeAnimStruct;
 
 void stadiumSetupRelated(void) {
     StadiumLightParams* params;
@@ -74,9 +66,9 @@ void stadiumSetupRelated(void) {
         LITInitColor(hugeAnimStruct.lights[i], &color);
     }
 
-    if (hugeAnimStruct.propEntries != NULL) {
-        for (i = 0; i < *(u16*)hugeAnimStruct.propEntries; i++) {
-            fn_800BD548((u8*)hugeAnimStruct.propEntries + i * 0x90 + 0x34, 4, hugeAnimStruct.lights[0],
+    if (hugeAnimStruct.actorTables[3] != NULL) {
+        for (i = 0; i < *(u16*)hugeAnimStruct.actorTables[3]; i++) {
+            fn_800BD548((u8*)hugeAnimStruct.actorTables[3] + i * 0x90 + 0x34, 4, hugeAnimStruct.lights[0],
                         hugeAnimStruct.lights[1], hugeAnimStruct.lights[2], hugeAnimStruct.lights[3]);
         }
     }
