@@ -44,7 +44,7 @@ void fn_2_A288(void);
 s32 fn_2_A50C(void);
 s32 fn_2_A62C(void);
 void fn_2_A6E0(void);
-void fn_2_ABC0(s32 port);
+void cssSortCaptainChemistryOrder(s32 port);
 void fn_2_AEE8(void);
 void fn_2_B324(void);
 void fn_2_B508(void);

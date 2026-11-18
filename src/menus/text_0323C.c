@@ -2557,7 +2557,7 @@ void fn_2_A6E0(void) {
 #pragma dont_inline on
 // Sorts every CHAR_ID by chemistry with the team's captain (highest first) into
 // captainChemistryOrder[port]; 0x3B is the chemistry table inside CharacterStats.
-void fn_2_ABC0(s32 port) {
+void cssSortCaptainChemistryOrder(s32 port) {
     u8 order[NUM_CHOOSABLE_CHARACTERS];
     u8 vals[NUM_CHOOSABLE_CHARACTERS];
     s32 i;
@@ -2817,7 +2817,7 @@ void fn_2_B66C(void) {
         *(s32 *)&lbl_2_bss_F468[0x14] = 3;
     }
 
-    fn_2_ABC0(1);
+    cssSortCaptainChemistryOrder(1);
 
     for (i = 0; i < 9; i++) {
         initRosterSlot(i, 1);
@@ -2898,7 +2898,7 @@ void fn_2_B920(void) {
     loadDefaultLineup(0, matchIdx0);
     loadDefaultLineup(1, matchIdx1);
 
-    fn_2_ABC0(0);
+    cssSortCaptainChemistryOrder(0);
 
     Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[1]] = TRUE;
 
@@ -4366,7 +4366,7 @@ void starHitSetting_Unused_maybe(s32 team) {
             lbl_803CBD24[2] = (u8)rnd;
         } while (lbl_803CBD24[3] == (u8)rnd);
 
-        fn_2_ABC0(team);
+        cssSortCaptainChemistryOrder(team);
 
         switch (lbl_803CBD24[2]) {
         case 0:
