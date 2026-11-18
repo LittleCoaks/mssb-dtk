@@ -2640,27 +2640,31 @@ void fn_2_A6E0(void) {
 
 // .text:0x0000ABC0 size:0x328 mapped:0x80649C54
 #pragma dont_inline on
+// Sorts every CHAR_ID by chemistry with the team's captain (highest first) into
+// captainChemistryOrder[port]; 0x3B is the chemistry table inside CharacterStats.
 void fn_2_ABC0(s32 port) {
-    u8 order[54];
-    u8 vals[54];
+    u8 order[NUM_CHOOSABLE_CHARACTERS];
+    u8 vals[NUM_CHOOSABLE_CHARACTERS];
     s32 i;
     s32 j;
-    u8 t;
+    u8 best;
     u8 t2;
-    s32 base;
-    u8 *src;
+    u8 t;
+    s32 captain;
+    s32 row;
+    s32 col;
 
-    base = ((s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0])[(u8)port];
-    src = (u8 *)&Static_Stats_Tables.characterStats[base / 9][base % 9];
-
-    for (i = 0; i < 54; i++) {
+    captain = Static_Stats_Tables.captainSelectedID[(u8)port];
+    col = captain % 9;
+    row = captain / 9;
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        vals[i] = ((u8 *)&Static_Stats_Tables.characterStats[row][col])[i + 0x3B];
         order[i] = i;
-        vals[i] = src[i + 0x3B];
     }
 
-    for (i = 0; i < 54; i++) {
-        u8 best = vals[i];
-        for (j = i + 1; j < 54; j++) {
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        best = vals[i];
+        for (j = i + 1; j < NUM_CHOOSABLE_CHARACTERS; j++) {
             if (best < vals[j]) {
                 best = vals[j];
                 t = vals[i];
@@ -2673,8 +2677,8 @@ void fn_2_ABC0(s32 port) {
         }
     }
 
-    for (i = 0; i < 54; i++) {
-        ((u8 *)&Static_Stats_Tables)[(u8)port * 0x36 + 0x478D + i] = order[i];
+    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+        Static_Stats_Tables.captainChemistryOrder[(u8)port][i] = order[i];
     }
 }
 #pragma dont_inline reset
@@ -2688,8 +2692,9 @@ void fn_2_AEE8(void) {
     s32 j;
     s32 base;
     u8 *src;
-    u8 t;
+    u8 best;
     u8 t2;
+    u8 t;
 
     for (team = 0; team < 2; team++) {
         for (i = 0; i < 54; i++) {
@@ -4449,11 +4454,10 @@ void randCharAlgo2(s32 port) {
 void starHitSetting_Unused_maybe(s32 team) {
     u8 *cur = (u8 *)&cursorPositions + (u8)team * 9;
     s32 emptyCount = 0;
-    s32 unused_r5 = 0;
     s32 otherTeam;
     s32 i;
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 6; i += 2) {
         s32 j;
         for (j = 0; j < 3; j++, cur++) {
             s8 c = (s8)cur[2];
@@ -4461,7 +4465,6 @@ void starHitSetting_Unused_maybe(s32 team) {
                 emptyCount++;
             }
         }
-        unused_r5 += 2;
     }
 
     otherTeam = (u8)team ^ 1;
@@ -4494,8 +4497,6 @@ void starHitSetting_Unused_maybe(s32 team) {
             break;
         case 2:
             randCharBasedOnClass(team);
-            break;
-        case 3:
             break;
         }
 
