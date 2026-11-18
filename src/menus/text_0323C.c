@@ -2171,165 +2171,111 @@ void fn_2_95D8(void) {
     s32 team;
     s32 j;
     s32 k;
-    s32 id;
     s32 lim;
-    s32 lastVal;
     s32 base;
     s32 sel;
     u32 status[2];
-    s8 picks[18];
+    s8 picks[2][9];
     s8 taken[0x36];
     s32 r;
     u8 mode;
     s32 counter;
     s32 i;
-    u8 *cursorBase;
-    u8 *statsBase;
+    u16 state;
 
-    {
-        u16 state = menuControlVariables->currentState;
+    if (menuControlVariables->currentState < 4) {
+        for (team = 0; team < 2; team++) {
+            if (team == 0) {
+                lim = CSS_CURSOR(team);
+            } else {
+                lim = CSS_CURSOR(team) - 10;
+            }
+            if (team == 0) {
+                status[team] = 0xFF0F;
+            } else {
+                status[team] = 0xF00F;
+            }
 
-        if (state >= 4) {
-            goto tail;
-        }
-
-        cursorBase = (u8 *)&cursorPositions;
-        statsBase = (u8 *)&Static_Stats_Tables;
-
-        {
-            u8 *cursorTeam = cursorBase;
-            u8 *lineUpTeam = lineUpInfoStruct;
-            s32 *limPtr = (s32 *)lbl_2_bss_F468;
-            u32 *statusPtr = status;
-            s32 *capIdPtr = (s32 *)(statsBase + 0x46E0);
-
-            for (team = 0; team < 2; team++) {
-                u8 *selWalk = cursorTeam;
-
-                lim = *limPtr;
-                if (team != 0) {
-                    lim -= 10;
+            for (j = 0; j < 9; j++) {
+                for (k = 0; k < 9; k++) {
+                    if (j == (s8)lineUpInfoStruct[team * 0x24 + k * 4 + 1]) {
+                        break;
+                    }
                 }
 
-                *statusPtr = (team == 0) ? 0xFF0F : 0xF00F;
-
-                lastVal = (s8)g_Challenge.opponentCaptainCharID;
-
-                for (j = 0; j < 9; j++) {
-                    for (k = 0; k < 9; k++) {
-                        if (j == (s8)lineUpTeam[1 + k * 4]) {
-                            break;
-                        }
-                    }
-
-                    if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-                        base = *capIdPtr;
-                    } else if (team == 0) {
-                        base = *capIdPtr;
-                    } else {
-                        base = lastVal;
-                    }
-
-                    sel = (s8)selWalk[2];
-                    if (sel == base) {
-                        *statusPtr = 0x88FF;
-                    } else if (j == lim) {
-                        *statusPtr = 0xFF0F;
-                    } else {
-                        *statusPtr = 0xFFFF;
-                    }
-
-                    selWalk += 1;
+                if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
+                    base = Static_Stats_Tables.captainSelectedID[team];
+                } else if (team == 0) {
+                    base = Static_Stats_Tables.captainSelectedID[team];
+                } else {
+                    base = (s8)g_Challenge.opponentCaptainCharID;
                 }
 
-                cursorTeam += 9;
-                statusPtr += 1;
-                lineUpTeam += 0x24;
-                capIdPtr += 1;
-                limPtr += 1;
+                if (cursorPositions.roster.rosterCharID[team][j] == base) {
+                    status[team] = 0x88FF;
+                } else if (j == lim) {
+                    status[team] = 0xFF0F;
+                } else {
+                    status[team] = 0xFFFF;
+                }
             }
         }
 
         counter = 5;
 
         for (i = 0; i < 9; i++) {
-            picks[i] = -1;
+            picks[0][i] = -1;
         }
         for (i = 0; i < 9; i++) {
-            picks[9 + i] = -1;
+            picks[1][i] = -1;
         }
-        for (i = 0; i < 0x36; i++) {
+        for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
             taken[i] = -1;
         }
 
-        mode = ((u8 *)&g_d_GameSettings)[0x10];
+        mode = g_d_GameSettings.p2_CPU_match_code;
 
-        {
-            s8 *takenPtr = taken;
-            u8 *charGridPtr = statsBase + 0x4757;
+        for (r = 0; r < NUM_CHOOSABLE_CHARACTERS; r++) {
+            if (r == ((s32 *)menuCursors)[8]) {
+                status[0] = 0xFFF;
+            } else if (r == ((s32 *)menuCursors)[9]) {
+                status[1] = 0xF0FF;
+            } else {
+                status[0] = 0xFFFF;
+                status[1] = 0xFFFF;
+            }
 
-            for (r = 0; r < 0x36; r++) {
-                if (r == *(s32 *)&menuCursors[0x20]) {
-                    status[0] = 0xFFF;
-                } else if (r == *(s32 *)&menuCursors[0x24]) {
-                    status[1] = 0xF0FF;
-                } else {
-                    status[0] = 0xFFFF;
-                    status[1] = 0xFFFF;
-                }
-
-                {
-                    u8 *cursorTeam2 = cursorBase;
-                    s8 *pickTeam = picks;
-
-                    for (team = 0; team < 2; team++) {
-                        u8 *cursorWalk = cursorTeam2;
-                        s8 *pickWalk = pickTeam;
-
-                        for (j = 0; j < 9; j++) {
-                            sel = (s8)cursorWalk[2];
-                            if (r == sel && team == 0 && status[0] != 0xFFF) {
-                                *takenPtr = r;
-                                status[0] = 0x88F;
-                                *pickWalk = r;
-                            } else if (r == sel && team != 0 && status[0] != 0xFFF) {
-                                *takenPtr = r;
-                                status[0] = 0x808F;
-                                *pickWalk = r;
-                            }
-                            cursorWalk += 1;
-                            pickWalk += 1;
-                        }
-
-                        cursorTeam2 += 9;
-                        pickTeam += 9;
+            for (team = 0; team < 2; team++) {
+                for (j = 0; j < 9; j++) {
+                    sel = cursorPositions.roster.rosterCharID[team][j];
+                    if (r == sel && team == 0 && status[0] != 0xFFF) {
+                        taken[r] = r;
+                        status[0] = 0x88F;
+                        picks[team][j] = r;
+                    } else if (r == sel && team != 0 && status[0] != 0xFFF) {
+                        taken[r] = r;
+                        status[0] = 0x808F;
+                        picks[team][j] = r;
                     }
                 }
+            }
 
-                if (*charGridPtr != 0 && *takenPtr == -1) {
-                    status[0] = 0x888F;
-                }
+            if (Static_Stats_Tables.charOnCharacterGridSelected[r] != FALSE && taken[r] == -1) {
+                status[0] = 0x888F;
+            }
 
-                if (mode != 1 || r != *(s32 *)&menuCursors[0x24]) {
-                    counter++;
-                }
-                if (counter == 0x1a) {
-                    counter = 6;
-                }
-
-                takenPtr += 1;
-                charGridPtr += 1;
+            if (mode != P2_CPU_CODE_2_PLAYER_GAME || r != ((s32 *)menuCursors)[9]) {
+                counter++;
+            }
+            if (counter == 0x1a) {
+                counter = 6;
             }
         }
     }
 
-tail:
-    {
-        u16 state = menuControlVariables->currentState;
-
-        if (state < 2 || state >= 4) {
-            if (state == 9 || state == 0x13 || state == 4) {
-            }
+    state = menuControlVariables->currentState;
+    if (state < 2 || state >= 4) {
+        if (state == 9 || state == 0x13 || state == 4) {
         }
     }
 }
