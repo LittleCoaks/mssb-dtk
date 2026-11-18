@@ -56,11 +56,10 @@ typedef struct _GameInitVariables {
 
 extern GameInitVariables g_d_GameSettings;
 
-// The object immediately after g_d_GameSettings. symbols.txt records it as
-// .data:0x800E8754 size:0x60. Offsets are anchored on memory, from the old
-// Ghidra export's recorded addresses (see ProjectRio-ASM docs/rename_map.md):
-//   0x800E8758 -> +0x04, 0x800E8759 -> +0x05, 0x800E877C -> +0x28,
-//   0x800E877E -> +0x2A, 0x800E8782 -> +0x2E
+// The object immediately after g_d_GameSettings, .data:0x800E8754 size:0x28.
+// Offsets are anchored on memory, from the old Ghidra export's recorded
+// addresses (see ProjectRio-ASM docs/rename_map.md): 0x800E8758 -> +0x04,
+// 0x800E8759 -> +0x05.
 typedef struct _GameControlOptions {
     /*0x000*/ bool _0;
     /*0x001*/ bool _1;
@@ -80,14 +79,11 @@ typedef struct _InningSettings {
     u8 _pad_6[0x1];
     /*0x07*/ GameControlOptions controlOptions[4];
     u8 _pad_23[0x5];
-    /*0x28*/ s16 rel;           // which REL is resident: 0 boot, 4 menu, 5 match
-    /*0x2A*/ u16 currentScene;  // the menu screenCode (5 main menu, 6 options, ...)
-    /*0x2C*/ u16 _2C;
-    /*0x2E*/ u16 previousScene;
-    u8 _pad_30[0x30];
-} InningSettings; // size: 0x60
+} InningSettings; // size: 0x28
 
 extern InningSettings inningSetting;
+
+#include "static/menu_control.h"
 
 typedef struct {
     /*0x00*/ Mtx44 proj;

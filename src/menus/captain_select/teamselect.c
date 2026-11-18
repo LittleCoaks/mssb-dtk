@@ -254,8 +254,8 @@ void captainSelectScreen_manager(void) {
                 fn_800AD054((s32)Static_Stats_Tables._46E8[2], (s32)Static_Stats_Tables._46E8[3]);
                 maybeLoadsGameSoundFiles();
                 fn_800ACFB0(audioFileDescriptors.files[0x98 / 4]);
-                *(u16*)((u8*)&inningSetting + 0x58) = 0;
-                *(u16*)((u8*)&inningSetting + 0x5A) = 0;
+                g_MenuControl.sceneMode = 0;
+                g_MenuControl.sceneState = 0;
                 changeScreenVariables(16);
             }
         }

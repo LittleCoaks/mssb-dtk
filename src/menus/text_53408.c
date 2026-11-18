@@ -1,4 +1,5 @@
 #include "menus/text_53408.h"
+#include "static/menu_control.h"
 #include "text/text.h"
 #include "menus/text_35EC0.h"
 #include "Dolphin/GX/GXPixel.h"
@@ -19,7 +20,6 @@ extern u8 challengeMapTexturesFileDescriptor[];
 extern u8 skyPanoramaFileDescriptorChallengeMap[];
 extern u8 g_d_GameSettings[];
 extern u8 Static_Stats_Tables[];
-extern u8 inningSetting[];
 extern u8 cardCheck[];
 extern int menuCursors[];
 extern u8 hugeAnimStruct[0x3154];
@@ -582,12 +582,12 @@ void challengeMap(void) {
             } else {
                 (*(u16 *)lbl_2_bss_33FBCC) = 2;
             }
-            if (*(s16 *)(inningSetting + 0x58) == 0xA && cardCheck[0x47] != 0) {
+            if (g_MenuControl.sceneMode == 0xA && cardCheck[0x47] != 0) {
                 changeScene(6, 6);
                 changeScene(3, 6);
                 fn_80035B50(8);
-                *(s16 *)(inningSetting + 0x58) = 9;
-                *(s16 *)(inningSetting + 0x5A) = 0;
+                g_MenuControl.sceneMode = 9;
+                g_MenuControl.sceneState = 0;
                 fn_80042D38(5);
                 menuCursors[0x14] = 0;
                 *(u16 *)lbl_2_bss_33FBCC = 0;

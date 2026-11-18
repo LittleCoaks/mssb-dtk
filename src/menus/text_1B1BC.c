@@ -1,4 +1,5 @@
 #include "menus/text_1B1BC.h"
+#include "static/menu_control.h"
 #include "text/text.h"
 #include "Dolphin/GX/GXFrameBuffer.h"
 #include "Dolphin/pad.h"
@@ -24,7 +25,6 @@ extern u8 teamStarModelFileDescriptorMenus[];
 extern u8 Static_Stats_Tables[];
 extern u8 g_d_GameSettings[];
 extern u8 AtBat_ButtonInput1[];
-extern u8 inningSetting[];
 extern u8 superstarUnlocked[];
 extern u8 hugeAnimStruct[];
 extern u8 *lbl_2_bss_1A8230;
@@ -616,7 +616,7 @@ void fn_2_1B7B4(void) {
     lbl_2_bss_1A824C = lbl_2_bss_1A8250;
     lbl_2_bss_1A8238 = (u8 *)&g_Challenge + 0x1610;
     lbl_2_bss_1A8244 = superstarUnlocked;
-    lbl_2_bss_1A823C = inningSetting + 0x28;
+    lbl_2_bss_1A823C = (u8 *)&g_MenuControl;
     lbl_2_bss_1A8234 = lbl_2_bss_1A8250;
     lbl_2_bss_1A8230 = lbl_2_bss_1A8250 + 0x162998;
     lbl_2_bss_340140 = hugeAnimStruct;
