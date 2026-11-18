@@ -63,7 +63,7 @@ void characterSelectAPress(s32 team);
 void fn_2_EAE0(void);
 void fn_2_EC34(void);
 void fn_2_EC54(s32 port);
-s32 characterSelectABDirectionInputs(u8 team, s32 held, u16 pressed, u16 repeat);
+s32 characterSelectABDirectionInputs(u8 team, u16 held, u16 pressed, u16 repeat);
 void randCharBasedOnClass(s32 port);
 void randCharacter1(s32 port);
 void randCharAlgo2(s32 port);
