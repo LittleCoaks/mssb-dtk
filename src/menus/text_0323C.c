@@ -637,34 +637,34 @@ void fn_2_5184(s32 port) {
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
         if (lbl_2_bss_F468[(u8)port + 0x37] == 0) {
             starHitSetting_Unused_maybe(port);
-            *(s32 *)&lbl_2_bss_F468[(u8)port * 4] = 9;
+            CSS_CURSOR((u8)port) = 9;
         } else {
             s8 *cur = (s8 *)&cursorPositions;
             s32 slotIndex;
 
             for (slotIndex = 0; slotIndex < 9; slotIndex++) {
                 s8 charId = cur[(u8)port * 9 + slotIndex + 2];
-                s32 captainId = Static_Stats_Tables.captainSelectedID[(u8)port];
 
-                if (charId == captainId) {
+                if (Static_Stats_Tables.captainSelectedID[(u8)port] == charId) {
                     continue;
                 }
 
-                Static_Stats_Tables.charOnCharacterGridSelected[charId] = 0;
+                Static_Stats_Tables.charOnCharacterGridSelected[charId] = FALSE;
                 addOrRemoveCharacterToTeam(
-                    (s8)Static_Stats_Tables.playerNumberByPort[(u8)port],
-                    charId, 0);
+                    Static_Stats_Tables.playerNumberByPort[(u8)port],
+                    cur[(u8)port * 9 + slotIndex + 2], FALSE);
                 addRemoveCharVariantRelated(port,
-                    (u8)cur[(u8)port * 9 + slotIndex + 2], 0);
+                    (u8)cur[(u8)port * 9 + slotIndex + 2], FALSE);
 
                 cur[(u8)port * 9 + slotIndex + 2] = CHAR_ID_NONE;
-                cur[(u8)port * 9 + slotIndex + 0x4a] = 0;
+                /* roster.rosterSpotFilledInd / roster.chemWCaptain */
+                cur[(u8)port * 9 + slotIndex + 0x4a] = FALSE;
                 cur[(u8)port * 9 + slotIndex + 0x26] = 0;
             }
 
             lbl_2_bss_F468[(u8)port + 0x37] = 0;
-            lbl_2_bss_F468[(u8)port + 0x43] = 1;
-            updateCharacterSelectProcessCode((u8)port, 0x19);
+            lbl_2_bss_F468[(u8)port + 0x43] = TRUE;
+            updateCharacterSelectProcessCode(port & 0xFF, 0x19);
         }
     }
 }
