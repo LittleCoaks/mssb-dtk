@@ -54,7 +54,7 @@ void challengeSetRoster(void);
 s8 fn_2_C324(s32 id);
 void fn_2_C484(s32 charId, s16 target);
 void fn_2_C698(s32 idx, u8 port);
-void fn_2_C7DC(s32 a, s32 b);
+void fn_2_C7DC(u8 slot, u8 team);
 void fn_2_CA60(u8 slot, u8 team);
 void fn_2_CCBC(void);
 void fn_2_CCE0(u8 port);

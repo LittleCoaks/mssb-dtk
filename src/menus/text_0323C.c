@@ -3173,46 +3173,43 @@ void fn_2_C698(s32 idx, u8 port) {
 }
 
 // .text:0x0000C7DC size:0x284 mapped:0x8064B870
-void fn_2_C7DC(s32 a, s32 b) {
+static inline void setLineupSlot(u8 slot, u8 team) {
+    ((u8 (*)[9][4])lineUpInfoStruct)[team][slot][1] = slot;
+    ((u8 (*)[9][4])lineUpInfoStruct)[team][slot][0] = slot;
+    ((u8 (*)[9][4])lbl_80353B98)[team][slot][1] = slot;
+    ((u8 (*)[9][4])lbl_80353B98)[team][slot][0] = slot;
+    ((u8 (*)[9][4])lineUpInfoStruct)[team][slot][2] = slot;
+    ((u8 (*)[9][4])lbl_80353B98)[team][slot][2] = slot;
+}
+
+void fn_2_C7DC(u8 slot, u8 team) {
     s32 pick;
     s32 j;
-    u8 *entry;
 
-restart:
-    if ((u8)a == 0) {
-        lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4 + 1] = a;
-        lbl_80353B98[(u8)b * 0x24 + (u8)a * 4 + 1] = a;
-        lbl_80353B98[(u8)b * 0x24 + (u8)a * 4] = a;
-        lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4] = a;
-        lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4 + 2] = a;
-        lbl_80353B98[(u8)b * 0x24 + (u8)a * 4 + 2] = a;
-        *(s16 *)&inMemRoster[(u8)b * 0x5A0 + (u8)a * 0xA0 + 0x24] =
-            ((s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0])[(u8)b];
+retry:
+    if (slot == 0) {
+        setLineupSlot(slot, team);
+        ((CharacterStats (*)[9])inMemRoster)[team][slot].stats.CharID = Static_Stats_Tables.captainSelectedID[team];
         return;
     }
 
     do {
-        pick = stadiumRandomizer(0, 0x35);
-    } while (((u8 *)&Static_Stats_Tables)[0x4757 + characterIconsOnCSS[pick]] != 0);
+        pick = stadiumRandomizer(0, CHAR_ID_MAX);
+    } while (Static_Stats_Tables.charOnCharacterGridSelected[characterIconsOnCSS[pick]] != FALSE);
 
-    for (j = 0, entry = inMemRoster; j < (u8)a; j++, entry += 0xA0) {
-        if (*(s16 *)&entry[0x24] == pick) {
-            goto restart;
+    for (j = 0; j < slot; j++) {
+        if (((CharacterStats (*)[9])inMemRoster)[0][j].stats.CharID == pick) {
+            goto retry;
         }
-        if (*(s16 *)&entry[0x5C4] == pick) {
-            goto restart;
+        if (((CharacterStats (*)[9])inMemRoster)[1][j].stats.CharID == pick) {
+            goto retry;
         }
     }
 
-    lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4 + 1] = a;
-    lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4] = a;
-    lbl_80353B98[(u8)b * 0x24 + (u8)a * 4 + 1] = a;
-    lbl_80353B98[(u8)b * 0x24 + (u8)a * 4] = a;
-    lineUpInfoStruct[(u8)b * 0x24 + (u8)a * 4 + 2] = a;
-    lbl_80353B98[(u8)b * 0x24 + (u8)a * 4 + 2] = a;
-    *(s16 *)&inMemRoster[(u8)b * 0x5A0 + (u8)a * 0xA0 + 0x24] = pick;
+    setLineupSlot(slot, team);
+    ((CharacterStats (*)[9])inMemRoster)[team][slot].stats.CharID = pick;
 
-    fn_2_C698((u8)a, (u8)b);
+    fn_2_C698(slot, team);
 }
 
 // .text:0x0000CA60 size:0x25C mapped:0x8064BAF4
