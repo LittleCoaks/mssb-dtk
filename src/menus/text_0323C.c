@@ -2685,34 +2685,35 @@ void fn_2_ABC0(s32 port) {
 
 // .text:0x0000AEE8 size:0x43C mapped:0x80649F7C
 void fn_2_AEE8(void) {
-    u8 scratch[54];
-    u8 order[2][54];
+    u8 scratch[NUM_CHOOSABLE_CHARACTERS];
+    u8 order[2][NUM_CHOOSABLE_CHARACTERS];
     s32 team;
     s32 i;
     s32 j;
-    s32 base;
-    u8 *src;
+    s32 captain;
+    s32 row;
+    s32 col;
     u8 best;
     u8 t2;
     u8 t;
 
     for (team = 0; team < 2; team++) {
-        for (i = 0; i < 54; i++) {
+        for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
             order[team][i] = i;
         }
     }
 
     for (team = 0; team < 2; team++) {
-        base = ((s32 *)&((u8 *)&Static_Stats_Tables)[0x46E0])[team];
-        src = &((u8 *)&Static_Stats_Tables)[(base / 9) * 0x5A0 + (base % 9) * 0xA0];
-
-        for (i = 0; i < 54; i++) {
-            scratch[i] = src[i + 0x3B];
+        captain = Static_Stats_Tables.captainSelectedID[team];
+        row = captain / 9;
+        col = captain % 9;
+        for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+            scratch[i] = ((u8 *)&Static_Stats_Tables.characterStats[row][col])[i + 0x3B];
         }
 
-        for (i = 0; i < 54; i++) {
-            u8 best = scratch[i];
-            for (j = i + 1; j < 54; j++) {
+        for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+            best = scratch[i];
+            for (j = i + 1; j < NUM_CHOOSABLE_CHARACTERS; j++) {
                 if (best < scratch[j]) {
                     best = scratch[j];
                     t = scratch[i];
@@ -2727,8 +2728,8 @@ void fn_2_AEE8(void) {
     }
 
     for (team = 0; team < 2; team++) {
-        for (i = 0; i < 54; i++) {
-            ((u8 *)&Static_Stats_Tables)[0x478D + team * 0x36 + i] = order[team][i];
+        for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
+            Static_Stats_Tables.captainChemistryOrder[team][i] = order[team][i];
         }
     }
 }
