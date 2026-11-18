@@ -2,6 +2,7 @@
 #include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 #include "static/UnknownHomes_Static.h"
+#include "Dolphin/pad.h"
 #include "menus/yd_step.h"
 #include "game/challenge/challenge_state.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
@@ -3888,134 +3889,98 @@ void fn_2_EC54(s32 port) {
 
 // .text:0x0000ED94 size:0x46C mapped:0x8064DE28
 #pragma dont_inline on
-s32 characterSelectABDirectionInputs(u8 team, s32 unused, u16 flagsA, u16 flagsB) {
+static inline void cssToggleBottomOption(u8 team, u16 input) {
+    u8 *option = &lbl_2_bss_F468[team + 0x47];
 
-    u8 *bf = lbl_2_bss_F468;
+    if (*option == 0) {
+        if (input & PAD_BUTTON_RIGHT) {
+            *option = 1;
+            lbl_2_bss_F468[team + 0x49] = 0;
+            sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
+        }
+    } else if (*option == 1) {
+        if (input & PAD_BUTTON_LEFT) {
+            *option = 0;
+            lbl_2_bss_F468[team + 0x49] = 0;
+            sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
+        }
+    }
+}
 
-    if (bf[team + 0x41] == 0) {
-
-
-        if ((unused & 0x00000008) == 0 && ((u16)unused & 0x00000004) == 0 &&
-            ((u16)unused & 0x00000001) == 0 && ((u16)unused & 0x00000002) == 0) {
-            goto TAIL_F120;
+s32 characterSelectABDirectionInputs(u8 team, s32 held, u16 pressed, u16 repeat) {
+    if (lbl_2_bss_F468[team + 0x41] == 0) {
+        if (!(held & PAD_BUTTON_UP) && !(held & PAD_BUTTON_DOWN) && !(held & PAD_BUTTON_LEFT) &&
+            !(held & PAD_BUTTON_RIGHT)) {
+            goto buttons;
         }
 
-        if (bf[team + 0x45] != 0) {
-            u8 v47 = bf[team + 0x47];
-            if (v47 == 0) {
-                if (((u16)unused & 0x0002) != 0) {
-                    bf[team + 0x47] = 1;
-                    bf[team + 0x49] = 0;
-                    sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
-                }
-            } else if (v47 == 1) {
-                if (((u16)unused & 0x0001) != 0) {
-                    bf[team + 0x47] = 0;
-                    bf[team + 0x49] = 0;
-                    sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
-                }
-            }
-            flagsB = 0;
-            flagsA = 0;
-            unused = 0;
+        if (lbl_2_bss_F468[team + 0x45] != 0) {
+            cssToggleBottomOption(team, held);
+            repeat = 0;
+            pressed = 0;
+            held = 0;
         }
 
-        if (bf[team + 0x59] != 0) {
-            flagsB = 0;
-            flagsA = 0;
-            unused = 0;
+        if (lbl_2_bss_F468[team + 0x59] != 0) {
+            repeat = 0;
+            pressed = 0;
+            held = 0;
         }
 
-        fn_2_57F0(team, unused, flagsA, flagsB);
-        return 1;
+        fn_2_57F0(team, held, pressed, repeat);
+        return TRUE;
+    }
 
-    } else {
+    if (lbl_2_bss_F468[team + 0x59] != 0) {
+        lbl_2_bss_F468[team + 0x41] = 0;
+        updateCharacterSelectProcessCode(team, 0xd);
+        return TRUE;
+    }
 
-        if (bf[team + 0x59] != 0) {
-            bf[team + 0x41] = 0;
-            updateCharacterSelectProcessCode(team, 0xd);
-            return 1;
-        }
+    if (CSS_CURSOR(team) != 9) {
+        s32 *cursor = &((s32 *)&menuCursors[0x20])[team];
+        s8 port;
 
-        if (*(s32 *)&bf[team * 4] == 9) {
-            goto TAIL_F120;
-        }
+        *(s32 *)&lbl_2_bss_F468[team * 4 + 0x20] = *cursor;
 
-        {
-            s32 *dst = (s32 *)&menuCursors[team * 4 + 0x20];
-
-            *(s32 *)&bf[team * 4 + 0x20] = *dst;
-
-            if (bf[team + 0x45] != 0) {
-                u8 v47 = bf[team + 0x47];
-                if (v47 == 0) {
-                    if ((unused & 0x0002) != 0) {
-                        bf[team + 0x47] = 1;
-                        bf[team + 0x49] = 0;
-                        sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
-                    }
-                } else if (v47 == 1) {
-                    if ((unused & 0x0001) != 0) {
-                        bf[team + 0x47] = 0;
-                        bf[team + 0x49] = 0;
-                        sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
-                    }
-                }
-
-                if (((u8 *)&g_d_GameSettings)[0x10] == 0 && team != 0) {
-                    s8 v = (s8)((u8 *)&Static_Stats_Tables)[0x46f8];
-                    s8 idx = (v == 0);
-                    charSelectStruct[idx + 0x74] = 1;
-                    *dst = cssCursorOnBottomControl_maybe(idx, 0, 0, 0, 0);
-                } else {
-                    s8 v = (s8)((u8 *)&Static_Stats_Tables)[0x46f8 + team];
-                    s32 idx;
-                    if ((s8)((u8 *)&Static_Stats_Tables)[0x46fc + v] != 0) {
-                        idx = ((s8)Static_Stats_Tables.playerNumberByPort[0] == 0);
-                    } else {
-                        idx = v;
-                    }
-                    *dst = cssCursorOnBottomControl_maybe(idx, 0, 0, 0, 0);
-                }
+        if (lbl_2_bss_F468[team + 0x45] != 0) {
+            cssToggleBottomOption(team, held);
+            if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && team != 0) {
+                port = Static_Stats_Tables.playerNumberByPort[0] == 0;
+                charSelectStruct[port + 0x74] = 1;
+                *cursor = cssCursorOnBottomControl_maybe(port, 0, 0, 0, 0);
             } else {
-                if (((u8 *)&g_d_GameSettings)[0x10] == 0 && team != 0) {
-                    s8 v = (s8)((u8 *)&Static_Stats_Tables)[0x46f8];
-                    s8 idx = (v == 0);
-                    charSelectStruct[idx + 0x74] = 1;
-                    *dst = cssCursorOnBottomControl_maybe(idx, unused, flagsA, flagsB, 0);
-                } else {
-                    s8 v = (s8)((u8 *)&Static_Stats_Tables)[0x46f8 + team];
-                    s32 idx;
-                    if ((s8)((u8 *)&Static_Stats_Tables)[0x46fc + v] != 0) {
-                        idx = ((s8)Static_Stats_Tables.playerNumberByPort[0] == 0);
-                    } else {
-                        idx = v;
-                    }
-                    *dst = cssCursorOnBottomControl_maybe(idx, unused, flagsA, flagsB, 0);
-                }
+                *cursor = cssCursorOnBottomControl_maybe(cssCursorPort(team), 0, 0, 0, 0);
+            }
+        } else {
+            if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && team != 0) {
+                port = Static_Stats_Tables.playerNumberByPort[0] == 0;
+                charSelectStruct[port + 0x74] = 1;
+                *cursor = cssCursorOnBottomControl_maybe(port, held, pressed, repeat, 0);
+            } else {
+                *cursor = cssCursorOnBottomControl_maybe(cssCursorPort(team), held, pressed, repeat, 0);
             }
         }
-
     }
 
-TAIL_F120:
-    if ((flagsA & 0x0100) != 0) {
+buttons:
+    if (pressed & PAD_BUTTON_A) {
         if (stopShowingCaptainProfile(team)) {
             return TRUE;
         }
-        characterSelectAPress((u8)team);
-        return 1;
+        characterSelectAPress(team);
+        return TRUE;
     }
 
-    if (((u16)flagsA & 0x0200) != 0) {
+    if (pressed & PAD_BUTTON_B) {
         if (stopShowingCaptainProfile(team)) {
             return TRUE;
         }
-        cssReturnToCapSelect_maybe((u8)team);
-        return 1;
+        cssReturnToCapSelect_maybe(team);
+        return TRUE;
     }
 
-    return 0;
+    return FALSE;
 }
 #pragma dont_inline reset
 
