@@ -1241,47 +1241,38 @@ void characterSelectScreenControlable(void) {
 
 // .text:0x00006784 size:0x100 mapped:0x80645818
 void fn_2_6784(void) {
-    u8 *slot = (u8 *)&cursorPositions;
-    u8 *info = lineUpInfoStruct;
     s32 i;
 
     for (i = 0; i < 9; i++) {
         if (i == 0) {
-            *(s32 *)&((u8 *)&Static_Stats_Tables)[0x46E4] = 0;
-            ((u8 *)&cursorPositions)[0xB] = 0;
-            ((u8 *)&cursorPositions)[0x53] = 1;
-            ((u8 *)&Static_Stats_Tables)[0x4757] = 1;
+            Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_MARIO;
+            cursorPositions.roster.rosterCharID[1][0] = Static_Stats_Tables.captainSelectedID[1];
+            cursorPositions.roster.rosterSpotFilledInd[1][0] = TRUE;
+            Static_Stats_Tables.charOnCharacterGridSelected[cursorPositions.roster.rosterCharID[1][0]] = TRUE;
         } else {
             u8 picked;
-            bool found;
+            E(u8, BOOL) found;
 
             do {
-                u8 *table;
-                u8 *ptr;
                 s32 k;
 
                 found = FALSE;
-                table = &lbl_8010902C[0xC];
-                picked = table[(s16)randRange_FUN_80042bf0(0, 9)];
-                ptr = slot;
+                picked = (&lbl_8010902C[0xC])[(s16)randRange_FUN_80042bf0(0, 9)];
                 for (k = 0; k < i; k++) {
-                    if ((s8)ptr[0xB] == picked) {
+                    if (cursorPositions.roster.rosterCharID[1][k] == picked) {
                         found = TRUE;
                     }
-                    ptr++;
                 }
             } while (found);
 
-            slot[0xB] = picked;
-            ((u8 *)&Static_Stats_Tables)[0x4757 + picked] = 1;
-            slot[0x53] = 1;
+            cursorPositions.roster.rosterCharID[1][i] = picked;
+            Static_Stats_Tables.charOnCharacterGridSelected[picked] = TRUE;
+            cursorPositions.roster.rosterSpotFilledInd[1][i] = TRUE;
         }
 
-        info[0x24] = i;
-        slot++;
-        info[0x26] = i;
-        info[0x25] = i;
-        info += 4;
+        lineUpInfoStruct[0x24 + i * 4 + 0] = i;
+        lineUpInfoStruct[0x24 + i * 4 + 2] = i;
+        lineUpInfoStruct[0x24 + i * 4 + 1] = i;
     }
 }
 
@@ -3880,34 +3871,44 @@ L_tail:
 }
 
 // .text:0x0000EAE0 size:0x154 mapped:0x8064DB74
+static inline void cssSkipTakenIcons(s32 *cursor) {
+    do {
+        *cursor = *cursor + 1;
+        if (*cursor == NUM_CHOOSABLE_CHARACTERS) {
+            *cursor = 0;
+        }
+    } while (Static_Stats_Tables.charOnCharacterGridSelected[characterIconsOnCSS[*cursor]] != FALSE ||
+             ((s32 *)menuCursors)[8] == ((s32 *)menuCursors)[9]);
+}
+
+static inline s32 cssCursorPort(s32 i) {
+    s8 port = Static_Stats_Tables.playerNumberByPort[i];
+    if (Static_Stats_Tables.portsActiveInMatch[port] == FALSE) {
+        return port;
+    }
+    return Static_Stats_Tables.playerNumberByPort[0] == 0;
+}
+
 void fn_2_EAE0(void) {
     s32 i;
-    s32 flag;
+    s32 port;
+    s32 count = (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) + 1;
 
-    for (i = 0; i < (g_d_GameSettings.p2_CPU_match_code == 1) + 1; i++) {
+    for (i = 0; i < count; i++) {
         if (((u8 *)&g_MatchInfo)[i + 8] == 0) {
             continue;
         }
 
-        if (((u8 *)&Static_Stats_Tables)[0x4757 + characterIconsOnCSS[*(s32 *)&menuCursors[i * 4 + 0x20]]] != 0) {
-            s32 *p = (s32 *)&menuCursors[i * 4 + 0x20];
-
-            do {
-                *p = *p + 1;
-                if (*p == 0x36) {
-                    *p = 0;
-                }
-            } while (((u8 *)&Static_Stats_Tables)[0x4757 + characterIconsOnCSS[*p]] != 0 ||
-                     *(s32 *)&menuCursors[0x20] == *(s32 *)&menuCursors[0x24]);
+        if (Static_Stats_Tables.charOnCharacterGridSelected[characterIconsOnCSS[((s32 *)&menuCursors[0x20])[i]]] != FALSE) {
+            cssSkipTakenIcons(&((s32 *)menuCursors)[i + 8]);
         }
 
-        while (1) {
-            flag = (s8)Static_Stats_Tables.playerNumberByPort[i];
-            if ((s8)((u8 *)&Static_Stats_Tables)[0x46FC + flag] != 0) {
-                flag = ((s8)Static_Stats_Tables.playerNumberByPort[0] == 0);
-            }
-            fn_2_1D54((s32 *)&menuCursors[(i + 8) * 4], flag, 0x36);
-        }
+        // The second test compares a cursor with itself, so this loop never exits.
+        do {
+            port = cssCursorPort(i);
+            fn_2_1D54(&((s32 *)menuCursors)[i + 8], port, NUM_CHOOSABLE_CHARACTERS);
+        } while (Static_Stats_Tables.charOnCharacterGridSelected[characterIconsOnCSS[((s32 *)menuCursors)[i + 8]]] != FALSE ||
+                 ((s32 *)menuCursors)[8] == ((s32 *)menuCursors)[8]);
     }
 }
 
