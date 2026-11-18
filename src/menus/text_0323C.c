@@ -987,43 +987,19 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
 
 // .text:0x00005F80 size:0x118 mapped:0x80645014
 void fn_2_5F80(void) {
-    u8 *rec;
-    u8 *rosterRec;
-    s8 *target;
-    u8 *dest;
-    u8 *lineUpPlayer;
-    u8 *cursorPlayer;
-    u8 *lineUp;
-    u8 *cursor;
-    u8 *roster;
     s32 team;
     s32 player;
     s32 g;
 
     for (team = 0; team < 2; team++) {
-        lineUp = lineUpInfoStruct + team * 0x24;
-        cursor = (u8 *)&cursorPositions + team * 9;
-        roster = inMemRoster + team * 0x5A0;
-        lineUpPlayer = lineUp;
-        cursorPlayer = cursor;
-
         for (player = 0; player < 9; player++) {
-            rec = lineUp;
-            rosterRec = roster;
-            target = (s8 *)lineUpPlayer + 2;
-            dest = cursorPlayer + 2;
-
-            for (g = 0; g < 9; g++, rec += 4, rosterRec += 0xA0) {
-                if (*target == (s8)rec[2]) {
-                    *dest = *(s16 *)&rosterRec[0x24];
+            for (g = 0; g < 9; g++) {
+                if ((s8)lineUpInfoStruct[team * 0x24 + player * 4 + 2] == (s8)lineUpInfoStruct[team * 0x24 + g * 4 + 2]) {
+                    cursorPositions.roster.rosterCharID[team][player] = ((CharacterStats (*)[9])inMemRoster)[team][g].stats.CharID;
                 }
             }
-
-            cursorPlayer[0x14] = player;
-            cursorPlayer++;
-            lineUpPlayer += 4;
+            cursorPositions.roster.positionSwapMapping[team][player] = player;
         }
-
     }
 }
 
