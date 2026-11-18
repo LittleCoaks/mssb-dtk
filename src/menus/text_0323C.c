@@ -2525,21 +2525,17 @@ s32 fn_2_A50C(void) {
 s32 fn_2_A62C(void) {
     s32 i;
     s32 j;
-    s8 val;
-    u8 *inner;
 
     for (i = 0; i < 9; i++) {
-        inner = (u8 *)&cursorPositions;
+        s8 id = cursorPositions.roster.rosterCharID[0][i];
 
-        val = (s8)((u8 *)&cursorPositions)[i + 2];
-        for (j = 0; j < 9; inner++, j++) {
-            s8 other = (s8)inner[0xB];
-            if (val == other && val != 0xFF) {
-                return 1;
+        for (j = 0; j < 9; j++) {
+            if (id == cursorPositions.roster.rosterCharID[1][j] && id != 0xFF) {
+                return TRUE;
             }
         }
     }
-    return 0;
+    return FALSE;
 }
 
 // .text:0x0000A6E0 size:0x4E0 mapped:0x80649774
