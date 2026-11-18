@@ -2394,35 +2394,31 @@ restart:
 }
 
 // .text:0x0000A040 size:0x160 mapped:0x806490D4
-void fn_2_A040(s32 row, s32 slot, u8 y, u8 x) {
+void fn_2_A040(s32 row, s32 slot, u8 team, u8 idx) {
     s32 i, j;
     s16 target;
     s16 *pair = variantPairs[row];
 
-    if (pair[slot] == -1 || slot >= 4) {
-        goto fallback;
-    }
+    if (pair[slot] != CHAR_ID_NONE && slot < 4) {
+        slot++;
+        if (slot == 5 || pair[slot] == CHAR_ID_NONE) {
+            slot = 0;
+        }
 
-    slot++;
-    if (slot == 5 || pair[slot] == -1) {
-        slot = 0;
-    }
-
-    for (i = 0; i < 2; i++) {
-        target = pair[slot];
-        for (j = 0; j < 9; j++) {
-            s8 id = (s8)((u8 *)&cursorPositions)[i * 9 + j + 2];
-            if (id == target) {
-                return;
+        for (i = 0; i < 2; i++) {
+            target = pair[slot];
+            for (j = 0; j < 9; j++) {
+                if (cursorPositions.roster.rosterCharID[i][j] == target) {
+                    return;
+                }
             }
         }
+
+        cursorPositions.roster.rosterCharID[team][idx] = target;
+        return;
     }
 
-    ((u8 *)&cursorPositions)[y * 9 + x + 2] = target;
-    return;
-
-fallback:
-    ((u8 *)&cursorPositions)[y * 9 + x + 2] = pair[0];
+    cursorPositions.roster.rosterCharID[team][idx] = pair[0];
 }
 
 // .text:0x0000A1A0 size:0xE8 mapped:0x80649234

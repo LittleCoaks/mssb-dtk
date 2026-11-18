@@ -38,7 +38,7 @@ void fn_2_8CF8(u16 team);
 void fn_2_95D8(void);
 void fn_2_9ACC(u16 team);
 s32 fn_2_9F70(s8 port);
-void fn_2_A040(s32 row, s32 slot, u8 y, u8 x);
+void fn_2_A040(s32 row, s32 slot, u8 team, u8 idx);
 void fn_2_A1A0(u8 arg0, u8 arg1);
 void fn_2_A288(void);
 s32 fn_2_A50C(void);
