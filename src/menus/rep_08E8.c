@@ -992,13 +992,7 @@ static inline void resetSelectionSlots(void) {
 
 // .text:0x000481F4 size:0x5AC mapped:0x80687288
 void fn_2_481F4(void) {
-    u32 maxSize;
-    u32 aligned;
-    u8 *pool;
-    u8 *next;
-    s32 off;
     s32 i;
-    s32 j;
     u8 *cdi = currentDrawingItem;
     s32 character = lbl_2_bss_1A8248[0x441D];
 
@@ -1009,28 +1003,7 @@ void fn_2_481F4(void) {
 
         fn_2_48DB4();
         menuCamera_snapToPreset();
-        maxSize = 0;
-        off = 0;
-        for (i = 0; i < 9; i++) {
-            for (j = 0; j < 6; j++) {
-                u32 size = allocationEntrySize(off);
-                if (maxSize < size) {
-                    maxSize = size;
-                }
-                off += 0x130;
-            }
-        }
-        aligned = OSRoundUp32B(maxSize);
-        pool = _OSAllocFromHeap(0x20, aligned * 4);
-        next = pool + aligned;
-        *(u8 **)(hugeAnimStruct + 0xE88) = next;
-        next += aligned;
-        *(u8 **)(hugeAnimStruct + 0x1104) = next;
-        next += aligned;
-        *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
-        *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-        *(u8 **)(hugeAnimStruct + 0x1380) = next;
-
+        fn_2_477C0();
         fn_2_47540();
         initActorArray(0xD);
         fn_80014204(4);
@@ -1071,20 +1044,18 @@ void fn_2_481B8(void) {
 // .text:0x00047FF8 size:0x1C0 mapped:0x8068708C
 void fn_2_47FF8(void) {
     Mtx44 proj;
-    s32 i;
-    u8 *base = lbl_2_bss_1A824C + 0x190000;
     C_MTXFrustum(proj, -0.175f, 0.175f, 0.25f, -0.25f, 1.0f, 512.0f);
     GXSetProjection(proj, GX_PERSPECTIVE);
-    for (i = 0; i < 4; i++) {
-        LITXForm(*(void **)(hugeAnimStruct + 0xAC + i * 4), (u8 *)fn_80052768_getCamera(0) + 0x40);
-    }
-    if (base[0x784A] != 0) {
-        if (base[0x7846] == 1) {
-            fn_2_6A87C();
-            if (base[0x7847] != 0) {
+    fn_2_48D54();
+    if ((lbl_2_bss_1A824C + 0x190000)[0x784A] != 0) {
+        if ((lbl_2_bss_1A824C + 0x190000)[0x7846] == 1) {
+            if ((lbl_2_bss_1A824C + 0x190000)[0x7847] == 0) {
+                fn_2_6A87C();
+            } else {
+                fn_2_6A87C();
                 menuCamera_update(lbl_2_bss_1A81D4);
             }
-        } else if (base[0x7846] == 2) {
+        } else if ((lbl_2_bss_1A824C + 0x190000)[0x7846] == 2) {
             fn_2_9007C();
         } else {
             menuCamera_update(lbl_2_bss_1A81D4);
@@ -1095,7 +1066,7 @@ void fn_2_47FF8(void) {
     memcpy((u8 *)fn_80052768_getCamera(0) + 0x70, lbl_2_bss_1A81D4 + 0x4C, 12);
     memcpy((u8 *)fn_80052768_getCamera(0) + 0x7C, lbl_2_bss_1A81D4 + 0x40, 12);
     *(f32 *)((u8 *)fn_80052768_getCamera(0) + 0xA4) = *(f32 *)(lbl_2_bss_1A81D4 + 0x3C);
-    PSMTXCopy((f32 (*)[4])((u8 *)fn_80052768_getCamera(0) + 0x40), (f32 (*)[4])lbl_2_bss_1A81D4);
+    PSMTXCopy((f32 (*)[4])lbl_2_bss_1A81D4, (f32 (*)[4])((u8 *)fn_80052768_getCamera(0) + 0x40));
     graphics_relatedToVsScreen();
 }
 
