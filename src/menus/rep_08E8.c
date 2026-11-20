@@ -60,7 +60,6 @@ extern f32 lbl_2_rodata_954;
 extern f32 lbl_2_rodata_958;
 extern f32 lbl_2_rodata_95C;
 extern f32 lbl_2_rodata_964;
-extern f32 lbl_2_rodata_968;
 extern f32 lbl_2_rodata_96C;
 extern f32 lbl_2_rodata_970;
 extern u8 lbl_2_data_12EA8[];
@@ -1147,55 +1146,70 @@ void fn_2_47FF8(void) {
 }
 
 // .text:0x00047CFC size:0x2FC mapped:0x80686D90
+typedef struct {
+    u8 apply : 1;
+    u8 : 7;
+} AnimStateFlags;
+
+static inline void applyAnimPose(u8 *sub, u8 *pose) {
+    u8 *state = sub + 0xC;
+
+    if (state != NULL) {
+        *(f32 *)(state + 4) = 0.5f;
+    }
+    if (state != NULL) {
+        ((AnimStateFlags *)(state + 0x11))->apply = 1;
+    }
+    fn_80024DB0(state);
+    fn_80024FA4(pose, *(void **)(sub + 0x2C), sub + 0xC, -1);
+}
+
 void fn_2_47CFC(void) {
     Mtx44 proj;
     Vec tmp;
+    u8 *sub;
     s32 i;
     u8 *entry;
     u8 *rec;
-    u8 *obj;
-    u8 *pose;
+    f32 one;
     f32 rotScale;
 
     C_MTXFrustum(proj, lbl_2_rodata_950, lbl_2_rodata_954, lbl_2_rodata_958, lbl_2_rodata_95C, lbl_2_rodata_960, lbl_2_rodata_964);
     GXSetProjection(proj, GX_PERSPECTIVE);
     fn_2_8D024();
 
-    rotScale = lbl_2_rodata_968;
+    rotScale = 57.295776f;
+    one = 0.5f;
     for (i = 0; i < *(s16 *)(lbl_2_bss_1A824C + 0x197746); i++) {
         entry = hugeAnimStruct + i * 0x27C;
+        sub = entry + 0xC04;
         rec = *(u8 **)(hugeAnimStruct + 0x60) + 0x34 + i * 0x90;
-        rec[0x6C] = entry[0xE61] & 1;
+        rec[0x6C] = sub[0x25D] & 1;
         CTRLSetTranslation(rec + 0x10, *(f32 *)(entry + 0xC38), *(f32 *)(entry + 0xC3C), *(f32 *)(entry + 0xC40));
-        CTRLSetRotation(rec + 0x10, rotScale * *(f32 *)(entry + 0xC44), rotScale * *(f32 *)(entry + 0xC48),
-                        rotScale * *(f32 *)(entry + 0xC4C));
+        CTRLSetRotation(rec + 0x10, rotScale * *(f32 *)(sub + 0x40), rotScale * *(f32 *)(sub + 0x44),
+                        rotScale * *(f32 *)(sub + 0x48));
 
         if (lbl_2_bss_1A824C[0x197848] == 0) {
             memcpy(&tmp, lbl_2_data_12EA8, 12);
             if (lbl_2_bss_1A8248[0x441C] == 5 && i == 0) {
                 PSVECScale(&tmp, lbl_2_rodata_96C, &tmp);
+                CTRLSetScale(rec + 0x10, tmp.x, tmp.y, tmp.z);
+            } else {
+                CTRLSetScale(rec + 0x10, tmp.x, tmp.y, tmp.z);
             }
-            CTRLSetScale(rec + 0x10, tmp.x, tmp.y, tmp.z);
         } else {
             memcpy(&tmp, lbl_2_data_12EB4, 12);
             CTRLSetScale(rec + 0x10, tmp.x, tmp.y, tmp.z);
         }
-        *(f32 *)(rec + 0x54) = lbl_2_rodata_970;
+        *(f32 *)(rec + 0x54) = one;
         rec[0x5A] = 1;
 
-        obj = *(u8 **)(entry + 0xC34);
-        if (obj != NULL && *(u32 *)(obj + 4) != 0 && *(u32 *)(obj + 0x68) != 0 && obj[0xCC] != 0) {
-            pose = *(u8 **)(hugeAnimStruct + 0x13C) + obj[0x60] * 0x90 + 0x34;
-            *(f32 *)(obj + 0x14) = lbl_2_rodata_970;
-            obj[0x21] |= 0x80;
-            fn_80024DB0(obj + 0x10);
-            fn_80024FA4(pose, *(void **)(obj + 0x30), obj + 0x10, -1);
-
-            pose = *(u8 **)(hugeAnimStruct + 0x13C) + obj[0xC4] * 0x90 + 0x34;
-            *(f32 *)(obj + 0x78) = lbl_2_rodata_970;
-            obj[0x85] |= 0x80;
-            fn_80024DB0(obj + 0x74);
-            fn_80024FA4(pose, *(void **)(obj + 0x94), obj + 0x74, -1);
+        if (*(u8 **)(sub + 0x30) != NULL && *(u32 *)(*(u8 **)(sub + 0x30) + 4) != 0 &&
+            *(u32 *)(*(u8 **)(sub + 0x30) + 0x68) != 0 && (*(u8 **)(sub + 0x30))[0xCC] != 0) {
+            applyAnimPose(*(u8 **)(sub + 0x30) + 4,
+                          *(u8 **)(hugeAnimStruct + 0x13C) + (*(u8 **)(sub + 0x30))[0x60] * 0x90 + 0x34);
+            applyAnimPose(*(u8 **)(sub + 0x30) + 0x68,
+                          *(u8 **)(hugeAnimStruct + 0x13C) + (*(u8 **)(sub + 0x30))[0xC4] * 0x90 + 0x34);
         }
     }
     fn_2_47B24(*(u16 **)(hugeAnimStruct + 0x60));
