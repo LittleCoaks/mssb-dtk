@@ -13,7 +13,7 @@ extern u8 gameSetUpStep[0x64];
 extern u8 lbl_2_bss_F468[];
 BOOL maybeCheckAndResetGrapicsElement(MenuScene *scene, int handle, int frame);
 void updateCharacterSelectProcessCode(int port, u8 process);
-void fn_2_16A74(s32 port, s32 flag);
+void captainSelect_setModelVisible(s32 port, s32 flag);
 void fn_2_CCE0(u8 channel);
 extern u8 lbl_2_bss_100B8[];
 extern int menuCursors[0x16];
@@ -152,7 +152,7 @@ void fn_2_805DC(MenuScene *scene, s32 channel) {
         ready = maybeCheckAndResetGrapicsElement(scene, 0x86, 0) != 0;
         if (ready + (maybeCheckAndResetGrapicsElement(scene, 0x8A, 0) != 0) == 2) {
             if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME && lbl_2_bss_100B8[0x10] == 0) {
-                fn_2_16A74(1, 0);
+                captainSelect_setModelVisible(1, 0);
             }
             makeCursorMovable(channel);
             gameSetUpStep[channel + 0xD] = 2;

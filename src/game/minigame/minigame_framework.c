@@ -91,7 +91,7 @@ extern SuperstarStatBonus superstarStatBonus;
 extern u8 lbl_800E854C[];
 extern u8 challenge_minigames_opponentCharIDs[];
 extern void cssLoadingRelated_1(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-extern s32 cssCursorOnBottomControl_maybe(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4);
+extern s32 charGrid_moveCursor(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4);
 extern void css_initValues(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5);
 extern void fn_8004FDA0(int);
 extern void fn_80011B64(int);
@@ -1119,7 +1119,7 @@ void toyFieldCharSelectSwitcher(void) {
         if (g_GameLogic.framesInGameStatus_copy == 1) {
             for (i = 0; i < 4; i++) {
                 if (g_Minigame.selectSlotState[i] == 0) {
-                    g_Minigame.selectSlots[i].charID = cssCursorOnBottomControl_maybe(i, 0, 0, 0, 0);
+                    g_Minigame.selectSlots[i].charID = charGrid_moveCursor(i, 0, 0, 0, 0);
                     g_Minigame.selectSlots[i].onBottomControlInd = 0;
                     g_Minigame.battingHandedness[i] =
                         ((CharacterStats*)&Static_Stats_Tables)[g_Minigame.selectSlots[i].charID].stats.FieldingArm * 2 +
@@ -1276,7 +1276,7 @@ void minigameCharSelectUpdate(void) {
             if (g_Minigame.selectSlotState[i] == 0) {
                 SATURATING_INCREMENT_U16(g_Minigame.charChangeFrames[i]);
                 if (sel[i] == -3) {
-                    g_Minigame.selectSlots[i].charID = cssCursorOnBottomControl_maybe(i, 0, 0, 0, 0);
+                    g_Minigame.selectSlots[i].charID = charGrid_moveCursor(i, 0, 0, 0, 0);
                     g_Minigame.selectSlots[i].charReadyInd = FALSE;
                     g_Minigame.battingHandedness[i] = ((CharacterStats*)&Static_Stats_Tables)[g_Minigame.selectSlots[i].charID].stats.FieldingArm * 2 +
                                                       ((CharacterStats*)&Static_Stats_Tables)[g_Minigame.selectSlots[i].charID].stats.BattingStance;
@@ -1294,7 +1294,7 @@ void minigameCharSelectUpdate(void) {
                         }
                         g_Minigame.selectSlots[i].confirmedInd = FALSE;
                         addOrRemoveCharacterToTeam(i, g_Minigame.selectSlots[i].charID, FALSE);
-                        cssCursorOnBottomControl_maybe(i, 0, 0, 0, 0);
+                        charGrid_moveCursor(i, 0, 0, 0, 0);
                         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, SND_STUDIO_DEFAULT);
                         for (j = 0; j < 4; j++) {
                             if (i != j && g_Minigame.selectSlotState[j] == 0) {
@@ -1339,7 +1339,7 @@ void minigameCharSelectUpdate(void) {
                     }
                 moveCursor0:
                     prevChar = g_Minigame.selectSlots[i].charID;
-                    cursor = cssCursorOnBottomControl_maybe(i, g_Controls[i].buttonInput, g_Controls[i].newButtonInput, g_Controls[i]._08, 0);
+                    cursor = charGrid_moveCursor(i, g_Controls[i].buttonInput, g_Controls[i].newButtonInput, g_Controls[i]._08, 0);
                     if (cursor >= 0) {
                         g_Minigame.selectSlots[i].charID = cursor;
                         if (prevChar != g_Minigame.selectSlots[i].charID) {
@@ -1530,7 +1530,7 @@ void minigameCharSelectUpdate(void) {
                     }
                 }
                 prevChar = g_Minigame.selectSlots[i].charID;
-                cursor = cssCursorOnBottomControl_maybe(i, pad->buttonInput, pad->newButtonInput, pad->_08, 0);
+                cursor = charGrid_moveCursor(i, pad->buttonInput, pad->newButtonInput, pad->_08, 0);
                 if (cursor >= 0) {
                     g_Minigame.selectSlots[i].charID = cursor;
                     if (prevChar != g_Minigame.selectSlots[i].charID) {

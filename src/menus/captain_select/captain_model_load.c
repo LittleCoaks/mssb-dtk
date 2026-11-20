@@ -99,7 +99,7 @@ typedef struct {
     /* 0x255 */ s8 entryIdx;
     /* 0x256 */ u8 _256[0x25C - 0x256];
     /* 0x25C */ u8 _25C;
-    /* 0x25D */ u8 _25D;
+    /* 0x25D */ u8 visible;
     /* 0x25E */ u8 _25E[0x265 - 0x25E];
     /* 0x265 */ u8 _265;
     /* 0x266 */ u8 _266[0x268 - 0x266];
@@ -142,7 +142,7 @@ typedef struct {
     /* 0x1D */ u8 step;
     /* 0x1E */ u8 index;
     /* 0x1F */ u8 _1F;
-    /* 0x20 */ u8 _20;
+    /* 0x20 */ u8 showOnLoad;
     /* 0x21 */ u8 loadStep;
 } CapLoadTask;
 
@@ -321,10 +321,10 @@ void fn_2_16F78(u8 idx);
 void fn_2_16DA8(void);
 void fn_2_16CE0(void);
 void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, u8 speedDiv);
-void fn_2_16A74(int idx, int flag);
-u8 fn_2_16A5C(int idx);
-void set807518de(int port, int value);
-u8 fn_2_16A34(int port);
+void captainSelect_setModelVisible(int idx, int flag);
+u8 captainSelect_isModelVisible(int idx);
+void captainSelect_setShowModelOnLoad(int port, int value);
+u8 captainSelect_getShowModelOnLoad(int port);
 void fn_2_16870(void);
 
 #define STATE lbl_2_bss_100B8
@@ -360,7 +360,7 @@ void fn_2_19224(ActorObjectTable *table) {
 
     for (i = 0; (u16)i < table->count; i++) {
         CapSlot *obj = hugeAnimStruct.objects[(u16)i];
-        if (obj != NULL && obj->_25D != 0) {
+        if (obj != NULL && obj->visible != 0) {
             ActorObjectEntry *e = &table->entries[(u16)i];
             u8 bp;
             if (e->actor != NULL) {
@@ -657,8 +657,8 @@ void fn_2_18148(CapLoadTask *task) {
     case 0:
         task->slot = &hugeAnimStruct.slots[task->index];
         task->slot->charID = task->charIDs[task->index];
-        task->_20 = STATE[0x46 + task->index];
-        hugeAnimStruct.slots[task->index]._25D = 0;
+        task->showOnLoad = STATE[0x46 + task->index];
+        hugeAnimStruct.slots[task->index].visible = 0;
         task->slot->_68 = -1;
         ((u8 *)&lbl_2_bss_100B4)[1] = 1;
         task->loadStep++;
@@ -674,9 +674,9 @@ void fn_2_18148(CapLoadTask *task) {
             fn_2_16F78(task->index);
             cpuCode = g_d_GameSettings.p2_CPU_match_code;
             if (cpuCode == P2_CPU_CODE_1_PLAYER_GAME && gameSetUpStep.portCaptainSlot[0] == 0 && task->index == 1) {
-                hugeAnimStruct.slots[task->index]._25D = 0;
+                hugeAnimStruct.slots[task->index].visible = 0;
             } else {
-                hugeAnimStruct.slots[task->index]._25D = task->_20 != 0;
+                hugeAnimStruct.slots[task->index].visible = task->showOnLoad != 0;
             }
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE || cpuCode != 0 ||
                 menuControlVariables->previousScreen == 5) {
@@ -886,7 +886,7 @@ void fn_2_16F78(u8 idx) {
     slot->_38 = pos->y;
     slot->_3C = pos->z;
     slot->_4C = 0.5f;
-    slot->_25D = 0;
+    slot->visible = 0;
     *(void (**)(void))((u8 *)hugeAnimStruct.objTable + (idx * 0x90 + 0x3C)) = (void (*)(void))fn_2_190B8;
     slot->actor = entry->actor;
     callDSInsertListObject((UnkB2B4C *)entry->actor, slot->boneSlots[19]);
@@ -1097,22 +1097,22 @@ void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, 
 }
 
 // .text:0x00016A74 size:0x24 mapped:0x80655B08
-void fn_2_16A74(int idx, int flag) {
-    hugeAnimStruct.slots[idx]._25D = flag != 0;
+void captainSelect_setModelVisible(int idx, int flag) {
+    hugeAnimStruct.slots[idx].visible = flag != 0;
 }
 
 // .text:0x00016A5C size:0x18 mapped:0x80655AF0
-u8 fn_2_16A5C(int idx) {
-    return hugeAnimStruct.slots[idx]._25D;
+u8 captainSelect_isModelVisible(int idx) {
+    return hugeAnimStruct.slots[idx].visible;
 }
 
 // .text:0x00016A48 size:0x14 mapped:0x80655ADC
-void set807518de(int port, int value) {
+void captainSelect_setShowModelOnLoad(int port, int value) {
     STATE[0x46 + port] = value;
 }
 
 // .text:0x00016A34 size:0x14 mapped:0x80655AC8
-u8 fn_2_16A34(int port) {
+u8 captainSelect_getShowModelOnLoad(int port) {
     return STATE[0x46 + port];
 }
 

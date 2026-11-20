@@ -43,7 +43,7 @@ void fn_8004D460(s32 team, s32 selection);
 extern u8 lbl_803CBBC4[8];
 void relatedToTeamSelection4(void);
 void fn_2_73758(void);
-void set807518de(u8 port, s32 active);
+void captainSelect_setShowModelOnLoad(u8 port, s32 active);
 void fn_8004EEF4(s32 port0, s32 port1, s32 port2, s32 port3, s32 active);
 void add_or_RemoveCharToATeam(s32 port, s32 characterID, s32 add);
 extern u8 menuNumber[0x28];
@@ -503,8 +503,8 @@ void captainSelectDefaultProcess(void) {
         gameSetUpStep.portCaptainSlot[1] = 1;
         menuCursors[4] = 0;
         menuCursors[5] = 1;
-        set807518de(0, 1);
-        set807518de(1, 0);
+        captainSelect_setShowModelOnLoad(0, 1);
+        captainSelect_setShowModelOnLoad(1, 0);
         setCaptainControllerFlags();
     } else {
         s32 slot;

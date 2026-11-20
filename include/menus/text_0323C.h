@@ -6,7 +6,7 @@
 void cssTransitionToNewScreen_maybe(void);
 s32 fn_2_33BC(void);
 void fn_2_348C(void);
-bool stopShowingCaptainProfile(u8 port);
+bool closeZMenu(u8 port);
 void fn_2_3624(u8 team);
 void fn_2_4970(u8 team, s32 charID);
 void fn_2_5184(s32 port);
@@ -58,7 +58,7 @@ void fn_2_C7DC(u8 slot, u8 team);
 void fn_2_CA60(u8 slot, u8 team);
 void fn_2_CCBC(void);
 void fn_2_CCE0(s32 port);
-void cssReturnToCapSelect_maybe(s32 team);
+void characterSelectBPress(s32 team);
 void characterSelectAPress(s32 team);
 void fn_2_EAE0(void);
 void fn_2_EC34(void);
@@ -67,7 +67,7 @@ s32 characterSelectABDirectionInputs(u8 team, u16 held, u16 pressed, u16 repeat)
 void randCharBasedOnClass(s32 port);
 void randCharacter1(s32 port);
 void randCharAlgo2(s32 port);
-void starHitSetting_Unused_maybe(s32 team);
+void cssRandomFillRoster(s32 team);
 void characterSelectControls(u16 team);
 void teamSelectScreenMain(void);
 

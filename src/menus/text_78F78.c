@@ -694,7 +694,7 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
             makeCursorMovable(index);
             gameSetUpStep[index + 0xD] = 2;
             if (lbl_2_bss_F468[index + 0x43] != 0) {
-                starHitSetting_Unused_maybe(index);
+                cssRandomFillRoster(index);
                 lbl_2_bss_F468[index + 0x43] = 0;
             }
         }

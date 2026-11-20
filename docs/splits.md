@@ -1176,7 +1176,7 @@ It had only the jump table and scored 0%. It is now 95.44%; the rest is that tab
 **`.text 0x16870-0x16A98` is the head of `captain_model_load.c`** (high). `fn_2_16870` is uncalled. It is the
 out-of-line copy of the block that `fn_2_188EC` runs `if (STATE[0x19])`, and it contains inlined copies of `fn_2_18650`
 and `fn_2_16CE0`, both captain_model_load functions. Calling it from `fn_2_188EC` reproduces the target's inlining
-(99.44 -> 99.68). The four leaf accessors after it (`fn_2_16A34`, `set807518de`, `fn_2_16A5C`, `fn_2_16A74`, 5-9
+(99.44 -> 99.68). The four leaf accessors after it (`captainSelect_getShowModelOnLoad`, `captainSelect_setShowModelOnLoad`, `captainSelect_isModelVisible`, `captainSelect_setModelVisible`, 5-9
 instructions) are `bl`'d from `captain_select.c`, `teamselect.c` and `text_0323C.c`. By the leaf rule
 (`-inline deferred` inlines such leaves within their own TU), that keeps them out of `captain_select`'s TU, so they
 stay with `fn_2_16870`. All five are drafted: four at 100%, `fn_2_16870` at 99.51%.

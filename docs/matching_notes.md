@@ -4079,7 +4079,7 @@ and 100%; 9 -> 12 of 17 functions at 100%). Not flipped: four functions are stil
 - **Value numbering distinguishes `int` from `u32`/`s32` even for the same bits.** In BPress the target
   keeps `c` (the slot) in a callee-saved register for indexing, but re-derives `clrlwi r3, rIdx, 24`
   from the parameter at each call that takes the slot. `int c = (u8)idx` made MWCC reuse `c` there.
-  Declaring the callee's parameter `u32` (fn_2_16A74) or writing the argument as `idx & 0xFF`
+  Declaring the callee's parameter `u32` (captainSelect_setModelVisible) or writing the argument as `idx & 0xFF`
   stops the reuse (94.0 -> 96.4). `u32 c`/`s32 c` themselves turned the slot loads into `lbzu` walks.
 - **`slwi` on a slot index means a 32-bit variable known to be zero-extended; `clrlslwi` means a
   `u8` variable.** `u8 slot`/`u8 c` locals re-extend at every word index. `int slot = ...` (handleInputs),
@@ -4089,7 +4089,7 @@ and 100%; 9 -> 12 of 17 functions at 100%). Not flipped: four functions are stil
   loaded `charID` into `r4` and `li r5, 1` before `bl fn_8004D4F0`; the DOL body compares `r4`
   against `challengeCaptainCharIDArray` and branches on `r5`. It is the challenge-mode team
   add/remove `(team, charID, add)`, not a one-argument call (behaviour fix).
-- **`stopShowingCaptainProfile` takes the port's captain slot.** captainSelectScreenInputs passed
+- **`closeZMenu` takes the port's captain slot.** captainSelectScreenInputs passed
   the port; the target passes the `portCaptainSlot[port]` load it already CSE'd (behaviour fix).
 - **Dropping single-use temporaries fixed most of APress** (94.5 -> 99.7): the two
   `mapCaptainCursorPositionToCharID[...]` reads written into the stores directly, and the challenge
