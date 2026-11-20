@@ -795,37 +795,46 @@ void fn_2_4906C(void) {
 }
 
 // .text:0x00048DB4 size:0x2B8 mapped:0x80687E48
+/* LITInitColor takes the colour by value in this unit (the call sites copy
+ * it to a stack temporary); light.h declares the pointer form. */
+static inline void setLightColor(void *light, GXColor color) {
+    LITInitColor(light, &color);
+}
+
 void fn_2_48DB4(void) {
-    u32 color0 = lbl_2_rodata_940;
-    u32 color1 = lbl_2_rodata_93C;
-    u32 color2 = lbl_2_rodata_938;
-    u32 color3 = lbl_2_rodata_938;
+    GXColor color2;
+    GXColor color1;
+    GXColor color0;
+
+    *(u32 *)&color2 = lbl_2_rodata_938;
+    *(u32 *)&color1 = lbl_2_rodata_93C;
+    *(u32 *)&color0 = lbl_2_rodata_940;
 
     LITAlloc((void **)(hugeAnimStruct + 0xAC));
     LITAlloc((void **)(hugeAnimStruct + 0xB0));
     LITAlloc((void **)(hugeAnimStruct + 0xB4));
     LITAlloc((void **)(hugeAnimStruct + 0xB8));
 
-    LITInitAttn(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+    LITInitAttn(*(void **)(hugeAnimStruct + 0xAC), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     LITInitPos(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_974, lbl_2_rodata_978, lbl_2_rodata_97C);
     LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-    LITInitColor(*(void **)(hugeAnimStruct + 0xAC), (GXColor *)&color0);
+    setLightColor(*(void **)(hugeAnimStruct + 0xAC), color0);
     LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_980, lbl_2_rodata_978, lbl_2_rodata_97C);
 
-    LITInitAttn(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+    LITInitAttn(*(void **)(hugeAnimStruct + 0xB0), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     LITInitPos(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_980, lbl_2_rodata_984, lbl_2_rodata_988);
     LITInitDir(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-    LITInitColor(*(void **)(hugeAnimStruct + 0xB0), (GXColor *)&color1);
+    setLightColor(*(void **)(hugeAnimStruct + 0xB0), color1);
 
-    LITInitAttn(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+    LITInitAttn(*(void **)(hugeAnimStruct + 0xB4), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     LITInitPos(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
     LITInitDir(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-    LITInitColor(*(void **)(hugeAnimStruct + 0xB4), (GXColor *)&color2);
+    setLightColor(*(void **)(hugeAnimStruct + 0xB4), color2);
 
-    LITInitAttn(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+    LITInitAttn(*(void **)(hugeAnimStruct + 0xB8), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     LITInitPos(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
     LITInitDir(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-    LITInitColor(*(void **)(hugeAnimStruct + 0xB8), (GXColor *)&color3);
+    setLightColor(*(void **)(hugeAnimStruct + 0xB8), color2);
 }
 
 // .text:0x00048D54 size:0x60 mapped:0x80687DE8
@@ -840,12 +849,12 @@ void fn_2_48D54(void) {
 void fn_2_48D08(void) {
     u32 idx = *(u32 *)(lbl_2_bss_1A824C + 0x19769C);
     f32 *p = (f32 *)(hugeAnimStruct + idx * 0x27C + 0xC04);
-    p[13] = lbl_2_rodata_94C;
-    p[14] = lbl_2_rodata_94C;
-    p[15] = lbl_2_rodata_94C;
-    p[16] = lbl_2_rodata_94C;
-    p[17] = lbl_2_rodata_94C;
-    p[18] = lbl_2_rodata_94C;
+    p[13] = 0.0f;
+    p[14] = 0.0f;
+    p[15] = 0.0f;
+    p[16] = 0.0f;
+    p[17] = 0.0f;
+    p[18] = 0.0f;
 }
 
 // .text:0x00048BE0 size:0x128 mapped:0x80687C74
@@ -971,21 +980,25 @@ void fn_2_487A0(void) {
     }
 }
 
+static inline void resetSelectionSlots(void) {
+    *(s8 *)(hugeAnimStruct + 0x2D89) = -1;
+    *(s8 *)(hugeAnimStruct + 0x2D8A) = -1;
+    *(s8 *)(hugeAnimStruct + 0x2D8B) = -1;
+    *(s8 *)(hugeAnimStruct + 0x2D8C) = -1;
+    hugeAnimStruct[0x2D7B] = 0;
+    hugeAnimStruct[0x2D7C] = 0;
+    hugeAnimStruct[0x2D77] = 0;
+}
+
 // .text:0x000481F4 size:0x5AC mapped:0x80687288
 void fn_2_481F4(void) {
-    u32 maxSize = 0;
+    u32 maxSize;
     u32 aligned;
     u8 *pool;
     u8 *next;
-    s32 off = 0;
+    s32 off;
     s32 i;
     s32 j;
-    u32 color0;
-    u32 color1;
-    u32 color2;
-    u32 color3;
-    u8 *entry;
-    u32 idx;
     u8 *cdi = currentDrawingItem;
     s32 character = lbl_2_bss_1A8248[0x441D];
 
@@ -994,37 +1007,10 @@ void fn_2_481F4(void) {
         *(u32 *)(lbl_2_bss_1A824C + 0x195424) = memoryUsedOrStorage[1];
         *(u32 *)(lbl_2_bss_1A824C + 0x195428) = memoryUsedOrStorage[2];
 
-        color0 = lbl_2_rodata_940;
-        color1 = lbl_2_rodata_93C;
-        color2 = lbl_2_rodata_938;
-        color3 = lbl_2_rodata_938;
-        LITAlloc((void **)(hugeAnimStruct + 0xAC));
-        LITAlloc((void **)(hugeAnimStruct + 0xB0));
-        LITAlloc((void **)(hugeAnimStruct + 0xB4));
-        LITAlloc((void **)(hugeAnimStruct + 0xB8));
-
-        LITInitAttn(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitPos(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_974, lbl_2_rodata_978, lbl_2_rodata_97C);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitColor(*(void **)(hugeAnimStruct + 0xAC), (GXColor *)&color0);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_980, lbl_2_rodata_978, lbl_2_rodata_97C);
-
-        LITInitAttn(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitPos(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_980, lbl_2_rodata_984, lbl_2_rodata_988);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitColor(*(void **)(hugeAnimStruct + 0xB0), (GXColor *)&color1);
-
-        LITInitAttn(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitPos(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitColor(*(void **)(hugeAnimStruct + 0xB4), (GXColor *)&color2);
-
-        LITInitAttn(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitPos(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitColor(*(void **)(hugeAnimStruct + 0xB8), (GXColor *)&color3);
-
+        fn_2_48DB4();
         menuCamera_snapToPreset();
+        maxSize = 0;
+        off = 0;
         for (i = 0; i < 9; i++) {
             for (j = 0; j < 6; j++) {
                 u32 size = allocationEntrySize(off);
@@ -1050,39 +1036,17 @@ void fn_2_481F4(void) {
         fn_80014204(4);
         *(s32 *)(hugeAnimStruct + 0x13C) = fn_80023AA4();
 
-        hugeAnimStruct[0xE59] = 0;
-        *(u32 *)(hugeAnimStruct + 0x2C50) = 0;
-        hugeAnimStruct[0x2D6A] = 0xFF;
-        hugeAnimStruct[0xE5B] = 0xFF;
-        hugeAnimStruct[0x10D5] = 1;
-        *(u32 *)(hugeAnimStruct + 0x2C54) = 0;
-        hugeAnimStruct[0x2D6B] = 0xFF;
-        hugeAnimStruct[0x10D7] = 0xFF;
-        hugeAnimStruct[0x1351] = 2;
-        *(u32 *)(hugeAnimStruct + 0x2C58) = 0;
-        hugeAnimStruct[0x2D6C] = 0xFF;
-        hugeAnimStruct[0x1353] = 0xFF;
-        hugeAnimStruct[0x15CD] = 3;
-        *(u32 *)(hugeAnimStruct + 0x2C5C) = 0;
-        hugeAnimStruct[0x2D6D] = 0xFF;
-        hugeAnimStruct[0x15CF] = 0xFF;
-        hugeAnimStruct[0x2D7F] = 0xFF;
-        hugeAnimStruct[0x2D80] = 0xFF;
-        hugeAnimStruct[0x2D81] = 0xFF;
-        hugeAnimStruct[0x2D82] = 0xFF;
-        hugeAnimStruct[0x2D83] = 0xFF;
-        hugeAnimStruct[0x2D84] = 0xFF;
-        hugeAnimStruct[0x2D85] = 0xFF;
-        hugeAnimStruct[0x2D86] = 0xFF;
-        hugeAnimStruct[0x2D87] = 0xFF;
+        for (i = 0; i < 4; i++) {
+            hugeAnimStruct[0xE59 + i * 0x27C] = i;
+            *(u32 *)(hugeAnimStruct + 0x2C50 + i * 4) = 0;
+            *(s8 *)(hugeAnimStruct + 0x2D6A + i) = -1;
+            *(s8 *)(hugeAnimStruct + 0xE5B + i * 0x27C) = -1;
+        }
+        for (i = 0; i < 9; i++) {
+            *(s8 *)(hugeAnimStruct + 0x2D7F + i) = -1;
+        }
         hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D89] = 0xFF;
-        hugeAnimStruct[0x2D8A] = 0xFF;
-        hugeAnimStruct[0x2D8B] = 0xFF;
-        hugeAnimStruct[0x2D8C] = 0xFF;
-        hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D7B] = 0;
-        hugeAnimStruct[0x2D7C] = 0;
+        resetSelectionSlots();
         lbl_2_bss_55C0 = 1;
         break;
     case 1:
@@ -1091,14 +1055,7 @@ void fn_2_481F4(void) {
         }
         *(s32 *)(lbl_2_bss_1A824C + 0x19769C) = *(s16 *)(cdi + 0x16);
         lbl_2_bss_55C0 = 0;
-        idx = *(u32 *)(lbl_2_bss_1A824C + 0x19769C);
-        entry = hugeAnimStruct + idx * 0x27C + 0xC04;
-        *(f32 *)(entry + 0x34) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x38) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x3C) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x40) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x44) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x48) = lbl_2_rodata_94C;
+        fn_2_48D08();
         hugeAnimStruct[0x2D77] = 0;
         *(s16 *)(*(u8 **)(currentDrawingItem + 0xC) + 0x10) = 1;
         removeCurrentDrawingItem();
