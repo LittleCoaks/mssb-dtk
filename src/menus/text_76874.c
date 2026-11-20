@@ -22,7 +22,7 @@ extern u8 challengeCaptainCharIDArray[];
 extern u8 lbl_800EFBA4[];
 
 static inline BOOL stepIsClear(u8 step) {
-    return step == 0 ? TRUE : FALSE;
+    return step == SET_UP_STEP_START ? TRUE : FALSE;
 }
 
 static inline s32 firstRosterSlot(s32 port, s32 position) {
@@ -104,10 +104,10 @@ void cssAction_0x1b(MenuScene *scene, int port) {
             }
         }
         makeCursorUnmovable(port);
-        gameSetUpStep[port + 0xD] = 1;
+        gameSetUpStep[port + 0xD] = SET_UP_STEP_PLAYING;
     }
 
-    if (gameSetUpStep[port + 0xD] == 1) {
+    if (gameSetUpStep[port + 0xD] == SET_UP_STEP_PLAYING) {
         expected = 2;
         first = maybeCheckAndResetGrapicsElement(scene, port + 0x89, 5) != 0;
         second = maybeCheckAndResetGrapicsElement(scene, port + 0x6A, 0xA) != 0;
@@ -122,19 +122,19 @@ void cssAction_0x1b(MenuScene *scene, int port) {
         if (count == expected) {
             lbl_2_bss_F468[port + 0x61] = 0xFF;
             makeCursorMovable(port);
-            gameSetUpStep[port + 0xD] = 2;
+            gameSetUpStep[port + 0xD] = SET_UP_STEP_DONE;
             if (lbl_2_bss_F468[port + 0x65] != 0) {
                 if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-                    updateCharacterSelectProcessCode(0, 0x13);
-                    updateCharacterSelectProcessCode(1, 0x13);
+                    updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
+                    updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
                 } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-                    updateCharacterSelectProcessCode(port, 0x11);
+                    updateCharacterSelectProcessCode(port, CHAR_SELECT_PROCESS_CSS_READY);
                 } else {
-                    updateCharacterSelectProcessCode(port, 0x11);
+                    updateCharacterSelectProcessCode(port, CHAR_SELECT_PROCESS_CSS_READY);
                 }
                 lbl_2_bss_F468[port + 0x65] = 0;
             } else if (lbl_2_bss_F468[0x56] != 0) {
-                updateCharacterSelectProcessCode(port, 0x0B);
+                updateCharacterSelectProcessCode(port, CHAR_SELECT_PROCESS_CSS_EXIT);
             }
         }
     }
@@ -171,9 +171,9 @@ void cssAction_0x1c(MenuScene *scene, int port) {
                 channelSceneRecord(scene, port, 0x93)->playMode = UI_PLAY_FORWARD;
             }
             makeCursorUnmovable(port);
-            gameSetUpStep[port + 0xD] = 1;
+            gameSetUpStep[port + 0xD] = SET_UP_STEP_PLAYING;
         }
-        if (gameSetUpStep[port + 0xD] == 1) {
+        if (gameSetUpStep[port + 0xD] == SET_UP_STEP_PLAYING) {
             ready = 0;
             expected = 0;
             character = cursorPositions.roster.rosterCharID[port][slot];
@@ -184,7 +184,7 @@ void cssAction_0x1c(MenuScene *scene, int port) {
             if (ready == expected) {
                 lbl_2_bss_F468[port + 0x5F] = 1;
                 makeCursorMovable(port);
-                gameSetUpStep[port + 0xD] = 2;
+                gameSetUpStep[port + 0xD] = SET_UP_STEP_DONE;
             }
         }
     } else {
@@ -226,9 +226,9 @@ void cssAction_0x1c(MenuScene *scene, int port) {
             }
             gfx_cssCharStatBars_and_sthgElse(scene, port);
             makeCursorUnmovable(port);
-            gameSetUpStep[port + 0xD] = 1;
+            gameSetUpStep[port + 0xD] = SET_UP_STEP_PLAYING;
         }
-        if (gameSetUpStep[port + 0xD] == 1) {
+        if (gameSetUpStep[port + 0xD] == SET_UP_STEP_PLAYING) {
             ready = 0;
             expected = 0;
             character = cursorPositions.roster.rosterCharID[port][slot];
@@ -240,7 +240,7 @@ void cssAction_0x1c(MenuScene *scene, int port) {
                 lbl_2_bss_F468[port + 0x5F] = 0;
                 lbl_2_bss_F468[port + 0x61] = FIELDING_POSITION_NONE;
                 makeCursorMovable(port);
-                gameSetUpStep[port + 0xD] = 2;
+                gameSetUpStep[port + 0xD] = SET_UP_STEP_DONE;
             }
         }
     }
@@ -276,10 +276,10 @@ void cssAction_0x1d(MenuScene *scene, int port) {
             channelSceneRecord(scene, port, 0x93)->playMode = UI_PLAY_STOP;
         }
         makeCursorUnmovable(port);
-        gameSetUpStep[port + 0xD] = 1;
+        gameSetUpStep[port + 0xD] = SET_UP_STEP_PLAYING;
     }
 
-    if (gameSetUpStep[port + 0xD] == 1) {
+    if (gameSetUpStep[port + 0xD] == SET_UP_STEP_PLAYING) {
         wasChecked = 0;
         done = 0;
         if ((s8)cursor != *(s32 *)&lbl_2_bss_F468[port * 4]) {
@@ -293,7 +293,7 @@ void cssAction_0x1d(MenuScene *scene, int port) {
             lbl_2_bss_F468[port + 0x5F] = 0;
             lbl_2_bss_F468[port + 0x61] = 0xFF;
             makeCursorMovable(port);
-            gameSetUpStep[port + 0xD] = 2;
+            gameSetUpStep[port + 0xD] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -301,7 +301,7 @@ void cssAction_0x1d(MenuScene *scene, int port) {
 // .text:0x00078034 size:0x28 mapped:0x806B70C8
 void fn_2_78034(int unused, int channel) {
     if (stepIsClear(gameSetUpStep[channel + 0xD])) {
-        gameSetUpStep[channel + 0xD] = 1;
+        gameSetUpStep[channel + 0xD] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -330,7 +330,7 @@ void removeAllPlayersFromTeam(MenuScene *scene, int controller) {
         lbl_2_bss_F468[port + 0x54] == 0) {
         if (gameSetUpStep[port + 0x55] != 0) {
             makeCursorMovable(port);
-            gameSetUpStep[port + 0xD] = 2;
+            gameSetUpStep[port + 0xD] = SET_UP_STEP_DONE;
         } else {
             if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && port != 0) {
                 gameSetUpStep[port + 0x5D] = 0;
@@ -384,15 +384,15 @@ void removeAllPlayersFromTeam(MenuScene *scene, int controller) {
     if (lbl_2_bss_F468[port + 0x4B] != 0) {
         if (lbl_2_bss_F468[port + 0x45] != 0) {
             switch (lbl_2_bss_F468[port + 0x47]) {
-            case 0:
+            case Z_MENU_PAGE_MAIN:
                 fn_2_76DF0(scene, port);
                 break;
-            case 1:
+            case Z_MENU_PAGE_STAR_MOVES:
                 fn_2_76874(scene, port);
                 break;
             }
         } else {
-            if (lbl_2_bss_F468[port + 0x47] == 0) {
+            if (lbl_2_bss_F468[port + 0x47] == Z_MENU_PAGE_MAIN) {
                 if ((channelSceneRecord(scene, port, 0xB4)->frame >> 16) > 5) {
                     channelSceneRecord(scene, port, 0xB4)->frame = 5 << 16;
                 }

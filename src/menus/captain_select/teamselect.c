@@ -153,8 +153,8 @@ void captainSelectScreen_manager(void) {
                 gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
                 break;
             }
-            updateCharacterSelectProcessCode(0, 7);
-            updateCharacterSelectProcessCode(1, 7);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_DONE);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_DONE);
         } else {
             if (lbl_2_bss_100B8[0x40] == 0) {
                 break;
@@ -320,8 +320,8 @@ void captainSelectScreen_manager(void) {
             setPortOfEachPlayer();
             lbl_2_bss_100B8[0x40] = 1;
             lbl_2_bss_100B8[0x41] = 1;
-            updateCharacterSelectProcessCode(0, 7);
-            updateCharacterSelectProcessCode(1, 7);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_DONE);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_DONE);
             lbl_2_bss_100B4 = TRUE;
             lbl_803CBD24[4] = 0;
             lbl_2_bss_100B8[0x41] = 1;
@@ -491,12 +491,12 @@ void captainSelectDefaultProcess(void) {
         cursorPositions.cursor[1] = 0;
         cursorPositions.cursor[0] = 0;
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            updateCharacterSelectProcessCode(0, 1);
-            updateCharacterSelectProcessCode(1, 1);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_LOAD);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_LOAD);
         } else {
             relatedToTeamSelection4();
             insertGraphicDrawingFunction(fn_2_73758, 0x3000);
-            updateCharacterSelectProcessCode(0, 1);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_LOAD);
             lbl_803CBBC4[0] = 1;
         }
         gameSetUpStep.portCaptainSlot[0] = 0;
@@ -544,8 +544,8 @@ void captainSelectDefaultProcess(void) {
             lbl_2_bss_100B8[0x12] = 0;
             gameSetUpStep.portCaptainSlot[0] = 0;
         }
-        updateCharacterSelectProcessCode(0, 8);
-        updateCharacterSelectProcessCode(1, 8);
+        updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_RETURN);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_RETURN);
     }
     lbl_2_bss_100B4 = FALSE;
     Static_Stats_Tables.sceneAlive = 0xFF;

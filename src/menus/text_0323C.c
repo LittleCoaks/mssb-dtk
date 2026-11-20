@@ -103,8 +103,8 @@ void cssTransitionToNewScreen_maybe(void) {
         case 3:
             loadDemoMatch(0xA, 1, 1);
             lbl_803CBD24[4] = 0;
-            updateCharacterSelectProcessCode(0, 0x13);
-            updateCharacterSelectProcessCode(1, 0x13);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
             changeScene(0xF, 6);
             lbl_2_bss_3A0[0] = 0;
             lbl_2_bss_F468[0x2E] = 0;
@@ -196,15 +196,15 @@ void fn_2_3624(u8 port) {
         if (lbl_2_bss_F468[slot + 0x45] != 0) goto TAIL;
         if (CSS_CURSOR(slot) == 9) {
             CSS_CURSOR(slot) = 2;
-            updateCharacterSelectProcessCode(slot, 0xe);
+            updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else if (CSS_CURSOR(slot) == 10) {
             if (lbl_2_bss_F468[slot + 0x37] != 0) {
                 CSS_CURSOR(slot) = 9;
-                updateCharacterSelectProcessCode(slot, 0x18);
+                updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             } else {
                 CSS_CURSOR(slot) = 2;
-                updateCharacterSelectProcessCode(slot, 0xe);
+                updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             }
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else {
@@ -227,7 +227,7 @@ void fn_2_3624(u8 port) {
             case 7: CSS_CURSOR(slot) = 1; break;
             }
             if (CSS_PREV_CURSOR(slot) != CSS_CURSOR(slot)) {
-                updateCharacterSelectProcessCode(slot, 0xe);
+                updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             }
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         }
@@ -238,7 +238,7 @@ void fn_2_3624(u8 port) {
         if (lbl_2_bss_F468[slot + 0x45] != 0) goto TAIL;
         if (CSS_CURSOR(slot) == 9) {
             CSS_CURSOR(slot) = 8;
-            updateCharacterSelectProcessCode(slot, 0xe);
+            updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else {
             CSS_PREV_CURSOR(slot) = CSS_CURSOR(slot);
@@ -260,7 +260,7 @@ void fn_2_3624(u8 port) {
             case 1: CSS_CURSOR(slot) = 7; break;
             }
             if (CSS_PREV_CURSOR(slot) != CSS_CURSOR(slot)) {
-                updateCharacterSelectProcessCode(slot, 0xe);
+                updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             }
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         }
@@ -269,15 +269,15 @@ void fn_2_3624(u8 port) {
 
     if (localInput.processedInput & PAD_BUTTON_LEFT) {
         if (lbl_2_bss_F468[slot + 0x45] != 0) {
-            if (lbl_2_bss_F468[slot + 0x47] != 1) {
+            if (lbl_2_bss_F468[slot + 0x47] != Z_MENU_PAGE_STAR_MOVES) {
                 goto TAIL;
             }
-            lbl_2_bss_F468[slot + 0x47] = 0;
+            lbl_2_bss_F468[slot + 0x47] = Z_MENU_PAGE_MAIN;
             lbl_2_bss_F468[slot + 0x49] = 0;
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else if (CSS_CURSOR(slot) == 9) {
             CSS_CURSOR(slot) = 0;
-            updateCharacterSelectProcessCode(slot, 0xe);
+            updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else {
             CSS_PREV_CURSOR(slot) = CSS_CURSOR(slot);
@@ -298,7 +298,7 @@ void fn_2_3624(u8 port) {
             case 6: CSS_CURSOR(slot) = 8; break;
             }
             if (CSS_PREV_CURSOR(slot) != CSS_CURSOR(slot)) {
-                updateCharacterSelectProcessCode(slot, 0xe);
+                updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             }
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         }
@@ -307,15 +307,15 @@ void fn_2_3624(u8 port) {
 
     if (localInput.processedInput & PAD_BUTTON_RIGHT) {
         if (lbl_2_bss_F468[slot + 0x45] != 0) {
-            if (lbl_2_bss_F468[slot + 0x47] != 0) {
+            if (lbl_2_bss_F468[slot + 0x47] != Z_MENU_PAGE_MAIN) {
                 goto TAIL;
             }
-            lbl_2_bss_F468[slot + 0x47] = 1;
+            lbl_2_bss_F468[slot + 0x47] = Z_MENU_PAGE_STAR_MOVES;
             lbl_2_bss_F468[slot + 0x49] = 0;
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else if (CSS_CURSOR(slot) == 9) {
             CSS_CURSOR(slot) = 0;
-            updateCharacterSelectProcessCode(slot, 0xe);
+            updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else {
             CSS_PREV_CURSOR(slot) = CSS_CURSOR(slot);
@@ -323,10 +323,10 @@ void fn_2_3624(u8 port) {
             case 0:
                 if (lbl_2_bss_F468[slot + 0x37] != 0 && lbl_2_bss_F468[slot + 0x5f] == 0) {
                     CSS_CURSOR(slot) = 9;
-                    updateCharacterSelectProcessCode(slot, 0x18);
+                    updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
                 } else {
                     CSS_CURSOR(slot) = 2;
-                    updateCharacterSelectProcessCode(slot, 0xe);
+                    updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
                 }
                 break;
             case 1:
@@ -343,7 +343,7 @@ void fn_2_3624(u8 port) {
             case 3: CSS_CURSOR(slot) = 2; break;
             }
             if (CSS_PREV_CURSOR(slot) != CSS_CURSOR(slot)) {
-                updateCharacterSelectProcessCode(slot, 0xe);
+                updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             }
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         }
@@ -381,10 +381,10 @@ void fn_2_3624(u8 port) {
                     menuControlVariables->currentState = 7;
                 }
             }
-            updateCharacterSelectProcessCode(slot, 0x1b);
+            updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_EXIT);
         } else if (lbl_2_bss_F468[slot + 0x5f] == 0) {
             lbl_2_bss_F468[slot + 0x61] = CSS_CURSOR(slot);
-            updateCharacterSelectProcessCode(slot, 0x1c);
+            updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_PICK);
         } else {
             s32 matchIdx, modeMatchIdx;
             s8 matchVal;
@@ -402,7 +402,7 @@ void fn_2_3624(u8 port) {
             }
             cursorPositions.roster.positionSwapMapping[slot][matchIdx] = modeMatchVal;
             cursorPositions.roster.positionSwapMapping[slot][modeMatchIdx] = matchVal;
-            updateCharacterSelectProcessCode(slot, 0x1c);
+            updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_PICK);
         }
         sndFXStartEx(0x1b8, lbl_800EFBA4[1], 0x3f, 0);
         goto TAIL;
@@ -411,7 +411,7 @@ void fn_2_3624(u8 port) {
     if (localInput.newInput & PAD_BUTTON_B) {
         if (closeZMenu(slot)) goto TAIL;
         if (lbl_2_bss_F468[slot + 0x5f] != 0) {
-            updateCharacterSelectProcessCode(slot, 0x1d);
+            updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_CANCEL);
         }
         sndFXStartEx(0x1b9, lbl_800EFBA4[2], 0x3f, 0);
         goto TAIL;
@@ -422,7 +422,7 @@ void fn_2_3624(u8 port) {
         if (lbl_2_bss_F468[slot + 0x5f] != 0) {
             lbl_2_bss_F468[slot + 0x5f] = 0;
         }
-        updateCharacterSelectProcessCode(slot, 0x1b);
+        updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_EXIT);
         sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         lbl_2_bss_F468[slot + 0x59] = 0;
         goto TAIL;
@@ -512,7 +512,7 @@ void fn_2_3624(u8 port) {
 
         lbl_2_bss_F468[slot + 0x45] = 1;
         lbl_2_bss_F468[slot + 0x4b] = 1;
-        lbl_2_bss_F468[slot + 0x47] = 0;
+        lbl_2_bss_F468[slot + 0x47] = Z_MENU_PAGE_MAIN;
         sndFXStartEx(0x1bf, lbl_800EFBA4[8], 0x3f, 0);
     }
 
@@ -628,7 +628,7 @@ void fn_2_4970(u8 team, s32 charID) {
         }
         lbl_2_bss_F468[team + 0x37] = 0;
     }
-    updateCharacterSelectProcessCode(team, 0x10);
+    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_REMOVE_CHARACTER);
 }
 #pragma dont_inline reset
 
@@ -666,7 +666,7 @@ void fn_2_5184(s32 port) {
 
             lbl_2_bss_F468[(u8)port + 0x37] = 0;
             lbl_2_bss_F468[(u8)port + 0x43] = TRUE;
-            updateCharacterSelectProcessCode(port & 0xFF, 0x19);
+            updateCharacterSelectProcessCode(port & 0xFF, CHAR_SELECT_PROCESS_CSS_CLEAR_ROSTER);
         }
     }
 }
@@ -731,8 +731,8 @@ void teamReady1(u8 port) {
             tracker += sizeof(SavedChallengeSlot);
             lineUp += 4;
         }
-        updateCharacterSelectProcessCode(0, 0x13);
-        updateCharacterSelectProcessCode(1, 0x13);
+        updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
         lbl_2_bss_F468[0x2e] = 0;
         lbl_2_bss_100B4 = 1;
         menuControlVariables->currentState = 8;
@@ -741,7 +741,7 @@ void teamReady1(u8 port) {
 
     mode = ((u8 *)&g_d_GameSettings)[0x10];
     if (mode == 0 && lbl_2_bss_100B8[0x2e] != 0) {
-        updateCharacterSelectProcessCode(1, 0x11);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_READY);
         ((u8 *)&Static_Stats_Tables)[0x472a] = 0xff;
         lbl_2_bss_F468[0x36] = 0x1e;
         menuControlVariables->currentState = 3;
@@ -750,13 +750,13 @@ void teamReady1(u8 port) {
     if (mode != 0) goto other;
 
     fn_2_52CC();
-    updateCharacterSelectProcessCode(0, 0x11);
+    updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_READY);
     return;
 
 other:
     if (mode != 1) return;
     lbl_2_bss_100B8[0x2e + port] = 1;
-    updateCharacterSelectProcessCode(port, 0x11);
+    updateCharacterSelectProcessCode(port, CHAR_SELECT_PROCESS_CSS_READY);
     if (lbl_2_bss_100B8[0x2e] == 0) return;
     if (lbl_2_bss_100B8[0x2f] == 0) return;
     lbl_2_bss_F468[0x4f] = 1;
@@ -783,17 +783,17 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
 
         if (state == 9) {
             *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 2;
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
             return;
         }
         if (state == 10) {
             if (lbl_2_bss_F468[playerIndex + 0x37] != 0) {
                 *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 9;
-                updateCharacterSelectProcessCode(playerIndex, 0x18);
+                updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             } else {
                 *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 2;
-                updateCharacterSelectProcessCode(playerIndex, 0xe);
+                updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             }
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
             return;
@@ -822,7 +822,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
         }
 
         if (*oldState != *(s32 *)&lbl_2_bss_F468[playerIndex * 4]) {
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
         }
         sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         return;
@@ -834,17 +834,17 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
         if (state == 9) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
                 *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 8;
-                updateCharacterSelectProcessCode(playerIndex, 0xe);
+                updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             } else {
                 *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 0xa;
-                updateCharacterSelectProcessCode(playerIndex, 0x18);
+                updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             }
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
             return;
         }
         if (state == 10) {
             *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 8;
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
             return;
         }
@@ -876,7 +876,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
         }
 
         if (*oldState != *(s32 *)&lbl_2_bss_F468[playerIndex * 4]) {
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
         }
         sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         return;
@@ -887,13 +887,13 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
 
         if (state == 9) {
             *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 0;
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
             return;
         }
         if (state == 10) {
             *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 1;
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
             return;
         }
@@ -922,7 +922,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
         }
 
         if (*oldState != *(s32 *)&lbl_2_bss_F468[playerIndex * 4]) {
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
         }
         sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         return;
@@ -933,17 +933,17 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
 
         if (state == 9) {
             *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 0;
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
             return;
         }
         if (state == 10) {
             if (lbl_2_bss_F468[playerIndex + 0x37] != 0) {
                 *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 9;
-                updateCharacterSelectProcessCode(playerIndex, 0x18);
+                updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             } else {
                 *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 1;
-                updateCharacterSelectProcessCode(playerIndex, 0xe);
+                updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             }
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
             return;
@@ -953,10 +953,10 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
         case 0:
             if (lbl_2_bss_F468[playerIndex + 0x37] != 0) {
                 *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 9;
-                updateCharacterSelectProcessCode(playerIndex, 0x18);
+                updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             } else {
                 *(s32 *)&lbl_2_bss_F468[playerIndex * 4] = 2;
-                updateCharacterSelectProcessCode(playerIndex, 0xe);
+                updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             }
             break;
         case 1:
@@ -979,7 +979,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
         }
 
         if (*oldState != *(s32 *)&lbl_2_bss_F468[playerIndex * 4]) {
-            updateCharacterSelectProcessCode(playerIndex, 0xe);
+            updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
         }
         sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         return;
@@ -1008,7 +1008,7 @@ void fn_2_5F80(void) {
 // .text:0x00006098 size:0x3C mapped:0x8064512C
 void fn_2_6098(u8 port) {
     *(s32 *)&lbl_2_bss_F468[port * 4] = 9;
-    updateCharacterSelectProcessCode(port, 0x17);
+    updateCharacterSelectProcessCode(port, CHAR_SELECT_PROCESS_CSS_CURSOR_TO_DONE);
 }
 
 // .text:0x000060D4 size:0x64 mapped:0x80645168
@@ -1024,8 +1024,8 @@ s32 fn_2_60D4(u8 port) {
 
 // .text:0x00006138 size:0x68 mapped:0x806451CC
 void fn_2_6138(void) {
-    updateCharacterSelectProcessCode(0, 0x13);
-    updateCharacterSelectProcessCode(1, 0x13);
+    updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
+    updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
     lbl_2_bss_F468[0x4F] = 0;
     lbl_2_bss_F468[0x2E] = 0;
     lbl_2_bss_100B4 = 1;
@@ -1140,7 +1140,7 @@ void cssSelectCPUDifficulty(void) {
             return;
         }
         if (lbl_2_bss_F468[0x34] == 0) {
-            updateCharacterSelectProcessCode(0, 0x1E);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CPU_DIFFICULTY_OPEN);
             lbl_2_bss_F468[0x34] = 1;
         }
         lbl_2_bss_F468[0x33] = 1;
@@ -1160,10 +1160,10 @@ void cssSelectCPUDifficulty(void) {
             lbl_2_bss_F468[0x2E] = 0;
             lbl_2_bss_100B4 = 1;
             menuControlVariables->currentState = 8;
-            updateCharacterSelectProcessCode(0, 0x13);
-            updateCharacterSelectProcessCode(1, 0x13);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
         } else {
-            updateCharacterSelectProcessCode(1, 0x12);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_UNREADY);
             menuControlVariables->currentState = 2;
         }
         lbl_2_bss_F468[0x35] = 0;
@@ -1208,10 +1208,10 @@ void characterSelectScreenControlable(void) {
 
         for (i = 0; i < 2; i++) {
             if (lbl_2_bss_F468[0x59 + i] != 0) {
-                updateCharacterSelectProcessCode(i, 0x1b);
+                updateCharacterSelectProcessCode(i, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_EXIT);
                 lbl_2_bss_F468[0x59 + i] = 0;
             } else {
-                updateCharacterSelectProcessCode(i, 0xb);
+                updateCharacterSelectProcessCode(i, CHAR_SELECT_PROCESS_CSS_EXIT);
             }
         }
     }
@@ -1832,14 +1832,14 @@ void cssLoadingScreenRelated(void) {
     }
 
     if (menuControlVariables->previousScreen == 9) {
-        updateCharacterSelectProcessCode(0, 0xA);
-        updateCharacterSelectProcessCode(1, 0xA);
+        updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LOAD_FROM_CAPTAIN_SELECT);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LOAD_FROM_CAPTAIN_SELECT);
     } else if (menuControlVariables->previousScreen != 0xB && g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        updateCharacterSelectProcessCode(0, 0xA);
-        updateCharacterSelectProcessCode(1, 0xA);
+        updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LOAD_FROM_CAPTAIN_SELECT);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LOAD_FROM_CAPTAIN_SELECT);
     } else {
-        updateCharacterSelectProcessCode(0, 9);
-        updateCharacterSelectProcessCode(1, 9);
+        updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LOAD);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LOAD);
     }
 
     gameSetUpStep[0] = 2;
@@ -1890,7 +1890,7 @@ void fn_2_87A8(void) {
             *(s32 *)&menuCursors[0x4C] = 3;
         }
         if (v != *(s32 *)&menuCursors[0x4C]) {
-            updateCharacterSelectProcessCode(0, 0x20);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CURSOR_MOVE);
         }
         cursorSndFx(8);
     } else if (held & 4) {
@@ -1899,7 +1899,7 @@ void fn_2_87A8(void) {
             *(s32 *)&menuCursors[0x4C] = 0;
         }
         if (v != *(s32 *)&menuCursors[0x4C]) {
-            updateCharacterSelectProcessCode(0, 0x20);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CURSOR_MOVE);
         }
         cursorSndFx(4);
     } else if (*(u16 *)(pad + 2) & 0x200) {
@@ -1907,11 +1907,11 @@ void fn_2_87A8(void) {
         lbl_2_bss_F468[0x34] = 0;
         lbl_2_bss_F468[0x35] = 1;
         ((u8 *)&g_MatchInfo)[0xE] = 1;
-        updateCharacterSelectProcessCode(1, 0x1F);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CANCEL);
         cursorSndFx(0x200);
     } else if (*(u16 *)(pad + 2) & 0x100) {
         ((u8 *)&inningSetting)[3] = lbl_803CB8D0[v];
-        updateCharacterSelectProcessCode(0, 0x21);
+        updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CONFIRM);
         lbl_2_bss_F468[0x33] = 2;
         lbl_2_bss_F468[0x34] = 0;
         lbl_2_bss_F468[0x35] = 0;
@@ -3166,12 +3166,12 @@ void fn_2_CCE0(s32 port) {
         CSS_PREV_CURSOR_S32((u8)port) = CSS_CURSOR((u8)port);
         CSS_CURSOR((u8)port) = 9;
         lbl_2_bss_F468[(u8)port + 0x41] = FALSE;
-        updateCharacterSelectProcessCode(port & 0xFF, 0x14);
+        updateCharacterSelectProcessCode(port & 0xFF, CHAR_SELECT_PROCESS_CSS_ROSTER_COMPLETE);
         cssLoadingRelated_1(1, -1, -1, -1, -1, 0);
     } else {
         CSS_PREV_CURSOR_S32((u8)port) = CSS_CURSOR((u8)port);
         CSS_CURSOR((u8)port) = (s8)cursorPositions.roster.positionSwapMapping[(u8)port][count];
-        updateCharacterSelectProcessCode(port & 0xFF, 0xe);
+        updateCharacterSelectProcessCode(port & 0xFF, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
     }
 }
 
@@ -3198,7 +3198,7 @@ void characterSelectBPress(s32 team) {
 
     if (lbl_2_bss_F468[team + 0x41] != 0) {
         lbl_2_bss_F468[team + 0x41] = 0;
-        updateCharacterSelectProcessCode(team, 0xD);
+        updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID);
     } else {
         captainID = Static_Stats_Tables.captainSelectedID[team];
         for (i = 0; i < 9; i++) {
@@ -3249,7 +3249,7 @@ void characterSelectBPress(s32 team) {
                 if (captainID == cursorPositions.roster.rosterCharID[team][8]) {
                     CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
                 }
-                updateCharacterSelectProcessCode(team, 0x15);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_CURSOR_BACK_FROM_DONE);
             } else if (CSS_CURSOR(team) == 10) {
                 if (mismatchCount == 0 && ((u8 *)&g_MatchInfo)[0xE] != 0) {
                     lbl_2_bss_100B8[0x2F] = 0;
@@ -3259,7 +3259,7 @@ void characterSelectBPress(s32 team) {
                     gameSetUpStep[0x59] = 0;
                     CSS_CURSOR(1) = 9;
                     CSS_CURSOR(0) = 9;
-                    updateCharacterSelectProcessCode(0, 0x12);
+                    updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_UNREADY);
                 } else if (mismatchCount == 0 && ((u8 *)&g_MatchInfo)[0xE] == 0) {
                     if (gameSetUpStep[0x55] != 0 || gameSetUpStep[0x56] != 0) {
                         return;
@@ -3297,7 +3297,7 @@ void characterSelectBPress(s32 team) {
                     if (captainID == cursorPositions.roster.rosterCharID[team][8]) {
                         CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
                     }
-                    updateCharacterSelectProcessCode(team, 0x15);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_CURSOR_BACK_FROM_DONE);
                 }
             } else if (lbl_2_bss_F468[0x37] != 0 && mismatchCount == 0) {
                 lbl_2_bss_100B8[0x2F] = 0;
@@ -3307,7 +3307,7 @@ void characterSelectBPress(s32 team) {
                 gameSetUpStep[0x59] = 0;
                 CSS_CURSOR(1) = 9;
                 CSS_CURSOR(0) = 9;
-                updateCharacterSelectProcessCode(0, 0x12);
+                updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_UNREADY);
             } else if (mismatchCount == 0) {
                 if (gameSetUpStep[0x55] != 0 || gameSetUpStep[0x56] != 0) {
                     return;
@@ -3425,11 +3425,11 @@ void characterSelectBPress(s32 team) {
                     cursorPositions.roster.rosterSpotFilledInd[team][idx] = 0;
                     lbl_2_bss_F468[team + 0x37] = 0;
                 }
-                updateCharacterSelectProcessCode(team, 0x10);
+                updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_REMOVE_CHARACTER);
             } else if (cursor == 9 || cursor == 10) {
                 if (lbl_2_bss_100B8[team + 0x2E] != 0) {
                     lbl_2_bss_100B8[team + 0x2E] = 0;
-                    updateCharacterSelectProcessCode(team, 0x12);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_UNREADY);
                     cursorSndFx(0x200);
                     return;
                 }
@@ -3439,7 +3439,7 @@ void characterSelectBPress(s32 team) {
                     if (captainID == cursorPositions.roster.rosterCharID[team][8]) {
                         CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
                     }
-                    updateCharacterSelectProcessCode(team, 0x15);
+                    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_CURSOR_BACK_FROM_DONE);
                     cursorSndFx(0x200);
                     return;
                 }
@@ -3478,6 +3478,8 @@ void characterSelectBPress(s32 team) {
                             break;
                         case 1:
                             if (cursorPositions.roster.rosterCharID[1][0] == Static_Stats_Tables.captainSelectedID[1]) {
+                                /* The original stores 11 here (li r0,0xb; stw r0,0x4(r26)), likely a
+                                 * slip for 1: 0xB is team 1's first roster byte offset. Kept as compiled. */
                                 CSS_CURSOR(1) = 11;
                             }
                             break;
@@ -3572,7 +3574,7 @@ void characterSelectAPress(s32 team) {
             return;
         }
         lbl_2_bss_F468[team + 0x41] = 1;
-        updateCharacterSelectProcessCode(team, 0xd);
+        updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID);
         cursorSndFx(0x100);
         return;
     }
@@ -3661,7 +3663,7 @@ select:
     ((u8 *)&g_MatchInfo)[team + 0xa] = 1;
     cursorPositions.roster.chemWCaptain[team][slot] =
         ((u8 *)&Static_Stats_Tables.characterStats[newChar / 9][newChar % 9])[captain + 0x3B];
-    updateCharacterSelectProcessCode(team, 0xf);
+    updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_SELECT_CHARACTER);
     if (lbl_2_bss_F468[team + 0x37] != 0) {
         lbl_2_bss_F468[team + 0x41] = 0;
     }
@@ -3772,17 +3774,17 @@ void fn_2_EC54(s32 port) {
 // .text:0x0000ED94 size:0x46C mapped:0x8064DE28
 #pragma dont_inline on
 static inline void cssToggleZMenuPage(u8 team, u16 input) {
-    u8 *option = &lbl_2_bss_F468[team + 0x47];
+    u8 *page = &lbl_2_bss_F468[team + 0x47];
 
-    if (*option == 0) {
+    if (*page == Z_MENU_PAGE_MAIN) {
         if (input & PAD_BUTTON_RIGHT) {
-            *option = 1;
+            *page = Z_MENU_PAGE_STAR_MOVES;
             lbl_2_bss_F468[team + 0x49] = 0;
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         }
-    } else if (*option == 1) {
+    } else if (*page == Z_MENU_PAGE_STAR_MOVES) {
         if (input & PAD_BUTTON_LEFT) {
-            *option = 0;
+            *page = Z_MENU_PAGE_MAIN;
             lbl_2_bss_F468[team + 0x49] = 0;
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         }
@@ -3815,7 +3817,7 @@ s32 characterSelectABDirectionInputs(u8 team, u16 held, u16 pressed, u16 repeat)
 
     if (lbl_2_bss_F468[team + 0x59] != 0) {
         lbl_2_bss_F468[team + 0x41] = 0;
-        updateCharacterSelectProcessCode(team, 0xd);
+        updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID);
         return TRUE;
     }
 
@@ -4288,13 +4290,13 @@ void cssRandomFillRoster(s32 team) {
 
         teamLogoDetermination(team & 0xFF);
         unsure_FillRosterPositions(team);
-        updateCharacterSelectProcessCode(team & 0xFF, 0x16);
+        updateCharacterSelectProcessCode(team & 0xFF, CHAR_SELECT_PROCESS_CSS_RANDOM_FILL);
 
         lbl_803CBD24[3] = lbl_803CBD24[2];
         lbl_2_bss_F468[(u8)team + 0x37] = 1;
     } else {
         *(s32 *)&lbl_2_bss_F468[(u8)team * 4] = 9;
-        updateCharacterSelectProcessCode(team & 0xFF, 0x11);
+        updateCharacterSelectProcessCode(team & 0xFF, CHAR_SELECT_PROCESS_CSS_READY);
     }
 
     if (lbl_2_bss_F468[(u8)team + 0x3b] != 0) {
@@ -4309,7 +4311,7 @@ void cssRandomFillRoster(s32 team) {
 static inline void cssOpenZMenu(u8 team) {
     lbl_2_bss_F468[team + 0x45] = 1;
     lbl_2_bss_F468[team + 0x4b] = 1;
-    lbl_2_bss_F468[team + 0x47] = 0;
+    lbl_2_bss_F468[team + 0x47] = Z_MENU_PAGE_MAIN;
     sndFXStartEx(0x1bf, lbl_800EFBA4[8], 0x3f, 0);
 }
 
@@ -4486,17 +4488,17 @@ void characterSelectControls(u16 port) {
 
         if (lbl_2_bss_F468[team + 0x41] != 0) {
             lbl_2_bss_F468[team + 0x41] = 0;
-            updateCharacterSelectProcessCode(team, 0xd);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID);
             return;
         }
         if (CSS_CURSOR(team) == 10) {
             lbl_2_bss_F468[team + 0x63] = 1;
             CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
             CSS_CURSOR(team) = 1;
-            updateCharacterSelectProcessCode(team, 0xe);
+            updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             return;
         }
-        updateCharacterSelectProcessCode(team, 0x1a);
+        updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_ENTER);
         return;
     }
 
@@ -4543,8 +4545,8 @@ void teamSelectScreenMain(void) {
         break;
     case 7:
         if (*(s8 *)&lbl_2_bss_F468[0x36] < 0) {
-            updateCharacterSelectProcessCode(0, 0x13);
-            updateCharacterSelectProcessCode(1, 0x13);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
             lbl_2_bss_F468[0x4F] = 0;
             lbl_2_bss_F468[0x2E] = 0;
             lbl_2_bss_100B4 = 1;

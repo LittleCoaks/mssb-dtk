@@ -58,11 +58,11 @@ static inline s32 rosterHandle(s32 index, s32 position, s32 offset) {
 }
 
 static inline BOOL isStepClear(u8 step) {
-    return step == 0 ? TRUE : FALSE;
+    return step == SET_UP_STEP_START ? TRUE : FALSE;
 }
 
 static inline BOOL isStepActive(u8 step) {
-    return step == 1 ? TRUE : FALSE;
+    return step == SET_UP_STEP_PLAYING ? TRUE : FALSE;
 }
 
 static inline BOOL resetChemistryStars(MenuScene *scene, s32 index) {
@@ -288,7 +288,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
             }
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -312,9 +312,9 @@ void fn_2_7AC64(MenuScene *scene, s32 index) {
             makeCursorMovable(index);
             if (menuControlVariables->previousScreen == 0xB && index == 0 &&
                 g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-                updateCharacterSelectProcessCode(0, 0x11);
+                updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_READY);
             } else {
-                gameSetUpStep[index + 0xD] = 2;
+                gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
             }
         }
     }
@@ -345,7 +345,7 @@ void fn_2_7A9D8(MenuScene *scene, s32 index) {
         SCENE_RECORD(scene, index + 0xC)->flags &= ~UI_FLAG_VISIBLE;
         SCENE_RECORD(scene, index + 0x12)->flags &= ~UI_FLAG_VISIBLE;
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -375,7 +375,7 @@ void fn_2_7A748(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, 0x81)->flags |= UI_FLAG_VISIBLE;
             SCENE_RECORD(scene, 0xF)->playMode = UI_PLAY_STOP;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -398,7 +398,7 @@ void fn_2_7A5B8(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x93)->flags &= ~UI_FLAG_VISIBLE;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -417,7 +417,7 @@ void fn_2_7A460(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0xC)->flags &= ~UI_FLAG_VISIBLE;
             SCENE_RECORD(scene, index + 0x12)->flags &= ~UI_FLAG_VISIBLE;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -447,7 +447,7 @@ void fn_2_7A194(MenuScene *scene, s32 index) {
             }
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -468,7 +468,7 @@ void fn_2_79FAC(MenuScene *scene, s32 index) {
         }
         if (done == placed) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -496,7 +496,7 @@ void fn_2_79CF8(MenuScene *scene, s32 index) {
             rosterRecord(scene, index, want, 0x34)->playMode = UI_PLAY_BACKWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -516,7 +516,7 @@ void fn_2_79B24(MenuScene *scene, s32 index) {
         }
         if (done == placed) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -546,7 +546,7 @@ void randomTeamMemberSelection(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_BACKWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -574,7 +574,7 @@ void fn_2_79764(MenuScene *scene, s32 index) {
             }
         }
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = 2;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
     }
 }
 
@@ -582,7 +582,7 @@ void fn_2_79764(MenuScene *scene, s32 index) {
 void fn_2_79688(MenuScene *scene, s32 index) {
     int i;
 
-    if (gameSetUpStep[index + 0xD] != 0) {
+    if (gameSetUpStep[index + 0xD] != SET_UP_STEP_START) {
         return;
     }
     for (i = 0; i < (s32)PLAYERS_PER_TEAM; i++) {
@@ -600,7 +600,7 @@ void fn_2_79634(void *unused, s32 index) {
 
     if (isStepActive(gameSetUpStep[index + 0xD])) {
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = 2;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
     }
 }
 
@@ -620,9 +620,9 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_FORWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == 1) {
+    if (gameSetUpStep[index + 0xD] == SET_UP_STEP_PLAYING) {
         s32 cursor = CSS_CURSOR_S32(index);
         s32 ready = 0;
         s32 target = 0;
@@ -639,7 +639,7 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
         if (ready == target) {
             CSS_PREV_CURSOR_S32(index) = cursor;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -662,9 +662,9 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
             teamSelectionSetChemStars(scene, index);
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == 1) {
+    if (gameSetUpStep[index + 0xD] == SET_UP_STEP_PLAYING) {
         s32 attempted = 0;
         s32 succeeded = 0;
         s32 j;
@@ -694,7 +694,7 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
         }
         if (succeeded == attempted) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
             if (lbl_2_bss_F468[index + 0x43] != 0) {
                 cssRandomFillRoster(index);
                 lbl_2_bss_F468[index + 0x43] = 0;
@@ -721,10 +721,10 @@ void cssAction_0x1a(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x8F)->playMode = UI_PLAY_FORWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == 1) {
+    if (gameSetUpStep[index + 0xD] == SET_UP_STEP_PLAYING) {
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = 2;
+        gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
     }
 }

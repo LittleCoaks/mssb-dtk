@@ -10,7 +10,7 @@
 
 typedef struct {
     u8 _00[0xD];
-    u8 unk0D[4];
+    /* 0x0D */ E(u8, SET_UP_STEP) cssActionStep[4]; // stepFlags row 2
 } CssStepFlags;
 extern CssStepFlags gameSetUpStep;
 extern u8 lbl_2_bss_F468[0xC4C];
@@ -32,11 +32,11 @@ static inline UIRecord *teamRosterRecord(MenuScene *scene, int position, s32 slo
 }
 
 static inline BOOL isStepActive(u8 step) {
-    return step == 1 ? TRUE : FALSE;
+    return step == SET_UP_STEP_PLAYING ? TRUE : FALSE;
 }
 
 static inline BOOL isStepClear(u8 step) {
-    return step == 0 ? TRUE : FALSE;
+    return step == SET_UP_STEP_START ? TRUE : FALSE;
 }
 
 static inline void setCaptainStarIcons(MenuScene *scene, int slot) {
@@ -101,7 +101,7 @@ void fn_2_7E194(MenuScene* scene, s32 slot) {
     s32 threshold;
     s8 swapIdx;
 
-    if (isStepActive(gameSetUpStep.unk0D[slot])) {
+    if (isStepActive(gameSetUpStep.cssActionStep[slot])) {
         count = maybeCheckAndResetGrapicsElement(scene, slot + 0x1C, 10) != 0;
         count += maybeCheckAndResetGrapicsElement(scene, slot + 0x6A, 10) != 0;
         count += maybeCheckAndResetGrapicsElement(scene, slot + 0x89, 5) != 0;
@@ -113,7 +113,7 @@ void fn_2_7E194(MenuScene* scene, s32 slot) {
         }
         if (count == threshold) {
             makeCursorMovable(slot);
-            gameSetUpStep.unk0D[slot] = 2;
+            gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -129,7 +129,7 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
     s8 saved;
     E(s8, CHAR_ID) character;
 
-    if (isStepClear(gameSetUpStep.unk0D[slot])) {
+    if (isStepClear(gameSetUpStep.cssActionStep[slot])) {
         previous = ((s32 *)lbl_2_bss_F468)[slot + 2];
         current = ((s32 *)lbl_2_bss_F468)[slot];
         for (i = 0; i < 9; i++) {
@@ -198,7 +198,7 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
             }
         }
         makeCursorUnmovable(slot);
-        gameSetUpStep.unk0D[slot] = 1;
+        gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -215,7 +215,7 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
     s32* pair;
 
     pair = (s32*)lbl_2_bss_F468;
-    if (gameSetUpStep.unk0D[slot] == 1) {
+    if (gameSetUpStep.cssActionStep[slot] == SET_UP_STEP_PLAYING) {
         valB = pair[slot + 2];
         valA = pair[slot];
         attempts = 0;
@@ -245,10 +245,10 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
         if (successes == attempts) {
             pair[slot + 2] = pair[slot];
             makeCursorMovable(slot);
-            gameSetUpStep.unk0D[slot] = 2;
+            gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_DONE;
             if (lbl_2_bss_F468[0x63 + slot] != 0) {
                 lbl_2_bss_F468[0x63 + slot] = 0;
-                updateCharacterSelectProcessCode(slot, 0x1A);
+                updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_ENTER);
             }
         }
     }
@@ -267,7 +267,7 @@ void cssAction_case9(MenuScene *scene, int slot) {
     int starCount;
     u8 mode;
 
-    if (isStepClear(gameSetUpStep.unk0D[slot])) {
+    if (isStepClear(gameSetUpStep.cssActionStep[slot])) {
         setCaptainStarIcons(scene, slot);
         SCENE_RECORD(scene, 6)->playMode = UI_PLAY_FORWARD;
         SCENE_RECORD(scene, 8)->playMode = UI_PLAY_FORWARD;
@@ -451,9 +451,9 @@ void cssAction_case9(MenuScene *scene, int slot) {
             }
         }
         makeCursorUnmovable(slot);
-        gameSetUpStep.unk0D[slot] = 1;
+        gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep.unk0D[slot] == 1) {
+    if (gameSetUpStep.cssActionStep[slot] == SET_UP_STEP_PLAYING) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             ready = maybeCheckAndResetGrapicsElement(scene, slot, 20) != 0;
             ready += maybeCheckAndResetGrapicsElement(scene, slot + 2, 20) != 0;
@@ -490,7 +490,7 @@ void cssAction_case9(MenuScene *scene, int slot) {
         }
         if (starsReady == starsExpected && ready == expected + 1) {
             makeCursorMovable(slot);
-            gameSetUpStep.unk0D[slot] = 2;
+            gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_DONE;
         }
     }
 }

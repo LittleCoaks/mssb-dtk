@@ -286,8 +286,8 @@ void captainSelect_handleInputs(int port) {
     if (lbl_2_bss_F468[0x45 + slot] != 0) {
         u16 newI = Static_Stats_Tables.controllerInputs[p].newInput;
         if (newI & INPUT_BUTTON_RIGHT) {
-            if (lbl_2_bss_F468[0x47 + slot] == 0) {
-                lbl_2_bss_F468[0x47 + slot] = 1;
+            if (lbl_2_bss_F468[0x47 + slot] == Z_MENU_PAGE_MAIN) {
+                lbl_2_bss_F468[0x47 + slot] = Z_MENU_PAGE_STAR_MOVES;
                 lbl_2_bss_F468[0x49 + slot] = 0;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
@@ -295,8 +295,8 @@ void captainSelect_handleInputs(int port) {
             input.newInput = 0;
             input.processedInput = 0;
         } else if (newI & INPUT_BUTTON_LEFT) {
-            if (lbl_2_bss_F468[0x47 + slot] == 1) {
-                lbl_2_bss_F468[0x47 + slot] = 0;
+            if (lbl_2_bss_F468[0x47 + slot] == Z_MENU_PAGE_STAR_MOVES) {
+                lbl_2_bss_F468[0x47 + slot] = Z_MENU_PAGE_MAIN;
                 lbl_2_bss_F468[0x49 + slot] = 0;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
@@ -397,7 +397,7 @@ commonTail:
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (input.processedInput & (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT)) {
             challengeCaptainRelated();
-            updateCharacterSelectProcessCode(0, 3);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_CURSOR_MOVE);
             lbl_803CBBC4[0] = 3;
         }
         return;
@@ -406,7 +406,7 @@ commonTail:
         return;
     }
     if (input.processedInput & DPAD_MASK) {
-        updateCharacterSelectProcessCode(slot, 3);
+        updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CAP_CURSOR_MOVE);
     }
 }
 
@@ -441,7 +441,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
                     }
                 }
                 menuCursors[4 + (u8)gameSetUpStep.portCaptainSlot[port]] = val;
-                updateCharacterSelectProcessCode(gameSetUpStep.portCaptainSlot[port], 3);
+                updateCharacterSelectProcessCode(gameSetUpStep.portCaptainSlot[port], CHAR_SELECT_PROCESS_CAP_CURSOR_MOVE);
             } else {
                 u8 *table;
                 charID = challengeCaptainSelect_returnsCharID(currentHeldInput, newInput, processedInput);
@@ -492,7 +492,7 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
             if (lbl_2_bss_100B8[gameSetUpStep.portCaptainSlot[port] + 0x10] == 0) {
                 lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x45] = 1;
                 lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x4B] = 1;
-                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x47] = 0;
+                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x47] = Z_MENU_PAGE_MAIN;
                 sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, 0);
             }
         }
@@ -587,7 +587,7 @@ void captainSelect_APress(int idx) {
     {
         int captainIdx;
 
-        updateCharacterSelectProcessCode(1, 6);
+        updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_1P_CHOOSE_CPU);
 
         gameSetUpStep.portCaptainSlot[c] = 1;
         captainIdx = (Static_Stats_Tables.playerNumberByPort[0] == 0);
@@ -665,7 +665,7 @@ void captainSelect_BPress(int idx) {
             add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], FALSE);
             Static_Stats_Tables.captainSelectedID[0] = CHAR_ID_NONE;
             Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
-            updateCharacterSelectProcessCode(0, 4);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_CANCEL);
 
             other = (idx & 0xFF) ^ 1;
             AnimateCharacter(other, 0x69, 1, 1, 1, 0, 0, -1);
@@ -697,9 +697,9 @@ void captainSelect_BPress(int idx) {
             gameSetUpStep.portCaptainSlot[c] = 0;
 
             if (lbl_2_bss_100B8[0x10] != 0) {
-                updateCharacterSelectProcessCode(idx & 0xFF, 5);
+                updateCharacterSelectProcessCode(idx & 0xFF, CHAR_SELECT_PROCESS_CAP_CANCEL_P1_LOCKED);
             } else {
-                updateCharacterSelectProcessCode(idx & 0xFF, 4);
+                updateCharacterSelectProcessCode(idx & 0xFF, CHAR_SELECT_PROCESS_CAP_CANCEL);
             }
         }
         goto exit;
@@ -725,11 +725,11 @@ void captainSelect_BPress(int idx) {
         lbl_803CBBC4[0] = 2;
     } else {
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-            updateCharacterSelectProcessCode(0, 2);
-            updateCharacterSelectProcessCode(1, 2);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_EXIT);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_EXIT);
         } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) {
-            updateCharacterSelectProcessCode(0, 2);
-            updateCharacterSelectProcessCode(1, 2);
+            updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_EXIT);
+            updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_EXIT);
         }
         lbl_803CBCD8[2] = 0x14;
     }
@@ -924,7 +924,7 @@ void checkForNewPlayer(void) {
     }
 
     charSelectStruct[0x74 + Static_Stats_Tables.playerNumberByPort[1]] = 0;
-    updateCharacterSelectProcessCode(1, 1);
+    updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_LOAD);
 
     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_2_PLAYER_GAME;
     g_TeamManagement.capSS_isRandomizingCursor[1] = 0;
