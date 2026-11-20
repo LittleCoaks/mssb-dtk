@@ -3,7 +3,7 @@
 
 typedef struct {
     /* 0x00 */ u8 _00[0x55];
-    /* 0x55 */ u8 cursorLocked[4];
+    /* 0x55 */ u8 preventCursorMovement[4];
     /* 0x59 */ u8 portCaptainSlot[4];
     /* 0x5D */ u8 unk5D[4];
     /* 0x61 */ u8 _61[0x64 - 0x61];
@@ -18,18 +18,18 @@ void makeCursorMovable(int channel) {
         return;
     }
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-        gameSetUpStep.cursorLocked[0] = FALSE;
+        gameSetUpStep.preventCursorMovement[0] = FALSE;
     } else {
-        gameSetUpStep.cursorLocked[channel] = FALSE;
+        gameSetUpStep.preventCursorMovement[channel] = FALSE;
     }
     gameSetUpStep.unk5D[channel] = 0;
 }
 
 void makeCursorUnmovable(int channel) {
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-        gameSetUpStep.cursorLocked[0] = TRUE;
+        gameSetUpStep.preventCursorMovement[0] = TRUE;
     } else {
-        gameSetUpStep.cursorLocked[channel] = TRUE;
+        gameSetUpStep.preventCursorMovement[channel] = TRUE;
     }
     framesUntilCursorMovable[channel]++;
 }

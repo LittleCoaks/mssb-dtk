@@ -33,7 +33,7 @@ typedef struct {
     u8 _01[0xD];
     u8 unk0E;
     u8 _0F[0x46];
-    u8 unk55[4];
+    u8 preventCursorMovement[4];
     u8 portCaptainSlot[4];
     u8 _5D[7];
 } CaptainGameSetUp;
@@ -127,7 +127,7 @@ void captainSelectScreen_manager(void) {
     switch (menuControlVariables->currentState) {
     case 0:
         if (menuControlVariables->previousScreen == 12 &&
-            g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && gameSetUpStep.unk55[0] != 0) {
+            g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && gameSetUpStep.preventCursorMovement[0] != 0) {
             break;
         }
         captainSelectDefaultProcess();
@@ -150,7 +150,7 @@ void captainSelectScreen_manager(void) {
     case 4:
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             if (lbl_2_bss_100B8[0x40] == 0 || lbl_2_bss_100B8[0x41] == 0 ||
-                gameSetUpStep.unk55[0] != 0 || gameSetUpStep.unk55[1] != 0) {
+                gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
                 break;
             }
             updateCharacterSelectProcessCode(0, 7);
@@ -191,7 +191,7 @@ void captainSelectScreen_manager(void) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE && noActiveProcessInd() == 0) {
             break;
         }
-        if (gameSetUpStep.unk55[0] != 0 || gameSetUpStep.unk55[1] != 0) {
+        if (gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
             break;
         }
         if (g_TeamManagement.loadMatchRelInd != 0) {
@@ -266,7 +266,7 @@ void captainSelectScreen_manager(void) {
         }
         lbl_2_bss_100B8[0x40] = 1;
         lbl_2_bss_100B8[0x41] = 1;
-        if (gameSetUpStep.unk55[0] != 0 || gameSetUpStep.unk55[1] != 0) {
+        if (gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
             break;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {

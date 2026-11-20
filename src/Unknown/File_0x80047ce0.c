@@ -8,7 +8,7 @@
 
 typedef struct {
     /* 0x00 */ u8 _00[0x55];
-    /* 0x55 */ u8 unk55[4];
+    /* 0x55 */ u8 preventCursorMovement[4];
     /* 0x59 */ u8 portCaptainSlot[4];
 } gameSetUpStruct_t;
 

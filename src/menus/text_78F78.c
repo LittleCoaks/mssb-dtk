@@ -15,8 +15,10 @@ extern u8 gameSetUpStep[];
 extern u8 lbl_2_bss_F468[];
 extern Text00110Ctl *menuControlVariables;
 
-/* Per-team state word in lbl_2_bss_F468 (indexed by team). */
-#define TEAM_STATE(team) (((s32 *)lbl_2_bss_F468)[(team)])
+/* Per-team lineup cursor in lbl_2_bss_F468 (0-8 positions, 9 = done, 10 = random)
+ * and its previous value, indexed as s32 arrays. */
+#define CSS_CURSOR_S32(team) (((s32 *)lbl_2_bss_F468)[(team)])
+#define CSS_PREV_CURSOR_S32(team) (((s32 *)lbl_2_bss_F468)[(team) + 2])
 
 /* Record for scene handle k: graphicsRelatedArray[scene->firstHandle + k]. */
 #define SCENE_RECORD(scene, k) ((UIRecord *)graphicsRelatedArray[(scene)->firstHandle + (k)].object)
@@ -159,7 +161,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 }
                 if (cursorPositions.roster.rosterCharID[index][i] != CHAR_ID_NONE) {
                     rosterRecord(scene, index, (s8)position, 0x34)->flags |= UI_FLAG_VISIBLE;
-                    if (i == TEAM_STATE(index)) {
+                    if (i == CSS_CURSOR_S32(index)) {
                         rosterRecord(scene, index, (s8)position, 0x34)->frame = 10 << 16;
                         rosterRecord(scene, index, (s8)position, 0x34)->playMode = UI_PLAY_STOP;
                         rosterRecord(scene, index, (s8)position, 0x22)->flags |= UI_FLAG_VISIBLE;
@@ -226,7 +228,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                     rosterRecord(scene, index, (s8)position, 0x46)->elementIndex =
                         Static_Stats_Tables.playerNumberByPort[index] + 0x11;
                 }
-                if (i == TEAM_STATE(index)) {
+                if (i == CSS_CURSOR_S32(index)) {
                     rosterRecord(scene, index, (s8)position, 0x46)->flags |= UI_FLAG_VISIBLE;
                     rosterRecord(scene, index, (s8)position, 0x46)->playMode = UI_PLAY_FORWARD;
                 } else {
@@ -235,7 +237,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 }
                 if (cursorPositions.roster.rosterCharID[index][i] != CHAR_ID_NONE) {
                     rosterRecord(scene, index, (s8)position, 0x34)->flags |= UI_FLAG_VISIBLE;
-                    if (i == TEAM_STATE(index)) {
+                    if (i == CSS_CURSOR_S32(index)) {
                         rosterRecord(scene, index, (s8)position, 0x34)->frame = 10 << 16;
                         rosterRecord(scene, index, (s8)position, 0x34)->playMode = UI_PLAY_STOP;
                     } else {
@@ -424,7 +426,7 @@ void fn_2_7A460(MenuScene *scene, s32 index) {
 void fn_2_7A194(MenuScene *scene, s32 index) {
 
     if (isStepClear(gameSetUpStep[index + 0xD])) {
-        s32 want = TEAM_STATE(index + 2);
+        s32 want = CSS_PREV_CURSOR_S32(index);
         s32 slot;
 
         slot = findRosterSlot(index, want);
@@ -453,7 +455,7 @@ void fn_2_7A194(MenuScene *scene, s32 index) {
 void fn_2_79FAC(MenuScene *scene, s32 index) {
 
     if (isStepActive(gameSetUpStep[index + 0xD])) {
-        s32 want = TEAM_STATE(index + 2);
+        s32 want = CSS_PREV_CURSOR_S32(index);
         s32 slot;
         s32 placed = 0;
         s32 done = 0;
@@ -475,8 +477,8 @@ void fn_2_79FAC(MenuScene *scene, s32 index) {
 void fn_2_79CF8(MenuScene *scene, s32 index) {
 
     if (isStepClear(gameSetUpStep[index + 0xD])) {
-        s32 want = (s8)TEAM_STATE(index);
-        s32 copy = TEAM_STATE(index + 2);
+        s32 want = (s8)CSS_CURSOR_S32(index);
+        s32 copy = CSS_PREV_CURSOR_S32(index);
         s32 slot;
 
         slot = findRosterSlot(index, want);
@@ -502,7 +504,7 @@ void fn_2_79CF8(MenuScene *scene, s32 index) {
 void fn_2_79B24(MenuScene *scene, s32 index) {
 
     if (isStepActive(gameSetUpStep[index + 0xD])) {
-        s32 want = (s8)TEAM_STATE(index);
+        s32 want = (s8)CSS_CURSOR_S32(index);
         s32 slot;
         s32 placed = 0;
         s32 done = 0;
@@ -535,7 +537,7 @@ void randomTeamMemberSelection(MenuScene *scene, s32 index) {
             rosterRecord(scene, index, swap, 0x58)->frame = ch << 16;
         }
         teamSelectionSetChemStars(scene, index);
-        if (TEAM_STATE(index) == 9) {
+        if (CSS_CURSOR_S32(index) == 9) {
             SCENE_RECORD(scene, index + 0x93)->frame = 0;
             SCENE_RECORD(scene, index + 0x93)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
@@ -606,12 +608,12 @@ void fn_2_79634(void *unused, s32 index) {
 void cssAction_0x18(MenuScene *scene, s32 index) {
 
     if (isStepClear(gameSetUpStep[index + 0xD])) {
-        if (TEAM_STATE(index) == 9) {
+        if (CSS_CURSOR_S32(index) == 9) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, index + 0x91)->frame = 0xA0000;
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_BACKWARD;
-        } else if (TEAM_STATE(index) == 0xA) {
+        } else if (CSS_CURSOR_S32(index) == 0xA) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0xA0000;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_BACKWARD;
             SCENE_RECORD(scene, index + 0x91)->frame = 0;
@@ -621,21 +623,21 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
         gameSetUpStep[index + 0xD] = 1;
     }
     if (gameSetUpStep[index + 0xD] == 1) {
-        s32 teamState = TEAM_STATE(index);
+        s32 cursor = CSS_CURSOR_S32(index);
         s32 ready = 0;
         s32 target = 0;
 
-        if (teamState == 9) {
+        if (cursor == 9) {
             target = 2;
             ready = ((SCENE_RECORD(scene, index + 0x95)->frame >> 16) >= 10) +
                     ((SCENE_RECORD(scene, index + 0x91)->frame >> 16) == 0);
-        } else if (teamState == 0xA) {
+        } else if (cursor == 0xA) {
             target = 2;
             ready = ((SCENE_RECORD(scene, index + 0x91)->frame >> 16) >= 10) +
                     ((SCENE_RECORD(scene, index + 0x95)->frame >> 16) == 0);
         }
         if (ready == target) {
-            TEAM_STATE(index + 2) = teamState;
+            CSS_PREV_CURSOR_S32(index) = cursor;
             makeCursorMovable(index);
             gameSetUpStep[index + 0xD] = 2;
         }

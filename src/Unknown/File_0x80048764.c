@@ -18,7 +18,7 @@ extern struct {
 
 extern struct {
     /* 0x00 */ u8 _00[0x55];
-    /* 0x55 */ u8 unk55[4];
+    /* 0x55 */ u8 preventCursorMovement[4];
 } gameSetUpStep;
 
 extern menuControlStruct* menuControlVariables;
@@ -38,7 +38,7 @@ static inline void createTeamManagementScreen(u32 priority, s8 team, u8 player) 
 void createTeamManagementScreen_preGame(void) {
     switch (menuControlVariables->currentState) {
     case 0:
-        if (gameSetUpStep.unk55[0] == 0 && gameSetUpStep.unk55[1] == 0) {
+        if (gameSetUpStep.preventCursorMovement[0] == 0 && gameSetUpStep.preventCursorMovement[1] == 0) {
             createTeamManagementScreen(0x1000, -1, 0);
             menuControlVariables->currentState++;
         }

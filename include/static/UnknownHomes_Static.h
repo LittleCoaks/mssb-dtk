@@ -186,11 +186,14 @@ typedef struct {
 } StatisticsPitcher; // size: 0x1E
 
 // One saved Challenge-mode team (Ghidra: challengeRostersStruct).
+// Four 9-character lineups, 0x12 bytes apart (the default at 0x00, then
+// alternates at 0x12/0x24/0x36). The character-select code reads them as
+// charID[lineup * 0x12 + slot] (fn_2_A288, loadDefaultLineup in text_0323C.c).
 typedef struct {
     /* 0x00 */ u8 charID[9];
     /* 0x09 */ u8 _09[0x12 - 0x09];
-    /* 0x12 */ u8 characterTypes[9];
-    /* 0x1B */ u8 _1B[0x48 - 0x1B];
+    /* 0x12 */ u8 altLineup1CharID[9]; // Ghidra: characterTypes (no code support)
+    /* 0x1B */ u8 _1B[0x48 - 0x1B];    // alternate lineups 2 and 3 (0x24, 0x36), same layout
 } ChallengeRoster; // size: 0x48
 
 // lbl_80353260: one entry per roster slot, per team.

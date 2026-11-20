@@ -71,7 +71,7 @@ typedef struct {
     /* 0x00 */ u8 _pad0a[0xE];
     /* 0x0E */ u8 unk0E;
     /* 0x0F */ u8 _pad0b[0x55 - 0xF];
-    /* 0x55 */ u8 unk55[4];
+    /* 0x55 */ u8 preventCursorMovement[4];
     /* 0x59 */ u8 portCaptainSlot[4];
     /* 0x5D */ u8 _pad1[0x64 - 0x5D];
 } gameSetUpStruct_t; // size: 0x64
@@ -261,7 +261,7 @@ void captainSelect_handleInputs(int port) {
     controllerInputStruct input;
 
     if (lbl_2_bss_100B8[0x19] == 0 || lbl_2_bss_100B8[0x1A] != 0 ||
-        gameSetUpStep.unk55[p] != 0 ||
+        gameSetUpStep.preventCursorMovement[p] != 0 ||
         g_TeamManagement.capSS_isRandomizingCursor[slot] != 0) {
         input.processedInput = 0;
         input.newInput = 0;
