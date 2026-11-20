@@ -16,7 +16,7 @@
 
 #define DPAD_MASK (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT | INPUT_BUTTON_DOWN | INPUT_BUTTON_UP)
 
-extern u8 lbl_2_bss_100B8[0x54];
+extern CapSelectState capSelectState;
 extern u8 captainIDOrderedOnCapSS[12];
 extern int menuCursors[0x16];
 
@@ -72,7 +72,7 @@ extern GameSetUpStep gameSetUpStep;
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_803CBBC4[8];
 extern u8 lbl_803CBCD8[0x8];
-extern u8 lbl_2_bss_F468[0xC4C];
+extern CssWork cssWork;
 extern u8 lbl_2_bss_100B4;
 
 extern menuControlStruct *menuControlVariables;
@@ -629,13 +629,12 @@ void captainSelect_APress(int idx) {
 }
 
 // .text:0x000151BC size:0x450 mapped:0x80654250
-/* kept as offset access: struct form changes codegen */
 void captainSelect_BPress(int idx) {
     int c = (u8)idx;
 
-    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] != 0) {
-        lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] = 0;
-        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + c] = 0;
+    if (capSelectState.captainLocked[c] != 0) {
+        capSelectState.captainLocked[c] = 0;
+        capSelectState.playCaptainVoice[c] = 0;
         Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[c]] = FALSE;
         add_or_RemoveCharToATeam((u8)idx, Static_Stats_Tables.captainSelectedID[c], FALSE);
         goto exit;
@@ -652,8 +651,8 @@ void captainSelect_BPress(int idx) {
             captainSelect_setModelVisible((u8)idx, 0);
             charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[0]]] = -1;
             Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[0]] = FALSE;
-            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] = 0;
-            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 0;
+            capSelectState.captainLocked[0] = 0;
+            capSelectState.playCaptainVoice[0] = 0;
             gameSetUpStep.portCaptainSlot[0] = 0;
             add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], FALSE);
             Static_Stats_Tables.captainSelectedID[0] = CHAR_ID_NONE;
@@ -662,9 +661,9 @@ void captainSelect_BPress(int idx) {
 
             other = (idx & 0xFF) ^ 1;
             AnimateCharacter(other, 0x69, 1, 1, 1, 0, 0, -1);
-            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + (u8)other] = 1;
+            capSelectState.modelAnimSettled[(u8)other] = 1;
         } else {
-            u8 v10 = lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED];
+            u8 v10 = capSelectState.captainLocked[0];
 
             Static_Stats_Tables.portsActiveInMatch[Static_Stats_Tables.playerNumberByPort[1]] = 1;
             if (v10 != 0) {
@@ -685,11 +684,11 @@ void captainSelect_BPress(int idx) {
                 Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
             }
 
-            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] = 0;
-            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + c] = 0;
+            capSelectState.captainLocked[c] = 0;
+            capSelectState.playCaptainVoice[c] = 0;
             gameSetUpStep.portCaptainSlot[c] = 0;
 
-            if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] != 0) {
+            if (capSelectState.captainLocked[0] != 0) {
                 updateCharacterSelectProcessCode(idx & 0xFF, CHAR_SELECT_PROCESS_CAP_CANCEL_P1_LOCKED);
             } else {
                 updateCharacterSelectProcessCode(idx & 0xFF, CHAR_SELECT_PROCESS_CAP_CANCEL);
@@ -709,7 +708,7 @@ void captainSelect_BPress(int idx) {
 
     {
         int i;
-        for (i = 0; i < lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT]; i++) {
+        for (i = 0; i < capSelectState.modelSlotCount; i++) {
             captainSelect_setModelVisible(i, 0);
         }
     }
@@ -727,39 +726,37 @@ void captainSelect_BPress(int idx) {
         lbl_803CBCD8[2] = 0x14;
     }
 
-    lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + 1] = 0;
-    lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN] = 0;
+    cssWork.zMenuOpen[1] = 0;
+    cssWork.zMenuOpen[0] = 0;
     menuControlVariables->currentState = 8;
 
 exit:
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) {
         AnimateCharacter((u8)idx, 0x69, 1, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + c] = 1;
+        capSelectState.modelAnimSettled[c] = 1;
     }
     cursorSndFx(INPUT_BUTTON_B);
 }
 
 // .text:0x00015104 size:0xB8 mapped:0x80654198
-/* kept as offset access: struct form changes codegen */
 BOOL loadNewCaptainModelOnCapSelectScreen(int currentCharId, int newCharId, int port, int arg3) {
     if (newCharId != currentCharId) {
-        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] = 1;
-    } else if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] != 0) {
-        if (++lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] >= 0xF) {
-            lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + (u8)port] = 1;
-            lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] = 0;
+        capSelectState.modelLoadDelay[(u8)port] = 1;
+    } else if (capSelectState.modelLoadDelay[(u8)port] != 0) {
+        if (++capSelectState.modelLoadDelay[(u8)port] >= 0xF) {
+            capSelectState.modelLoadRequested[(u8)port] = 1;
+            capSelectState.modelLoadDelay[(u8)port] = 0;
             captainSelect_setShowModelOnLoad((u8)port, arg3);
         }
     }
-    return lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] == 0;
+    return capSelectState.modelLoadDelay[(u8)port] == 0;
 }
 
 // .text:0x000150D0 size:0x34 mapped:0x80654164
-/* kept as offset access: struct form changes codegen */
 void fn_2_150D0(u8 idx) {
-    if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + idx] == 0) {
-        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + idx] = 1;
-        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + idx] = 0;
+    if (capSelectState.modelLoadRequested[idx] == 0) {
+        capSelectState.modelLoadRequested[idx] = 1;
+        capSelectState.modelLoadDelay[idx] = 0;
     }
 }
 
@@ -846,19 +843,18 @@ void captainSelect_handleCursor(u8 port, controllerInputStruct *input) {
 }
 
 // .text:0x00014BB8 size:0xE8 mapped:0x80653C4C
-/* kept as offset access: struct form changes codegen */
 void fn_2_14BB8(int port, int state) {
     switch (state) {
     case 0: {
         u8 a = port;
         AnimateCharacter(a, 0x6A, 0, 1, 1, 0, 0, -1);
         QueueCharacterAnimation(a, 0x6B, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + (u8)port] = 0;
+        capSelectState.modelAnimSettled[(u8)port] = 0;
         break;
     }
     case 1:
         AnimateCharacter(port, 0x69, 1, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + (u8)port] = 1;
+        capSelectState.modelAnimSettled[(u8)port] = 1;
         break;
     }
 }

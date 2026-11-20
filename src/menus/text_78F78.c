@@ -13,7 +13,7 @@
 #include "menus/css_work.h"
 
 extern GameSetUpStep gameSetUpStep;
-extern u8 lbl_2_bss_F468[];
+extern CssWork cssWork;
 extern Text00110Ctl *menuControlVariables;
 
 
@@ -158,7 +158,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 }
                 if (cursorPositions.roster.rosterCharID[index][i] != CHAR_ID_NONE) {
                     rosterRecord(scene, index, (s8)position, 0x34)->flags |= UI_FLAG_VISIBLE;
-                    if (i == CSS_CURSOR_S32(index)) {
+                    if (i == cssWork.lineupCursor[index]) {
                         rosterRecord(scene, index, (s8)position, 0x34)->frame = 10 << 16;
                         rosterRecord(scene, index, (s8)position, 0x34)->playMode = UI_PLAY_STOP;
                         rosterRecord(scene, index, (s8)position, 0x22)->flags |= UI_FLAG_VISIBLE;
@@ -225,7 +225,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                     rosterRecord(scene, index, (s8)position, 0x46)->elementIndex =
                         Static_Stats_Tables.playerNumberByPort[index] + 0x11;
                 }
-                if (i == CSS_CURSOR_S32(index)) {
+                if (i == cssWork.lineupCursor[index]) {
                     rosterRecord(scene, index, (s8)position, 0x46)->flags |= UI_FLAG_VISIBLE;
                     rosterRecord(scene, index, (s8)position, 0x46)->playMode = UI_PLAY_FORWARD;
                 } else {
@@ -234,7 +234,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 }
                 if (cursorPositions.roster.rosterCharID[index][i] != CHAR_ID_NONE) {
                     rosterRecord(scene, index, (s8)position, 0x34)->flags |= UI_FLAG_VISIBLE;
-                    if (i == CSS_CURSOR_S32(index)) {
+                    if (i == cssWork.lineupCursor[index]) {
                         rosterRecord(scene, index, (s8)position, 0x34)->frame = 10 << 16;
                         rosterRecord(scene, index, (s8)position, 0x34)->playMode = UI_PLAY_STOP;
                     } else {
@@ -423,7 +423,7 @@ void fn_2_7A460(MenuScene *scene, s32 index) {
 void fn_2_7A194(MenuScene *scene, s32 index) {
 
     if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
-        s32 want = CSS_PREV_CURSOR_S32(index);
+        s32 want = cssWork.lineupCursorPrev[index];
         s32 slot;
 
         slot = findRosterSlot(index, want);
@@ -452,7 +452,7 @@ void fn_2_7A194(MenuScene *scene, s32 index) {
 void fn_2_79FAC(MenuScene *scene, s32 index) {
 
     if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
-        s32 want = CSS_PREV_CURSOR_S32(index);
+        s32 want = cssWork.lineupCursorPrev[index];
         s32 slot;
         s32 placed = 0;
         s32 done = 0;
@@ -474,8 +474,8 @@ void fn_2_79FAC(MenuScene *scene, s32 index) {
 void fn_2_79CF8(MenuScene *scene, s32 index) {
 
     if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
-        s32 want = (s8)CSS_CURSOR_S32(index);
-        s32 copy = CSS_PREV_CURSOR_S32(index);
+        s32 want = (s8)cssWork.lineupCursor[index];
+        s32 copy = cssWork.lineupCursorPrev[index];
         s32 slot;
 
         slot = findRosterSlot(index, want);
@@ -501,7 +501,7 @@ void fn_2_79CF8(MenuScene *scene, s32 index) {
 void fn_2_79B24(MenuScene *scene, s32 index) {
 
     if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
-        s32 want = (s8)CSS_CURSOR_S32(index);
+        s32 want = (s8)cssWork.lineupCursor[index];
         s32 slot;
         s32 placed = 0;
         s32 done = 0;
@@ -534,7 +534,7 @@ void randomTeamMemberSelection(MenuScene *scene, s32 index) {
             rosterRecord(scene, index, swap, 0x58)->frame = ch << 16;
         }
         teamSelectionSetChemStars(scene, index);
-        if (CSS_CURSOR_S32(index) == CSS_LINEUP_CURSOR_DONE) {
+        if (cssWork.lineupCursor[index] == CSS_LINEUP_CURSOR_DONE) {
             SCENE_RECORD(scene, index + 0x93)->frame = 0;
             SCENE_RECORD(scene, index + 0x93)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
@@ -605,12 +605,12 @@ void fn_2_79634(void *unused, s32 index) {
 void cssAction_0x18(MenuScene *scene, s32 index) {
 
     if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
-        if (CSS_CURSOR_S32(index) == CSS_LINEUP_CURSOR_DONE) {
+        if (cssWork.lineupCursor[index] == CSS_LINEUP_CURSOR_DONE) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, index + 0x91)->frame = 0xA0000;
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_BACKWARD;
-        } else if (CSS_CURSOR_S32(index) == CSS_LINEUP_CURSOR_RANDOM) {
+        } else if (cssWork.lineupCursor[index] == CSS_LINEUP_CURSOR_RANDOM) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0xA0000;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_BACKWARD;
             SCENE_RECORD(scene, index + 0x91)->frame = 0;
@@ -620,7 +620,7 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
         gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
     if (gameSetUpStep.stepFlags[2][index] == SET_UP_STEP_PLAYING) {
-        s32 cursor = CSS_CURSOR_S32(index);
+        s32 cursor = cssWork.lineupCursor[index];
         s32 ready = 0;
         s32 target = 0;
 
@@ -634,7 +634,7 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
                     ((SCENE_RECORD(scene, index + 0x95)->frame >> 16) == 0);
         }
         if (ready == target) {
-            CSS_PREV_CURSOR_S32(index) = cursor;
+            cssWork.lineupCursorPrev[index] = cursor;
             makeCursorMovable(index);
             gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }

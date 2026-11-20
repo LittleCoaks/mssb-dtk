@@ -25,7 +25,7 @@ extern int menuCursors[0x16];
 extern u8 superstarUnlocked[0x130];
 extern u8 lbl_800EFBA4[];
 extern u8 lbl_2_data_2E02C[0x2C0];
-extern u8 lbl_2_bss_F468[0xC4C];
+extern CssWork cssWork;
 extern s8 lbl_2_data_2E2EC[];
 extern u8 lbl_803CBBC4[];
 extern u8 lbl_2_data_2D998[];
@@ -405,7 +405,7 @@ void fn_2_845A8(void) {
     if (menuControlVariables->currentScreen == 0xD) {
         return;
     }
-    if (lbl_2_bss_F468[CSS_WORK_STADIUM_CHOSEN] != 0) {
+    if (cssWork.stadiumChosen != 0) {
         return;
     }
     if ((s8)tbl[0x954] != cursor) {
@@ -706,7 +706,7 @@ void fn_2_834F0(void) {
 
     addGraphicsElementToScene(node, (const UIRecordDescriptor *)lbl_2_data_2E02C);
     for (i = 0; i < 4; i++) {
-        if (lbl_2_bss_F468[CSS_WORK_CHALLENGE_STADIUM_MAX_CURSOR] < i) {
+        if (cssWork.challengeStadiumMaxCursor < i) {
             load_Icon(node, i + 3, 1, 0x6B, 4);
         } else {
             load_Icon(node, i + 3, 1, 0x6B, i);
@@ -767,7 +767,7 @@ void fn_2_82EC0(void) {
     case 0x5E:
         if (stadiumStepIsClear(lbl_803CBBC4[2])) {
             stadiumSlotRec(scene, cursor)->playMode = UI_PLAY_FORWARD;
-            if (lbl_2_bss_F468[CSS_WORK_CHALLENGE_STADIUM_MAX_CURSOR] >= cursor) {
+            if (cssWork.challengeStadiumMaxCursor >= cursor) {
                 STADIUM_REC(scene, 12)->frame = cursor << 16;
                 if (superstarUnlocked[0xF4] != 0) {
                     STADIUM_REC(scene, 11)->frame = (cursor + 4) << 16;

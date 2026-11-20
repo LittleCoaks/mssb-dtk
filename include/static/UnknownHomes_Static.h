@@ -409,7 +409,7 @@ typedef enum _STAR_MENU_DRAW_STEP {
 } STAR_MENU_DRAW_STEP;
 
 /* g_TeamManagement.zMenuPage[team], and the captain-select/character-select
- * Z menu page (lbl_2_bss_F468[0x47 + team]): Z opens on page 0; left/right
+ * Z menu page (cssWork.zMenuPage[team]): Z opens on page 0; left/right
  * switch. */
 typedef enum _Z_MENU_PAGE {
     /* 0 */ Z_MENU_PAGE_MAIN,

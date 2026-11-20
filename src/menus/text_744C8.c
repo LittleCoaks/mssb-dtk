@@ -22,7 +22,7 @@ extern u8 Static_Stats_Tables[];
 extern u8 lbl_8037169C[];
 extern u8 superstarUnlocked[];
 extern u8 cursorPositions[];
-extern u8 lbl_2_bss_F468[];
+extern CssWork cssWork;
 extern Text00110Ctl *menuControlVariables;
 extern u8 challengeCaptainCharIDArray[];
 extern u8 lbl_2_data_2B3A4[];
@@ -282,8 +282,8 @@ void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
         return;
     }
 
-    selected = CSS_CURSOR_S32(port);
-    if (lbl_2_bss_F468[port + CSS_WORK_ON_CHARACTER_GRID] != 0) {
+    selected = cssWork.lineupCursor[port];
+    if (cssWork.onCharacterGrid[port] != 0) {
         gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
         character = menuCursors[port + 8];
     } else if (selected == 9 || selected == 10) {
@@ -321,7 +321,7 @@ void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
         ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = (s8)variant << 16;
     } else {
         gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
-        if (CSS_CURSOR_S32(port) != CSS_LINEUP_CURSOR_DONE && CSS_CURSOR_S32(port) != CSS_LINEUP_CURSOR_RANDOM) {
+        if (cssWork.lineupCursor[port] != CSS_LINEUP_CURSOR_DONE && cssWork.lineupCursor[port] != CSS_LINEUP_CURSOR_RANDOM) {
             gfxObject(scene, port + 0xAE)->flags |= UI_FLAG_VISIBLE;
             ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = 0;
         }

@@ -16,8 +16,8 @@
 
 extern GameSetUpStep gameSetUpStep;
 extern u8 superstarUnlocked[];
-extern u8 lbl_2_bss_100B8[];
-extern u8 lbl_2_bss_F468[];
+extern CapSelectState capSelectState;
+extern CssWork cssWork;
 extern int menuCursors[];
 extern E(u8, CHAR_ID) challengeCaptainCharIDArray[12];
 extern u8 lbl_2_data_2B3A4[];
@@ -77,7 +77,7 @@ static inline s8 currentRosterPosition(s32 channel) {
     s8 position;
     s32 i;
     for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-        if ((s8)cursorPositions.roster.positionSwapMapping[channel][i] == (s8)CSS_CURSOR_S32(channel)) {
+        if ((s8)cursorPositions.roster.positionSwapMapping[channel][i] == (s8)cssWork.lineupCursor[channel]) {
             position = (s8)cursorPositions.roster.positionSwapMapping[channel][i];
             break;
         }
@@ -189,7 +189,7 @@ void fn_2_80E0C(MenuScene *scene, s32 channel) {
         s32 count = resetChannelAnimation(scene, channel, 0, 20);
         s32 expected = 2;
         count += resetChannelAnimation(scene, channel, 2, 20);
-        if (channel == 0 || lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] != 0 || g_d_GameSettings.p2_CPU_match_code != P2_CPU_CODE_1_PLAYER_GAME) {
+        if (channel == 0 || capSelectState.captainLocked[0] != 0 || g_d_GameSettings.p2_CPU_match_code != P2_CPU_CODE_1_PLAYER_GAME) {
             count += resetChannelAnimation(scene, channel, 0x85, 10);
             count += resetChannelAnimation(scene, channel, 0x87, 10);
             count += resetChannelAnimation(scene, channel, 0x89, 5);
@@ -220,7 +220,7 @@ void maybeBackgroundImagesForCaptain(MenuScene *scene, s32 channel) {
         channelRecord(scene, channel, 0x12)->flags &= ~UI_FLAG_VISIBLE;
         channelRecord(scene, channel, 0xC)->flags &= ~UI_FLAG_VISIBLE;
         channelRecord(scene, channel, 0x99)->elementIndex = 0x79;
-        if (channel != 0 && lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] == 0 && g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
+        if (channel != 0 && capSelectState.captainLocked[0] == 0 && g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
             channelRecord(scene, channel, 0x80)->flags &= ~UI_FLAG_VISIBLE;
             channelRecord(scene, channel, 0x7A)->playMode = UI_PLAY_STOP;
             channelRecord(scene, channel, 0x97)->flags &= ~UI_FLAG_VISIBLE;
@@ -367,19 +367,19 @@ void cssActions(void) {
             case 0xC: {
                 s32 i;
                 for (i = 0; i < PLAYERS_PER_TEAM; i++) {
-                    if (i == CSS_CURSOR_S32(channel)) rosterRecord(scene, channel, i, 0x22)->flags |= UI_FLAG_VISIBLE;
+                    if (i == cssWork.lineupCursor[channel]) rosterRecord(scene, channel, i, 0x22)->flags |= UI_FLAG_VISIBLE;
                 }
                 break;
             }
             case CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID:
-                if (lbl_2_bss_F468[channel + CSS_WORK_ON_CHARACTER_GRID] != 0) {
-                    rosterRecord(scene, channel, CSS_CURSOR_S32(channel), 0x22)->flags &= ~UI_FLAG_VISIBLE;
+                if (cssWork.onCharacterGrid[channel] != 0) {
+                    rosterRecord(scene, channel, cssWork.lineupCursor[channel], 0x22)->flags &= ~UI_FLAG_VISIBLE;
                 } else {
-                    rosterRecord(scene, channel, CSS_CURSOR_S32(channel), 0x22)->flags |= UI_FLAG_VISIBLE;
+                    rosterRecord(scene, channel, cssWork.lineupCursor[channel], 0x22)->flags |= UI_FLAG_VISIBLE;
                 }
                 gfx_cssCharStatBars_and_sthgElse(scene, channel);
                 gameSetUpStep.currentCharacterSelectProcess[channel] = 0;
-                if (lbl_2_bss_F468[channel + CSS_WORK_LINEUP_EDIT_MODE] != 0) updateCharacterSelectProcessCode(channel, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_ENTER);
+                if (cssWork.lineupEditMode[channel] != 0) updateCharacterSelectProcessCode(channel, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_ENTER);
                 break;
             case CHAR_SELECT_PROCESS_CSS_READY:
                 cssReady(scene, channel);
@@ -434,11 +434,11 @@ void cssActions(void) {
                 if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s32 ready = 0;
                     s32 expected = 0;
-                    s8 slot = findRosterSlot(channel, CSS_PREV_CURSOR_S32(channel));
+                    s8 slot = findRosterSlot(channel, cssWork.lineupCursorPrev[channel]);
                     E(s32, CHAR_ID) character = cursorPositions.roster.rosterCharID[channel][slot];
-                    if (character != CHAR_ID_NONE && character != NUM_CHOOSABLE_CHARACTERS && CSS_PREV_CURSOR_S32(channel) < PLAYERS_PER_TEAM) {
+                    if (character != CHAR_ID_NONE && character != NUM_CHOOSABLE_CHARACTERS && cssWork.lineupCursorPrev[channel] < PLAYERS_PER_TEAM) {
                         expected = 1;
-                        ready = maybeCheckAndResetGrapicsElement(scene, CSS_PREV_CURSOR_S32(channel) + channel * PLAYERS_PER_TEAM + 0x34, 20) != 0;
+                        ready = maybeCheckAndResetGrapicsElement(scene, cssWork.lineupCursorPrev[channel] + channel * PLAYERS_PER_TEAM + 0x34, 20) != 0;
                     }
                     if (ready == expected) {
                         makeCursorMovable(channel);
@@ -451,7 +451,7 @@ void cssActions(void) {
                 if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s32 ready = 0;
                     s32 expected = 0;
-                    s8 position = CSS_CURSOR_S32(channel);
+                    s8 position = cssWork.lineupCursor[channel];
                     s32 slot = findRosterSlot(channel, position);
                     if (cursorPositions.roster.rosterCharID[channel][slot] != CHAR_ID_NONE) {
                         expected = 1;

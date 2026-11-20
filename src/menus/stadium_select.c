@@ -21,7 +21,7 @@ extern u8 menuNumber[0x28];
 extern u8 lineUpInfoStruct[0x48];
 extern u8 lbl_8037169C[0x1C];
 extern u8* menuControlVariables;
-extern u8 lbl_2_bss_F468[0xC4C];
+extern CssWork cssWork;
 extern u8 lbl_2_bss_100B4;
 extern u8 lbl_803CBCD8[0x8];
 extern int menuCursors[0x16];
@@ -221,7 +221,7 @@ void selectStadiumScreen(void) {
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             changeScene(1, 6);
             fn_2_836A4();
-            lbl_2_bss_F468[CSS_WORK_CHALLENGE_STADIUM_MAX_CURSOR] = 0;
+            cssWork.challengeStadiumMaxCursor = 0;
 
             for (i = 0; i < 4; i++) {
                 if (superstarUnlocked[0xE4 + i] != 0 && best < i) {
@@ -230,9 +230,9 @@ void selectStadiumScreen(void) {
             }
 
             if (best != -1) {
-                lbl_2_bss_F468[CSS_WORK_CHALLENGE_STADIUM_MAX_CURSOR] = best + 1;
-                if (lbl_2_bss_F468[CSS_WORK_CHALLENGE_STADIUM_MAX_CURSOR] > 3) {
-                    lbl_2_bss_F468[CSS_WORK_CHALLENGE_STADIUM_MAX_CURSOR] = 3;
+                cssWork.challengeStadiumMaxCursor = best + 1;
+                if (cssWork.challengeStadiumMaxCursor > 3) {
+                    cssWork.challengeStadiumMaxCursor = 3;
                 }
             }
             *(u16*)(menuControlVariables + 4) = 5;
@@ -310,7 +310,7 @@ void selectStadiumScreen(void) {
             cb = lbl_803CBBC4;
             cursor = &menuCursors[0x11];
             cb[1] = *cursor;
-            fn_2_15A90(cursor, 0, lbl_2_bss_F468[CSS_WORK_CHALLENGE_STADIUM_MAX_CURSOR]);
+            fn_2_15A90(cursor, 0, cssWork.challengeStadiumMaxCursor);
             Static_Stats_Tables._4711[0] = *cursor;
 
             if (cb[1] != Static_Stats_Tables._4711[0]) {
@@ -436,7 +436,7 @@ void selectStadiumScreen(void) {
         } else if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             ss = lbl_803CBCD8;
             ss[4] = 0;
-            lbl_2_bss_F468[CSS_WORK_STADIUM_CHOSEN] = 0;
+            cssWork.stadiumChosen = 0;
             changeScreenVariables(0xD);
         } else {
             cb = lbl_803CBBC4;
@@ -536,7 +536,7 @@ void stadiumSelectControls(u8 idx) {
                 sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
             } else if (gameSetUpStep.currentCharacterSelectProcess[0] == 0) {
                 g_d_GameSettings.StadiumID = cursorToStadIDMapping[menuCursors[0x11]];
-                lbl_2_bss_F468[CSS_WORK_STADIUM_CHOSEN] = 1;
+                cssWork.stadiumChosen = 1;
                 fn_2_328();
                 cursorSndFx(INPUT_BUTTON_A);
                 updateCharacterSelectProcessCode(0, 0x25);

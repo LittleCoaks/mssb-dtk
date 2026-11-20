@@ -3,14 +3,23 @@
 
 #include "mssbTypes.h"
 
-/* Byte offsets into the team-select work areas, menu_camera.h style. The code
- * indexes these blocks as raw bytes, and several matched functions depend on
- * the exact access shape, so they stay u8 arrays for now. Each file declares
- * its own extern. Fields not listed here are unknown or low confidence. */
+/* The two team-select work areas in the menus REL bss:
+ * - cssWork (CssWork, 0xC4C bytes, only 0x00-0x66 used): character-select
+ *   work area, shared with captain select (Z menu) and stadium select
+ *   (0x57/0x58). Per-team fields are indexed by team.
+ * - capSelectState (CapSelectState, 0x54 bytes, memset as one block):
+ *   captain-select state, reused by character select for its 4 preview
+ *   models. Per-slot fields are indexed by model slot (port on captain
+ *   select).
+ * Each file declares its own extern. Most declare the struct types below.
+ * text_0323C.c still declares both as u8 arrays, because the struct form
+ * changes the codegen of several of its functions; it uses the byte-offset
+ * #defines and accessor macros below (menu_camera.h style), and the
+ * CSS_WORK_VIEW / CAP_SELECT_STATE_VIEW casts in functions where the typed
+ * view compiles the same. Fields not named here are unknown or low
+ * confidence. */
 
-/* lbl_2_bss_F468 (0xC4C bytes, only 0x00-0x66 used): character-select work
- * area, shared with captain select (Z menu) and stadium select (0x57/0x58).
- * Per-team fields are indexed by team. */
+/* cssWork byte offsets. */
 #define CSS_WORK_LINEUP_CURSOR                0x00 /* s32[2]: E(s32, FIELDING_POSITION) 0-8, CSS_LINEUP_CURSOR_DONE, CSS_LINEUP_CURSOR_RANDOM */
 #define CSS_WORK_LINEUP_CURSOR_PREV           0x08 /* s32[2]: lineup cursor before the last move; the move animations copy the cursor here */
 #define CSS_WORK_PRESET_LINEUP                0x10 /* s32[2]: challenge: which challengeRosters lineup (1-3) loads by default */
@@ -49,19 +58,15 @@
 #define CSS_LINEUP_CURSOR_DONE   9  /* the DONE button: A readies the team */
 #define CSS_LINEUP_CURSOR_RANDOM 10 /* the random-fill / clear button (fn_2_5184) */
 
-/* The lineup cursor and its previous value. The original code uses both the
- * byte-offset form and the s32-array form, and they compile differently, so
- * both are kept. */
-#define CSS_CURSOR(slot)          (*(s32 *)&lbl_2_bss_F468[(slot) * 4])
-#define CSS_PREV_CURSOR(slot)     (*(s32 *)&lbl_2_bss_F468[(slot) * 4 + 8])
-#define CSS_CURSOR_S32(slot)      (((s32 *)lbl_2_bss_F468)[(slot)])
-#define CSS_PREV_CURSOR_S32(slot) (((s32 *)lbl_2_bss_F468)[(slot) + 2])
-/* CSS_WORK_GRID_CURSOR_PREV as an s32 array. */
-#define CSS_GRID_CURSOR_PREV_S32(slot) (((s32 *)lbl_2_bss_F468)[(slot) + 8])
+/* For files that declare cssWork as u8[]: the lineup cursor and its previous
+ * value. The original code uses both the byte-offset form and the s32-array
+ * form, and they compile differently, so both are kept. */
+#define CSS_CURSOR(slot)          (*(s32 *)&cssWork[(slot) * 4])
+#define CSS_PREV_CURSOR(slot)     (*(s32 *)&cssWork[(slot) * 4 + 8])
+#define CSS_CURSOR_S32(slot)      (((s32 *)cssWork)[(slot)])
+#define CSS_PREV_CURSOR_S32(slot) (((s32 *)cssWork)[(slot) + 2])
 
-/* lbl_2_bss_100B8 (0x54 bytes, memset as one block): captain-select state,
- * reused by character select for its 4 preview models. Per-slot fields are
- * indexed by model slot (port on captain select). */
+/* capSelectState byte offsets. */
 #define CAP_STATE_LOAD_QUEUE_HEAD       0x00 /* s8: model-load ring buffer write index (mod 10) */
 #define CAP_STATE_LOAD_QUEUE_TAIL       0x01 /* s8: model-load ring buffer read index (mod 10) */
 #define CAP_STATE_LOAD_QUEUE            0x02 /* s8[10]: slots waiting for a model load; -1 = empty */
@@ -81,10 +86,8 @@
 #define CAP_STATE_SHOW_MODEL_ON_LOAD    0x46 /* u8[4]: captainSelect_setShowModelOnLoad; copied into CapSlot.visible */
 #define CAP_STATE_DEBUG_CAMERA_MENU     0x4A /* u8: debug camera tweak; force-cleared every frame */
 
-/* Typed views of the same two blocks. Functions are converted to these one
- * at a time; a function that keeps the byte-offset form does so because the
- * struct form changes its codegen. Byte fields are u8 because the code reads
- * them unsigned unless it casts. */
+/* The typed layouts. Byte fields are u8 because the code reads them unsigned
+ * unless it casts. */
 typedef struct CssWork {
     /* 0x00 */ s32 lineupCursor[2];     // E(s32, FIELDING_POSITION) 0-8, CSS_LINEUP_CURSOR_DONE, CSS_LINEUP_CURSOR_RANDOM
     /* 0x08 */ s32 lineupCursorPrev[2];
@@ -134,7 +137,7 @@ typedef struct CapSelectState {
     /* 0x00 */ s8 loadQueueHead;
     /* 0x01 */ s8 loadQueueTail;
     /* 0x02 */ s8 loadQueue[10];        // slots waiting for a model load; -1 = empty
-    /* 0x0C */ u8 _0C[4];               // s32, only set to -1
+    /* 0x0C */ s32 _0C;                 // only set to -1
     /* 0x10 */ u8 captainLocked[2];
     /* 0x12 */ u8 playCaptainVoice[2];
     /* 0x14 */ u8 modelLoadRequested[4];
@@ -144,8 +147,8 @@ typedef struct CapSelectState {
     /* 0x1B */ u8 modelLoaderIdle;
     /* 0x1C */ u8 modelLoadDelay[4];
     /* 0x20 */ u8 _20;
-    /* 0x21 */ u8 _21[2];
-    /* 0x23 */ u8 _23[4];
+    /* 0x21 */ s8 _21[2];               // only set to -1
+    /* 0x23 */ u8 _23[4];               // [0..1] memset to -1
     /* 0x27 */ s8 loadingSlot[4];
     /* 0x2B */ u8 _2B[2];
     /* 0x2D */ u8 modelSlotCount;       // 1 challenge, 2 captain select, 4 character select
@@ -161,8 +164,9 @@ typedef struct CapSelectState {
     /* 0x4C */ u8 _4C[0x54 - 0x4C];
 } CapSelectState; // size: 0x54
 
-#define cssWork        (*(CssWork *)lbl_2_bss_F468)
-#define capSelectState (*(CapSelectState *)lbl_2_bss_100B8)
+/* Typed views for files that declare the blocks as u8[] (text_0323C.c). */
+#define CSS_WORK_VIEW         (*(CssWork *)cssWork)
+#define CAP_SELECT_STATE_VIEW (*(CapSelectState *)capSelectState)
 
 /* lbl_2_bss_100B4 (2 bytes, declared u8): byte 0 is set before every
  * captain/character-select exit (the model-load tasks remove themselves once

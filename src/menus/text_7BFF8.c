@@ -10,7 +10,7 @@
 #include "menus/css_work.h"
 
 extern GameSetUpStep gameSetUpStep;
-extern u8 lbl_2_bss_F468[0xC4C];
+extern CssWork cssWork;
 void updateCharacterSelectProcessCode(int port, u8 process);
 void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 slot);
 void teamSelectionSetChemStars(MenuScene *scene, u8 slot);
@@ -66,7 +66,7 @@ static inline void setRosterCharacterGraphics(MenuScene *scene, int slot, int po
 
     if (character != CHAR_ID_NONE) {
         teamRosterRecord(scene, position, slot, 0x34)->flags |= UI_FLAG_VISIBLE;
-        if (position == CSS_CURSOR_S32(slot)) {
+        if (position == cssWork.lineupCursor[slot]) {
             teamRosterRecord(scene, position, slot, 0x34)->frame = 10 << 16;
             teamRosterRecord(scene, position, slot, 0x34)->playMode = UI_PLAY_STOP;
         } else {
@@ -127,14 +127,14 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
     E(s8, CHAR_ID) character;
 
     if (isStepClear(gameSetUpStep.stepFlags[2][slot])) {
-        previous = CSS_PREV_CURSOR_S32(slot);
-        current = CSS_CURSOR_S32(slot);
+        previous = cssWork.lineupCursorPrev[slot];
+        current = cssWork.lineupCursor[slot];
         for (i = 0; i < 9; i++) {
             if ((s8)cursorPositions.roster.positionSwapMapping[slot][i] == current) currentSlot = i;
             if ((s8)cursorPositions.roster.positionSwapMapping[slot][i] == previous) previousSlot = i;
         }
         if (previous != 9 && previous != 10 && previous < 9) {
-            if (previous != (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION]) {
+            if (previous != (s8)cssWork.swapSourcePosition[slot]) {
                 teamRosterRecord(scene, previous, slot, 0x46)->frame = 15 << 16;
                 teamRosterRecord(scene, previous, slot, 0x46)->playMode = UI_PLAY_BACKWARD;
                 character = cursorPositions.roster.rosterCharID[slot][previousSlot];
@@ -145,7 +145,7 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
             }
             teamRosterRecord(scene, previous, slot, 0x22)->flags &= ~UI_FLAG_VISIBLE;
         }
-        if (current != 9 && current != 10 && current < 9 && current != (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION]) {
+        if (current != 9 && current != 10 && current < 9 && current != (s8)cssWork.swapSourcePosition[slot]) {
             teamRosterRecord(scene, current, slot, 0x46)->frame = 0;
             teamRosterRecord(scene, current, slot, 0x46)->playMode = UI_PLAY_FORWARD;
             character = cursorPositions.roster.rosterCharID[slot][currentSlot];
@@ -153,7 +153,7 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
                 teamRosterRecord(scene, current, slot, 0x34)->frame = 20 << 16;
                 teamRosterRecord(scene, current, slot, 0x34)->playMode = UI_PLAY_BACKWARD;
             }
-            if (lbl_2_bss_F468[slot + CSS_WORK_ON_CHARACTER_GRID] == 0) {
+            if (cssWork.onCharacterGrid[slot] == 0) {
                 teamRosterRecord(scene, current, slot, 0x22)->flags |= UI_FLAG_VISIBLE;
                 teamRosterRecord(scene, current, slot, 0x22)->playMode = UI_PLAY_FORWARD;
             }
@@ -173,22 +173,22 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
                 SCENE_RECORD(scene, slot + 0x91)->playMode = UI_PLAY_BACKWARD;
             }
         }
-        if (lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) {
-            saved = lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION];
+        if (cssWork.swapSourceSelected[slot] != 0) {
+            saved = cssWork.swapSourcePosition[slot];
             if (previous == saved || current == saved) {
                 for (i = 0; i < 9; i++) {
                     if ((s8)cursorPositions.roster.positionSwapMapping[slot][i] == saved) savedSlot = i;
                 }
-                lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION] = saved;
+                cssWork.swapSourcePosition[slot] = saved;
                 character = cursorPositions.roster.rosterCharID[slot][savedSlot];
                 if (character != CHAR_ID_NONE && character != NUM_CHOOSABLE_CHARACTERS) {
-                    teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION], slot, 0x34)->frame = 10 << 16;
-                    teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION], slot, 0x34)->playMode = UI_PLAY_STOP;
+                    teamRosterRecord(scene, (s8)cssWork.swapSourcePosition[slot], slot, 0x34)->frame = 10 << 16;
+                    teamRosterRecord(scene, (s8)cssWork.swapSourcePosition[slot], slot, 0x34)->playMode = UI_PLAY_STOP;
                 }
-                teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION], slot, 0x46)->frame = 15 << 16;
-                teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION], slot, 0x46)->playMode = UI_PLAY_STOP;
-                if (current == (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION]) {
-                    teamRosterRecord(scene, (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION], slot, 0x22)->flags |= UI_FLAG_VISIBLE;
+                teamRosterRecord(scene, (s8)cssWork.swapSourcePosition[slot], slot, 0x46)->frame = 15 << 16;
+                teamRosterRecord(scene, (s8)cssWork.swapSourcePosition[slot], slot, 0x46)->playMode = UI_PLAY_STOP;
+                if (current == (s8)cssWork.swapSourcePosition[slot]) {
+                    teamRosterRecord(scene, (s8)cssWork.swapSourcePosition[slot], slot, 0x22)->flags |= UI_FLAG_VISIBLE;
                 }
             } else {
                 teamRosterRecord(scene, saved, slot, 0x22)->flags &= ~UI_FLAG_VISIBLE;
@@ -211,7 +211,7 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
     s32 i;
     s32* pair;
 
-    pair = (s32*)lbl_2_bss_F468;
+    pair = cssWork.lineupCursor;
     if (gameSetUpStep.stepFlags[2][slot] == SET_UP_STEP_PLAYING) {
         valB = pair[slot + 2];
         valA = pair[slot];
@@ -227,14 +227,14 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
         }
         if (valB != 9 && valB != 10 && valB < 9) {
             ch = cursorPositions.roster.rosterCharID[slot][idxB];
-            if (ch != -1 && ch != 0x36 && valB != (s8)lbl_2_bss_F468[CSS_WORK_SWAP_SOURCE_POSITION + slot] && valB != valA) {
+            if (ch != -1 && ch != 0x36 && valB != (s8)cssWork.swapSourcePosition[slot] && valB != valA) {
                 attempts = 1;
                 successes = maybeCheckAndResetGrapicsElement(scene, valB + slot * 9 + 0x34, 0x14) != 0;
             }
         }
         if (valA != 9 && valA != 10 && valA < 9) {
             ch = cursorPositions.roster.rosterCharID[slot][idxA];
-            if (ch != -1 && ch != 0x36 && valA != (s8)lbl_2_bss_F468[CSS_WORK_SWAP_SOURCE_POSITION + slot]) {
+            if (ch != -1 && ch != 0x36 && valA != (s8)cssWork.swapSourcePosition[slot]) {
                 attempts++;
                 successes += maybeCheckAndResetGrapicsElement(scene, valA + slot * 9 + 0x34, 10) != 0;
             }
@@ -243,8 +243,8 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
             pair[slot + 2] = pair[slot];
             makeCursorMovable(slot);
             gameSetUpStep.stepFlags[2][slot] = SET_UP_STEP_DONE;
-            if (lbl_2_bss_F468[CSS_WORK_ENTER_LINEUP_EDIT_AFTER_MOVE + slot] != 0) {
-                lbl_2_bss_F468[CSS_WORK_ENTER_LINEUP_EDIT_AFTER_MOVE + slot] = 0;
+            if (cssWork.enterLineupEditAfterMove[slot] != 0) {
+                cssWork.enterLineupEditAfterMove[slot] = 0;
                 updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_ENTER);
             }
         }
@@ -345,7 +345,7 @@ void cssAction_case9(MenuScene *scene, int slot) {
             }
             Static_Stats_Tables.captainSelectedID[slot] = captain;
             for (i = 0; i < 9; i++) {
-                if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && lbl_2_bss_F468[slot + CSS_WORK_ROSTER_COMPLETE] == 0 && slot == 1) {
+                if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && cssWork.rosterComplete[slot] == 0 && slot == 1) {
                     if (i == captainPosition) {
                         cpuPlayer = Static_Stats_Tables.playerNumberByPort[0] == 0;
                         teamRosterRecord(scene, i, slot, 0x46)->elementIndex = cpuPlayer + 0x11;
@@ -396,7 +396,7 @@ void cssAction_case9(MenuScene *scene, int slot) {
                     teamRosterRecord(scene, i, slot, 0x46)->elementIndex = Static_Stats_Tables.playerNumberByPort[slot] + 0x11;
                 }
                 teamRosterRecord(scene, i, slot, 0x46)->frame = 0;
-                if (i == CSS_CURSOR_S32(slot)) {
+                if (i == cssWork.lineupCursor[slot]) {
                     teamRosterRecord(scene, i, slot, 0x46)->flags |= UI_FLAG_VISIBLE;
                     teamRosterRecord(scene, i, slot, 0x46)->playMode = UI_PLAY_FORWARD;
                 } else {
@@ -434,7 +434,7 @@ void cssAction_case9(MenuScene *scene, int slot) {
                 SCENE_RECORD(scene, slot + 0x8F)->flags &= ~UI_FLAG_VISIBLE;
             }
         }
-        if (lbl_2_bss_F468[CSS_WORK_CHALLENGE_ROSTER_LOCKED] != 0 && lbl_2_bss_F468[CSS_WORK_ROSTER_COMPLETE] != 0 && slot == 0 && g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
+        if (cssWork.challengeRosterLocked != 0 && cssWork.rosterComplete[0] != 0 && slot == 0 && g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE || slot == 0) {
                 SCENE_RECORD(scene, slot + 0x93)->frame = 0;
                 SCENE_RECORD(scene, slot + 0x93)->playMode = UI_PLAY_FORWARD;

@@ -56,9 +56,9 @@ extern u8 lbl_803CB8D0[];
 
 extern s16 variantPairs[][5];
 extern u8 menuCursors[0x58];
-extern u8 lbl_2_bss_F468[0xC4C];
+extern u8 cssWork[0xC4C];
 extern u8 lbl_2_bss_100B4;
-extern u8 lbl_2_bss_100B8[0x54];
+extern u8 capSelectState[0x54];
 extern u8 lbl_2_data_3CE0[0x8];
 extern SceneChangeState lbl_8037169C;
 extern u8 inMemRoster[0xB40];
@@ -108,7 +108,7 @@ void cssTransitionToNewScreen_maybe(void) {
             updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
             changeScene(0xF, 6);
             lbl_2_bss_3A0[0] = 0;
-            cssWork.returnToCaptainSelect = 0;
+            CSS_WORK_VIEW.returnToCaptainSelect = 0;
             lbl_2_bss_100B4 = 1;
             menuControlVariables->currentState = 8;
             break;
@@ -161,8 +161,8 @@ void fn_2_348C(void) {
 // .text:0x000035D0 size:0x54 mapped:0x80642664
 /* kept as offset access: struct form changes codegen */
 bool closeZMenu(u8 port) {
-    if (lbl_2_bss_F468[port + CSS_WORK_Z_MENU_OPEN] != 0) {
-        lbl_2_bss_F468[port + CSS_WORK_Z_MENU_OPEN] = 0;
+    if (cssWork[port + CSS_WORK_Z_MENU_OPEN] != 0) {
+        cssWork[port + CSS_WORK_Z_MENU_OPEN] = 0;
         sndFXRelated(0x200);
         return true;
     }
@@ -191,13 +191,13 @@ void fn_2_3624(u8 port) {
     localInput.processedInput = Static_Stats_Tables.controllerInputs[team].processedInput;
 
     if (localInput.processedInput & PAD_BUTTON_UP) {
-        if (lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_OPEN] != 0) goto TAIL;
+        if (cssWork[slot + CSS_WORK_Z_MENU_OPEN] != 0) goto TAIL;
         if (CSS_CURSOR(slot) == CSS_LINEUP_CURSOR_DONE) {
             CSS_CURSOR(slot) = 2;
             updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else if (CSS_CURSOR(slot) == CSS_LINEUP_CURSOR_RANDOM) {
-            if (lbl_2_bss_F468[slot + CSS_WORK_ROSTER_COMPLETE] != 0) {
+            if (cssWork[slot + CSS_WORK_ROSTER_COMPLETE] != 0) {
                 CSS_CURSOR(slot) = CSS_LINEUP_CURSOR_DONE;
                 updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             } else {
@@ -216,7 +216,7 @@ void fn_2_3624(u8 port) {
             case 5: CSS_CURSOR(slot) = 7; break;
             case 6: CSS_CURSOR(slot) = 4; break;
             case 8:
-                if (lbl_2_bss_F468[slot + CSS_WORK_ROSTER_COMPLETE] != 0 && lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] == 0) {
+                if (cssWork[slot + CSS_WORK_ROSTER_COMPLETE] != 0 && cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] == 0) {
                     CSS_CURSOR(slot) = CSS_LINEUP_CURSOR_DONE;
                 } else {
                     CSS_CURSOR(slot) = 2;
@@ -233,7 +233,7 @@ void fn_2_3624(u8 port) {
     }
 
     if (localInput.processedInput & PAD_BUTTON_DOWN) {
-        if (lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_OPEN] != 0) goto TAIL;
+        if (cssWork[slot + CSS_WORK_Z_MENU_OPEN] != 0) goto TAIL;
         if (CSS_CURSOR(slot) == CSS_LINEUP_CURSOR_DONE) {
             CSS_CURSOR(slot) = 8;
             updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
@@ -243,7 +243,7 @@ void fn_2_3624(u8 port) {
             switch (CSS_CURSOR(slot)) {
             case 0: CSS_CURSOR(slot) = 1; break;
             case 2:
-                if (lbl_2_bss_F468[slot + CSS_WORK_ROSTER_COMPLETE] != 0 && lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] == 0) {
+                if (cssWork[slot + CSS_WORK_ROSTER_COMPLETE] != 0 && cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] == 0) {
                     CSS_CURSOR(slot) = CSS_LINEUP_CURSOR_DONE;
                 } else {
                     CSS_CURSOR(slot) = 8;
@@ -266,12 +266,12 @@ void fn_2_3624(u8 port) {
     }
 
     if (localInput.processedInput & PAD_BUTTON_LEFT) {
-        if (lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_OPEN] != 0) {
-            if (lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_PAGE] != Z_MENU_PAGE_STAR_MOVES) {
+        if (cssWork[slot + CSS_WORK_Z_MENU_OPEN] != 0) {
+            if (cssWork[slot + CSS_WORK_Z_MENU_PAGE] != Z_MENU_PAGE_STAR_MOVES) {
                 goto TAIL;
             }
-            lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_MAIN;
-            lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_PAGE_DRAWN] = 0;
+            cssWork[slot + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_MAIN;
+            cssWork[slot + CSS_WORK_Z_MENU_PAGE_DRAWN] = 0;
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else if (CSS_CURSOR(slot) == CSS_LINEUP_CURSOR_DONE) {
             CSS_CURSOR(slot) = 0;
@@ -282,8 +282,8 @@ void fn_2_3624(u8 port) {
             switch (CSS_CURSOR(slot)) {
             case 0: CSS_CURSOR(slot) = 4; break;
             case 1:
-                if (lbl_2_bss_F468[slot + CSS_WORK_ROSTER_COMPLETE] == 0) goto TAIL;
-                if (lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) goto TAIL;
+                if (cssWork[slot + CSS_WORK_ROSTER_COMPLETE] == 0) goto TAIL;
+                if (cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) goto TAIL;
                 CSS_CURSOR(slot) = CSS_LINEUP_CURSOR_DONE;
                 break;
             case 2: CSS_CURSOR(slot) = 3; break;
@@ -304,12 +304,12 @@ void fn_2_3624(u8 port) {
     }
 
     if (localInput.processedInput & PAD_BUTTON_RIGHT) {
-        if (lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_OPEN] != 0) {
-            if (lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_PAGE] != Z_MENU_PAGE_MAIN) {
+        if (cssWork[slot + CSS_WORK_Z_MENU_OPEN] != 0) {
+            if (cssWork[slot + CSS_WORK_Z_MENU_PAGE] != Z_MENU_PAGE_MAIN) {
                 goto TAIL;
             }
-            lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_STAR_MOVES;
-            lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_PAGE_DRAWN] = 0;
+            cssWork[slot + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_STAR_MOVES;
+            cssWork[slot + CSS_WORK_Z_MENU_PAGE_DRAWN] = 0;
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         } else if (CSS_CURSOR(slot) == CSS_LINEUP_CURSOR_DONE) {
             CSS_CURSOR(slot) = 0;
@@ -319,7 +319,7 @@ void fn_2_3624(u8 port) {
             CSS_PREV_CURSOR(slot) = CSS_CURSOR(slot);
             switch (CSS_CURSOR(slot)) {
             case 0:
-                if (lbl_2_bss_F468[slot + CSS_WORK_ROSTER_COMPLETE] != 0 && lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] == 0) {
+                if (cssWork[slot + CSS_WORK_ROSTER_COMPLETE] != 0 && cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] == 0) {
                     CSS_CURSOR(slot) = CSS_LINEUP_CURSOR_DONE;
                     updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
                 } else {
@@ -328,8 +328,8 @@ void fn_2_3624(u8 port) {
                 }
                 break;
             case 1:
-                if (lbl_2_bss_F468[slot + CSS_WORK_ROSTER_COMPLETE] == 0) goto TAIL;
-                if (lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) goto TAIL;
+                if (cssWork[slot + CSS_WORK_ROSTER_COMPLETE] == 0) goto TAIL;
+                if (cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) goto TAIL;
                 CSS_CURSOR(slot) = CSS_LINEUP_CURSOR_DONE;
                 break;
             case 4: CSS_CURSOR(slot) = 5; break;
@@ -350,9 +350,9 @@ void fn_2_3624(u8 port) {
     if (localInput.newInput & PAD_BUTTON_A) {
         if (closeZMenu(slot)) goto TAIL;
         if (CSS_CURSOR(slot) == CSS_LINEUP_CURSOR_DONE) {
-            lbl_2_bss_F468[slot + CSS_WORK_LINEUP_EDIT_MODE] = 0;
-            lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION] = (u8)FIELDING_POSITION_NONE;
-            lbl_2_bss_F468[slot + CSS_WORK_READY_AFTER_LINEUP_EDIT] = 1;
+            cssWork[slot + CSS_WORK_LINEUP_EDIT_MODE] = 0;
+            cssWork[slot + CSS_WORK_SWAP_SOURCE_POSITION] = (u8)FIELDING_POSITION_NONE;
+            cssWork[slot + CSS_WORK_READY_AFTER_LINEUP_EDIT] = 1;
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
                 for (i = 0; i < 9; i++) {
                     g_Challenge.savedLineup[i].charID = cursorPositions.roster.rosterCharID[0][i];
@@ -361,27 +361,27 @@ void fn_2_3624(u8 port) {
                     ((CharacterStats *)inMemRoster)[i].stats.CharID = cursorPositions.roster.rosterCharID[0][i];
                     lineUpInfoStruct[i * 4 + 2] = cursorPositions.roster.positionSwapMapping[0][i];
                 }
-                lbl_2_bss_F468[CSS_WORK_RETURN_TO_CAPTAIN_SELECT] = 0;
+                cssWork[CSS_WORK_RETURN_TO_CAPTAIN_SELECT] = 0;
                 lbl_2_bss_100B4 = 1;
                 menuControlVariables->currentState = 8;
             } else if (g_d_GameSettings.p2_CPU_match_code == 0) {
                 if (slot != 0) {
-                    lbl_2_bss_F468[CSS_WORK_EXIT_DELAY_TIMER] = 0x1e;
+                    cssWork[CSS_WORK_EXIT_DELAY_TIMER] = 0x1e;
                     menuControlVariables->currentState = 3;
                 } else {
                     fn_2_52CC();
                 }
             } else {
-                lbl_2_bss_100B8[CAP_STATE_TEAM_CONFIRMED + slot] = 1;
-                if (lbl_2_bss_100B8[CAP_STATE_TEAM_CONFIRMED] != 0 && lbl_2_bss_100B8[CAP_STATE_TEAM_CONFIRMED + 1] != 0) {
-                    lbl_2_bss_F468[0x4f] = 1;
-                    lbl_2_bss_F468[CSS_WORK_EXIT_DELAY_TIMER] = 0x1e;
+                capSelectState[CAP_STATE_TEAM_CONFIRMED + slot] = 1;
+                if (capSelectState[CAP_STATE_TEAM_CONFIRMED] != 0 && capSelectState[CAP_STATE_TEAM_CONFIRMED + 1] != 0) {
+                    cssWork[0x4f] = 1;
+                    cssWork[CSS_WORK_EXIT_DELAY_TIMER] = 0x1e;
                     menuControlVariables->currentState = 7;
                 }
             }
             updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_EXIT);
-        } else if (lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] == 0) {
-            lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION] = CSS_CURSOR(slot);
+        } else if (cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] == 0) {
+            cssWork[slot + CSS_WORK_SWAP_SOURCE_POSITION] = CSS_CURSOR(slot);
             updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_PICK);
         } else {
             s32 matchIdx, modeMatchIdx;
@@ -389,9 +389,9 @@ void fn_2_3624(u8 port) {
             s32 modeMatchVal;
 
             for (i = 0; i < 9; i++) {
-                if ((s8)cursorPositions.roster.positionSwapMapping[slot][i] == (s8)lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION]) {
+                if ((s8)cursorPositions.roster.positionSwapMapping[slot][i] == (s8)cssWork[slot + CSS_WORK_SWAP_SOURCE_POSITION]) {
                     matchIdx = i;
-                    matchVal = lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_POSITION];
+                    matchVal = cssWork[slot + CSS_WORK_SWAP_SOURCE_POSITION];
                 }
                 if ((s8)cursorPositions.roster.positionSwapMapping[slot][i] == CSS_CURSOR(slot)) {
                     modeMatchIdx = i;
@@ -408,7 +408,7 @@ void fn_2_3624(u8 port) {
 
     if (localInput.newInput & PAD_BUTTON_B) {
         if (closeZMenu(slot)) goto TAIL;
-        if (lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) {
+        if (cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) {
             updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_CANCEL);
         }
         sndFXStartEx(0x1b9, lbl_800EFBA4[2], 0x3f, 0);
@@ -417,12 +417,12 @@ void fn_2_3624(u8 port) {
 
     if (localInput.newInput & PAD_TRIGGER_R) {
         if (closeZMenu(slot)) goto TAIL;
-        if (lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) {
-            lbl_2_bss_F468[slot + CSS_WORK_SWAP_SOURCE_SELECTED] = 0;
+        if (cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] != 0) {
+            cssWork[slot + CSS_WORK_SWAP_SOURCE_SELECTED] = 0;
         }
         updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_EXIT);
         sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
-        lbl_2_bss_F468[slot + CSS_WORK_LINEUP_EDIT_MODE] = 0;
+        cssWork[slot + CSS_WORK_LINEUP_EDIT_MODE] = 0;
         goto TAIL;
     }
 
@@ -449,17 +449,17 @@ void fn_2_3624(u8 port) {
             goto TAIL;
         }
         if (CSS_CURSOR(slot) != CSS_LINEUP_CURSOR_DONE) {
-            lbl_2_bss_F468[slot + CSS_WORK_VARIANT_CHANGED] = 0;
+            cssWork[slot + CSS_WORK_VARIANT_CHANGED] = 0;
             for (row = 0; row < 9; row++) {
                 for (col = 0; col < 5; col++) {
                     if (charID == variantPairs[row][col]) {
-                        lbl_2_bss_F468[slot + CSS_WORK_VARIANT_CHANGED] = 1;
+                        cssWork[slot + CSS_WORK_VARIANT_CHANGED] = 1;
                         goto FOUND_PAIR;
                     }
                 }
             }
         FOUND_PAIR:
-            if (lbl_2_bss_F468[slot + CSS_WORK_VARIANT_CHANGED] == 0) goto TAIL;
+            if (cssWork[slot + CSS_WORK_VARIANT_CHANGED] == 0) goto TAIL;
 
             if (variantPairs[row][col] != -1 && col < 4) {
                 s32 next = col + 1;
@@ -506,11 +506,11 @@ void fn_2_3624(u8 port) {
 
         charID = cursorPositions.roster.rosterCharID[slot][idx];
         if (charID == CHAR_ID_NONE || charID == 0x36) goto TAIL;
-        if (lbl_2_bss_F468[slot + CSS_WORK_ON_CHARACTER_GRID] != 0) goto TAIL;
+        if (cssWork[slot + CSS_WORK_ON_CHARACTER_GRID] != 0) goto TAIL;
 
-        lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_OPEN] = 1;
-        lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_ACTIVE] = 1;
-        lbl_2_bss_F468[slot + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_MAIN;
+        cssWork[slot + CSS_WORK_Z_MENU_OPEN] = 1;
+        cssWork[slot + CSS_WORK_Z_MENU_ACTIVE] = 1;
+        cssWork[slot + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_MAIN;
         sndFXStartEx(0x1bf, lbl_800EFBA4[8], 0x3f, 0);
     }
 
@@ -544,7 +544,7 @@ void fn_2_4970(u8 team, s32 charID) {
             CSS_CURSOR(team) = 8;
         }
     } else {
-        if (lbl_2_bss_F468[team + CSS_WORK_ROSTER_COMPLETE] == 0 && lbl_2_bss_F468[team + 0x3D] == 0) {
+        if (cssWork[team + CSS_WORK_ROSTER_COMPLETE] == 0 && cssWork[team + 0x3D] == 0) {
             CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
             CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
             if (CSS_CURSOR(team) < 0) {
@@ -622,10 +622,10 @@ void fn_2_4970(u8 team, s32 charID) {
             }
             cursorPositions.roster.chemWCaptain[team][idx] = 0;
             cursorPositions.roster.rosterCharID[team][idx] = CHAR_ID_NONE;
-            lbl_2_bss_F468[team + 0x3D] = 0;
+            cssWork[team + 0x3D] = 0;
             cursorPositions.roster.rosterSpotFilledInd[team][idx] = 0;
         }
-        lbl_2_bss_F468[team + CSS_WORK_ROSTER_COMPLETE] = 0;
+        cssWork[team + CSS_WORK_ROSTER_COMPLETE] = 0;
     }
     updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_REMOVE_CHARACTER);
 }
@@ -634,10 +634,10 @@ void fn_2_4970(u8 team, s32 charID) {
 // .text:0x00005184 size:0x148 mapped:0x80644218
 /* kept as offset access: struct form changes codegen */
 void fn_2_5184(s32 port) {
-    lbl_2_bss_F468[(u8)port + 0x3d] = 0;
+    cssWork[(u8)port + 0x3d] = 0;
 
     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-        if (lbl_2_bss_F468[(u8)port + CSS_WORK_ROSTER_COMPLETE] == 0) {
+        if (cssWork[(u8)port + CSS_WORK_ROSTER_COMPLETE] == 0) {
             cssRandomFillRoster(port);
             CSS_CURSOR((u8)port) = CSS_LINEUP_CURSOR_DONE;
         } else {
@@ -664,8 +664,8 @@ void fn_2_5184(s32 port) {
                 cur[(u8)port * 9 + slotIndex + 0x26] = 0;
             }
 
-            lbl_2_bss_F468[(u8)port + CSS_WORK_ROSTER_COMPLETE] = 0;
-            lbl_2_bss_F468[(u8)port + CSS_WORK_RANDOM_FILL_AFTER_CLEAR] = TRUE;
+            cssWork[(u8)port + CSS_WORK_ROSTER_COMPLETE] = 0;
+            cssWork[(u8)port + CSS_WORK_RANDOM_FILL_AFTER_CLEAR] = TRUE;
             updateCharacterSelectProcessCode(port & 0xFF, CHAR_SELECT_PROCESS_CSS_CLEAR_ROSTER);
         }
     }
@@ -675,7 +675,7 @@ void fn_2_5184(s32 port) {
 void fn_2_52CC(void) {
     s32 i;
 
-    capSelectState.teamConfirmed[0] = 1;
+    CAP_SELECT_STATE_VIEW.teamConfirmed[0] = 1;
     gameSetUpStep[0x59] = 1;
     CSS_CURSOR(gameSetUpStep[0x59]) = CSS_LINEUP_CURSOR_RANDOM;
     ((u8 *)&g_MatchInfo)[0xE] = 1;
@@ -713,7 +713,7 @@ void teamReady1(u8 port) {
     u8 mode;
     s32 val;
 
-    lbl_2_bss_F468[port + 0x3d] = 0;
+    cssWork[port + 0x3d] = 0;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         u8 *cursor = (u8 *)&cursorPositions;
@@ -734,17 +734,17 @@ void teamReady1(u8 port) {
         }
         updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
         updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
-        lbl_2_bss_F468[CSS_WORK_RETURN_TO_CAPTAIN_SELECT] = 0;
+        cssWork[CSS_WORK_RETURN_TO_CAPTAIN_SELECT] = 0;
         lbl_2_bss_100B4 = 1;
         menuControlVariables->currentState = 8;
         return;
     }
 
     mode = ((u8 *)&g_d_GameSettings)[0x10];
-    if (mode == 0 && lbl_2_bss_100B8[CAP_STATE_TEAM_CONFIRMED] != 0) {
+    if (mode == 0 && capSelectState[CAP_STATE_TEAM_CONFIRMED] != 0) {
         updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_READY);
         ((u8 *)&Static_Stats_Tables)[0x472a] = 0xff;
-        lbl_2_bss_F468[CSS_WORK_EXIT_DELAY_TIMER] = 0x1e;
+        cssWork[CSS_WORK_EXIT_DELAY_TIMER] = 0x1e;
         menuControlVariables->currentState = 3;
         return;
     }
@@ -756,12 +756,12 @@ void teamReady1(u8 port) {
 
 other:
     if (mode != 1) return;
-    lbl_2_bss_100B8[CAP_STATE_TEAM_CONFIRMED + port] = 1;
+    capSelectState[CAP_STATE_TEAM_CONFIRMED + port] = 1;
     updateCharacterSelectProcessCode(port, CHAR_SELECT_PROCESS_CSS_READY);
-    if (lbl_2_bss_100B8[CAP_STATE_TEAM_CONFIRMED] == 0) return;
-    if (lbl_2_bss_100B8[CAP_STATE_TEAM_CONFIRMED + 1] == 0) return;
-    lbl_2_bss_F468[0x4f] = 1;
-    lbl_2_bss_F468[CSS_WORK_EXIT_DELAY_TIMER] = 0x1e;
+    if (capSelectState[CAP_STATE_TEAM_CONFIRMED] == 0) return;
+    if (capSelectState[CAP_STATE_TEAM_CONFIRMED + 1] == 0) return;
+    cssWork[0x4f] = 1;
+    cssWork[CSS_WORK_EXIT_DELAY_TIMER] = 0x1e;
     menuControlVariables->currentState = 7;
 }
 #pragma dont_inline reset
@@ -775,7 +775,7 @@ s32 fn_2_57E8(s32 arg0, s32 arg1) {
 #pragma dont_inline on
 /* kept as offset access: struct form changes codegen */
 void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
-    s32 *oldState = (s32 *)&lbl_2_bss_F468[playerIndex * 4 + CSS_WORK_LINEUP_CURSOR_PREV];
+    s32 *oldState = (s32 *)&cssWork[playerIndex * 4 + CSS_WORK_LINEUP_CURSOR_PREV];
     s32 state;
 
     *oldState = CSS_CURSOR(playerIndex);
@@ -790,7 +790,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
             return;
         }
         if (state == 10) {
-            if (lbl_2_bss_F468[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
+            if (cssWork[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_DONE;
                 updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             } else {
@@ -812,7 +812,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
         case 7:
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_RANDOM;
-            } else if (lbl_2_bss_F468[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
+            } else if (cssWork[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_DONE;
             } else {
                 CSS_CURSOR(playerIndex) = 2;
@@ -856,13 +856,13 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
         case 1: CSS_CURSOR(playerIndex) = 7; break;
         case 2:
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-                if (lbl_2_bss_F468[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
+                if (cssWork[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
                     CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_DONE;
                 } else {
                     CSS_CURSOR(playerIndex) = 8;
                 }
             } else {
-                if (lbl_2_bss_F468[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
+                if (cssWork[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
                     CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_DONE;
                 } else {
                     CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_RANDOM;
@@ -906,7 +906,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_RANDOM;
             } else {
-                if (lbl_2_bss_F468[playerIndex + CSS_WORK_ROSTER_COMPLETE] == 0) {
+                if (cssWork[playerIndex + CSS_WORK_ROSTER_COMPLETE] == 0) {
                     return;
                 }
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_DONE;
@@ -940,7 +940,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
             return;
         }
         if (state == 10) {
-            if (lbl_2_bss_F468[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
+            if (cssWork[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_DONE;
                 updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             } else {
@@ -953,7 +953,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
 
         switch (state) {
         case 0:
-            if (lbl_2_bss_F468[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
+            if (cssWork[playerIndex + CSS_WORK_ROSTER_COMPLETE] != 0) {
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_DONE;
                 updateCharacterSelectProcessCode(playerIndex, CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH);
             } else {
@@ -965,7 +965,7 @@ void fn_2_57F0(u8 playerIndex, s32 unused, u16 flagsA, u16 flagsB) {
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_RANDOM;
             } else {
-                if (lbl_2_bss_F468[playerIndex + CSS_WORK_ROSTER_COMPLETE] == 0) {
+                if (cssWork[playerIndex + CSS_WORK_ROSTER_COMPLETE] == 0) {
                     return;
                 }
                 CSS_CURSOR(playerIndex) = CSS_LINEUP_CURSOR_DONE;
@@ -1028,8 +1028,8 @@ s32 fn_2_60D4(u8 port) {
 void fn_2_6138(void) {
     updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
     updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
-    cssWork._4F = 0;
-    cssWork.returnToCaptainSelect = 0;
+    CSS_WORK_VIEW._4F = 0;
+    CSS_WORK_VIEW.returnToCaptainSelect = 0;
     lbl_2_bss_100B4 = 1;
     menuControlVariables->currentState = 8;
 }
@@ -1042,7 +1042,7 @@ void cssChangeScreens(void) {
 
     if (noActiveProcessInd() == 0) goto tail;
 
-    if (lbl_2_bss_F468[CSS_WORK_RETURN_TO_CAPTAIN_SELECT] == 0) {
+    if (cssWork[CSS_WORK_RETURN_TO_CAPTAIN_SELECT] == 0) {
         if (fn_80050F78(0) == 0) {
             gameSetUpStep[0x56] = 1;
             gameSetUpStep[0x55] = 1;
@@ -1056,13 +1056,13 @@ void cssChangeScreens(void) {
         }
     }
 
-    if ((s8)lbl_2_bss_F468[CSS_WORK_EXIT_DELAY_TIMER] > 0) {
-        lbl_2_bss_F468[CSS_WORK_EXIT_DELAY_TIMER] = (s8)lbl_2_bss_F468[CSS_WORK_EXIT_DELAY_TIMER] - 1;
+    if ((s8)cssWork[CSS_WORK_EXIT_DELAY_TIMER] > 0) {
+        cssWork[CSS_WORK_EXIT_DELAY_TIMER] = (s8)cssWork[CSS_WORK_EXIT_DELAY_TIMER] - 1;
         goto tail;
     }
 
     {
-        u8 flag = lbl_2_bss_F468[CSS_WORK_RETURN_TO_CAPTAIN_SELECT];
+        u8 flag = cssWork[CSS_WORK_RETURN_TO_CAPTAIN_SELECT];
         gameSetUpStep[0x56] = 0;
         gameSetUpStep[0x55] = 0;
         if (flag != 0) goto screen_reset;
@@ -1086,11 +1086,11 @@ void cssChangeScreens(void) {
             changeScreenVariables(4);
             goto join;
         } else {
-            lbl_2_bss_F468[CSS_WORK_CHALLENGE_FILE_LOAD_DONE] = 0;
-            lbl_2_bss_F468[CSS_WORK_CHALLENGE_FILE_LOAD_DONE + 1] = 0;
-            lbl_2_bss_F468[CSS_WORK_CHALLENGE_FILE_LOAD_DONE + 2] = 0;
-            lbl_2_bss_F468[CSS_WORK_CHALLENGE_FILE_LOAD_DONE + 3] = 0;
-            lbl_2_bss_F468[CSS_WORK_CHALLENGE_MUSIC_RESTARTED] = 0;
+            cssWork[CSS_WORK_CHALLENGE_FILE_LOAD_DONE] = 0;
+            cssWork[CSS_WORK_CHALLENGE_FILE_LOAD_DONE + 1] = 0;
+            cssWork[CSS_WORK_CHALLENGE_FILE_LOAD_DONE + 2] = 0;
+            cssWork[CSS_WORK_CHALLENGE_FILE_LOAD_DONE + 3] = 0;
+            cssWork[CSS_WORK_CHALLENGE_MUSIC_RESTARTED] = 0;
             copyInfoToInMemRoster();
             fn_2_AEE8();
             gameSetUpStep[0] = 0;
@@ -1108,10 +1108,10 @@ void cssChangeScreens(void) {
 screen_reset:
     if (menuNumber[0x24] != 0) goto tail;
 
-    lbl_2_bss_F468[CSS_WORK_ON_CHARACTER_GRID + 1] = 0;
-    lbl_2_bss_F468[CSS_WORK_ON_CHARACTER_GRID] = 0;
-    lbl_2_bss_F468[CSS_WORK_ROSTER_COMPLETE + 1] = 0;
-    lbl_2_bss_F468[CSS_WORK_ROSTER_COMPLETE] = 0;
+    cssWork[CSS_WORK_ON_CHARACTER_GRID + 1] = 0;
+    cssWork[CSS_WORK_ON_CHARACTER_GRID] = 0;
+    cssWork[CSS_WORK_ROSTER_COMPLETE + 1] = 0;
+    cssWork[CSS_WORK_ROSTER_COMPLETE] = 0;
 
     for (i = 0; i < 9; i++) {
         ((u8 *)&cursorPositions)[0x4A + i] = 0;
@@ -1137,16 +1137,16 @@ tail:
 // .text:0x00006484 size:0x184 mapped:0x80645518
 #pragma dont_inline on
 void cssSelectCPUDifficulty(void) {
-    switch (cssWork.cpuDifficultyStep) {
+    switch (CSS_WORK_VIEW.cpuDifficultyStep) {
     case 0:
         if (gameSetUpStep[0x5D] != 0 && gameSetUpStep[0x5E] != 0) {
             return;
         }
-        if (cssWork.cpuDifficultyMenuOpened == 0) {
+        if (CSS_WORK_VIEW.cpuDifficultyMenuOpened == 0) {
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CPU_DIFFICULTY_OPEN);
-            cssWork.cpuDifficultyMenuOpened = 1;
+            CSS_WORK_VIEW.cpuDifficultyMenuOpened = 1;
         }
-        cssWork.cpuDifficultyStep = 1;
+        CSS_WORK_VIEW.cpuDifficultyStep = 1;
         break;
     case 1:
         if (gameSetUpStep[0x5D] != 0 && gameSetUpStep[0x5E] != 0) {
@@ -1159,8 +1159,8 @@ void cssSelectCPUDifficulty(void) {
             return;
         }
         ((u8 *)&Static_Stats_Tables)[0x472A] = 1;
-        if (cssWork.cpuDifficultyCancelled == 0) {
-            cssWork.returnToCaptainSelect = 0;
+        if (CSS_WORK_VIEW.cpuDifficultyCancelled == 0) {
+            CSS_WORK_VIEW.returnToCaptainSelect = 0;
             lbl_2_bss_100B4 = 1;
             menuControlVariables->currentState = 8;
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
@@ -1169,8 +1169,8 @@ void cssSelectCPUDifficulty(void) {
             updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_UNREADY);
             menuControlVariables->currentState = 2;
         }
-        cssWork.cpuDifficultyCancelled = 0;
-        cssWork.cpuDifficultyStep = 0;
+        CSS_WORK_VIEW.cpuDifficultyCancelled = 0;
+        CSS_WORK_VIEW.cpuDifficultyStep = 0;
         break;
     }
 }
@@ -1181,9 +1181,9 @@ void cssSelectCPUDifficulty(void) {
 void characterSelectScreenControlable(void) {
     s32 i;
 
-    if (cssWork.lineupEditMode[0] != 0) {
+    if (CSS_WORK_VIEW.lineupEditMode[0] != 0) {
         fn_2_3624(0);
-    } else if (cssWork.lineupEditMode[1] != 0 && capSelectState.teamConfirmed[0] != 0 &&
+    } else if (CSS_WORK_VIEW.lineupEditMode[1] != 0 && CAP_SELECT_STATE_VIEW.teamConfirmed[0] != 0 &&
                g_d_GameSettings.p2_CPU_match_code == 0) {
         fn_2_3624(0);
     } else {
@@ -1191,28 +1191,28 @@ void characterSelectScreenControlable(void) {
     }
 
     if (g_d_GameSettings.p2_CPU_match_code == 1) {
-        if (cssWork.lineupEditMode[1] != 0) {
+        if (CSS_WORK_VIEW.lineupEditMode[1] != 0) {
             fn_2_3624(1);
         } else {
             characterSelectControls(1);
         }
     }
 
-    if (cssWork.leavingScreen != 0) {
+    if (CSS_WORK_VIEW.leavingScreen != 0) {
         ((u8 *)&g_MatchInfo)[0x9] = 0;
         ((u8 *)&g_MatchInfo)[0x8] = 0;
-        capSelectState._30[1] = 0;
-        capSelectState._30[0] = 0;
+        CAP_SELECT_STATE_VIEW._30[1] = 0;
+        CAP_SELECT_STATE_VIEW._30[0] = 0;
 
         if (g_d_GameSettings.p2_CPU_match_code == 0) {
-            *(u32 *)lbl_2_bss_F468 = 9;
+            *(u32 *)cssWork = 9;
             gameSetUpStep[0x59] = 0;
         }
 
         for (i = 0; i < 2; i++) {
-            if (cssWork.lineupEditMode[i] != 0) {
+            if (CSS_WORK_VIEW.lineupEditMode[i] != 0) {
                 updateCharacterSelectProcessCode(i, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_EXIT);
-                cssWork.lineupEditMode[i] = 0;
+                CSS_WORK_VIEW.lineupEditMode[i] = 0;
             } else {
                 updateCharacterSelectProcessCode(i, CHAR_SELECT_PROCESS_CSS_EXIT);
             }
@@ -1329,51 +1329,51 @@ void fn_2_6AF4(void) {
 void cssUnloadScreen(void) {
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         if (((u8 *)&g_MatchInfo)[0x11] == 0) {
-            if (cssWork.challengeMusicRestarted == 0) {
-                if (cssWork.challengeMusicStep == 0) {
+            if (CSS_WORK_VIEW.challengeMusicRestarted == 0) {
+                if (CSS_WORK_VIEW.challengeMusicStep == 0) {
                     fn_800216F8(0x25, fn_8006285C);
-                    cssWork.challengeMusicStep = 1;
+                    CSS_WORK_VIEW.challengeMusicStep = 1;
                     goto END;
-                } else if (cssWork.challengeMusicStep == 1) {
+                } else if (CSS_WORK_VIEW.challengeMusicStep == 1) {
                     if (currentDrawingItem->state != 0) {
                         currentDrawingItem->state = 0;
                         initializeUnknown();
                         insertGraphicDrawingFunction(startMenuMusic, 0x1000);
-                        cssWork.challengeMusicStep = 0;
+                        CSS_WORK_VIEW.challengeMusicStep = 0;
                     } else {
                         goto END;
                     }
                 }
             }
-            cssWork.challengeMusicRestarted = 1;
+            CSS_WORK_VIEW.challengeMusicRestarted = 1;
 
-            if (cssWork.challengeFileLoadDone[0] == 0) {
+            if (CSS_WORK_VIEW.challengeFileLoadDone[0] == 0) {
                 if (fn_800697B0() != 0) {
                     goto END;
                 }
             }
-            cssWork.challengeFileLoadDone[0] = 1;
+            CSS_WORK_VIEW.challengeFileLoadDone[0] = 1;
 
-            if (cssWork.challengeFileLoadDone[1] == 0) {
+            if (CSS_WORK_VIEW.challengeFileLoadDone[1] == 0) {
                 if (diskReadRelated(&lbl_2_data_720[0x5F4], 6) == 0) {
                     goto END;
                 }
             }
-            cssWork.challengeFileLoadDone[1] = 1;
+            CSS_WORK_VIEW.challengeFileLoadDone[1] = 1;
 
-            if (cssWork.challengeFileLoadDone[2] == 0) {
+            if (CSS_WORK_VIEW.challengeFileLoadDone[2] == 0) {
                 if (diskReadRelated(&lbl_2_data_720[0x604], 9) == 0) {
                     goto END;
                 }
             }
-            cssWork.challengeFileLoadDone[2] = 1;
+            CSS_WORK_VIEW.challengeFileLoadDone[2] = 1;
 
-            if (cssWork.challengeFileLoadDone[3] == 0) {
+            if (CSS_WORK_VIEW.challengeFileLoadDone[3] == 0) {
                 if (diskReadRelated(&lbl_2_data_720[0x624], 0xF) == 0) {
                     goto END;
                 }
             }
-            cssWork.challengeFileLoadDone[3] = 1;
+            CSS_WORK_VIEW.challengeFileLoadDone[3] = 1;
         }
     }
 
@@ -1540,19 +1540,19 @@ void cssResetRosterStruct(void) {
 
     lbl_803CBD24[2] = 0;
     lbl_803CBD24[3] = 0xff;
-    cssWork.swapSourcePosition[1] = FIELDING_POSITION_NONE;
-    cssWork.swapSourcePosition[0] = FIELDING_POSITION_NONE;
-    cssWork.readyAfterLineupEdit[1] = 0;
-    cssWork.readyAfterLineupEdit[0] = 0;
+    CSS_WORK_VIEW.swapSourcePosition[1] = FIELDING_POSITION_NONE;
+    CSS_WORK_VIEW.swapSourcePosition[0] = FIELDING_POSITION_NONE;
+    CSS_WORK_VIEW.readyAfterLineupEdit[1] = 0;
+    CSS_WORK_VIEW.readyAfterLineupEdit[0] = 0;
 
     if (menuControlVariables->previousScreen != 9) {
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME &&
             g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            capSelectState.teamConfirmed[0] = TRUE;
-            capSelectState.teamConfirmed[1] = TRUE;
+            CAP_SELECT_STATE_VIEW.teamConfirmed[0] = TRUE;
+            CAP_SELECT_STATE_VIEW.teamConfirmed[1] = TRUE;
         } else {
-            capSelectState.teamConfirmed[1] = FALSE;
-            capSelectState.teamConfirmed[0] = FALSE;
+            CAP_SELECT_STATE_VIEW.teamConfirmed[1] = FALSE;
+            CAP_SELECT_STATE_VIEW.teamConfirmed[0] = FALSE;
         }
 
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
@@ -1645,11 +1645,11 @@ TAIL:
             }
         }
         if (zeroCharCount == 0) {
-            cssWork.challengeRosterLocked = 1;
-            cssWork.rosterComplete[0] = 1;
-            *(u32 *)&lbl_2_bss_F468[CSS_WORK_LINEUP_CURSOR] = 9;
+            CSS_WORK_VIEW.challengeRosterLocked = 1;
+            CSS_WORK_VIEW.rosterComplete[0] = 1;
+            *(u32 *)&cssWork[CSS_WORK_LINEUP_CURSOR] = 9;
         } else {
-            cssWork.challengeRosterLocked = 0;
+            CSS_WORK_VIEW.challengeRosterLocked = 0;
         }
     }
 }
@@ -1658,10 +1658,10 @@ TAIL:
 // .text:0x00007D44 size:0x98 mapped:0x80646DD8
 void fn_2_7D44(void) {
     if (menuControlVariables->previousScreen == 9) {
-        memset(lbl_2_bss_100B8, 0, 0x54);
+        memset(capSelectState, 0, 0x54);
     }
     ((u8 *)&Static_Stats_Tables)[0x4755] = 1;
-    capSelectState.modelSlotCount = 4;
+    CAP_SELECT_STATE_VIEW.modelSlotCount = 4;
     captainSelect_setModelVisible(0, 0);
     captainSelect_setModelVisible(1, 0);
     captainSelect_setModelVisible(2, 0);
@@ -1769,7 +1769,7 @@ void cssLoadingScreenRelated(void) {
             }
         nextChallengeRosterSlot:;
         }
-        cssWork.rosterComplete[0] = 1;
+        CSS_WORK_VIEW.rosterComplete[0] = 1;
     } else {
         fn_2_348C();
 
@@ -1855,7 +1855,7 @@ void fn_2_86EC(void) {
     }
     cssLoadingScreenRelated();
     cssResetRosterStruct();
-    cssWork.leavingScreen = 0;
+    CSS_WORK_VIEW.leavingScreen = 0;
     menuControlVariables->currentState = 2;
 }
 
@@ -1906,18 +1906,18 @@ void fn_2_87A8(void) {
         }
         cursorSndFx(4);
     } else if (*(u16 *)(pad + 2) & 0x200) {
-        cssWork.cpuDifficultyStep = 2;
-        cssWork.cpuDifficultyMenuOpened = 0;
-        cssWork.cpuDifficultyCancelled = 1;
+        CSS_WORK_VIEW.cpuDifficultyStep = 2;
+        CSS_WORK_VIEW.cpuDifficultyMenuOpened = 0;
+        CSS_WORK_VIEW.cpuDifficultyCancelled = 1;
         ((u8 *)&g_MatchInfo)[0xE] = 1;
         updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CANCEL);
         cursorSndFx(0x200);
     } else if (*(u16 *)(pad + 2) & 0x100) {
         ((u8 *)&inningSetting)[3] = lbl_803CB8D0[v];
         updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CONFIRM);
-        cssWork.cpuDifficultyStep = 2;
-        cssWork.cpuDifficultyMenuOpened = 0;
-        cssWork.cpuDifficultyCancelled = 0;
+        CSS_WORK_VIEW.cpuDifficultyStep = 2;
+        CSS_WORK_VIEW.cpuDifficultyMenuOpened = 0;
+        CSS_WORK_VIEW.cpuDifficultyCancelled = 0;
         cursorSndFx(0x100);
     }
 }
@@ -2037,7 +2037,7 @@ void fn_2_8CF8(u16 team) {
     s32 i;
     s32 t;
 
-    if (lbl_2_bss_100B8[team + 0x30] != 0) {
+    if (capSelectState[team + 0x30] != 0) {
         if (((u8 *)&g_d_GameSettings)[0x10] == 1) {
             u8 *dst = &lbl_2_bss_E8CC[team * 0x5a0];
             u8 *src = &inMemRoster[team * 0x5a0];
@@ -2276,7 +2276,7 @@ void fn_2_9ACC(u16 team) {
         u8 *lineup = &lineUpInfoStruct[team * 0x24];
 
         for (i = 0; i < 9; i++) {
-            if (capSelectState._30[team] != 0) {
+            if (CAP_SELECT_STATE_VIEW._30[team] != 0) {
                 copyCharacterStats((CharacterStats *)dst, (CharacterStats *)src);
                 lineup[0] = lsrc[0];
                 lineup[1] = lsrc[1];
@@ -2299,7 +2299,7 @@ void fn_2_9ACC(u16 team) {
         u8 *lineup = &lineUpInfoStruct[t * 0x24];
 
         for (i = 0; i < 9; i++) {
-            if (capSelectState._30[t] != 0) {
+            if (CAP_SELECT_STATE_VIEW._30[t] != 0) {
                 copyCharacterStats((CharacterStats *)dst, (CharacterStats *)src);
                 lineup[0] = lsrc[0];
                 lineup[1] = lsrc[1];
@@ -2321,9 +2321,9 @@ void fn_2_9ACC(u16 team) {
 s32 fn_2_9F70(s8 port) {
     s8 otherPort = port ^ 1;
     s32 result = port;
-    s8 portSlot = (s8)lbl_2_bss_F468[0x2F + port];
-    u8 otherPortSlotRaw = lbl_2_bss_F468[0x2F + otherPort];
-    s32 state = *(s32 *)(lbl_2_bss_F468 + portSlot * 4 + CSS_WORK_PRESET_LINEUP);
+    s8 portSlot = (s8)cssWork[0x2F + port];
+    u8 otherPortSlotRaw = cssWork[0x2F + otherPort];
+    s32 state = *(s32 *)(cssWork + portSlot * 4 + CSS_WORK_PRESET_LINEUP);
     u8 *rec;
     u8 *walk;
     s32 i;
@@ -2420,7 +2420,7 @@ retry:
     }
     for (j = 0; j < slot; j++) {
         for (k = 0; k < 2; k++) {
-            if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && lbl_2_bss_100B8[CAP_STATE_TEAM_CONFIRMED] != 0) {
+            if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && capSelectState[CAP_STATE_TEAM_CONFIRMED] != 0) {
                 id = cursorPositions.roster.rosterCharID[k][j];
             } else {
                 id = cursorPositions.roster.rosterCharID[team][j];
@@ -2530,7 +2530,7 @@ void fn_2_A6E0(void) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) return;
 
-    if (capSelectState.teamConfirmed[0] != 0 && ((u8 *)&g_d_GameSettings)[0x10] == 0) {
+    if (CAP_SELECT_STATE_VIEW.teamConfirmed[0] != 0 && ((u8 *)&g_d_GameSettings)[0x10] == 0) {
         lbl_2_bss_3E0[1] = !findRosterOverlap();
 
         lbl_2_bss_3E0[2] = !findRosterOverlap();
@@ -2815,14 +2815,14 @@ void fn_2_B66C(void) {
     if (result != -1) {
         switch (result) {
         case 0:
-            cssWork.presetLineup[1] = 1;
+            CSS_WORK_VIEW.presetLineup[1] = 1;
             break;
         case 1:
-            cssWork.presetLineup[1] = 2;
+            CSS_WORK_VIEW.presetLineup[1] = 2;
             break;
         }
     } else {
-        cssWork.presetLineup[1] = 3;
+        CSS_WORK_VIEW.presetLineup[1] = 3;
     }
 
     cssSortCaptainChemistryOrder(1);
@@ -2833,7 +2833,7 @@ void fn_2_B66C(void) {
 }
 
 static inline void loadDefaultLineup(s32 team, u8 captain) {
-    s32 *sel = &((s32 *)&lbl_2_bss_F468[CSS_WORK_PRESET_LINEUP])[team];
+    s32 *sel = &((s32 *)&cssWork[CSS_WORK_PRESET_LINEUP])[team];
     u8 *dst = &((u8 *)&cursorPositions)[team * 9];
     s32 i;
 
@@ -2891,17 +2891,17 @@ void fn_2_B920(void) {
     if (result != -1) {
         switch (result) {
         case 0:
-            cssWork.presetLineup[0] = 1;
+            CSS_WORK_VIEW.presetLineup[0] = 1;
             break;
         case 1:
-            cssWork.presetLineup[0] = 2;
+            CSS_WORK_VIEW.presetLineup[0] = 2;
             break;
         }
     } else {
-        cssWork.presetLineup[0] = 3;
+        CSS_WORK_VIEW.presetLineup[0] = 3;
     }
 
-    cssWork.presetLineup[1] = 3;
+    CSS_WORK_VIEW.presetLineup[1] = 3;
 
     loadDefaultLineup(0, matchIdx0);
     loadDefaultLineup(1, matchIdx1);
@@ -2951,8 +2951,8 @@ void challengeSetRoster(void) {
         }
     }
 
-    cssWork.presetLineup[1] = 0;
-    cssWork.presetLineup[0] = 0;
+    CSS_WORK_VIEW.presetLineup[1] = 0;
+    CSS_WORK_VIEW.presetLineup[0] = 0;
 
     for (k = 0; k < 9; k++) {
         ((u8 *)&cursorPositions)[k + 0xB] = ((u8 *)&Static_Stats_Tables)[last * 0x48 + 0x4380 + k];
@@ -2967,7 +2967,7 @@ void challengeSetRoster(void) {
         } else {
             flag = ((u8 *)&Static_Stats_Tables)[0x4757];
             mode = ((u8 *)&g_d_GameSettings)[0x10];
-            sub = capSelectState.teamConfirmed[0];
+            sub = CAP_SELECT_STATE_VIEW.teamConfirmed[0];
         restart:
             while (flag != 0) {
             }
@@ -3157,7 +3157,7 @@ void fn_2_CCBC(void) {
 void fn_2_CCE0(s32 port) {
     s32 count;
 
-    if (lbl_2_bss_F468[(u8)port + CSS_WORK_ROSTER_COMPLETE] != 0) {
+    if (cssWork[(u8)port + CSS_WORK_ROSTER_COMPLETE] != 0) {
         return;
     }
 
@@ -3169,10 +3169,10 @@ void fn_2_CCE0(s32 port) {
     }
 
     if (count == 9) {
-        lbl_2_bss_F468[(u8)port + CSS_WORK_ROSTER_COMPLETE] = TRUE;
+        cssWork[(u8)port + CSS_WORK_ROSTER_COMPLETE] = TRUE;
         CSS_PREV_CURSOR_S32((u8)port) = CSS_CURSOR((u8)port);
         CSS_CURSOR((u8)port) = CSS_LINEUP_CURSOR_DONE;
-        lbl_2_bss_F468[(u8)port + CSS_WORK_ON_CHARACTER_GRID] = FALSE;
+        cssWork[(u8)port + CSS_WORK_ON_CHARACTER_GRID] = FALSE;
         updateCharacterSelectProcessCode(port & 0xFF, CHAR_SELECT_PROCESS_CSS_ROSTER_COMPLETE);
         cssLoadingRelated_1(1, -1, -1, -1, -1, 0);
     } else {
@@ -3195,7 +3195,7 @@ void characterSelectBPress(s32 team) {
     s32 t;
     s32 j;
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && cssWork.challengeRosterLocked != 0) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && CSS_WORK_VIEW.challengeRosterLocked != 0) {
         locked = TRUE;
     }
     if (locked != FALSE) {
@@ -3203,8 +3203,8 @@ void characterSelectBPress(s32 team) {
         return;
     }
 
-    if (cssWork.onCharacterGrid[team] != 0) {
-        cssWork.onCharacterGrid[team] = 0;
+    if (CSS_WORK_VIEW.onCharacterGrid[team] != 0) {
+        CSS_WORK_VIEW.onCharacterGrid[team] = 0;
         updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID);
     } else {
         captainID = Static_Stats_Tables.captainSelectedID[team];
@@ -3229,7 +3229,7 @@ void characterSelectBPress(s32 team) {
 
         CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
         if (mismatchCount == 0) {
-            cssWork.rosterComplete[team] = 0;
+            CSS_WORK_VIEW.rosterComplete[team] = 0;
             if (CSS_CURSOR(team) == CSS_LINEUP_CURSOR_DONE) {
                 CSS_CURSOR(team) = 0;
                 switch (team) {
@@ -3259,8 +3259,8 @@ void characterSelectBPress(s32 team) {
                 updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_CURSOR_BACK_FROM_DONE);
             } else if (CSS_CURSOR(team) == CSS_LINEUP_CURSOR_RANDOM) {
                 if (mismatchCount == 0 && ((u8 *)&g_MatchInfo)[0xE] != 0) {
-                    capSelectState.teamConfirmed[1] = 0;
-                    capSelectState.teamConfirmed[0] = 0;
+                    CAP_SELECT_STATE_VIEW.teamConfirmed[1] = 0;
+                    CAP_SELECT_STATE_VIEW.teamConfirmed[0] = 0;
                     ((u8 *)&g_MatchInfo)[0xE] = 0;
                     gameSetUpStep[0x5A] = 0;
                     gameSetUpStep[0x59] = 0;
@@ -3278,23 +3278,23 @@ void characterSelectBPress(s32 team) {
                     }
                     if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                         if (g_d_GameSettings.p2_CPU_match_code == 1) {
-                            capSelectState.teamConfirmed[1] = 0;
-                            capSelectState.teamConfirmed[0] = 0;
+                            CAP_SELECT_STATE_VIEW.teamConfirmed[1] = 0;
+                            CAP_SELECT_STATE_VIEW.teamConfirmed[0] = 0;
                         } else {
-                            capSelectState.teamConfirmed[team] = 0;
+                            CAP_SELECT_STATE_VIEW.teamConfirmed[team] = 0;
                         }
                         for (t = 0; t < 2; t++) {
                             for (j = 0; j < 9; j++) {
                                 cursorPositions.roster.chemWCaptain[t][j] = 0;
                             }
-                            if (cssWork.zMenuOpen[t] != 0) {
-                                cssWork.zMenuOpen[t] = 0;
+                            if (CSS_WORK_VIEW.zMenuOpen[t] != 0) {
+                                CSS_WORK_VIEW.zMenuOpen[t] = 0;
                             }
                         }
-                        if (cssWork.leavingScreen == 0) {
-                            cssWork.leavingScreen = 1;
+                        if (CSS_WORK_VIEW.leavingScreen == 0) {
+                            CSS_WORK_VIEW.leavingScreen = 1;
                         }
-                        cssWork.returnToCaptainSelect = 1;
+                        CSS_WORK_VIEW.returnToCaptainSelect = 1;
                         lbl_2_bss_100B4 = 1;
                         menuControlVariables->currentState = 8;
                     }
@@ -3306,9 +3306,9 @@ void characterSelectBPress(s32 team) {
                     }
                     updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_CURSOR_BACK_FROM_DONE);
                 }
-            } else if (cssWork.rosterComplete[0] != 0 && mismatchCount == 0) {
-                capSelectState.teamConfirmed[1] = 0;
-                capSelectState.teamConfirmed[0] = 0;
+            } else if (CSS_WORK_VIEW.rosterComplete[0] != 0 && mismatchCount == 0) {
+                CAP_SELECT_STATE_VIEW.teamConfirmed[1] = 0;
+                CAP_SELECT_STATE_VIEW.teamConfirmed[0] = 0;
                 ((u8 *)&g_MatchInfo)[0xE] = 0;
                 gameSetUpStep[0x5A] = 0;
                 gameSetUpStep[0x59] = 0;
@@ -3326,23 +3326,23 @@ void characterSelectBPress(s32 team) {
                 }
                 if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                     if (g_d_GameSettings.p2_CPU_match_code == 1) {
-                        capSelectState.teamConfirmed[1] = 0;
-                        capSelectState.teamConfirmed[0] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[1] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[0] = 0;
                     } else {
-                        capSelectState.teamConfirmed[team] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[team] = 0;
                     }
                     for (t = 0; t < 2; t++) {
                         for (j = 0; j < 9; j++) {
                             cursorPositions.roster.chemWCaptain[t][j] = 0;
                         }
-                        if (cssWork.zMenuOpen[t] != 0) {
-                            cssWork.zMenuOpen[t] = 0;
+                        if (CSS_WORK_VIEW.zMenuOpen[t] != 0) {
+                            CSS_WORK_VIEW.zMenuOpen[t] = 0;
                         }
                     }
-                    if (cssWork.leavingScreen == 0) {
-                        cssWork.leavingScreen = 1;
+                    if (CSS_WORK_VIEW.leavingScreen == 0) {
+                        CSS_WORK_VIEW.leavingScreen = 1;
                     }
-                    cssWork.returnToCaptainSelect = 1;
+                    CSS_WORK_VIEW.returnToCaptainSelect = 1;
                     lbl_2_bss_100B4 = 1;
                     menuControlVariables->currentState = 8;
                 }
@@ -3356,33 +3356,33 @@ void characterSelectBPress(s32 team) {
                             return;
                         }
                     }
-                    cssWork.zMenuOpen[1] = 0;
-                    cssWork.zMenuOpen[0] = 0;
+                    CSS_WORK_VIEW.zMenuOpen[1] = 0;
+                    CSS_WORK_VIEW.zMenuOpen[0] = 0;
                     CSS_CURSOR(1) = 0;
                     CSS_CURSOR(0) = 0;
-                    cssWork.swapSourceSelected[1] = 0;
-                    cssWork.swapSourceSelected[0] = 0;
+                    CSS_WORK_VIEW.swapSourceSelected[1] = 0;
+                    CSS_WORK_VIEW.swapSourceSelected[0] = 0;
                     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
                         return;
                     }
                     if (g_d_GameSettings.p2_CPU_match_code == 1) {
-                        capSelectState.teamConfirmed[1] = 0;
-                        capSelectState.teamConfirmed[0] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[1] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[0] = 0;
                     } else {
-                        capSelectState.teamConfirmed[team] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[team] = 0;
                     }
                     for (t = 0; t < 2; t++) {
                         for (j = 0; j < 9; j++) {
                             cursorPositions.roster.chemWCaptain[t][j] = 0;
                         }
-                        if (cssWork.zMenuOpen[t] != 0) {
-                            cssWork.zMenuOpen[t] = 0;
+                        if (CSS_WORK_VIEW.zMenuOpen[t] != 0) {
+                            CSS_WORK_VIEW.zMenuOpen[t] = 0;
                         }
                     }
-                    if (cssWork.leavingScreen == 0) {
-                        cssWork.leavingScreen = 1;
+                    if (CSS_WORK_VIEW.leavingScreen == 0) {
+                        CSS_WORK_VIEW.leavingScreen = 1;
                     }
-                    cssWork.returnToCaptainSelect = 1;
+                    CSS_WORK_VIEW.returnToCaptainSelect = 1;
                     lbl_2_bss_100B4 = 1;
                     menuControlVariables->currentState = 8;
                     return;
@@ -3427,15 +3427,15 @@ void characterSelectBPress(s32 team) {
                     charID = cursorPositions.roster.rosterCharID[team][idx];
                     cursorPositions.roster.chemWCaptain[team][idx] = 0;
                     cursorPositions.roster.rosterCharID[team][idx] = CHAR_ID_NONE;
-                    cssWork._3D[0] = 0;
+                    CSS_WORK_VIEW._3D[0] = 0;
                     Static_Stats_Tables.charOnCharacterGridSelected[charID] = 0;
                     cursorPositions.roster.rosterSpotFilledInd[team][idx] = 0;
-                    cssWork.rosterComplete[team] = 0;
+                    CSS_WORK_VIEW.rosterComplete[team] = 0;
                 }
                 updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_REMOVE_CHARACTER);
             } else if (cursor == 9 || cursor == 10) {
-                if (capSelectState.teamConfirmed[team] != 0) {
-                    capSelectState.teamConfirmed[team] = 0;
+                if (CAP_SELECT_STATE_VIEW.teamConfirmed[team] != 0) {
+                    CAP_SELECT_STATE_VIEW.teamConfirmed[team] = 0;
                     updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_UNREADY);
                     cursorSndFx(0x200);
                     return;
@@ -3458,12 +3458,12 @@ void characterSelectBPress(s32 team) {
                         cursorPositions.roster.chemWCaptain[t][j] = 0;
                     }
                 }
-                cssWork.zMenuOpen[1] = 0;
-                cssWork.zMenuOpen[0] = 0;
+                CSS_WORK_VIEW.zMenuOpen[1] = 0;
+                CSS_WORK_VIEW.zMenuOpen[0] = 0;
                 CSS_CURSOR(1) = 0;
                 CSS_CURSOR(0) = 0;
-                cssWork.swapSourceSelected[1] = 0;
-                cssWork.swapSourceSelected[0] = 0;
+                CSS_WORK_VIEW.swapSourceSelected[1] = 0;
+                CSS_WORK_VIEW.swapSourceSelected[0] = 0;
                 for (t = 0; t < 2; t++) {
                     for (j = 1; j < 9; j++) {
                         s8 charID = cursorPositions.roster.rosterCharID[t][j];
@@ -3474,7 +3474,7 @@ void characterSelectBPress(s32 team) {
                         cursorPositions.roster.rosterSpotFilledInd[t][j] = 0;
                         cursorPositions.roster.chemWCaptain[t][j] = 0;
                     }
-                    cssWork.rosterComplete[t] = 0;
+                    CSS_WORK_VIEW.rosterComplete[t] = 0;
                     if (CSS_CURSOR(t) == CSS_LINEUP_CURSOR_DONE) {
                         CSS_CURSOR(t) = 0;
                         switch (t) {
@@ -3492,27 +3492,27 @@ void characterSelectBPress(s32 team) {
                             break;
                         }
                     }
-                    cssWork._3D[t] = 0;
+                    CSS_WORK_VIEW._3D[t] = 0;
                 }
                 if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                     if (g_d_GameSettings.p2_CPU_match_code == 1) {
-                        capSelectState.teamConfirmed[0] = 0;
-                        capSelectState.teamConfirmed[1] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[0] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[1] = 0;
                     } else {
-                        capSelectState.teamConfirmed[team] = 0;
+                        CAP_SELECT_STATE_VIEW.teamConfirmed[team] = 0;
                     }
                     for (t = 0; t < 2; t++) {
                         for (j = 0; j < 9; j++) {
                             cursorPositions.roster.chemWCaptain[t][j] = 0;
                         }
-                        if (cssWork.zMenuOpen[t] != 0) {
-                            cssWork.zMenuOpen[t] = 0;
+                        if (CSS_WORK_VIEW.zMenuOpen[t] != 0) {
+                            CSS_WORK_VIEW.zMenuOpen[t] = 0;
                         }
                     }
-                    if (cssWork.leavingScreen == 0) {
-                        cssWork.leavingScreen = 1;
+                    if (CSS_WORK_VIEW.leavingScreen == 0) {
+                        CSS_WORK_VIEW.leavingScreen = 1;
                     }
-                    cssWork.returnToCaptainSelect = 1;
+                    CSS_WORK_VIEW.returnToCaptainSelect = 1;
                     lbl_2_bss_100B4 = 1;
                     menuControlVariables->currentState = 8;
                 }
@@ -3527,7 +3527,7 @@ void characterSelectBPress(s32 team) {
 static inline BOOL cssChallengeLocked(void) {
     BOOL locked = FALSE;
 
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && cssWork.challengeRosterLocked != 0) {
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE && CSS_WORK_VIEW.challengeRosterLocked != 0) {
         locked = TRUE;
     }
     return locked;
@@ -3558,7 +3558,7 @@ void characterSelectAPress(s32 team) {
         }
     }
 
-    if (lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] == 0) {
+    if (cssWork[team + CSS_WORK_ON_CHARACTER_GRID] == 0) {
         if (CSS_CURSOR(team) == CSS_LINEUP_CURSOR_DONE) {
             teamReady1(team);
             cursorSndFx(0x100);
@@ -3581,7 +3581,7 @@ void characterSelectAPress(s32 team) {
             sndFXStartEx(0x1ba, lbl_800EFBA4[3], 0x3f, 0);
             return;
         }
-        lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] = 1;
+        cssWork[team + CSS_WORK_ON_CHARACTER_GRID] = 1;
         updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID);
         cursorSndFx(0x100);
         return;
@@ -3598,7 +3598,7 @@ void characterSelectAPress(s32 team) {
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME && cursor[team] != -1) {
         s32 other = team ^ 1;
 
-        if (cursor[other] == cursor[team] && lbl_2_bss_F468[other + CSS_WORK_ON_CHARACTER_GRID] != 0) {
+        if (cursor[other] == cursor[team] && cssWork[other + CSS_WORK_ON_CHARACTER_GRID] != 0) {
             sndFXStartEx(0x1ba, lbl_800EFBA4[3], 0x3f, 0);
             return;
         }
@@ -3672,8 +3672,8 @@ select:
     cursorPositions.roster.chemWCaptain[team][slot] =
         ((u8 *)&Static_Stats_Tables.characterStats[newChar / 9][newChar % 9])[captain + 0x3B];
     updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_SELECT_CHARACTER);
-    if (lbl_2_bss_F468[team + CSS_WORK_ROSTER_COMPLETE] != 0) {
-        lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] = 0;
+    if (cssWork[team + CSS_WORK_ROSTER_COMPLETE] != 0) {
+        cssWork[team + CSS_WORK_ON_CHARACTER_GRID] = 0;
     }
 }
 
@@ -3721,8 +3721,8 @@ void fn_2_EAE0(void) {
 
 // .text:0x0000EC34 size:0x20 mapped:0x8064DCC8
 void fn_2_EC34(void) {
-    if (cssWork.leavingScreen == 0) {
-        cssWork.leavingScreen = 1;
+    if (CSS_WORK_VIEW.leavingScreen == 0) {
+        CSS_WORK_VIEW.leavingScreen = 1;
     }
 }
 
@@ -3737,14 +3737,14 @@ void fn_2_EC54(s32 port) {
     }
 
     if (g_d_GameSettings.p2_CPU_match_code == 1) {
-        capSelectState.teamConfirmed[1] = 0;
-        capSelectState.teamConfirmed[0] = 0;
+        CAP_SELECT_STATE_VIEW.teamConfirmed[1] = 0;
+        CAP_SELECT_STATE_VIEW.teamConfirmed[0] = 0;
     } else {
-        capSelectState.teamConfirmed[port] = 0;
+        CAP_SELECT_STATE_VIEW.teamConfirmed[port] = 0;
     }
 
     cursor = (u8 *)&cursorPositions;
-    bss = lbl_2_bss_F468;
+    bss = cssWork;
 
     for (i = 0; i < 2; i++) {
         s32 zero = 0;
@@ -3769,11 +3769,11 @@ void fn_2_EC54(s32 port) {
         bss += 1;
     }
 
-    if (cssWork.leavingScreen == 0) {
-        cssWork.leavingScreen = 1;
+    if (CSS_WORK_VIEW.leavingScreen == 0) {
+        CSS_WORK_VIEW.leavingScreen = 1;
     }
 
-    cssWork.returnToCaptainSelect = 1;
+    CSS_WORK_VIEW.returnToCaptainSelect = 1;
     lbl_2_bss_100B4 = 1;
     menuControlVariables->currentState = 8;
 }
@@ -3783,18 +3783,18 @@ void fn_2_EC54(s32 port) {
 #pragma dont_inline on
 /* kept as offset access: struct form changes codegen */
 static inline void cssToggleZMenuPage(u8 team, u16 input) {
-    u8 *page = &lbl_2_bss_F468[team + CSS_WORK_Z_MENU_PAGE];
+    u8 *page = &cssWork[team + CSS_WORK_Z_MENU_PAGE];
 
     if (*page == Z_MENU_PAGE_MAIN) {
         if (input & PAD_BUTTON_RIGHT) {
             *page = Z_MENU_PAGE_STAR_MOVES;
-            lbl_2_bss_F468[team + CSS_WORK_Z_MENU_PAGE_DRAWN] = 0;
+            cssWork[team + CSS_WORK_Z_MENU_PAGE_DRAWN] = 0;
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         }
     } else if (*page == Z_MENU_PAGE_STAR_MOVES) {
         if (input & PAD_BUTTON_LEFT) {
             *page = Z_MENU_PAGE_MAIN;
-            lbl_2_bss_F468[team + CSS_WORK_Z_MENU_PAGE_DRAWN] = 0;
+            cssWork[team + CSS_WORK_Z_MENU_PAGE_DRAWN] = 0;
             sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
         }
     }
@@ -3802,20 +3802,20 @@ static inline void cssToggleZMenuPage(u8 team, u16 input) {
 
 /* kept as offset access: struct form changes codegen */
 s32 characterSelectABDirectionInputs(u8 team, u16 held, u16 pressed, u16 repeat) {
-    if (lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] == 0) {
+    if (cssWork[team + CSS_WORK_ON_CHARACTER_GRID] == 0) {
         if (!(held & PAD_BUTTON_UP) && !(held & PAD_BUTTON_DOWN) && !(held & PAD_BUTTON_LEFT) &&
             !(held & PAD_BUTTON_RIGHT)) {
             goto buttons;
         }
 
-        if (lbl_2_bss_F468[team + CSS_WORK_Z_MENU_OPEN] != 0) {
+        if (cssWork[team + CSS_WORK_Z_MENU_OPEN] != 0) {
             cssToggleZMenuPage(team, held);
             repeat = 0;
             pressed = 0;
             held = 0;
         }
 
-        if (lbl_2_bss_F468[team + CSS_WORK_LINEUP_EDIT_MODE] != 0) {
+        if (cssWork[team + CSS_WORK_LINEUP_EDIT_MODE] != 0) {
             repeat = 0;
             pressed = 0;
             held = 0;
@@ -3825,8 +3825,8 @@ s32 characterSelectABDirectionInputs(u8 team, u16 held, u16 pressed, u16 repeat)
         return TRUE;
     }
 
-    if (lbl_2_bss_F468[team + CSS_WORK_LINEUP_EDIT_MODE] != 0) {
-        lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] = 0;
+    if (cssWork[team + CSS_WORK_LINEUP_EDIT_MODE] != 0) {
+        cssWork[team + CSS_WORK_ON_CHARACTER_GRID] = 0;
         updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID);
         return TRUE;
     }
@@ -3835,9 +3835,9 @@ s32 characterSelectABDirectionInputs(u8 team, u16 held, u16 pressed, u16 repeat)
         s32 *cursor = &((s32 *)&menuCursors[0x20])[team];
         s8 port;
 
-        *(s32 *)&lbl_2_bss_F468[team * 4 + CSS_WORK_GRID_CURSOR_PREV] = *cursor;
+        *(s32 *)&cssWork[team * 4 + CSS_WORK_GRID_CURSOR_PREV] = *cursor;
 
-        if (lbl_2_bss_F468[team + CSS_WORK_Z_MENU_OPEN] != 0) {
+        if (cssWork[team + CSS_WORK_Z_MENU_OPEN] != 0) {
             cssToggleZMenuPage(team, held);
             if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && team != 0) {
                 port = Static_Stats_Tables.playerNumberByPort[0] == 0;
@@ -4268,12 +4268,12 @@ void cssRandomFillRoster(s32 team) {
 
     otherTeam = (u8)team ^ 1;
 
-    if (lbl_2_bss_F468[otherTeam + CSS_WORK_ON_CHARACTER_GRID] != 0) {
+    if (cssWork[otherTeam + CSS_WORK_ON_CHARACTER_GRID] != 0) {
         s32 val = ((s32 *)&menuCursors[0x20])[otherTeam];
 
         if (Static_Stats_Tables.charOnCharacterGridSelected[val] == 0) {
             Static_Stats_Tables.charOnCharacterGridSelected[val] = 1;
-            lbl_2_bss_F468[(u8)team + CSS_WORK_RESERVED_OTHER_GRID_CHAR] = 1;
+            cssWork[(u8)team + CSS_WORK_RESERVED_OTHER_GRID_CHAR] = 1;
         }
     }
 
@@ -4304,16 +4304,16 @@ void cssRandomFillRoster(s32 team) {
         updateCharacterSelectProcessCode(team & 0xFF, CHAR_SELECT_PROCESS_CSS_RANDOM_FILL);
 
         lbl_803CBD24[3] = lbl_803CBD24[2];
-        lbl_2_bss_F468[(u8)team + CSS_WORK_ROSTER_COMPLETE] = 1;
+        cssWork[(u8)team + CSS_WORK_ROSTER_COMPLETE] = 1;
     } else {
         CSS_CURSOR((u8)team) = CSS_LINEUP_CURSOR_DONE;
         updateCharacterSelectProcessCode(team & 0xFF, CHAR_SELECT_PROCESS_CSS_READY);
     }
 
-    if (lbl_2_bss_F468[(u8)team + CSS_WORK_RESERVED_OTHER_GRID_CHAR] != 0) {
+    if (cssWork[(u8)team + CSS_WORK_RESERVED_OTHER_GRID_CHAR] != 0) {
         s32 val = ((s32 *)&menuCursors[0x20])[otherTeam];
 
-        lbl_2_bss_F468[(u8)team + CSS_WORK_RESERVED_OTHER_GRID_CHAR] = 0;
+        cssWork[(u8)team + CSS_WORK_RESERVED_OTHER_GRID_CHAR] = 0;
         Static_Stats_Tables.charOnCharacterGridSelected[val] = 0;
     }
 }
@@ -4321,9 +4321,9 @@ void cssRandomFillRoster(s32 team) {
 // .text:0x000104FC size:0xBB4 mapped:0x8064F590
 /* kept as offset access: struct form changes codegen */
 static inline void cssOpenZMenu(u8 team) {
-    lbl_2_bss_F468[team + CSS_WORK_Z_MENU_OPEN] = 1;
-    lbl_2_bss_F468[team + CSS_WORK_Z_MENU_ACTIVE] = 1;
-    lbl_2_bss_F468[team + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_MAIN;
+    cssWork[team + CSS_WORK_Z_MENU_OPEN] = 1;
+    cssWork[team + CSS_WORK_Z_MENU_ACTIVE] = 1;
+    cssWork[team + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_MAIN;
     sndFXStartEx(0x1bf, lbl_800EFBA4[8], 0x3f, 0);
 }
 
@@ -4342,11 +4342,11 @@ void characterSelectControls(u16 port) {
         pressed = 0;
         repeat = 0;
         held = pressed;
-    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME && lbl_2_bss_100B8[team + CAP_STATE_TEAM_CONFIRMED] != 0) {
+    } else if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME && capSelectState[team + CAP_STATE_TEAM_CONFIRMED] != 0) {
         held = Static_Stats_Tables.controllerInputs[port].currentHeldInput & PAD_BUTTON_B;
         pressed = Static_Stats_Tables.controllerInputs[port].newInput & PAD_BUTTON_B;
         repeat = Static_Stats_Tables.controllerInputs[port].processedInput & PAD_BUTTON_B;
-    } else if (lbl_2_bss_F468[team + CSS_WORK_ROSTER_CLEAR_PENDING] != 0) {
+    } else if (cssWork[team + CSS_WORK_ROSTER_CLEAR_PENDING] != 0) {
         pressed = 0;
         repeat = 0;
         held = pressed;
@@ -4364,7 +4364,7 @@ void characterSelectControls(u16 port) {
         if (closeZMenu(team)) {
             return;
         }
-        if (lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] != 0) {
+        if (cssWork[team + CSS_WORK_ON_CHARACTER_GRID] != 0) {
             s32 *cursor;
 
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
@@ -4393,17 +4393,17 @@ void characterSelectControls(u16 port) {
             return;
         }
         if (CSS_CURSOR(team) != CSS_LINEUP_CURSOR_DONE && CSS_CURSOR(team) != CSS_LINEUP_CURSOR_RANDOM) {
-            lbl_2_bss_F468[team + CSS_WORK_VARIANT_CHANGED] = 0;
+            cssWork[team + CSS_WORK_VARIANT_CHANGED] = 0;
             for (row = 0; row < 9; row++) {
                 for (col = 0; col < 5; col++) {
                     if (id == variantPairs[row][col]) {
-                        lbl_2_bss_F468[team + CSS_WORK_VARIANT_CHANGED] = 1;
+                        cssWork[team + CSS_WORK_VARIANT_CHANGED] = 1;
                         goto found;
                     }
                 }
             }
         found:
-            if (lbl_2_bss_F468[team + CSS_WORK_VARIANT_CHANGED] == 0) {
+            if (cssWork[team + CSS_WORK_VARIANT_CHANGED] == 0) {
                 return;
             }
             fn_2_A040(row, col, team, idx);
@@ -4444,13 +4444,13 @@ void characterSelectControls(u16 port) {
             }
         }
 
-        lbl_2_bss_F468[team + CSS_WORK_ROSTER_COMPLETE] = 0;
-        lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] = 0;
-        lbl_2_bss_F468[team + CSS_WORK_VARIANT_CHANGED] = 0;
+        cssWork[team + CSS_WORK_ROSTER_COMPLETE] = 0;
+        cssWork[team + CSS_WORK_ON_CHARACTER_GRID] = 0;
+        cssWork[team + CSS_WORK_VARIANT_CHANGED] = 0;
         CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
         CSS_CURSOR(team) = CSS_LINEUP_CURSOR_RANDOM;
-        lbl_2_bss_F468[team + 0x3d] = 0;
-        lbl_2_bss_F468[team + CSS_WORK_ROSTER_CLEAR_PENDING] = 1;
+        cssWork[team + 0x3d] = 0;
+        cssWork[team + CSS_WORK_ROSTER_CLEAR_PENDING] = 1;
         return;
     }
 
@@ -4469,12 +4469,12 @@ void characterSelectControls(u16 port) {
         if (CSS_CURSOR(team) != CSS_LINEUP_CURSOR_RANDOM && CSS_CURSOR(team) != CSS_LINEUP_CURSOR_DONE &&
             cursorPositions.roster.rosterCharID[team][idx] != CHAR_ID_NONE &&
             cursorPositions.roster.rosterCharID[team][idx] != NUM_CHOOSABLE_CHARACTERS &&
-            lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] == 0) {
+            cssWork[team + CSS_WORK_ON_CHARACTER_GRID] == 0) {
             cssOpenZMenu(team);
             return;
         }
 
-        if (lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] != 0) {
+        if (cssWork[team + CSS_WORK_ON_CHARACTER_GRID] != 0) {
             s32 *cursor = &((s32 *)&menuCursors[0x20])[team];
 
             if (Static_Stats_Tables.charOnCharacterGridSelected[*cursor] != FALSE) {
@@ -4492,20 +4492,20 @@ void characterSelectControls(u16 port) {
         if (closeZMenu(team)) {
             return;
         }
-        if (lbl_2_bss_F468[team + CSS_WORK_LINEUP_EDIT_MODE] != 0) {
+        if (cssWork[team + CSS_WORK_LINEUP_EDIT_MODE] != 0) {
             return;
         }
-        lbl_2_bss_F468[team + CSS_WORK_LINEUP_EDIT_MODE] = 1;
-        lbl_2_bss_F468[team + CSS_WORK_SWAP_SOURCE_POSITION] = FIELDING_POSITION_NONE;
+        cssWork[team + CSS_WORK_LINEUP_EDIT_MODE] = 1;
+        cssWork[team + CSS_WORK_SWAP_SOURCE_POSITION] = FIELDING_POSITION_NONE;
         sndFXStartEx(0x1b7, lbl_800EFBA4[0], 0x3f, 0);
 
-        if (lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] != 0) {
-            lbl_2_bss_F468[team + CSS_WORK_ON_CHARACTER_GRID] = 0;
+        if (cssWork[team + CSS_WORK_ON_CHARACTER_GRID] != 0) {
+            cssWork[team + CSS_WORK_ON_CHARACTER_GRID] = 0;
             updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID);
             return;
         }
         if (CSS_CURSOR(team) == CSS_LINEUP_CURSOR_RANDOM) {
-            lbl_2_bss_F468[team + CSS_WORK_ENTER_LINEUP_EDIT_AFTER_MOVE] = 1;
+            cssWork[team + CSS_WORK_ENTER_LINEUP_EDIT_AFTER_MOVE] = 1;
             CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
             CSS_CURSOR(team) = 1;
             updateCharacterSelectProcessCode(team, CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE);
@@ -4538,13 +4538,13 @@ void teamSelectScreenMain(void) {
         }
         break;
     case 3:
-        if (*(s8 *)&cssWork.exitDelayTimer < 0 && gameSetUpStep[0x5D] == 0 &&
+        if (*(s8 *)&CSS_WORK_VIEW.exitDelayTimer < 0 && gameSetUpStep[0x5D] == 0 &&
             gameSetUpStep[0x5E] == 0) {
             fn_2_72630();
-            cssWork.cpuDifficultyStep = 0;
+            CSS_WORK_VIEW.cpuDifficultyStep = 0;
             menuControlVariables->currentState = 4;
         } else {
-            cssWork.exitDelayTimer--;
+            CSS_WORK_VIEW.exitDelayTimer--;
         }
         break;
     case 4:
@@ -4557,15 +4557,15 @@ void teamSelectScreenMain(void) {
         cssTransitionToNewScreen_maybe();
         break;
     case 7:
-        if (*(s8 *)&cssWork.exitDelayTimer < 0) {
+        if (*(s8 *)&CSS_WORK_VIEW.exitDelayTimer < 0) {
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_LEAVE);
             updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CSS_LEAVE);
-            cssWork._4F = 0;
-            cssWork.returnToCaptainSelect = 0;
+            CSS_WORK_VIEW._4F = 0;
+            CSS_WORK_VIEW.returnToCaptainSelect = 0;
             lbl_2_bss_100B4 = 1;
             menuControlVariables->currentState = 8;
         } else {
-            cssWork.exitDelayTimer--;
+            CSS_WORK_VIEW.exitDelayTimer--;
         }
         break;
     case 8:
