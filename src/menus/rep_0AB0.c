@@ -1203,11 +1203,6 @@ void fn_2_5B7DC(void) {
 
 // .text:0x0005AFB0 size:0x82C mapped:0x8069A044
 void fn_2_5AFB0(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
-    s8 idx;
-    u16 pad;
-    s16 v;
-    s16 n;
 
     switch (WCH(0x32)) {
     case 0:
@@ -1227,39 +1222,32 @@ void fn_2_5AFB0(void) {
         break;
 
     case 2:
-        idx = (s8)WB(0x197863);
-        pad = PADW(idx, 0x4);
-        v = WBH(0x1976FA);
-        n = WBH(0x19772E);
-        if (pad & 0x1) {
-            WBH(0x1976FA) = (v + n - 1) % n;
-            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+        if (PADW((s8)WB(0x197863), 0x4) & INPUT_BUTTON_LEFT) {
+            WBH(0x1976FA) = (-1 + WBH(0x19772E) + WBH(0x1976FA)) % WBH(0x19772E);
             WA(0x1627AF) = 1;
             WA(0x1627B0) = 1;
-            WCH(0x32) = 3;
-        } else if (pad & 0x2) {
-            WBH(0x1976FA) = (v + 1) % n;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
+            WCH(0x32) = 3;
+        } else if (PADW((s8)WB(0x197863), 0x4) & INPUT_BUTTON_RIGHT) {
+            WBH(0x1976FA) = (WBH(0x1976FA) + 1) % WBH(0x19772E);
             WA(0x1627AF) = 1;
             WA(0x1627B0) = 1;
+            sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             WCH(0x32) = 3;
-        } else {
-            pad = PADW(idx, 0x2);
-            if (pad & 0x40) {
-                WBH(0x197730) = 4;
-                WA(0x162908) = 1;
-                WCH(0x32) = 5;
-                sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-            } else if (pad & 0x20) {
-                WBH(0x197730) = 4;
-                WA(0x16294E) = 1;
-                WCH(0x32) = 5;
-                sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-            } else if (pad & 0x200) {
-                WBH(0x1976FE) = 0;
-                WCH(0x32) = 7;
-                sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
-            }
+        } else if (PADW((s8)WB(0x197863), 0x2) & INPUT_TRIGGER_L) {
+            WBH(0x197730) = 4;
+            WCH(0x32) = 5;
+            WA(0x162908) = 1;
+            sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+        } else if (PADW((s8)WB(0x197863), 0x2) & INPUT_TRIGGER_R) {
+            WBH(0x197730) = 4;
+            WCH(0x32) = 5;
+            WA(0x16294E) = 1;
+            sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
+        } else if (PADW((s8)WB(0x197863), 0x2) & INPUT_BUTTON_B) {
+            WBH(0x1976FE) = 0;
+            WCH(0x32) = 7;
+            sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         }
         break;
 
@@ -1347,6 +1335,7 @@ void fn_2_5AFB0(void) {
             break;
         case 3:
             WBH(0x197730) = 4;
+            WCH(0x32) = 13;
             break;
         }
         WCH(0x32) = 0;
@@ -1378,7 +1367,7 @@ void fn_2_5AFB0(void) {
 
     case 16:
         if (WAH(0x162600)-- == 0) {
-            NODE_S16(item->currentDrawingItem, 0x10) = 1;
+            NODE_S16(currentDrawingItem->currentDrawingItem, 0x10) = 1;
             removeCurrentDrawingItem();
             WCH(0x32) = 0;
         }
