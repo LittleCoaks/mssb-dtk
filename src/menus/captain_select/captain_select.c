@@ -261,7 +261,7 @@ void captainSelect_handleInputs(int port) {
     u8 p = (u8)port;
     controllerInputStruct input;
 
-    if (lbl_2_bss_100B8[CAP_STATE_INITIAL_MODELS_LOADED] == 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_BUSY] != 0 ||
+    if (capSelectState.initialModelsLoaded == 0 || capSelectState.modelLoadBusy != 0 ||
         gameSetUpStep.preventCursorMovement[p] != 0 ||
         g_TeamManagement.capSS_isRandomizingCursor[slot] != 0) {
         input.processedInput = 0;
@@ -277,28 +277,28 @@ void captainSelect_handleInputs(int port) {
         goto commonTail;
     }
 
-    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + slot] != 0) {
+    if (capSelectState.captainLocked[slot] != 0) {
         input.currentHeldInput = Static_Stats_Tables.controllerInputs[p].currentHeldInput & INPUT_BUTTON_B;
         input.newInput = Static_Stats_Tables.controllerInputs[p].newInput & INPUT_BUTTON_B;
         input.processedInput = Static_Stats_Tables.controllerInputs[p].processedInput & INPUT_BUTTON_B;
         goto callScreenInputs;
     }
 
-    if (lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + slot] != 0) {
+    if (cssWork.zMenuOpen[slot] != 0) {
         u16 newI = Static_Stats_Tables.controllerInputs[p].newInput;
         if (newI & INPUT_BUTTON_RIGHT) {
-            if (lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE + slot] == Z_MENU_PAGE_MAIN) {
-                lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE + slot] = Z_MENU_PAGE_STAR_MOVES;
-                lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE_DRAWN + slot] = 0;
+            if (cssWork.zMenuPage[slot] == Z_MENU_PAGE_MAIN) {
+                cssWork.zMenuPage[slot] = Z_MENU_PAGE_STAR_MOVES;
+                cssWork.zMenuPageDrawn[slot] = 0;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
             input.currentHeldInput = 0;
             input.newInput = 0;
             input.processedInput = 0;
         } else if (newI & INPUT_BUTTON_LEFT) {
-            if (lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE + slot] == Z_MENU_PAGE_STAR_MOVES) {
-                lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE + slot] = Z_MENU_PAGE_MAIN;
-                lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE_DRAWN + slot] = 0;
+            if (cssWork.zMenuPage[slot] == Z_MENU_PAGE_STAR_MOVES) {
+                cssWork.zMenuPage[slot] = Z_MENU_PAGE_MAIN;
+                cssWork.zMenuPageDrawn[slot] = 0;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
             input.currentHeldInput = 0;
@@ -306,7 +306,7 @@ void captainSelect_handleInputs(int port) {
             input.processedInput = 0;
         } else {
             if (newI != 0 && !(newI & INPUT_BUTTON_UP) && !(newI & INPUT_BUTTON_DOWN)) {
-                lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + slot] = 0;
+                cssWork.zMenuOpen[slot] = 0;
                 sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             }
             input.currentHeldInput = 0;
@@ -320,18 +320,18 @@ void captainSelect_handleInputs(int port) {
     }
 
 commonTail:
-    lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] = 0;
-    lbl_2_bss_100B8[0x4B] = 0;
+    capSelectState.debugCameraMenu = 0;
+    capSelectState._4B = 0;
 
-    if (lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] != 0) {
-        if (lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] != 0) {
-            lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] = 0;
+    if (capSelectState.debugCameraMenu != 0) {
+        if (capSelectState.debugCameraMenu != 0) {
+            capSelectState.debugCameraMenu = 0;
             return;
         }
         fn_2_14574(&input);
         return;
     }
-    if (lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] != 0) {
+    if (capSelectState.debugCameraMenu != 0) {
         fn_2_14220(&input);
         return;
     }
@@ -360,7 +360,7 @@ commonTail:
         }
     }
 
-    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + slot] != 0 && input.currentHeldInput == 0 && input.newInput == 0) {
+    if (capSelectState.captainLocked[slot] != 0 && input.currentHeldInput == 0 && input.newInput == 0) {
         goto callScreenInputs;
     }
 
@@ -490,10 +490,10 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
     }
     if (newInput & INPUT_TRIGGER_Z) {
         if (!closeZMenu(gameSetUpStep.portCaptainSlot[port])) {
-            if (lbl_2_bss_100B8[gameSetUpStep.portCaptainSlot[port] + CAP_STATE_CAPTAIN_LOCKED] == 0) {
-                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + CSS_WORK_Z_MENU_OPEN] = 1;
-                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + CSS_WORK_Z_MENU_ACTIVE] = 1;
-                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_MAIN;
+            if (capSelectState.captainLocked[gameSetUpStep.portCaptainSlot[port]] == 0) {
+                cssWork.zMenuOpen[gameSetUpStep.portCaptainSlot[port]] = 1;
+                cssWork.zMenuActive[gameSetUpStep.portCaptainSlot[port]] = 1;
+                cssWork.zMenuPage[gameSetUpStep.portCaptainSlot[port]] = Z_MENU_PAGE_MAIN;
                 sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, 0);
             }
         }
@@ -523,25 +523,25 @@ void captainSelect_APress(int idx) {
     int val;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY] != 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_QUEUED] != 0) {
+        if (capSelectState.modelLoadDelay[0] != 0 || capSelectState.modelLoadQueued[0] != 0) {
             return;
         }
 
         charID = (&challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6])[menuCursors[4]];
-        lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] = 1;
+        capSelectState.captainLocked[0] = 1;
         Static_Stats_Tables.captainSelectedID[0] = charID;
-        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 1;
+        capSelectState.playCaptainVoice[0] = 1;
         fn_8004D4F0(Static_Stats_Tables.playerNumberByPort[0], charID, TRUE);
         AnimateCharacter(0, 0x6A, 0, 1, 1, 0, 0, -1);
         QueueCharacterAnimation(0, 0x6B, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] = 0;
+        capSelectState.modelAnimSettled[0] = 0;
         menuControlVariables->currentState = 4;
         return;
     }
 
     c = (u8)idx;
 
-    if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + c] != 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_QUEUED + c] != 0) {
+    if (capSelectState.modelLoadDelay[c] != 0 || capSelectState.modelLoadQueued[c] != 0) {
         return;
     }
 
@@ -554,8 +554,8 @@ void captainSelect_APress(int idx) {
         AnimateCharacter(a, 0x6A, 0, 1, 1, 0, 0, -1);
         QueueCharacterAnimation(a, 0x6B, 1, 1, 0, 0, -1);
     }
-    lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + c] = 0;
-    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] != 0) {
+    capSelectState.modelAnimSettled[c] = 0;
+    if (capSelectState.captainLocked[c] != 0) {
         return;
     }
 
@@ -571,8 +571,8 @@ void captainSelect_APress(int idx) {
         add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.captainSelectedID[c], TRUE);
     }
 
-    lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] = 1;
-    lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + c] = 1;
+    capSelectState.captainLocked[c] = 1;
+    capSelectState.playCaptainVoice[c] = 1;
     Static_Stats_Tables.charOnCharacterGridSelected[mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]]] = TRUE;
 
     if ((u8)idx != 0) {
@@ -623,21 +623,22 @@ void captainSelect_APress(int idx) {
     val = menuCursors[5];
     cursorPositions.cursor[1] = val;
     if (val != -1) {
-        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] = 1;
+        capSelectState.modelLoadDelay[1] = 1;
         return;
     }
-    if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] != 0) {
-        int t = lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] + 1;
-        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] = t;
+    if (capSelectState.modelLoadDelay[1] != 0) {
+        int t = capSelectState.modelLoadDelay[1] + 1;
+        capSelectState.modelLoadDelay[1] = t;
         if ((u8)t >= 0xF) {
-            lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + 1] = 1;
-            lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] = 0;
+            capSelectState.modelLoadRequested[1] = 1;
+            capSelectState.modelLoadDelay[1] = 0;
             captainSelect_setShowModelOnLoad(1, 1);
         }
     }
 }
 
 // .text:0x000151BC size:0x450 mapped:0x80654250
+/* kept as offset access: struct form changes codegen */
 void captainSelect_BPress(int idx) {
     int c = (u8)idx;
 
@@ -748,6 +749,7 @@ exit:
 }
 
 // .text:0x00015104 size:0xB8 mapped:0x80654198
+/* kept as offset access: struct form changes codegen */
 BOOL loadNewCaptainModelOnCapSelectScreen(int currentCharId, int newCharId, int port, int arg3) {
     if (newCharId != currentCharId) {
         lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] = 1;
@@ -762,6 +764,7 @@ BOOL loadNewCaptainModelOnCapSelectScreen(int currentCharId, int newCharId, int 
 }
 
 // .text:0x000150D0 size:0x34 mapped:0x80654164
+/* kept as offset access: struct form changes codegen */
 void fn_2_150D0(u8 idx) {
     if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + idx] == 0) {
         lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + idx] = 1;
@@ -852,6 +855,7 @@ void captainSelect_handleCursor(u8 port, controllerInputStruct *input) {
 }
 
 // .text:0x00014BB8 size:0xE8 mapped:0x80653C4C
+/* kept as offset access: struct form changes codegen */
 void fn_2_14BB8(int port, int state) {
     switch (state) {
     case 0: {
@@ -877,7 +881,7 @@ void checkForNewPlayer(void) {
 
     newPlayerPort = -1;
 
-    if (lbl_2_bss_100B8[CAP_STATE_INITIAL_MODELS_LOADED] == 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_BUSY] != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
+    if (capSelectState.initialModelsLoaded == 0 || capSelectState.modelLoadBusy != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         return;
     }
     if (gameSetUpStep.unk0E == 1) {
@@ -903,9 +907,9 @@ void checkForNewPlayer(void) {
         return;
     }
 
-    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] != 0) {
-        lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] = 0;
-        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] = 0;
+    if (capSelectState.captainLocked[1] != 0) {
+        capSelectState.captainLocked[1] = 0;
+        capSelectState.playCaptainVoice[1] = 0;
         add_or_RemoveCharToATeam(1, Static_Stats_Tables.captainSelectedID[1], FALSE);
         Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[1]] = FALSE;
         Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
@@ -963,8 +967,8 @@ void checkForNewPlayer(void) {
     }
 
     Static_Stats_Tables.unk4704 = 0;
-    if (lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + 1] != 0) {
-        lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + 1] = 0;
+    if (cssWork.zMenuOpen[1] != 0) {
+        cssWork.zMenuOpen[1] = 0;
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
     }
     Static_Stats_Tables.controllerInputs[1].processedInput = 0;

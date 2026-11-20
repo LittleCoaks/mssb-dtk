@@ -131,7 +131,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 s32 position = cursorPositions.roster.positionSwapMapping[index][i];
 
                 if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME &&
-                    lbl_2_bss_F468[index + CSS_WORK_ROSTER_COMPLETE] == 0 && index == 1) {
+                    cssWork.rosterComplete[index] == 0 && index == 1) {
                     if (i == (s8)captainPosition) {
                         rosterRecord(scene, index, i, 0x46)->elementIndex =
                             (s8)(Static_Stats_Tables.playerNumberByPort[0] == 0) + 0x11;
@@ -273,7 +273,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 channelRecord(scene, index, 0x91)->playMode = UI_PLAY_STOP;
             }
         }
-        if (lbl_2_bss_F468[CSS_WORK_CHALLENGE_ROSTER_LOCKED] != 0 && lbl_2_bss_F468[CSS_WORK_ROSTER_COMPLETE] != 0 &&
+        if (cssWork.challengeRosterLocked != 0 && cssWork.rosterComplete[0] != 0 &&
             g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             if (index == 0) {
                 channelRecord(scene, index, 0x93)->frame = 0;
@@ -692,9 +692,9 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
         if (succeeded == attempted) {
             makeCursorMovable(index);
             gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
-            if (lbl_2_bss_F468[index + CSS_WORK_RANDOM_FILL_AFTER_CLEAR] != 0) {
+            if (cssWork.randomFillAfterClear[index] != 0) {
                 cssRandomFillRoster(index);
-                lbl_2_bss_F468[index + CSS_WORK_RANDOM_FILL_AFTER_CLEAR] = 0;
+                cssWork.randomFillAfterClear[index] = 0;
             }
         }
     }

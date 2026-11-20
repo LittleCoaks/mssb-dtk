@@ -150,14 +150,14 @@ void captainSelectScreen_manager(void) {
         break;
     case 4:
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            if (lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] == 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + 1] == 0 ||
+            if (capSelectState.modelAnimSettled[0] == 0 || capSelectState.modelAnimSettled[1] == 0 ||
                 gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
                 break;
             }
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_DONE);
             updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_DONE);
         } else {
-            if (lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] == 0) {
+            if (capSelectState.modelAnimSettled[0] == 0) {
                 break;
             }
             lbl_2_bss_100B4 = TRUE;
@@ -168,7 +168,7 @@ void captainSelectScreen_manager(void) {
         menuControlVariables->currentState = 5;
         break;
     case 5:
-        if (((u8*)&lbl_2_bss_100B4)[1] != 0) {
+        if (CAP_SELECT_MODEL_LOADING != 0) {
             break;
         }
         if (g_TeamManagement.loadMatchRelInd != 0) {
@@ -238,7 +238,7 @@ void captainSelectScreen_manager(void) {
                 Static_Stats_Tables._48AF[0] = 1;
                 setPortOfEachPlayer();
                 if ((s8)hugeAnimStruct[0xE56] != Static_Stats_Tables.captainSelectedID[0]) {
-                    lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED] = 1;
+                    capSelectState.modelLoadRequested[0] = 1;
                 }
                 fn_2_11EA8();
                 changeScene(4, 6);
@@ -262,11 +262,11 @@ void captainSelectScreen_manager(void) {
         }
         break;
     case 8:
-        if (((u8*)&lbl_2_bss_100B4)[1] != 0) {
+        if (CAP_SELECT_MODEL_LOADING != 0) {
             break;
         }
-        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] = 1;
-        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + 1] = 1;
+        capSelectState.modelAnimSettled[0] = 1;
+        capSelectState.modelAnimSettled[1] = 1;
         if (gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
             break;
         }
@@ -319,14 +319,14 @@ void captainSelectScreen_manager(void) {
             break;
         case 3:
             setPortOfEachPlayer();
-            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] = 1;
-            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + 1] = 1;
+            capSelectState.modelAnimSettled[0] = 1;
+            capSelectState.modelAnimSettled[1] = 1;
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_DONE);
             updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_DONE);
             lbl_2_bss_100B4 = TRUE;
             lbl_803CBD24[4] = 0;
-            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + 1] = 1;
-            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] = 1;
+            capSelectState.modelAnimSettled[1] = 1;
+            capSelectState.modelAnimSettled[0] = 1;
             changeScene(15, 6);
             menuControlVariables->currentState = 5;
             break;
@@ -351,9 +351,9 @@ void fn_2_12CD8(void) {
     Static_Stats_Tables._48AD = 0;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
-        lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT] = 1;
+        capSelectState.modelSlotCount = 1;
     } else {
-        lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT] = 2;
+        capSelectState.modelSlotCount = 2;
     }
     ((u8*)&Static_Stats_Tables)[0x4755] = 0;
     gameSetUpStep._00 = 1;
@@ -374,10 +374,10 @@ void fn_2_12C34(void) {
     s32 cursor;
     s32 i;
 
-    if (lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] != 0) {
+    if (capSelectState.debugCameraMenu != 0) {
         return;
     }
-    if (lbl_2_bss_100B8[0x20] == 1 || g_MatchInfo.player2Ind2 == 0) {
+    if (capSelectState._20 == 1 || g_MatchInfo.player2Ind2 == 0) {
         if (lbl_2_bss_AE0 == 60000) {
             lbl_2_bss_AE0 = 0;
         }
@@ -408,33 +408,34 @@ void fn_2_12B60(void) {
     }
     for (slot = 0; slot < 2; slot++) {
         while (loadNewCaptainModelOnCapSelectScreen(menuCursors[4 + slot], previous[slot], slot, 1) == 0 &&
-               lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + slot] != 0) {
+               capSelectState.captainLocked[slot] != 0) {
             previous[slot] = menuCursors[4 + slot];
         }
     }
 }
 
 void fn_2_12A70(void) {
-    if (lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] != 0) {
-        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 0;
+    if (capSelectState.playCaptainVoice[0] != 0) {
+        capSelectState.playCaptainVoice[0] = 0;
         playPlayerSelectedSound(Static_Stats_Tables.captainSelectedID[0]);
     }
-    if (lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] != 0) {
-        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] = 0;
+    if (capSelectState.playCaptainVoice[1] != 0) {
+        capSelectState.playCaptainVoice[1] = 0;
         playPlayerSelectedSound(Static_Stats_Tables.captainSelectedID[1]);
     }
-    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] != 0 && lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] != 0) {
+    if (capSelectState.captainLocked[0] != 0 && capSelectState.captainLocked[1] != 0) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             lbl_2_bss_100B4 = TRUE;
         }
         menuControlVariables->currentState = 4;
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] = 0;
-            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] = 0;
+            capSelectState.captainLocked[1] = 0;
+            capSelectState.playCaptainVoice[1] = 0;
         }
     }
 }
 
+/* kept as offset access: struct form changes codegen */
 void fn_2_129D0(void) {
     memset(&lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED], 0, lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT]);
     memset(&lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY], 0, lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT]);
@@ -460,6 +461,7 @@ void fn_2_12988(void) {
     Static_Stats_Tables._46E8[3] = memoryUsedOrStorage.hi;
 }
 
+/* kept as offset access: struct form changes codegen */
 void captainSelectDefaultProcess(void) {
     memset(Static_Stats_Tables.charOnCharacterGridSelected, 0, 54);
     Static_Stats_Tables.startingChemStars[1] = 0;

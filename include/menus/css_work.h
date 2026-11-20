@@ -81,4 +81,92 @@
 #define CAP_STATE_SHOW_MODEL_ON_LOAD    0x46 /* u8[4]: captainSelect_setShowModelOnLoad; copied into CapSlot.visible */
 #define CAP_STATE_DEBUG_CAMERA_MENU     0x4A /* u8: debug camera tweak; force-cleared every frame */
 
+/* Typed views of the same two blocks. Functions are converted to these one
+ * at a time; a function that keeps the byte-offset form does so because the
+ * struct form changes its codegen. Byte fields are u8 because the code reads
+ * them unsigned unless it casts. */
+typedef struct CssWork {
+    /* 0x00 */ s32 lineupCursor[2];     // E(s32, FIELDING_POSITION) 0-8, CSS_LINEUP_CURSOR_DONE, CSS_LINEUP_CURSOR_RANDOM
+    /* 0x08 */ s32 lineupCursorPrev[2];
+    /* 0x10 */ s32 presetLineup[2];     // challenge: challengeRosters lineup 1-3
+    /* 0x18 */ u8 _18[0x20 - 0x18];
+    /* 0x20 */ s32 gridCursorPrev[2];   // menuCursors[8 + team] before it last moved
+    /* 0x28 */ u8 challengeFileLoadDone[4];
+    /* 0x2C */ u8 challengeMusicRestarted;
+    /* 0x2D */ u8 challengeMusicStep;
+    /* 0x2E */ u8 returnToCaptainSelect;
+    /* 0x2F */ u8 _2F[2];               // only read (fn_2_9F70), as an index into presetLineup
+    /* 0x31 */ u8 _31[2];
+    /* 0x33 */ u8 cpuDifficultyStep;    // 0 open, 1 input, 2 finish
+    /* 0x34 */ u8 cpuDifficultyMenuOpened;
+    /* 0x35 */ u8 cpuDifficultyCancelled;
+    /* 0x36 */ u8 exitDelayTimer;       // read as s8
+    /* 0x37 */ u8 rosterComplete[2];
+    /* 0x39 */ u8 _39[2];
+    /* 0x3B */ u8 reservedOtherGridChar[2];
+    /* 0x3D */ u8 _3D[2];               // only cleared, and tested with rosterComplete
+    /* 0x3F */ u8 challengeRosterLocked;
+    /* 0x40 */ u8 _40;
+    /* 0x41 */ u8 onCharacterGrid[2];
+    /* 0x43 */ u8 randomFillAfterClear[2];
+    /* 0x45 */ u8 zMenuOpen[2];
+    /* 0x47 */ E(u8, Z_MENU_PAGE) zMenuPage[2];
+    /* 0x49 */ u8 zMenuPageDrawn[2];
+    /* 0x4B */ u8 zMenuActive[2];
+    /* 0x4D */ u8 zMenuCharID[2];       // CHAR_ID, compared unsigned
+    /* 0x4F */ u8 _4F;                  // set when both 2P teams confirm; never read
+    /* 0x50 */ u8 variantChanged[2];
+    /* 0x52 */ u8 rosterClearPending[2];
+    /* 0x54 */ u8 rosterClearAnimating[2];
+    /* 0x56 */ u8 leavingScreen;
+    /* 0x57 */ u8 challengeStadiumMaxCursor;
+    /* 0x58 */ u8 stadiumChosen;
+    /* 0x59 */ u8 lineupEditMode[2];
+    /* 0x5B */ u8 _5B[0x5F - 0x5B];
+    /* 0x5F */ u8 swapSourceSelected[2];
+    /* 0x61 */ u8 swapSourcePosition[2]; // FIELDING_POSITION, read as s8
+    /* 0x63 */ u8 enterLineupEditAfterMove[2];
+    /* 0x65 */ u8 readyAfterLineupEdit[2];
+    /* 0x67 */ u8 _67[0xC4C - 0x67];    // never referenced
+} CssWork; // size: 0xC4C
+
+typedef struct CapSelectState {
+    /* 0x00 */ s8 loadQueueHead;
+    /* 0x01 */ s8 loadQueueTail;
+    /* 0x02 */ s8 loadQueue[10];        // slots waiting for a model load; -1 = empty
+    /* 0x0C */ u8 _0C[4];               // s32, only set to -1
+    /* 0x10 */ u8 captainLocked[2];
+    /* 0x12 */ u8 playCaptainVoice[2];
+    /* 0x14 */ u8 modelLoadRequested[4];
+    /* 0x18 */ u8 modelLoadDone;
+    /* 0x19 */ u8 initialModelsLoaded;
+    /* 0x1A */ u8 modelLoadBusy;
+    /* 0x1B */ u8 modelLoaderIdle;
+    /* 0x1C */ u8 modelLoadDelay[4];
+    /* 0x20 */ u8 _20;
+    /* 0x21 */ u8 _21[2];
+    /* 0x23 */ u8 _23[4];
+    /* 0x27 */ s8 loadingSlot[4];
+    /* 0x2B */ u8 _2B[2];
+    /* 0x2D */ u8 modelSlotCount;       // 1 challenge, 2 captain select, 4 character select
+    /* 0x2E */ u8 teamConfirmed[2];
+    /* 0x30 */ u8 _30[2];
+    /* 0x32 */ u8 _32;                  // set and cleared with modelLoadDone; never read
+    /* 0x33 */ u8 _33[0x40 - 0x33];
+    /* 0x40 */ u8 modelAnimSettled[2];  // indexed up to modelSlotCount (4 on the CSS runs into modelLoadQueued)
+    /* 0x42 */ u8 modelLoadQueued[4];
+    /* 0x46 */ u8 showModelOnLoad[4];
+    /* 0x4A */ u8 debugCameraMenu;
+    /* 0x4B */ u8 _4B;
+    /* 0x4C */ u8 _4C[0x54 - 0x4C];
+} CapSelectState; // size: 0x54
+
+#define cssWork        (*(CssWork *)lbl_2_bss_F468)
+#define capSelectState (*(CapSelectState *)lbl_2_bss_100B8)
+
+/* lbl_2_bss_100B4 (2 bytes, declared u8): byte 0 is set before every
+ * captain/character-select exit (the model-load tasks remove themselves once
+ * it is set); byte 1 is set while a captain model loads (fn_2_18148). */
+#define CAP_SELECT_MODEL_LOADING (((u8 *)&lbl_2_bss_100B4)[1])
+
 #endif // !__MENUS_CSS_WORK_H_
