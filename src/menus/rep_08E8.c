@@ -583,13 +583,7 @@ u16 *fn_2_49F7C(u16 *str, s32 capacity, u16 ch, s32 pos) {
         p++;
     }
     len = p - str;
-    if (len < pos) {
-        return NULL;
-    }
-    if (ch == 0x4000) {
-        return NULL;
-    }
-    if (len + 2 > capacity) {
+    if (len < pos || ch == 0x4000 || len + 2 > capacity) {
         return NULL;
     }
     for (i = len; i >= pos; i--) {
@@ -1217,12 +1211,14 @@ void fn_2_47CFC(void) {
 
 // .text:0x00047B24 size:0x1D8 mapped:0x80686BB8
 void fn_2_47B24(u16 *list) {
+    u8 *cam;
+    u8 *root;
     u16 i;
     u16 k;
     Mtx mtx;
     u8 *obj;
-    u8 *actor;
     u8 *anim;
+    u8 boneFlag;
 
     if (lbl_2_bss_340140[0x307A] == 3) {
         return;
@@ -1231,29 +1227,30 @@ void fn_2_47B24(u16 *list) {
         anim = *(u8 **)(hugeAnimStruct + 0x2C50 + i * 4);
         if (anim != NULL && anim[0x25D] != 0) {
             obj = getAnimObjectActor(anim);
-            actor = *(u8 **)obj;
-            if (actor != NULL) {
+            if (*(void **)obj != NULL) {
                 if (obj[0x58] != 0) {
-                    ACTSetAnimation(actor, *(void **)(obj + 0x4), NULL, *(u16 *)(obj + 0xE), 0.0f, *(f32 *)(obj + 0x60));
+                    ACTSetAnimation(*(void **)obj, *(void **)(obj + 0x4), NULL, *(u16 *)(obj + 0xE), 0.0f, *(f32 *)(obj + 0x60));
                 }
                 if (obj[0x59] != 0) {
-                    setActorAnimFrame(actor, *(f32 *)(obj + 0x5C));
+                    setActorAnimFrame(*(void **)obj, *(f32 *)(obj + 0x5C));
                 }
                 if (obj[0x5A] != 0) {
-                    ACTSetSpeed(actor, *(f32 *)(obj + 0x54));
+                    ACTSetSpeed(*(void **)obj, *(f32 *)(obj + 0x54));
                 }
                 if (obj[0x5B] & 2) {
-                    updateBoneParam(actor, obj[0x5B] & 1);
+                    boneFlag = obj[0x5B] & 1;
+                    updateBoneParam(*(void **)obj, boneFlag);
                 }
-                Set_FUN_800b2b6c(actor, *(s32 *)(obj + 0x68));
+                Set_FUN_800b2b6c(*(void **)obj, *(s32 *)(obj + 0x68));
                 if (obj[0x6C] != 0) {
                     fn_800BDA24(obj);
                 }
                 for (k = 0; k < returnScissorMode(); k++) {
-                    u8 *cam = (u8 *)returnFloatFromModeIndex(k) + 0x40;
+                    cam = (u8 *)returnFloatFromModeIndex(k) + 0x40;
                     PSMTXTrans(mtx, *(f32 *)(anim + 0x34), *(f32 *)(anim + 0x38), *(f32 *)(anim + 0x3C));
                     PSMTXConcat((f32 (*)[4])cam, mtx, mtx);
-                    actor[0x98] = (actor[0x98] & ~(3 << (3 * k))) | (fn_800B3C04(k, actor, mtx) << (3 * k));
+                    root = *(u8 **)obj;
+                    root[0x98] = (root[0x98] & (u8)~(3 << (k * 3))) | ((u8)fn_800B3C04(k, root, mtx) << (k * 3));
                 }
                 obj[0x58] = 0;
                 obj[0x59] = 0;
