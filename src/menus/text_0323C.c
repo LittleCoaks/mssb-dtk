@@ -3145,31 +3145,31 @@ void fn_2_CCBC(void) {
 }
 
 // .text:0x0000CCE0 size:0x164 mapped:0x8064BD74
-void fn_2_CCE0(u8 port) {
+void fn_2_CCE0(s32 port) {
     s32 count;
 
-    if (lbl_2_bss_F468[port + 0x37] != 0) {
+    if (lbl_2_bss_F468[(u8)port + 0x37] != 0) {
         return;
     }
 
     for (count = 0; count < 9; count++) {
-        s8 v = (s8)((u8 *)&cursorPositions)[port * 9 + count + 2];
-        if (v == -1 || v == 0x36) {
+        s8 v = cursorPositions.roster.rosterCharID[(u8)port][count];
+        if (v == CHAR_ID_NONE || v == NUM_CHOOSABLE_CHARACTERS) {
             break;
         }
     }
 
     if (count == 9) {
-        lbl_2_bss_F468[port + 0x37] = 1;
-        *(s32 *)&lbl_2_bss_F468[port * 4 + 8] = *(s32 *)&lbl_2_bss_F468[port * 4];
-        *(s32 *)&lbl_2_bss_F468[port * 4] = 9;
-        lbl_2_bss_F468[port + 0x41] = 0;
-        updateCharacterSelectProcessCode(port, 0x14);
+        lbl_2_bss_F468[(u8)port + 0x37] = TRUE;
+        ((s32 *)lbl_2_bss_F468)[(u8)port + 2] = CSS_CURSOR((u8)port);
+        CSS_CURSOR((u8)port) = 9;
+        lbl_2_bss_F468[(u8)port + 0x41] = FALSE;
+        updateCharacterSelectProcessCode(port & 0xFF, 0x14);
         cssLoadingRelated_1(1, -1, -1, -1, -1, 0);
     } else {
-        *(s32 *)&lbl_2_bss_F468[port * 4 + 8] = *(s32 *)&lbl_2_bss_F468[port * 4];
-        *(s32 *)&lbl_2_bss_F468[port * 4] = (s8)((u8 *)&cursorPositions)[port * 9 + count + 0x14];
-        updateCharacterSelectProcessCode(port, 0xe);
+        ((s32 *)lbl_2_bss_F468)[(u8)port + 2] = CSS_CURSOR((u8)port);
+        CSS_CURSOR((u8)port) = (s8)cursorPositions.roster.positionSwapMapping[(u8)port][count];
+        updateCharacterSelectProcessCode(port & 0xFF, 0xe);
     }
 }
 

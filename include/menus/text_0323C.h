@@ -57,7 +57,7 @@ void fn_2_C698(s32 idx, u8 port);
 void fn_2_C7DC(u8 slot, u8 team);
 void fn_2_CA60(u8 slot, u8 team);
 void fn_2_CCBC(void);
-void fn_2_CCE0(u8 port);
+void fn_2_CCE0(s32 port);
 void cssReturnToCapSelect_maybe(s32 team);
 void characterSelectAPress(s32 team);
 void fn_2_EAE0(void);
