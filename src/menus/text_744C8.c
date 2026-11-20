@@ -12,6 +12,7 @@
 #include "Unknown/mb_subfunc.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "Unknown/File_0x80034cec.h"
+#include "menus/css_work.h"
 
 extern u8 gameSetUpStep[0x64];
 extern int menuCursors[0x16];
@@ -280,8 +281,8 @@ void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
         return;
     }
 
-    selected = ((s32 *)lbl_2_bss_F468)[port];
-    if (lbl_2_bss_F468[port + 0x41] != 0) {
+    selected = CSS_CURSOR_S32(port);
+    if (lbl_2_bss_F468[port + CSS_WORK_ON_CHARACTER_GRID] != 0) {
         gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
         character = menuCursors[port + 8];
     } else if (selected == 9 || selected == 10) {
@@ -319,7 +320,7 @@ void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
         ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = (s8)variant << 16;
     } else {
         gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
-        if (((s32 *)lbl_2_bss_F468)[port] != 9 && ((s32 *)lbl_2_bss_F468)[port] != 10) {
+        if (CSS_CURSOR_S32(port) != CSS_LINEUP_CURSOR_DONE && CSS_CURSOR_S32(port) != CSS_LINEUP_CURSOR_RANDOM) {
             gfxObject(scene, port + 0xAE)->flags |= UI_FLAG_VISIBLE;
             ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = 0;
         }

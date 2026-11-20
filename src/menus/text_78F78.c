@@ -10,15 +10,12 @@
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x80062674.h"
 #include "Unknown/orderchange.h"
+#include "menus/css_work.h"
 
 extern u8 gameSetUpStep[];
 extern u8 lbl_2_bss_F468[];
 extern Text00110Ctl *menuControlVariables;
 
-/* Per-team lineup cursor in lbl_2_bss_F468 (0-8 positions, 9 = done, 10 = random)
- * and its previous value, indexed as s32 arrays. */
-#define CSS_CURSOR_S32(team) (((s32 *)lbl_2_bss_F468)[(team)])
-#define CSS_PREV_CURSOR_S32(team) (((s32 *)lbl_2_bss_F468)[(team) + 2])
 
 /* Record for scene handle k: graphicsRelatedArray[scene->firstHandle + k]. */
 #define SCENE_RECORD(scene, k) ((UIRecord *)graphicsRelatedArray[(scene)->firstHandle + (k)].object)
@@ -134,7 +131,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 s32 position = cursorPositions.roster.positionSwapMapping[index][i];
 
                 if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME &&
-                    lbl_2_bss_F468[index + 0x37] == 0 && index == 1) {
+                    lbl_2_bss_F468[index + CSS_WORK_ROSTER_COMPLETE] == 0 && index == 1) {
                     if (i == (s8)captainPosition) {
                         rosterRecord(scene, index, i, 0x46)->elementIndex =
                             (s8)(Static_Stats_Tables.playerNumberByPort[0] == 0) + 0x11;
@@ -276,7 +273,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 channelRecord(scene, index, 0x91)->playMode = UI_PLAY_STOP;
             }
         }
-        if (lbl_2_bss_F468[0x3F] != 0 && lbl_2_bss_F468[0x37] != 0 &&
+        if (lbl_2_bss_F468[CSS_WORK_CHALLENGE_ROSTER_LOCKED] != 0 && lbl_2_bss_F468[CSS_WORK_ROSTER_COMPLETE] != 0 &&
             g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             if (index == 0) {
                 channelRecord(scene, index, 0x93)->frame = 0;
@@ -537,7 +534,7 @@ void randomTeamMemberSelection(MenuScene *scene, s32 index) {
             rosterRecord(scene, index, swap, 0x58)->frame = ch << 16;
         }
         teamSelectionSetChemStars(scene, index);
-        if (CSS_CURSOR_S32(index) == 9) {
+        if (CSS_CURSOR_S32(index) == CSS_LINEUP_CURSOR_DONE) {
             SCENE_RECORD(scene, index + 0x93)->frame = 0;
             SCENE_RECORD(scene, index + 0x93)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
@@ -608,12 +605,12 @@ void fn_2_79634(void *unused, s32 index) {
 void cssAction_0x18(MenuScene *scene, s32 index) {
 
     if (isStepClear(gameSetUpStep[index + 0xD])) {
-        if (CSS_CURSOR_S32(index) == 9) {
+        if (CSS_CURSOR_S32(index) == CSS_LINEUP_CURSOR_DONE) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, index + 0x91)->frame = 0xA0000;
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_BACKWARD;
-        } else if (CSS_CURSOR_S32(index) == 0xA) {
+        } else if (CSS_CURSOR_S32(index) == CSS_LINEUP_CURSOR_RANDOM) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0xA0000;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_BACKWARD;
             SCENE_RECORD(scene, index + 0x91)->frame = 0;
@@ -695,9 +692,9 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
         if (succeeded == attempted) {
             makeCursorMovable(index);
             gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
-            if (lbl_2_bss_F468[index + 0x43] != 0) {
+            if (lbl_2_bss_F468[index + CSS_WORK_RANDOM_FILL_AFTER_CLEAR] != 0) {
                 cssRandomFillRoster(index);
-                lbl_2_bss_F468[index + 0x43] = 0;
+                lbl_2_bss_F468[index + CSS_WORK_RANDOM_FILL_AFTER_CLEAR] = 0;
             }
         }
     }

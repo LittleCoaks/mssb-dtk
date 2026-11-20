@@ -12,6 +12,7 @@
 #include "musyx/musyx.h"
 #include "Unknown/File_0x800625a4.h"
 #include "menus/text_0323C.h"
+#include "menus/css_work.h"
 
 #define DPAD_MASK (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT | INPUT_BUTTON_DOWN | INPUT_BUTTON_UP)
 
@@ -260,7 +261,7 @@ void captainSelect_handleInputs(int port) {
     u8 p = (u8)port;
     controllerInputStruct input;
 
-    if (lbl_2_bss_100B8[0x19] == 0 || lbl_2_bss_100B8[0x1A] != 0 ||
+    if (lbl_2_bss_100B8[CAP_STATE_INITIAL_MODELS_LOADED] == 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_BUSY] != 0 ||
         gameSetUpStep.preventCursorMovement[p] != 0 ||
         g_TeamManagement.capSS_isRandomizingCursor[slot] != 0) {
         input.processedInput = 0;
@@ -276,28 +277,28 @@ void captainSelect_handleInputs(int port) {
         goto commonTail;
     }
 
-    if (lbl_2_bss_100B8[0x10 + slot] != 0) {
+    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + slot] != 0) {
         input.currentHeldInput = Static_Stats_Tables.controllerInputs[p].currentHeldInput & INPUT_BUTTON_B;
         input.newInput = Static_Stats_Tables.controllerInputs[p].newInput & INPUT_BUTTON_B;
         input.processedInput = Static_Stats_Tables.controllerInputs[p].processedInput & INPUT_BUTTON_B;
         goto callScreenInputs;
     }
 
-    if (lbl_2_bss_F468[0x45 + slot] != 0) {
+    if (lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + slot] != 0) {
         u16 newI = Static_Stats_Tables.controllerInputs[p].newInput;
         if (newI & INPUT_BUTTON_RIGHT) {
-            if (lbl_2_bss_F468[0x47 + slot] == Z_MENU_PAGE_MAIN) {
-                lbl_2_bss_F468[0x47 + slot] = Z_MENU_PAGE_STAR_MOVES;
-                lbl_2_bss_F468[0x49 + slot] = 0;
+            if (lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE + slot] == Z_MENU_PAGE_MAIN) {
+                lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE + slot] = Z_MENU_PAGE_STAR_MOVES;
+                lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE_DRAWN + slot] = 0;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
             input.currentHeldInput = 0;
             input.newInput = 0;
             input.processedInput = 0;
         } else if (newI & INPUT_BUTTON_LEFT) {
-            if (lbl_2_bss_F468[0x47 + slot] == Z_MENU_PAGE_STAR_MOVES) {
-                lbl_2_bss_F468[0x47 + slot] = Z_MENU_PAGE_MAIN;
-                lbl_2_bss_F468[0x49 + slot] = 0;
+            if (lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE + slot] == Z_MENU_PAGE_STAR_MOVES) {
+                lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE + slot] = Z_MENU_PAGE_MAIN;
+                lbl_2_bss_F468[CSS_WORK_Z_MENU_PAGE_DRAWN + slot] = 0;
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
             }
             input.currentHeldInput = 0;
@@ -305,7 +306,7 @@ void captainSelect_handleInputs(int port) {
             input.processedInput = 0;
         } else {
             if (newI != 0 && !(newI & INPUT_BUTTON_UP) && !(newI & INPUT_BUTTON_DOWN)) {
-                lbl_2_bss_F468[0x45 + slot] = 0;
+                lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + slot] = 0;
                 sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             }
             input.currentHeldInput = 0;
@@ -319,18 +320,18 @@ void captainSelect_handleInputs(int port) {
     }
 
 commonTail:
-    lbl_2_bss_100B8[0x4A] = 0;
+    lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] = 0;
     lbl_2_bss_100B8[0x4B] = 0;
 
-    if (lbl_2_bss_100B8[0x4A] != 0) {
-        if (lbl_2_bss_100B8[0x4A] != 0) {
-            lbl_2_bss_100B8[0x4A] = 0;
+    if (lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] != 0) {
+        if (lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] != 0) {
+            lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] = 0;
             return;
         }
         fn_2_14574(&input);
         return;
     }
-    if (lbl_2_bss_100B8[0x4A] != 0) {
+    if (lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] != 0) {
         fn_2_14220(&input);
         return;
     }
@@ -359,7 +360,7 @@ commonTail:
         }
     }
 
-    if (lbl_2_bss_100B8[0x10 + slot] != 0 && input.currentHeldInput == 0 && input.newInput == 0) {
+    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + slot] != 0 && input.currentHeldInput == 0 && input.newInput == 0) {
         goto callScreenInputs;
     }
 
@@ -489,10 +490,10 @@ void captainSelectScreenInputs(int port, u16 currentHeldInput, u16 newInput, u16
     }
     if (newInput & INPUT_TRIGGER_Z) {
         if (!closeZMenu(gameSetUpStep.portCaptainSlot[port])) {
-            if (lbl_2_bss_100B8[gameSetUpStep.portCaptainSlot[port] + 0x10] == 0) {
-                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x45] = 1;
-                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x4B] = 1;
-                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + 0x47] = Z_MENU_PAGE_MAIN;
+            if (lbl_2_bss_100B8[gameSetUpStep.portCaptainSlot[port] + CAP_STATE_CAPTAIN_LOCKED] == 0) {
+                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + CSS_WORK_Z_MENU_OPEN] = 1;
+                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + CSS_WORK_Z_MENU_ACTIVE] = 1;
+                lbl_2_bss_F468[gameSetUpStep.portCaptainSlot[port] + CSS_WORK_Z_MENU_PAGE] = Z_MENU_PAGE_MAIN;
                 sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, 0);
             }
         }
@@ -522,25 +523,25 @@ void captainSelect_APress(int idx) {
     int val;
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        if (lbl_2_bss_100B8[0x1C] != 0 || lbl_2_bss_100B8[0x42] != 0) {
+        if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY] != 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_QUEUED] != 0) {
             return;
         }
 
         charID = (&challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6])[menuCursors[4]];
-        lbl_2_bss_100B8[0x10] = 1;
+        lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] = 1;
         Static_Stats_Tables.captainSelectedID[0] = charID;
-        lbl_2_bss_100B8[0x12] = 1;
+        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 1;
         fn_8004D4F0(Static_Stats_Tables.playerNumberByPort[0], charID, TRUE);
         AnimateCharacter(0, 0x6A, 0, 1, 1, 0, 0, -1);
         QueueCharacterAnimation(0, 0x6B, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[0x40] = 0;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] = 0;
         menuControlVariables->currentState = 4;
         return;
     }
 
     c = (u8)idx;
 
-    if (lbl_2_bss_100B8[0x1C + c] != 0 || lbl_2_bss_100B8[0x42 + c] != 0) {
+    if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + c] != 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_QUEUED + c] != 0) {
         return;
     }
 
@@ -553,8 +554,8 @@ void captainSelect_APress(int idx) {
         AnimateCharacter(a, 0x6A, 0, 1, 1, 0, 0, -1);
         QueueCharacterAnimation(a, 0x6B, 1, 1, 0, 0, -1);
     }
-    lbl_2_bss_100B8[0x40 + c] = 0;
-    if (lbl_2_bss_100B8[0x10 + c] != 0) {
+    lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + c] = 0;
+    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] != 0) {
         return;
     }
 
@@ -570,8 +571,8 @@ void captainSelect_APress(int idx) {
         add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[c], Static_Stats_Tables.captainSelectedID[c], TRUE);
     }
 
-    lbl_2_bss_100B8[0x10 + c] = 1;
-    lbl_2_bss_100B8[0x12 + c] = 1;
+    lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] = 1;
+    lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + c] = 1;
     Static_Stats_Tables.charOnCharacterGridSelected[mapCaptainCursorPositionToCharID[menuCursors[4 + (u8)idx]]] = TRUE;
 
     if ((u8)idx != 0) {
@@ -622,15 +623,15 @@ void captainSelect_APress(int idx) {
     val = menuCursors[5];
     cursorPositions.cursor[1] = val;
     if (val != -1) {
-        lbl_2_bss_100B8[0x1D] = 1;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] = 1;
         return;
     }
-    if (lbl_2_bss_100B8[0x1D] != 0) {
-        int t = lbl_2_bss_100B8[0x1D] + 1;
-        lbl_2_bss_100B8[0x1D] = t;
+    if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] != 0) {
+        int t = lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] + 1;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] = t;
         if ((u8)t >= 0xF) {
-            lbl_2_bss_100B8[0x15] = 1;
-            lbl_2_bss_100B8[0x1D] = 0;
+            lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + 1] = 1;
+            lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + 1] = 0;
             captainSelect_setShowModelOnLoad(1, 1);
         }
     }
@@ -640,9 +641,9 @@ void captainSelect_APress(int idx) {
 void captainSelect_BPress(int idx) {
     int c = (u8)idx;
 
-    if (lbl_2_bss_100B8[0x10 + c] != 0) {
-        lbl_2_bss_100B8[0x10 + c] = 0;
-        lbl_2_bss_100B8[0x12 + c] = 0;
+    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] != 0) {
+        lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] = 0;
+        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + c] = 0;
         Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[c]] = FALSE;
         add_or_RemoveCharToATeam((u8)idx, Static_Stats_Tables.captainSelectedID[c], FALSE);
         goto exit;
@@ -659,8 +660,8 @@ void captainSelect_BPress(int idx) {
             captainSelect_setModelVisible((u8)idx, 0);
             charSelectStruct[0x7F + Static_Stats_Tables.playerNumberByPort[gameSetUpStep.portCaptainSlot[0]]] = -1;
             Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[0]] = FALSE;
-            lbl_2_bss_100B8[0x10] = 0;
-            lbl_2_bss_100B8[0x12] = 0;
+            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] = 0;
+            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 0;
             gameSetUpStep.portCaptainSlot[0] = 0;
             add_or_RemoveCharToATeam(0, Static_Stats_Tables.captainSelectedID[0], FALSE);
             Static_Stats_Tables.captainSelectedID[0] = CHAR_ID_NONE;
@@ -669,9 +670,9 @@ void captainSelect_BPress(int idx) {
 
             other = (idx & 0xFF) ^ 1;
             AnimateCharacter(other, 0x69, 1, 1, 1, 0, 0, -1);
-            lbl_2_bss_100B8[0x40 + (u8)other] = 1;
+            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + (u8)other] = 1;
         } else {
-            u8 v10 = lbl_2_bss_100B8[0x10];
+            u8 v10 = lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED];
 
             Static_Stats_Tables.portsActiveInMatch[Static_Stats_Tables.playerNumberByPort[1]] = 1;
             if (v10 != 0) {
@@ -692,11 +693,11 @@ void captainSelect_BPress(int idx) {
                 Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
             }
 
-            lbl_2_bss_100B8[0x10 + c] = 0;
-            lbl_2_bss_100B8[0x12 + c] = 0;
+            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + c] = 0;
+            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + c] = 0;
             gameSetUpStep.portCaptainSlot[c] = 0;
 
-            if (lbl_2_bss_100B8[0x10] != 0) {
+            if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] != 0) {
                 updateCharacterSelectProcessCode(idx & 0xFF, CHAR_SELECT_PROCESS_CAP_CANCEL_P1_LOCKED);
             } else {
                 updateCharacterSelectProcessCode(idx & 0xFF, CHAR_SELECT_PROCESS_CAP_CANCEL);
@@ -716,7 +717,7 @@ void captainSelect_BPress(int idx) {
 
     {
         int i;
-        for (i = 0; i < lbl_2_bss_100B8[0x2D]; i++) {
+        for (i = 0; i < lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT]; i++) {
             captainSelect_setModelVisible(i, 0);
         }
     }
@@ -734,14 +735,14 @@ void captainSelect_BPress(int idx) {
         lbl_803CBCD8[2] = 0x14;
     }
 
-    lbl_2_bss_F468[0x46] = 0;
-    lbl_2_bss_F468[0x45] = 0;
+    lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + 1] = 0;
+    lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN] = 0;
     menuControlVariables->currentState = 8;
 
 exit:
     if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_2_PLAYER_GAME) {
         AnimateCharacter((u8)idx, 0x69, 1, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[0x40 + c] = 1;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + c] = 1;
     }
     cursorSndFx(INPUT_BUTTON_B);
 }
@@ -749,22 +750,22 @@ exit:
 // .text:0x00015104 size:0xB8 mapped:0x80654198
 BOOL loadNewCaptainModelOnCapSelectScreen(int currentCharId, int newCharId, int port, int arg3) {
     if (newCharId != currentCharId) {
-        lbl_2_bss_100B8[0x1C + (u8)port] = 1;
-    } else if (lbl_2_bss_100B8[0x1C + (u8)port] != 0) {
-        if (++lbl_2_bss_100B8[0x1C + (u8)port] >= 0xF) {
-            lbl_2_bss_100B8[0x14 + (u8)port] = 1;
-            lbl_2_bss_100B8[0x1C + (u8)port] = 0;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] = 1;
+    } else if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] != 0) {
+        if (++lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] >= 0xF) {
+            lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + (u8)port] = 1;
+            lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] = 0;
             captainSelect_setShowModelOnLoad((u8)port, arg3);
         }
     }
-    return lbl_2_bss_100B8[0x1C + (u8)port] == 0;
+    return lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + (u8)port] == 0;
 }
 
 // .text:0x000150D0 size:0x34 mapped:0x80654164
 void fn_2_150D0(u8 idx) {
-    if (lbl_2_bss_100B8[0x14 + idx] == 0) {
-        lbl_2_bss_100B8[0x14 + idx] = 1;
-        lbl_2_bss_100B8[0x1C + idx] = 0;
+    if (lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + idx] == 0) {
+        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED + idx] = 1;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY + idx] = 0;
     }
 }
 
@@ -857,12 +858,12 @@ void fn_2_14BB8(int port, int state) {
         u8 a = port;
         AnimateCharacter(a, 0x6A, 0, 1, 1, 0, 0, -1);
         QueueCharacterAnimation(a, 0x6B, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[0x40 + (u8)port] = 0;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + (u8)port] = 0;
         break;
     }
     case 1:
         AnimateCharacter(port, 0x69, 1, 1, 1, 0, 0, -1);
-        lbl_2_bss_100B8[0x40 + (u8)port] = 1;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + (u8)port] = 1;
         break;
     }
 }
@@ -876,7 +877,7 @@ void checkForNewPlayer(void) {
 
     newPlayerPort = -1;
 
-    if (lbl_2_bss_100B8[0x19] == 0 || lbl_2_bss_100B8[0x1a] != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
+    if (lbl_2_bss_100B8[CAP_STATE_INITIAL_MODELS_LOADED] == 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_BUSY] != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         return;
     }
     if (gameSetUpStep.unk0E == 1) {
@@ -902,9 +903,9 @@ void checkForNewPlayer(void) {
         return;
     }
 
-    if (lbl_2_bss_100B8[0x11] != 0) {
-        lbl_2_bss_100B8[0x11] = 0;
-        lbl_2_bss_100B8[0x13] = 0;
+    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] != 0) {
+        lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] = 0;
+        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] = 0;
         add_or_RemoveCharToATeam(1, Static_Stats_Tables.captainSelectedID[1], FALSE);
         Static_Stats_Tables.charOnCharacterGridSelected[Static_Stats_Tables.captainSelectedID[1]] = FALSE;
         Static_Stats_Tables.captainSelectedID[1] = CHAR_ID_NONE;
@@ -962,8 +963,8 @@ void checkForNewPlayer(void) {
     }
 
     Static_Stats_Tables.unk4704 = 0;
-    if (lbl_2_bss_F468[0x46] != 0) {
-        lbl_2_bss_F468[0x46] = 0;
+    if (lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + 1] != 0) {
+        lbl_2_bss_F468[CSS_WORK_Z_MENU_OPEN + 1] = 0;
         sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
     }
     Static_Stats_Tables.controllerInputs[1].processedInput = 0;

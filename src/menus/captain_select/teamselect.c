@@ -19,6 +19,7 @@
 #include "Unknown/File_0x800628d4.h"
 #include "menus/captain_select/captain_select.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
+#include "menus/css_work.h"
 
 extern u8 lbl_2_bss_100B8[0x54];
 extern u8 lbl_2_bss_100B4;
@@ -149,14 +150,14 @@ void captainSelectScreen_manager(void) {
         break;
     case 4:
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            if (lbl_2_bss_100B8[0x40] == 0 || lbl_2_bss_100B8[0x41] == 0 ||
+            if (lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] == 0 || lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + 1] == 0 ||
                 gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
                 break;
             }
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_DONE);
             updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_DONE);
         } else {
-            if (lbl_2_bss_100B8[0x40] == 0) {
+            if (lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] == 0) {
                 break;
             }
             lbl_2_bss_100B4 = TRUE;
@@ -237,7 +238,7 @@ void captainSelectScreen_manager(void) {
                 Static_Stats_Tables._48AF[0] = 1;
                 setPortOfEachPlayer();
                 if ((s8)hugeAnimStruct[0xE56] != Static_Stats_Tables.captainSelectedID[0]) {
-                    lbl_2_bss_100B8[0x14] = 1;
+                    lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED] = 1;
                 }
                 fn_2_11EA8();
                 changeScene(4, 6);
@@ -264,8 +265,8 @@ void captainSelectScreen_manager(void) {
         if (((u8*)&lbl_2_bss_100B4)[1] != 0) {
             break;
         }
-        lbl_2_bss_100B8[0x40] = 1;
-        lbl_2_bss_100B8[0x41] = 1;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] = 1;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + 1] = 1;
         if (gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
             break;
         }
@@ -318,14 +319,14 @@ void captainSelectScreen_manager(void) {
             break;
         case 3:
             setPortOfEachPlayer();
-            lbl_2_bss_100B8[0x40] = 1;
-            lbl_2_bss_100B8[0x41] = 1;
+            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] = 1;
+            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + 1] = 1;
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_DONE);
             updateCharacterSelectProcessCode(1, CHAR_SELECT_PROCESS_CAP_DONE);
             lbl_2_bss_100B4 = TRUE;
             lbl_803CBD24[4] = 0;
-            lbl_2_bss_100B8[0x41] = 1;
-            lbl_2_bss_100B8[0x40] = 1;
+            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED + 1] = 1;
+            lbl_2_bss_100B8[CAP_STATE_MODEL_ANIM_SETTLED] = 1;
             changeScene(15, 6);
             menuControlVariables->currentState = 5;
             break;
@@ -350,9 +351,9 @@ void fn_2_12CD8(void) {
     Static_Stats_Tables._48AD = 0;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
-        lbl_2_bss_100B8[0x2D] = 1;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT] = 1;
     } else {
-        lbl_2_bss_100B8[0x2D] = 2;
+        lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT] = 2;
     }
     ((u8*)&Static_Stats_Tables)[0x4755] = 0;
     gameSetUpStep._00 = 1;
@@ -373,7 +374,7 @@ void fn_2_12C34(void) {
     s32 cursor;
     s32 i;
 
-    if (lbl_2_bss_100B8[0x4A] != 0) {
+    if (lbl_2_bss_100B8[CAP_STATE_DEBUG_CAMERA_MENU] != 0) {
         return;
     }
     if (lbl_2_bss_100B8[0x20] == 1 || g_MatchInfo.player2Ind2 == 0) {
@@ -407,46 +408,46 @@ void fn_2_12B60(void) {
     }
     for (slot = 0; slot < 2; slot++) {
         while (loadNewCaptainModelOnCapSelectScreen(menuCursors[4 + slot], previous[slot], slot, 1) == 0 &&
-               lbl_2_bss_100B8[0x10 + slot] != 0) {
+               lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + slot] != 0) {
             previous[slot] = menuCursors[4 + slot];
         }
     }
 }
 
 void fn_2_12A70(void) {
-    if (lbl_2_bss_100B8[0x12] != 0) {
-        lbl_2_bss_100B8[0x12] = 0;
+    if (lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] != 0) {
+        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 0;
         playPlayerSelectedSound(Static_Stats_Tables.captainSelectedID[0]);
     }
-    if (lbl_2_bss_100B8[0x13] != 0) {
-        lbl_2_bss_100B8[0x13] = 0;
+    if (lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] != 0) {
+        lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] = 0;
         playPlayerSelectedSound(Static_Stats_Tables.captainSelectedID[1]);
     }
-    if (lbl_2_bss_100B8[0x10] != 0 && lbl_2_bss_100B8[0x11] != 0) {
+    if (lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] != 0 && lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] != 0) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             lbl_2_bss_100B4 = TRUE;
         }
         menuControlVariables->currentState = 4;
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-            lbl_2_bss_100B8[0x11] = 0;
-            lbl_2_bss_100B8[0x13] = 0;
+            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] = 0;
+            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] = 0;
         }
     }
 }
 
 void fn_2_129D0(void) {
-    memset(&lbl_2_bss_100B8[0x14], 0, lbl_2_bss_100B8[0x2D]);
-    memset(&lbl_2_bss_100B8[0x1C], 0, lbl_2_bss_100B8[0x2D]);
+    memset(&lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_REQUESTED], 0, lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT]);
+    memset(&lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DELAY], 0, lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT]);
     memset(&lbl_2_bss_100B8[0x23], -1, 2);
-    lbl_2_bss_100B8[0x18] = 0;
-    lbl_2_bss_100B8[0x19] = 0;
-    lbl_2_bss_100B8[0x1A] = 0;
-    lbl_2_bss_100B8[0x1B] = 0;
+    lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_DONE] = 0;
+    lbl_2_bss_100B8[CAP_STATE_INITIAL_MODELS_LOADED] = 0;
+    lbl_2_bss_100B8[CAP_STATE_MODEL_LOAD_BUSY] = 0;
+    lbl_2_bss_100B8[CAP_STATE_MODEL_LOADER_IDLE] = 0;
     lbl_2_bss_100B8[0x20] = 0;
     ((s8*)lbl_2_bss_100B8)[0x21] = -1;
     ((s8*)lbl_2_bss_100B8)[0x22] = -1;
     *(s32*)&lbl_2_bss_100B8[0xC] = -1;
-    lbl_2_bss_100B8[0x2D] = 0;
+    lbl_2_bss_100B8[CAP_STATE_MODEL_SLOT_COUNT] = 0;
 }
 
 void fn_2_129AC(void) {
@@ -511,10 +512,10 @@ void captainSelectDefaultProcess(void) {
         s32 cursor;
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE &&
             g_d_GameSettings.p2_CPU_match_code != P2_CPU_CODE_1_PLAYER_GAME) {
-            lbl_2_bss_100B8[0x10] = 0;
-            lbl_2_bss_100B8[0x12] = 0;
-            lbl_2_bss_100B8[0x11] = 0;
-            lbl_2_bss_100B8[0x13] = 0;
+            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] = 0;
+            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 0;
+            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED + 1] = 0;
+            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE + 1] = 0;
         }
         for (slot = 0; slot < 2; slot++) {
             for (cursor = 0; cursor < 12; cursor++) {
@@ -535,13 +536,13 @@ void captainSelectDefaultProcess(void) {
         }
         if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME &&
             g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
-            lbl_2_bss_100B8[0x10] = 1;
-            lbl_2_bss_100B8[0x12] = 1;
+            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] = 1;
+            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 1;
             gameSetUpStep.portCaptainSlot[0] = 1;
             add_or_RemoveCharToATeam(Static_Stats_Tables.playerNumberByPort[0], Static_Stats_Tables.captainSelectedID[0], 1);
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-            lbl_2_bss_100B8[0x10] = 0;
-            lbl_2_bss_100B8[0x12] = 0;
+            lbl_2_bss_100B8[CAP_STATE_CAPTAIN_LOCKED] = 0;
+            lbl_2_bss_100B8[CAP_STATE_PLAY_CAPTAIN_VOICE] = 0;
             gameSetUpStep.portCaptainSlot[0] = 0;
         }
         updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CAP_RETURN);
