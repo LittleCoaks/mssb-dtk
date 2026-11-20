@@ -46,7 +46,7 @@ extern struct {
     /* 0xCFA2 */ E(u8, TEAM_MENU_TYPE) teamMenuType[4];
 } g_TeamManagement;
 
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern u8 menuNumber[0x28];
 extern u8 lbl_803CBCC9;
 extern u8 lbl_803CBD24[0xC];
@@ -92,7 +92,7 @@ void pauseMenuSelection(void) {
         u16 v0, v1, v2;
 
         memset(saved, 0, 6);
-        if (gameSetUpStep[0x5D] != 0) {
+        if (gameSetUpStep.currentCharacterSelectProcess[0] != 0) {
             break;
         }
         row = (u16 *)((u8 *)&g_TeamManagement + (s8)stats[0x46F8] * 6);
@@ -154,8 +154,8 @@ void pauseMenuSelection(void) {
     case 10: {
         if (g_TeamManagement.loadMatchRelInd != 0) {
             stats[0x48AD] = 1;
-            gameSetUpStep[0] = 0;
-            memset(&gameSetUpStep[1], 0, 6);
+            gameSetUpStep.screen = 0;
+            memset(&gameSetUpStep.stepFlags[0][0], 0, 6);
             g_TeamManagement.waitingForOtherTeam[1] = 0;
             g_TeamManagement.waitingForOtherTeam[0] = 0;
             g_TeamManagement.teamConfirmed[1] = 0;
@@ -226,10 +226,10 @@ void pauseMenuSelection(void) {
                 menuControlVariables->currentState = 0;
             } else if (g_d_GameSettings._06 == 2) {
                 if (g_TeamManagement.teamMenuType[port] != TEAM_MENU_TYPE_SCOUT_FLAGS && g_TeamManagement.teamMenuType[port] != TEAM_MENU_TYPE_STAR_MISSIONS) {
-                    if (gameSetUpStep[0x55] != 0) {
+                    if (gameSetUpStep.preventCursorMovement[0] != 0) {
                         break;
                     }
-                    if (gameSetUpStep[0x56] != 0) {
+                    if (gameSetUpStep.preventCursorMovement[1] != 0) {
                         break;
                     }
                 }
@@ -253,10 +253,10 @@ void pauseMenuSelection(void) {
     }
 
     case TEAM_MANAGEMENT_PROCESS_RETURN_TO_CSS_1:
-        if (gameSetUpStep[0x55] != 0) {
+        if (gameSetUpStep.preventCursorMovement[0] != 0) {
             break;
         }
-        if (gameSetUpStep[0x56] != 0) {
+        if (gameSetUpStep.preventCursorMovement[1] != 0) {
             break;
         }
         memset(stats + 0x489B, 0, 0x12);
@@ -288,7 +288,7 @@ void pauseMenuSelection(void) {
         break;
 
     case TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_1:
-        if (gameSetUpStep[0x55] == 0 && gameSetUpStep[0x56] == 0) {
+        if (gameSetUpStep.preventCursorMovement[0] == 0 && gameSetUpStep.preventCursorMovement[1] == 0) {
             g_TeamManagement.teamManagementProcessID = TEAM_MANAGEMENT_PROCESS_UNLOAD_MENU_2;
         }
         break;

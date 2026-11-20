@@ -16,7 +16,7 @@ typedef struct MenuLabel {
 extern u8 menuNumber[0x28];
 extern MenuLabel lbl_800FEF70[];
 extern u8 lbl_800EFBA4[];
-extern u8 gameSetUpStep[];
+extern GameSetUpStep gameSetUpStep;
 
 void controlOptionsScreen(u8 port) {
     u8 found = FALSE;
@@ -35,7 +35,7 @@ void controlOptionsScreen(u8 port) {
     }
 
     if (found) {
-        if (gameSetUpStep[0x5D] == 0 && gameSetUpStep[0x5E] == 0) {
+        if (gameSetUpStep.currentCharacterSelectProcess[0] == 0 && gameSetUpStep.currentCharacterSelectProcess[1] == 0) {
             inputs.currentHeldInput = Static_Stats_Tables.controllerInputs[idx].currentHeldInput;
             inputs.newInput = Static_Stats_Tables.controllerInputs[idx].newInput;
             inputs.processedInput = Static_Stats_Tables.controllerInputs[idx].processedInput;

@@ -20,7 +20,7 @@ typedef struct MenuLabel {
 extern u8 menuNumber[0x28];
 extern MenuLabel lbl_800FEF70[];
 extern u8 lbl_803C5EE0[0x18];
-extern u8 gameSetUpStep[];
+extern GameSetUpStep gameSetUpStep;
 extern char lbl_800E6950[];
 
 void startGameRelated(void) {
@@ -40,8 +40,8 @@ void startGameRelated(void) {
         return;
     }
 
-    if (gameSetUpStep[0x55] != 0 || gameSetUpStep[0x56] != 0) {
-        if (gameSetUpStep[0x5D] == 0x31 && gameSetUpStep[0x5E] != 0) {
+    if (gameSetUpStep.preventCursorMovement[0] != 0 || gameSetUpStep.preventCursorMovement[1] != 0) {
+        if (gameSetUpStep.currentCharacterSelectProcess[0] == 0x31 && gameSetUpStep.currentCharacterSelectProcess[1] != 0) {
             makeCursorMovable(1);
         }
         return;

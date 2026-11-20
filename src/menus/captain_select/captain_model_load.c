@@ -34,6 +34,7 @@
 #include "Dolphin/GX/GXGeometry.h"
 #include "Dolphin/GX/GXTransform.h"
 #include "Dolphin/stl.h"
+#include "menus/css_work.h"
 
 #define CAP_MODEL_COUNT 13
 #define CAP_PORT_COUNT 4
@@ -99,7 +100,7 @@ typedef struct {
     /* 0x255 */ s8 entryIdx;
     /* 0x256 */ u8 _256[0x25C - 0x256];
     /* 0x25C */ u8 _25C;
-    /* 0x25D */ u8 _25D;
+    /* 0x25D */ u8 visible;
     /* 0x25E */ u8 _25E[0x265 - 0x25E];
     /* 0x265 */ u8 _265;
     /* 0x266 */ u8 _266[0x268 - 0x266];
@@ -142,12 +143,12 @@ typedef struct {
     /* 0x1D */ u8 step;
     /* 0x1E */ u8 index;
     /* 0x1F */ u8 _1F;
-    /* 0x20 */ u8 _20;
+    /* 0x20 */ u8 showOnLoad;
     /* 0x21 */ u8 loadStep;
 } CapLoadTask;
 
 extern CapAnimView hugeAnimStruct;
-extern u8 lbl_2_bss_100B8[0x54];
+extern CapSelectState capSelectState;
 extern u8 lbl_2_bss_100B4;
 extern u8 lbl_2_bss_1010C[0x58];
 extern CapLoadTask *lbl_2_bss_1224;
@@ -284,13 +285,7 @@ extern menuControlStruct *menuControlVariables;
 extern u8 superstarUnlocked[0x130];
 extern u8 challengeCaptainCharIDArray[12];
 
-typedef struct {
-    /* 0x00 */ u8 _pad0[0x59];
-    /* 0x59 */ u8 portCaptainSlot[4];
-    /* 0x5D */ u8 _pad1[0x64 - 0x5D];
-} CapGameSetUp; // size: 0x64
-
-extern CapGameSetUp gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 
 void *getAnimObjectActor(void *obj);
 void fn_800B2C08(void *actor, u16 arg1);
@@ -321,14 +316,12 @@ void fn_2_16F78(u8 idx);
 void fn_2_16DA8(void);
 void fn_2_16CE0(void);
 void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, u8 speedDiv);
-void fn_2_16A74(int idx, int flag);
-u8 fn_2_16A5C(int idx);
-void set807518de(int port, int value);
-u8 fn_2_16A34(int port);
+void captainSelect_setModelVisible(int idx, int flag);
+u8 captainSelect_isModelVisible(int idx);
+void captainSelect_setShowModelOnLoad(int port, int value);
+u8 captainSelect_getShowModelOnLoad(int port);
 void fn_2_16870(void);
 
-#define STATE lbl_2_bss_100B8
-#define SSTATE ((s8 *)lbl_2_bss_100B8)
 #define TASK ((CapLoadTask *)currentDrawingItem)
 
 // .text:0x0001937C size:0x140 mapped:0x80658410
@@ -360,7 +353,7 @@ void fn_2_19224(ActorObjectTable *table) {
 
     for (i = 0; (u16)i < table->count; i++) {
         CapSlot *obj = hugeAnimStruct.objects[(u16)i];
-        if (obj != NULL && obj->_25D != 0) {
+        if (obj != NULL && obj->visible != 0) {
             ActorObjectEntry *e = &table->entries[(u16)i];
             u8 bp;
             if (e->actor != NULL) {
@@ -439,32 +432,32 @@ void captainSelectLoadScreen(void) {
     DrawingSceneStruct *task = insertGraphicDrawingFunction(fn_2_188EC, 0x6000);
     int i;
 
-    STATE[0x19] = 0;
-    STATE[0x1B] = 1;
+    capSelectState.initialModelsLoaded = 0;
+    capSelectState.modelLoaderIdle = 1;
     if (Static_Stats_Tables._4700[1] == 0) {
-        for (i = 0; i < STATE[0x2D]; i++) {
-            SSTATE[0x27 + i] = -1;
+        for (i = 0; i < capSelectState.modelSlotCount; i++) {
+            capSelectState.loadingSlot[i] = -1;
         }
         ((CapLoadTask *)task)->stage = 0;
     } else {
-        for (i = 0; i < STATE[0x2D]; i++) {
-            STATE[0x14 + i] = 0;
+        for (i = 0; i < capSelectState.modelSlotCount; i++) {
+            capSelectState.modelLoadRequested[i] = 0;
         }
         ((CapLoadTask *)task)->stage = 0;
     }
-    STATE[0] = 0;
-    STATE[1] = 0;
-    if (SSTATE[0] < 10) {
-        SSTATE[2] = -1;
-        SSTATE[3] = -1;
-        SSTATE[4] = -1;
-        SSTATE[5] = -1;
-        SSTATE[6] = -1;
-        SSTATE[7] = -1;
-        SSTATE[8] = -1;
-        SSTATE[9] = -1;
-        SSTATE[10] = -1;
-        SSTATE[11] = -1;
+    capSelectState.loadQueueHead = 0;
+    capSelectState.loadQueueTail = 0;
+    if (capSelectState.loadQueueHead < 10) {
+        capSelectState.loadQueue[0] = -1;
+        capSelectState.loadQueue[1] = -1;
+        capSelectState.loadQueue[2] = -1;
+        capSelectState.loadQueue[3] = -1;
+        capSelectState.loadQueue[4] = -1;
+        capSelectState.loadQueue[5] = -1;
+        capSelectState.loadQueue[6] = -1;
+        capSelectState.loadQueue[7] = -1;
+        capSelectState.loadQueue[8] = -1;
+        capSelectState.loadQueue[9] = -1;
     }
 }
 
@@ -494,19 +487,19 @@ void fn_2_188EC(void) {
     }
     case 2:
         if (lbl_2_bss_100B4 != 0) {
-            for (i = 0; i < STATE[0x2D]; i++) {
-                if (STATE[0x40 + i] == 0) {
+            for (i = 0; i < capSelectState.modelSlotCount; i++) {
+                if (capSelectState.modelAnimSettled[i] == 0) {
                     goto notDone;
                 }
             }
-            for (i = 0; i < STATE[0x2D]; i++) {
+            for (i = 0; i < capSelectState.modelSlotCount; i++) {
                 hugeAnimStruct.objects[i] = NULL;
             }
             removeCurrentDrawingItem();
             break;
         }
     notDone:
-        if (STATE[0x19] != 0) {
+        if (capSelectState.initialModelsLoaded != 0) {
             fn_2_16870();
         }
         break;
@@ -520,7 +513,7 @@ void fn_2_18748(void) {
 
     switch (task->step) {
     case 0:
-        for (i = 0; i < STATE[0x2D]; i++) {
+        for (i = 0; i < capSelectState.modelSlotCount; i++) {
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
                 task->charIDs[i] = challengeCaptainCharIDArray[superstarUnlocked[0xF4] * 6 + menuCursors[4 + task->index]];
             } else {
@@ -535,16 +528,16 @@ void fn_2_18748(void) {
         task->step++;
     case 1:
         fn_2_18148(task);
-        if (STATE[0x18] != 0) {
-            STATE[0x18] = 0;
-            STATE[0x32] = 0;
+        if (capSelectState.modelLoadDone != 0) {
+            capSelectState.modelLoadDone = 0;
+            capSelectState._32 = 0;
             task->loadStep = 0;
             task->_10 = 0;
             task->index++;
-            if (task->index >= STATE[0x2D]) {
+            if (task->index >= capSelectState.modelSlotCount) {
                 task->index = 0;
                 task->step = 0;
-                STATE[0x19] = 1;
+                capSelectState.initialModelsLoaded = 1;
                 removeCurrentDrawingItem();
             } else {
                 task->step = 0;
@@ -560,9 +553,9 @@ void fn_2_18748(void) {
 
 // .text:0x00018650 size:0xF8 mapped:0x806576E4
 BOOL fn_2_18650(int port) {
-    int head = ((s8)STATE[0] + 1) % 10;
+    int head = ((s8)capSelectState.loadQueueHead + 1) % 10;
 
-    if (head != (s8)STATE[1]) {
+    if (head != (s8)capSelectState.loadQueueTail) {
         if (lbl_2_bss_1224 == NULL) {
             if ((lbl_2_bss_1224 = (CapLoadTask *)insertGraphicDrawingFunction(fn_2_18398, 0xFFFF)) != NULL) {
                 lbl_2_bss_1224->stage = 0;
@@ -571,9 +564,9 @@ BOOL fn_2_18650(int port) {
                 return FALSE;
             }
         }
-        STATE[2 + (s8)STATE[0]] = port;
-        STATE[0] = head;
-        STATE[0x42 + port] = 1;
+        capSelectState.loadQueue[(s8)capSelectState.loadQueueHead] = port;
+        capSelectState.loadQueueHead = head;
+        capSelectState.modelLoadQueued[port] = 1;
         return TRUE;
     }
     return FALSE;
@@ -587,23 +580,23 @@ void fn_2_18398(void) {
 
     switch (task->step) {
     case 0: {
-        s8 *queue = &SSTATE[2];
-        u8 port = queue[(s8)STATE[1]];
+        s8 *queue = &capSelectState.loadQueue[0];
+        u8 port = queue[(s8)capSelectState.loadQueueTail];
         if ((s8)port == -1) {
-            STATE[0x18] = 0;
-            STATE[0x1B] = 1;
-            STATE[0x1A] = 0;
-            STATE[0x32] = 0;
+            capSelectState.modelLoadDone = 0;
+            capSelectState.modelLoaderIdle = 1;
+            capSelectState.modelLoadBusy = 0;
+            capSelectState._32 = 0;
             lbl_2_bss_1224 = NULL;
             removeCurrentDrawingItem();
             break;
         }
         task->index = port;
-        queue[(s8)STATE[1]] = -1;
-        STATE[0x1A] = 1;
-        STATE[0x1B] = 0;
-        STATE[1] = ((s8)STATE[1] + 1) % 10;
-        STATE[0x27 + task->index] = task->index;
+        queue[(s8)capSelectState.loadQueueTail] = -1;
+        capSelectState.modelLoadBusy = 1;
+        capSelectState.modelLoaderIdle = 0;
+        capSelectState.loadQueueTail = ((s8)capSelectState.loadQueueTail + 1) % 10;
+        capSelectState.loadingSlot[task->index] = task->index;
         task->step = 1;
         task->_10 = 0;
         mode = Static_Stats_Tables._4744[0x11];
@@ -634,17 +627,17 @@ void fn_2_18398(void) {
     }
     case 1:
         fn_2_18148(task);
-        if (lbl_2_bss_100B4 != 0 && ((u8 *)&lbl_2_bss_100B4)[1] == 0) {
+        if (lbl_2_bss_100B4 != 0 && CAP_SELECT_MODEL_LOADING == 0) {
             lbl_2_bss_1224 = NULL;
-            STATE[0x18] = 0;
-            STATE[0x1B] = 1;
-            STATE[0x1A] = 0;
-            STATE[0x32] = 0;
+            capSelectState.modelLoadDone = 0;
+            capSelectState.modelLoaderIdle = 1;
+            capSelectState.modelLoadBusy = 0;
+            capSelectState._32 = 0;
             task->step = 0;
             removeCurrentDrawingItem();
-        } else if (STATE[0x18] != 0) {
-            STATE[0x18] = 0;
-            STATE[0x1A] = 0;
+        } else if (capSelectState.modelLoadDone != 0) {
+            capSelectState.modelLoadDone = 0;
+            capSelectState.modelLoadBusy = 0;
             task->step = 0;
         }
         break;
@@ -657,10 +650,10 @@ void fn_2_18148(CapLoadTask *task) {
     case 0:
         task->slot = &hugeAnimStruct.slots[task->index];
         task->slot->charID = task->charIDs[task->index];
-        task->_20 = STATE[0x46 + task->index];
-        hugeAnimStruct.slots[task->index]._25D = 0;
+        task->showOnLoad = capSelectState.showModelOnLoad[task->index];
+        hugeAnimStruct.slots[task->index].visible = 0;
         task->slot->_68 = -1;
-        ((u8 *)&lbl_2_bss_100B4)[1] = 1;
+        CAP_SELECT_MODEL_LOADING = 1;
         task->loadStep++;
         break;
     case 1:
@@ -674,21 +667,21 @@ void fn_2_18148(CapLoadTask *task) {
             fn_2_16F78(task->index);
             cpuCode = g_d_GameSettings.p2_CPU_match_code;
             if (cpuCode == P2_CPU_CODE_1_PLAYER_GAME && gameSetUpStep.portCaptainSlot[0] == 0 && task->index == 1) {
-                hugeAnimStruct.slots[task->index]._25D = 0;
+                hugeAnimStruct.slots[task->index].visible = 0;
             } else {
-                hugeAnimStruct.slots[task->index]._25D = task->_20 != 0;
+                hugeAnimStruct.slots[task->index].visible = task->showOnLoad != 0;
             }
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE || cpuCode != 0 ||
                 menuControlVariables->previousScreen == 5) {
                 fn_2_14BB8(task->index, 1);
-            } else if (STATE[0x10] != 0) {
+            } else if (capSelectState.captainLocked[0] != 0) {
                 fn_2_14BB8(task->index, task->index != 0);
             }
             task->loadStep = 0;
-            STATE[0x32] = 1;
-            STATE[0x18] = 1;
-            ((u8 *)&lbl_2_bss_100B4)[1] = 0;
-            STATE[0x42 + task->index] = 0;
+            capSelectState._32 = 1;
+            capSelectState.modelLoadDone = 1;
+            CAP_SELECT_MODEL_LOADING = 0;
+            capSelectState.modelLoadQueued[task->index] = 0;
         }
         break;
     }
@@ -714,11 +707,11 @@ void fn_2_17ED8(void) {
     }
 done:
     size = (maxSize + 31) & ~31;
-    hugeAnimStruct.modelPool = _OSAllocFromHeap(32, size * STATE[0x2D]);
-    for (i = 0; i < STATE[0x2D]; i++) {
+    hugeAnimStruct.modelPool = _OSAllocFromHeap(32, size * capSelectState.modelSlotCount);
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
         hugeAnimStruct.slots[i].files = (u32 *)(hugeAnimStruct.modelPool + size * i);
     }
-    fn_80014204(STATE[0x2D]);
+    fn_80014204(capSelectState.modelSlotCount);
     hugeAnimStruct._13C = fn_80023AA4();
     initActorArray(4);
 }
@@ -743,8 +736,8 @@ void fn_2_17C88(void) {
     }
 done:
     size = (maxSize + 31) & ~31;
-    hugeAnimStruct.modelPool = _OSAllocFromHeap(32, size * STATE[0x2D]);
-    for (i = 0; i < STATE[0x2D]; i++) {
+    hugeAnimStruct.modelPool = _OSAllocFromHeap(32, size * capSelectState.modelSlotCount);
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
         hugeAnimStruct.slots[i].files = (u32 *)(hugeAnimStruct.modelPool + size * i);
     }
 }
@@ -754,8 +747,8 @@ void fn_2_17AB8(void) {
     int size = ((lbl_2_data_2780[0]->sizeFlags & 0x0FFFFFFF) + 31) & ~31;
     int i;
 
-    lbl_2_bss_122C = _OSAllocFromHeap(32, size * STATE[0x2D]);
-    for (i = 0; i < STATE[0x2D]; i++) {
+    lbl_2_bss_122C = _OSAllocFromHeap(32, size * capSelectState.modelSlotCount);
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
         lbl_2_bss_101AC[i].buffer = lbl_2_bss_122C + size * i;
         lbl_2_bss_101AC[i]._61 = -1;
         lbl_2_bss_101AC[i].index = -1;
@@ -783,12 +776,12 @@ void fn_2_17648(void) {
     }
 done:
     size = (maxSize + 31) & ~31;
-    lbl_2_bss_1228 = _OSAllocFromHeap(32, size * STATE[0x2D] * 2);
-    for (i = 0; i < STATE[0x2D]; i++) {
+    lbl_2_bss_1228 = _OSAllocFromHeap(32, size * capSelectState.modelSlotCount * 2);
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
         hugeAnimStruct.entries[i].bufs[0].buffer = lbl_2_bss_1228 + size * (i * 2);
         hugeAnimStruct.entries[i].bufs[1].buffer = lbl_2_bss_1228 + size * (i * 2 + 1);
     }
-    for (i = 0; i < STATE[0x2D]; i++) {
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
         CapEntry *e = &hugeAnimStruct.entries[i];
         e->_CF = -1;
         e->_D1 = -1;
@@ -886,7 +879,7 @@ void fn_2_16F78(u8 idx) {
     slot->_38 = pos->y;
     slot->_3C = pos->z;
     slot->_4C = 0.5f;
-    slot->_25D = 0;
+    slot->visible = 0;
     *(void (**)(void))((u8 *)hugeAnimStruct.objTable + (idx * 0x90 + 0x3C)) = (void (*)(void))fn_2_190B8;
     slot->actor = entry->actor;
     callDSInsertListObject((UnkB2B4C *)entry->actor, slot->boneSlots[19]);
@@ -998,21 +991,21 @@ void fn_2_16DA8(void) {
     u8 *p;
 
     hugeAnimStruct.actorCount = 0;
-    for (i = 0; i < STATE[0x2D]; i++) {
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
         hugeAnimStruct.objects[i] = &hugeAnimStruct.slots[i];
     }
     i = 3;
-    p = STATE + 3;
+    p = (u8 *)&capSelectState + 3; /* walks modelLoadQueued[3..0] */
     do {
-        p[0x42] = 0;
+        p[CAP_STATE_MODEL_LOAD_QUEUED] = 0;
         p--;
     } while (i-- != 0);
     if (menuControlVariables->previousScreen == 5 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
-        STATE[0x46] = 1;
-        STATE[0x47] = 0;
+        capSelectState.showModelOnLoad[0] = 1;
+        capSelectState.showModelOnLoad[1] = 0;
     } else {
-        STATE[0x46] = 1;
-        STATE[0x47] = 1;
+        capSelectState.showModelOnLoad[0] = 1;
+        capSelectState.showModelOnLoad[1] = 1;
     }
 }
 
@@ -1020,7 +1013,7 @@ void fn_2_16DA8(void) {
 void fn_2_16D38(void) {
     int i;
 
-    for (i = 0; i < STATE[0x2D]; i++) {
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
         memset(hugeAnimStruct.slots[i].files, 0, 0x5C);
     }
 }
@@ -1029,9 +1022,9 @@ void fn_2_16D38(void) {
 void fn_2_16CE0(void) {
     int i;
 
-    for (i = 0; i < STATE[0x2D]; i++) {
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
         if (hugeAnimStruct.objects[i] != NULL && hugeAnimStruct.objects[i]->_62 == 0x6B) {
-            STATE[0x40 + i] = 1;
+            capSelectState.modelAnimSettled[i] = 1;
         }
     }
 }
@@ -1070,7 +1063,7 @@ void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, 
             actorRelated((u8 *)obj->entry + 0x68, 5, seq);
             actorRelated((u8 *)obj->entry + 4, 5, seq);
         }
-        if (idx < STATE[0x2D]) {
+        if (idx < capSelectState.modelSlotCount) {
             void *bank = obj->_10[boneKind];
             if (bank != NULL) {
                 if (animIdx >= *(u16 *)((u8 *)bank + 0xA)) {
@@ -1097,33 +1090,33 @@ void fn_2_16A98(int idx, int anim, u8 loop, u8 val, s16 frameScale, int unused, 
 }
 
 // .text:0x00016A74 size:0x24 mapped:0x80655B08
-void fn_2_16A74(int idx, int flag) {
-    hugeAnimStruct.slots[idx]._25D = flag != 0;
+void captainSelect_setModelVisible(int idx, int flag) {
+    hugeAnimStruct.slots[idx].visible = flag != 0;
 }
 
 // .text:0x00016A5C size:0x18 mapped:0x80655AF0
-u8 fn_2_16A5C(int idx) {
-    return hugeAnimStruct.slots[idx]._25D;
+u8 captainSelect_isModelVisible(int idx) {
+    return hugeAnimStruct.slots[idx].visible;
 }
 
 // .text:0x00016A48 size:0x14 mapped:0x80655ADC
-void set807518de(int port, int value) {
-    STATE[0x46 + port] = value;
+void captainSelect_setShowModelOnLoad(int port, int value) {
+    capSelectState.showModelOnLoad[port] = value;
 }
 
 // .text:0x00016A34 size:0x14 mapped:0x80655AC8
-u8 fn_2_16A34(int port) {
-    return STATE[0x46 + port];
+u8 captainSelect_getShowModelOnLoad(int port) {
+    return capSelectState.showModelOnLoad[port];
 }
 
 // .text:0x00016870 size:0x1C4 mapped:0x80655904
 void fn_2_16870(void) {
     int i;
 
-    for (i = 0; i < STATE[0x2D]; i++) {
-        if (STATE[0x14 + i] != 0) {
+    for (i = 0; i < capSelectState.modelSlotCount; i++) {
+        if (capSelectState.modelLoadRequested[i] != 0) {
             if (fn_2_18650(i)) {
-                STATE[0x14 + i] = 0;
+                capSelectState.modelLoadRequested[i] = 0;
             }
         }
     }

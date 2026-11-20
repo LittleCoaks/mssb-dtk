@@ -5,12 +5,13 @@
 #include "Unknown/File_0x800204cc.h"
 #include "Unknown/orderchange.h"
 #include "text/text.h"
+#include "Unknown/game_set_up_step.h"
 
 extern u8 *lbl_2_bss_1A824C;
 extern u8 lbl_2_bss_1033C[0x10];
 extern UIRecordDescriptor lbl_2_data_30D04[];
 extern UIRecordDescriptor lbl_2_data_311E4[];
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern u8 menuNumber[0x28];
 extern u8 lbl_800FEF70[0x5D0];
 extern void fn_80053FE8(void);
@@ -69,7 +70,7 @@ static inline void gate9493C(MenuScene *scene) {
     BOOL gate = FALSE;
     BOOL wanted = FALSE;
 
-    if (gameSetUpStep[0x4F] == 1) {
+    if (gameSetUpStep.stepFlags[13][0] == 1) {
         if (flow->active != 0 && flow->selected == 0 && flow->unkB == 0) {
             wanted = TRUE;
             gate = maybeCheckAndResetGrapicsElement(scene, 0x13, 0) != 0;
@@ -82,7 +83,7 @@ static inline void gate9493C(MenuScene *scene) {
                 sceneRecord(scene, 22)->elementIndex = 0x10;
             }
             makeCursorMovable(0);
-            gameSetUpStep[0x4F] = 2;
+            gameSetUpStep.stepFlags[13][0] = 2;
         }
     }
 }
@@ -97,7 +98,7 @@ void fn_2_94A8C(MenuScene *scene) {
     s16 sel = flow->selected;
     s32 i;
 
-    if (gameSetUpStep[0x4F] == 0) {
+    if (gameSetUpStep.stepFlags[13][0] == 0) {
         if (flow->unkB != 0) {
             switch (sel) {
             case 0:
@@ -240,15 +241,15 @@ void fn_2_94A8C(MenuScene *scene) {
             sceneRecord(scene, sel + 21)->playMode = UI_PLAY_BACKWARD;
         }
         makeCursorUnmovable(0);
-        gameSetUpStep[0x4F] = 1;
+        gameSetUpStep.stepFlags[13][0] = 1;
     }
 }
 
 // .text:0x00095604 size:0x50 mapped:0x806D4698
 static inline void cursorFinishGate(void) {
-    if (gameSetUpStep[0x4F] == 1) {
+    if (gameSetUpStep.stepFlags[13][0] == 1) {
         makeCursorMovable(0);
-        gameSetUpStep[0x4F] = 2;
+        gameSetUpStep.stepFlags[13][0] = 2;
     }
 }
 
@@ -261,7 +262,7 @@ void fn_2_95654(MenuScene *scene) {
     MenuFlowState *flow = (MenuFlowState *)lbl_2_bss_1033C;
     s32 i;
 
-    if (gameSetUpStep[0x4F] == 0) {
+    if (gameSetUpStep.stepFlags[13][0] == 0) {
         switch (flow->selected) {
         case 0:
             sceneRecord(scene, 24)->elementIndex = 0x15;
@@ -329,7 +330,7 @@ void fn_2_95654(MenuScene *scene) {
             break;
         }
         makeCursorUnmovable(0);
-        gameSetUpStep[0x4F] = 1;
+        gameSetUpStep.stepFlags[13][0] = 1;
     }
 }
 
@@ -343,7 +344,7 @@ void fn_2_95B78(MenuScene *scene) {
     MenuFlowState *flow = (MenuFlowState *)lbl_2_bss_1033C;
     s32 i;
 
-    if (gameSetUpStep[0x4F] == 0) {
+    if (gameSetUpStep.stepFlags[13][0] == 0) {
         for (i = 0; i < 3; i++) {
             if (i == flow->selected) {
                 sceneRecord(scene, i + 15)->frame = 0;
@@ -374,13 +375,13 @@ void fn_2_95B78(MenuScene *scene) {
         load_Icon(scene, 4, 1, 3, flow->selected);
         sceneRecord(scene, 4)->playMode = UI_PLAY_FORWARD;
         makeCursorUnmovable(0);
-        gameSetUpStep[0x4F] = 1;
+        gameSetUpStep.stepFlags[13][0] = 1;
     }
 }
 
 // .text:0x00095E80 size:0xBC mapped:0x806D4F14
 static inline void gate95E80(MenuScene *scene) {
-    if (gameSetUpStep[0x4F] == 1) {
+    if (gameSetUpStep.stepFlags[13][0] == 1) {
         BOOL found = maybeCheckAndResetGrapicsElement(scene, 0, 0) != 0;
 
         if ((sceneRecord(scene, 0)->frame >> 16) == 3) {
@@ -389,7 +390,7 @@ static inline void gate95E80(MenuScene *scene) {
         if (found) {
             lbl_2_bss_1033C[0xE] = 1;
             makeCursorMovable(0);
-            gameSetUpStep[0x4F] = 2;
+            gameSetUpStep.stepFlags[13][0] = 2;
         }
     }
 }
@@ -400,13 +401,13 @@ void fn_2_95E80(MenuScene *scene) {
 
 // .text:0x00095F3C size:0xA4 mapped:0x806D4FD0
 static inline void gate95F3C(MenuScene *scene) {
-    if (!gameSetUpStep[0x4F]) {
+    if (!gameSetUpStep.stepFlags[13][0]) {
         sceneRecord(scene, 0)->playMode = UI_PLAY_BACKWARD;
         sceneRecord(scene, 1)->playMode = UI_PLAY_BACKWARD;
         sceneRecord(scene, 3)->playMode = UI_PLAY_BACKWARD;
         sceneRecord(scene, 4)->playMode = UI_PLAY_BACKWARD;
         makeCursorUnmovable(0);
-        gameSetUpStep[0x4F] = 1;
+        gameSetUpStep.stepFlags[13][0] = 1;
     }
 }
 
@@ -421,7 +422,7 @@ static inline void gate95FE0(MenuScene *scene) {
     s32 total;
     s32 i;
 
-    if (gameSetUpStep[0x4F] == 1) {
+    if (gameSetUpStep.stepFlags[13][0] == 1) {
         total = 1;
         hits = maybeCheckAndResetGrapicsElement(scene, 0, 0xF) != 0;
         for (i = 0; i < 3; i++) {
@@ -436,7 +437,7 @@ static inline void gate95FE0(MenuScene *scene) {
             sceneRecord(scene, 7)->rgba = (sceneRecord(scene, 7)->rgba & ~0xFF) | 0xFF;
             sceneRecord(scene, 8)->rgba = (sceneRecord(scene, 8)->rgba & ~0xFF) | 0xFF;
             makeCursorMovable(0);
-            gameSetUpStep[0x4F] = 2;
+            gameSetUpStep.stepFlags[13][0] = 2;
         }
     }
 }
@@ -451,7 +452,7 @@ void fn_2_96118(MenuScene *scene) {
     s32 i;
     s32 j;
 
-    if (gameSetUpStep[0x4F] == 0) {
+    if (gameSetUpStep.stepFlags[13][0] == 0) {
         sceneRecord(scene, 0)->playMode = UI_PLAY_FORWARD;
         for (i = 0; i < 3; i++) {
             if (i == flow->selected) {
@@ -525,7 +526,7 @@ void fn_2_96118(MenuScene *scene) {
             sceneRecord(scene, i + 21)->playMode = UI_PLAY_STOP;
         }
         makeCursorUnmovable(0);
-        gameSetUpStep[0x4F] = 1;
+        gameSetUpStep.stepFlags[13][0] = 1;
     }
 }
 
@@ -536,7 +537,7 @@ void fn_2_96698(void) {
     MenuFlowState *flow = (MenuFlowState *)lbl_2_bss_1033C;
     s32 i;
 
-    switch (gameSetUpStep[0x5D]) {
+    switch (gameSetUpStep.currentCharacterSelectProcess[0]) {
     case 0x59:
         fn_2_96118(scene);
         gate95FE0(scene);

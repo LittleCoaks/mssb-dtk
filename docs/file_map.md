@@ -477,7 +477,7 @@ category sibling in this REL.
 | `captain_model_load.c` | `rep_0568` + `0x16870-0x16A98` | 25 (2) | 11,340 | `.text 0x16870-0x194BC`, `.data 0x1E28-0x2798`. Loads the captain models for the Captain Select screen: `captainSelectLoadScreen` starts the load-screen drawing task (`fn_2_188EC`), which allocates the model buffers, queues one load task per port (`fn_2_18650`/`fn_2_18398`/`fn_2_18748`: ARAM transfer, `fn_2_16F78` unpacks the model files and sets up the actor, hand models and bone flags), then per-frame helpers apply the pending animation state and draw the 3D previews (`fn_2_190DC`, `fn_2_19224`, `fn_2_1937C`). | med |
 
 `captainSelect*` is a distinct symbol family from the much larger
-`characterSelect*`/`css*` one — `cssReturnToCapSelect_maybe` returns *to* captain
+`characterSelect*`/`css*` one — `characterSelectBPress` (the CSS B handler) can return *to* captain
 select *from* the character select screen, so those are two adjacent screens
 rather than one category.
 

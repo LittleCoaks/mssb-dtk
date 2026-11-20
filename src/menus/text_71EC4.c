@@ -4,6 +4,7 @@
 #include "Unknown/File_0x800363d8.h"
 #include "text/text.h"
 #include "game/challenge/challenge_state.h"
+#include "Unknown/game_set_up_step.h"
 
 extern u8 *lbl_2_bss_1A8248;
 extern u8 *lbl_2_bss_1A824C;
@@ -21,7 +22,7 @@ extern u8 menuNumber[0x28];
 extern u8 lbl_800FEF70[0x5D0];
 extern u8 lbl_803CB8D0[];
 extern int menuCursors[0x16];
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern u8 Static_Stats_Tables[];
 extern u8 challengeCaptainCharIDArray[][6];
 extern u8 captainIDOrderedOnCapSS[6];
@@ -196,7 +197,7 @@ void fn_2_73EFC(DrawingSceneStruct *node) {
     cur0 = menuCursors[0];
     cur1 = menuCursors[1];
 
-    ready = !gameSetUpStep[7];
+    ready = !gameSetUpStep.stepFlags[1][0];
     if (ready == FALSE) {
         return;
     }
@@ -259,7 +260,7 @@ void fn_2_73EFC(DrawingSceneStruct *node) {
     if (Static_Stats_Tables[0x4751] == 0) {
         makeCursorUnmovable(0);
     }
-    gameSetUpStep[7] = 1;
+    gameSetUpStep.stepFlags[1][0] = 1;
 }
 
 // .text:0x00073CBC size:0x240
@@ -269,7 +270,7 @@ void fn_2_73CBC(DrawingSceneStruct *node) {
     int sum = 0;
     int row;
 
-    if (gameSetUpStep[7] != 1) {
+    if (gameSetUpStep.stepFlags[1][0] != 1) {
         return;
     }
     if (Static_Stats_Tables[0x4751] == 0) {
@@ -303,7 +304,7 @@ void fn_2_73CBC(DrawingSceneStruct *node) {
         if (Static_Stats_Tables[0x4751] == 0) {
             makeCursorMovable(0);
         }
-        gameSetUpStep[7] = 2;
+        gameSetUpStep.stepFlags[1][0] = 2;
         updateCharacterSelectProcessCode(0, 0x57);
     }
 }
@@ -709,14 +710,14 @@ void fn_2_72594(void) {
 void fn_2_7207C(void) {
     DrawingSceneStruct *node = currentDrawingItem;
     MenuScene *scene = (MenuScene *)node;
-    u8 phase = gameSetUpStep[0x5D];
+    u8 phase = gameSetUpStep.currentCharacterSelectProcess[0];
     int i;
     BOOL a;
     BOOL b;
 
     switch (phase) {
     case 0x1E:
-        if (gameSetUpStep[0x1F] == 0) {
+        if (gameSetUpStep.stepFlags[5][0] == 0) {
             *(u32 *)(gfxRecord(scene->firstHandle) + 0x5C) = 0;
             gfxRecord(scene->firstHandle)[0x68] = 1;
             gfxRecord(scene->firstHandle + 2)[0x68] = 1;
@@ -729,33 +730,33 @@ void fn_2_7207C(void) {
             *(u32 *)(gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7) + 0x5C) = 0;
             gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7)[0x68] = 1;
             makeCursorUnmovable(0);
-            gameSetUpStep[0x1F] = 1;
+            gameSetUpStep.stepFlags[5][0] = 1;
         }
-        if (gameSetUpStep[0x1F] == 1) {
+        if (gameSetUpStep.stepFlags[5][0] == 1) {
             a = maybeCheckAndResetGrapicsElement(node, 0, 0x16) != FALSE;
             b = maybeCheckAndResetGrapicsElement(node, lbl_803CB8D0[menuCursors[0x13]] + 7, 5) != FALSE;
             if (a + b == 2) {
-                gameSetUpStep[0x5E] = 0;
+                gameSetUpStep.currentCharacterSelectProcess[1] = 0;
                 makeCursorMovable(0);
-                gameSetUpStep[0x1F] = 2;
+                gameSetUpStep.stepFlags[5][0] = 2;
             }
         }
         break;
     case 0x1F:
-        if (gameSetUpStep[0x1F] == 0) {
+        if (gameSetUpStep.stepFlags[5][0] == 0) {
             gfxRecord(scene->firstHandle)[0x68] = 1;
             makeCursorUnmovable(0);
-            gameSetUpStep[0x1F] = 1;
+            gameSetUpStep.stepFlags[5][0] = 1;
         }
-        if (gameSetUpStep[0x1F] == 1) {
+        if (gameSetUpStep.stepFlags[5][0] == 1) {
             if (maybeCheckAndResetGrapicsElement(node, 0, 0x1C)) {
                 makeCursorMovable(0);
-                gameSetUpStep[0x1F] = 2;
+                gameSetUpStep.stepFlags[5][0] = 2;
             }
         }
         break;
     case 0x20:
-        if (gameSetUpStep[0x1F] == 0) {
+        if (gameSetUpStep.stepFlags[5][0] == 0) {
             for (i = 0; i < 4; i++) {
                 gfxRecord(scene->firstHandle + i + 3)[0x68] = 0;
                 gfxRecord(scene->firstHandle + i + 7)[0x68] = 0;
@@ -768,24 +769,24 @@ void fn_2_7207C(void) {
             *(u32 *)(gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7) + 0x5C) = 0;
             gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7)[0x68] = 1;
             makeCursorUnmovable(0);
-            gameSetUpStep[0x1F] = 1;
+            gameSetUpStep.stepFlags[5][0] = 1;
         }
-        if (gameSetUpStep[0x1F] == 1) {
+        if (gameSetUpStep.stepFlags[5][0] == 1) {
             if (maybeCheckAndResetGrapicsElement(node, lbl_803CB8D0[menuCursors[0x13]] + 7, 5)) {
                 makeCursorMovable(0);
-                gameSetUpStep[0x1F] = 2;
+                gameSetUpStep.stepFlags[5][0] = 2;
             }
         }
         break;
     case 0x21:
-        if (gameSetUpStep[0x1F] == 0) {
+        if (gameSetUpStep.stepFlags[5][0] == 0) {
             gfxRecord(scene->firstHandle)[0x68] = 1;
             makeCursorUnmovable(0);
-            gameSetUpStep[0x1F] = 1;
+            gameSetUpStep.stepFlags[5][0] = 1;
         }
-        if (gameSetUpStep[0x1F] == 1) {
+        if (gameSetUpStep.stepFlags[5][0] == 1) {
             makeCursorMovable(0);
-            gameSetUpStep[0x1F] = 2;
+            gameSetUpStep.stepFlags[5][0] = 2;
         }
         break;
     }

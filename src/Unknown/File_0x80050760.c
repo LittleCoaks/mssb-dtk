@@ -18,7 +18,7 @@ extern u8 lbl_800EFBA4[0x10];
 /* 9 rows of 5 bytes: key character, then per-step sequence */
 #define CSS_CHAR_TABLE (lbl_800FCA60 + 0x1EDC)
 
-s32 cssCursorOnBottomControl_maybe(s32 port, s32 unused, s32 flags2, s32 flags3, s32 mode) {
+s32 charGrid_moveCursor(s32 port, s32 unused, s32 flags2, s32 flags3, s32 mode) {
     s32 slotState[CHAR_SELECT_GRID_SLOTS];
     s32 unclaimed;
     s32 i;

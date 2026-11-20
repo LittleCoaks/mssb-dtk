@@ -6,13 +6,7 @@
 #include "Unknown/File_0x8006236c.h"
 #include "Unknown/File_0x800625a4.h"
 
-typedef struct {
-    /* 0x00 */ u8 _00[0x55];
-    /* 0x55 */ u8 unk55[4];
-    /* 0x59 */ u8 portCaptainSlot[4];
-} gameSetUpStruct_t;
-
-extern gameSetUpStruct_t gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 extern menuControlStruct* menuControlVariables;
 
 void initTeamManagementScreen(void) {
