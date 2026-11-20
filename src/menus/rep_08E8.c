@@ -857,22 +857,28 @@ void fn_2_48D08(void) {
     p[18] = 0.0f;
 }
 
+static inline f32 safeAtan2(f32 y, f32 x) {
+    if (0.0f == x && 0.0f == y) {
+        return 0.0f;
+    }
+    return atan2(y, x);
+}
+
 // .text:0x00048BE0 size:0x128 mapped:0x80687C74
 void fn_2_48BE0(void) {
     Vec pos;
     Vec delta;
     u8 *entry;
     u32 idx;
-    f32 angle;
 
     idx = *(u32 *)(lbl_2_bss_1A824C + 0x19769C);
     entry = hugeAnimStruct + idx * 0x27C + 0xC04;
     memcpy(&pos, entry + 0x34, 12);
     PSVECSubtract(&pos, (Vec *)lbl_2_data_132F8, &delta);
-    delta.x *= lbl_2_rodata_9A0;
-    delta.z *= lbl_2_rodata_9A0;
-    if (delta.x != lbl_2_rodata_94C || delta.z != lbl_2_rodata_94C) {
-        lbl_2_bss_55B8 = (f32)atan2(delta.x, delta.z);
+    delta.x *= -1.0f;
+    delta.z *= -1.0f;
+    if (0.0f != delta.x || 0.0f != delta.z) {
+        lbl_2_bss_55B8 = safeAtan2(delta.x, delta.z);
     }
     memcpy(lbl_2_data_132F8, entry + 0x34, 12);
     *(f32 *)(entry + 0x34) = pos.x;
@@ -881,13 +887,6 @@ void fn_2_48BE0(void) {
     *(f32 *)(entry + 0x40) = *(f32 *)(lbl_2_data_132EC + 0x0);
     *(f32 *)(entry + 0x44) = lbl_2_bss_55B8;
     *(f32 *)(entry + 0x48) = *(f32 *)(lbl_2_data_132EC + 0x8);
-}
-
-static inline f32 safeAtan2(f32 y, f32 x) {
-    if (0.0f == x && 0.0f == y) {
-        return 0.0f;
-    }
-    return atan2(y, x);
 }
 
 // .text:0x00048A1C size:0x1C4 mapped:0x80687AB0
@@ -985,9 +984,9 @@ static inline void resetSelectionSlots(void) {
     *(s8 *)(hugeAnimStruct + 0x2D8A) = -1;
     *(s8 *)(hugeAnimStruct + 0x2D8B) = -1;
     *(s8 *)(hugeAnimStruct + 0x2D8C) = -1;
+    hugeAnimStruct[0x2D77] = 0;
     hugeAnimStruct[0x2D7B] = 0;
     hugeAnimStruct[0x2D7C] = 0;
-    hugeAnimStruct[0x2D77] = 0;
 }
 
 // .text:0x000481F4 size:0x5AC mapped:0x80687288
@@ -1018,8 +1017,8 @@ void fn_2_481F4(void) {
         for (i = 0; i < 9; i++) {
             *(s8 *)(hugeAnimStruct + 0x2D7F + i) = -1;
         }
-        hugeAnimStruct[0x2D77] = 0;
         resetSelectionSlots();
+        hugeAnimStruct[0x2D77] = 0;
         lbl_2_bss_55C0 = 1;
         break;
     case 1:
@@ -1201,65 +1200,23 @@ void fn_2_47AFC(void) {
 
 // .text:0x000478F4 size:0x208 mapped:0x80686988
 void fn_2_478F4(void) {
-    u32 maxSize = 0;
-    u32 aligned;
-    u8 *pool;
-    u8 *next;
     s32 i;
-    for (i = 0; i < 54; i++) {
-        u32 size = allocationEntrySize(i * 0x130);
-        if (maxSize < size) {
-            maxSize = size;
-        }
-    }
-    aligned = OSRoundUp32B(maxSize);
-    pool = _OSAllocFromHeap(0x20, aligned * 4);
-    next = pool + aligned;
-    *(u8 **)(hugeAnimStruct + 0xE88) = next;
-    next += aligned;
-    *(u8 **)(hugeAnimStruct + 0x1104) = next;
-    next += aligned;
-    *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
-    *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-    *(u8 **)(hugeAnimStruct + 0x1380) = next;
 
+    fn_2_477C0();
     fn_2_47540();
     initActorArray(0xD);
     fn_80014204(4);
     *(s32 *)(hugeAnimStruct + 0x13C) = fn_80023AA4();
-
-    hugeAnimStruct[0xE59] = 0;
-    *(u32 *)(hugeAnimStruct + 0x2C50) = 0;
-    hugeAnimStruct[0x2D6A] = 0xFF;
-    hugeAnimStruct[0xE5B] = 0xFF;
-    hugeAnimStruct[0x10D5] = 1;
-    *(u32 *)(hugeAnimStruct + 0x2C54) = 0;
-    hugeAnimStruct[0x2D6B] = 0xFF;
-    hugeAnimStruct[0x10D7] = 0xFF;
-    hugeAnimStruct[0x1351] = 2;
-    *(u32 *)(hugeAnimStruct + 0x2C58) = 0;
-    hugeAnimStruct[0x2D6C] = 0xFF;
-    hugeAnimStruct[0x1353] = 0xFF;
-    hugeAnimStruct[0x15CD] = 3;
-    *(u32 *)(hugeAnimStruct + 0x2C5C) = 0;
-    hugeAnimStruct[0x2D6D] = 0xFF;
-    hugeAnimStruct[0x15CF] = 0xFF;
-    hugeAnimStruct[0x2D7F] = 0xFF;
-    hugeAnimStruct[0x2D80] = 0xFF;
-    hugeAnimStruct[0x2D81] = 0xFF;
-    hugeAnimStruct[0x2D82] = 0xFF;
-    hugeAnimStruct[0x2D83] = 0xFF;
-    hugeAnimStruct[0x2D84] = 0xFF;
-    hugeAnimStruct[0x2D85] = 0xFF;
-    hugeAnimStruct[0x2D86] = 0xFF;
-    hugeAnimStruct[0x2D87] = 0xFF;
-    hugeAnimStruct[0x2D89] = 0xFF;
-    hugeAnimStruct[0x2D8A] = 0xFF;
-    hugeAnimStruct[0x2D8B] = 0xFF;
-    hugeAnimStruct[0x2D8C] = 0xFF;
-    hugeAnimStruct[0x2D77] = 0;
-    hugeAnimStruct[0x2D7B] = 0;
-    hugeAnimStruct[0x2D7C] = 0;
+    for (i = 0; i < 4; i++) {
+        hugeAnimStruct[0xE59 + i * 0x27C] = i;
+        *(u32 *)(hugeAnimStruct + 0x2C50 + i * 4) = 0;
+        *(s8 *)(hugeAnimStruct + 0x2D6A + i) = -1;
+        *(s8 *)(hugeAnimStruct + 0xE5B + i * 0x27C) = -1;
+    }
+    for (i = 0; i < 9; i++) {
+        *(s8 *)(hugeAnimStruct + 0x2D7F + i) = -1;
+    }
+    resetSelectionSlots();
 }
 
 // .text:0x000477C0 size:0x134 mapped:0x80686854
