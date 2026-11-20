@@ -1055,6 +1055,86 @@ generates the same code. `somethingSetTexturePointer` no longer includes
 translation unit and was not needed. The seven headers became `include/text/text.h`
 (37 files include it).
 
+## Main DOL: units merged on shared literal pools (2026-11-20)
+
+A union-find over every main-DOL function's `@sda21`/`@ha`/`@l` references to
+`.sdata2` and `.rodata` symbols (functions joined when they read the same
+address) gave sixteen groups that touch unsplit (`auto_*`) code. MWCC pools a
+TU's float literals once, in first-use order, and the linker never merges two
+TUs' pools, so two functions that read the same anonymous literal were compiled
+together. Each shared symbol below was checked to be an anonymous literal (an
+`lbl_` float/double, a magic int-to-float double, or a `__FILE__`/message string
+read by `OSPanic`-style calls) rather than a named table, and each pool was
+checked for repeated values: a repeated `0.0f` or `1.0f` means a second pool, so
+the pool boundaries are where a value comes back. The other sections were then
+checked for TU order (each unit's `.rodata`/`.data`/`.sdata`/`.sbss`/`.bss` must
+sit between its neighbours' and start 8-aligned) and for jump tables that start
+4-aligned (never a unit's first `.data` byte).
+
+As in the 2026-10-14 pass, gap functions keep no C: a merged unit is
+`NonMatching` unless all its parts were `Matching`, and links from the original
+asm. Merged sources keep their functions in address order. Unless noted, every
+function that had C keeps its score.
+
+### `Unknown/File_0x8000a0ac.c` (`0x8000A0AC-0x8000B9C8`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8000A0AC-0x8000B9C8` | `File_0x8000a1e8` (`interpolatePointsBezier_Vec2s`) and the unowned `fn_8000A0AC`, `fn_8000A3EC`, `fn_8000AF1C` |
+| `extab` / `extabindex` | `0x80005640-0x80005660` / `0x80006CC0-0x80006CF0` | the four functions' entries |
+| `.sdata2` | `0x803CC420-0x803CC458` | unowned |
+
+- **One pool.** The int-to-float magic double at `0x803CC420` is read by all four
+  functions; `fn_8000A3EC` and `fn_8000AF1C` also share `1.0f`, `0.0f`, `1/1024`,
+  `4096.0f` and the unsigned magic double. The pool (`magic, 1, 0, 1/1024, 4096,
+  2pi, umagic, 360, 0.5, pi/2, pi/180`) holds no value twice.
+- **Boundaries.** The pool before it (`0x803CC400-0x803CC420`,
+  `File_0x80009e94`'s `interpolatePointsUnknown`/`BezierInterpolate`) already
+  holds `1.0f` (`0x803CC418`), and the next one starts with `1.0f` again
+  (`0x803CC458`), so `File_0x80009e94` is its own TU and the unit ends with the
+  pool. `fn_8000B9C8` (a frameless pointer-fixup leaf, no constants, no extab,
+  called from `fn_80035750` and `diskReadRelated`) is left unowned.
+
+The file is renamed to its new start address (`File_0x8000a1e8.c/.h` ->
+`File_0x8000a0ac.c/.h`). Units 1030 -> 1028 in the report.
+
+### `Unknown/File_0x8000ba3c.c` (`0x8000BA3C-0x8000F150`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8000BA3C-0x8000F150` | `File_0x8000ba3c` (`updateMenuOrBackgroundUI`), `c194` (`updateHUDRelatedUI`), `d164` (`triggerDefaultHUDAction`), `d838` (`handleUIAction`, `Matching`), `e900` (`SetSpriteRect`), `ef1c` (`AddVec2iToQuad`) and nine unowned functions (`fn_8000CC4C`, `fn_8000CEF0`, `fn_8000D8A4`, `fn_8000DC9C`, `fn_8000E030`, `fn_8000E2D4`, `fn_8000E764`, `fn_8000E7BC`, `fn_8000EC0C`) |
+| `extab` / `extabindex` | `0x80005660-0x800056D8` / `0x80006CF0-0x80006DA4` | all 15 functions have an entry |
+| `.rodata` | `0x800E65D0-0x800E6600` | unowned (`lbl_800E65D0`, a 0x30-byte matrix read by `updateHUDRelatedUI`) |
+| `.sbss` | `0x803CBBD8-0x803CBBDC` | unowned (`lbl_803CBBD8`, read by `updateHUDRelatedUI`, `triggerDefaultHUDAction`, `SetSpriteRect`, `fn_8000EC0C` only) |
+| `.sdata2` | `0x803CC458-0x803CC490` | unowned |
+
+- **One pool, read across the whole range.** `0x803CC458-0x803CC490` holds
+  `1, magic, umagic, 1280, 1/1280, -1, 0, 256, 128, 2pi/65536` once each.
+  `IntToDouble` (`0x803CC460`) is the pool's int-to-float double that someone
+  named; it is read only by functions of this range. Sharers:
+  `updateMenuOrBackgroundUI`, `updateHUDRelatedUI`, `triggerDefaultHUDAction`,
+  `fn_8000D8A4`...`fn_8000E7BC`, `SetSpriteRect`, `fn_8000EC0C` and
+  `AddVec2iToQuad` (the last function before `text.c`).
+- **The functions in between** (`fn_8000CC4C`, `fn_8000CEF0`, `handleUIAction`,
+  `fn_8000E764`) read no constants; they sit between pool users, so the
+  contiguous unit includes them. `handleUIAction` was `Matching` and stays 100%.
+- **Order.** `.rodata 0x800E65D0` sits between `handleLoadingProcess`'s strings
+  and the next unit's `identityMtx`; `.sbss 0x803CBBD8` precedes `text.c`'s
+  `0x803CBBE8`; the pool runs from the previous unit's pool to `text.c`'s
+  (`0x803CC490`). `.bss lbl_80366188` (the UI sprite buffer) is shared with
+  `File_0x80009e94` and later code and is not claimed.
+
+Source notes: the six files declared the sprite buffer `lbl_80366188` as
+`u8[]`, `HUDSprite` and `SpriteRectBuf`; the merged file declares `u8[]` and
+casts where a struct view is used. `fn_8000A0AC`/`fn_8000A3EC` had two
+prototypes (`Vec*` / `f32*` context); the merged one takes `void*`.
+`triggerDefaultHUDAction` called `DrawSprite_TexObj` with two arguments through
+a private prototype while `sprt.h` declares three; the call now goes through a
+cast function pointer, which emits the same `bl`. `updateHUDRelatedUI` rose
+39.68% -> 41.52% (the struct accesses through the cast compile closer to the
+target); nothing dropped. The six headers became `Unknown/File_0x8000ba3c.h`.
+One `Matching` unit (`File_0x8000d838`) is absorbed. Units 1028 -> 1015.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
