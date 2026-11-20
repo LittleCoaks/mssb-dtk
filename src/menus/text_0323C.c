@@ -4254,7 +4254,7 @@ void starHitSetting_Unused_maybe(s32 team) {
     otherTeam = (u8)team ^ 1;
 
     if (lbl_2_bss_F468[otherTeam + 0x41] != 0) {
-        s32 val = *(s32 *)&menuCursors[otherTeam * 4 + 0x20];
+        s32 val = ((s32 *)&menuCursors[0x20])[otherTeam];
 
         if (Static_Stats_Tables.charOnCharacterGridSelected[val] == 0) {
             Static_Stats_Tables.charOnCharacterGridSelected[val] = 1;
@@ -4284,19 +4284,19 @@ void starHitSetting_Unused_maybe(s32 team) {
             break;
         }
 
-        teamLogoDetermination((u8)team);
+        teamLogoDetermination(team & 0xFF);
         unsure_FillRosterPositions(team);
-        updateCharacterSelectProcessCode((u8)team, 0x16);
+        updateCharacterSelectProcessCode(team & 0xFF, 0x16);
 
         lbl_803CBD24[3] = lbl_803CBD24[2];
         lbl_2_bss_F468[(u8)team + 0x37] = 1;
     } else {
         *(s32 *)&lbl_2_bss_F468[(u8)team * 4] = 9;
-        updateCharacterSelectProcessCode((u8)team, 0x11);
+        updateCharacterSelectProcessCode(team & 0xFF, 0x11);
     }
 
     if (lbl_2_bss_F468[(u8)team + 0x3b] != 0) {
-        s32 val = *(s32 *)&menuCursors[otherTeam * 4 + 0x20];
+        s32 val = ((s32 *)&menuCursors[0x20])[otherTeam];
 
         lbl_2_bss_F468[(u8)team + 0x3b] = 0;
         Static_Stats_Tables.charOnCharacterGridSelected[val] = 0;
