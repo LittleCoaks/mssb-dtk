@@ -14,6 +14,7 @@
 #include "Dolphin/GX/GXPixel.h"
 #include "Dolphin/GX/GXTev.h"
 #include "C3/light/light.h"
+#include "static/UnknownHomes_Static.h"
 
 extern u8 *lbl_2_bss_1A8248;
 extern u8 *lbl_2_bss_1A824C;
@@ -26,11 +27,8 @@ extern u16 lbl_2_data_13238[];
 
 extern u32 lbl_803CBD0C;
 extern u32 *lbl_2_data_13374;
-extern u8 g_d_GameSettings[];
 extern s32 lbl_2_data_38B8;
 extern u8 *lbl_2_bss_340140;
-extern u8 StatsScreenScores[];
-extern u8 AtBat_ButtonInput1[];
 extern u8 lbl_800EFBA4[];
 extern u8 lbl_2_data_3804[];
 extern u8 lbl_2_data_3840[];
@@ -67,7 +65,6 @@ extern f32 lbl_2_rodata_96C;
 extern f32 lbl_2_rodata_970;
 extern u8 lbl_2_data_12EA8[];
 extern u8 lbl_2_data_12EB4[];
-extern u8 lbl_803532A8[];
 extern u8 *lbl_2_bss_1A823C;
 s32 fn_80062890(s32 arg);
 extern u8 lbl_2_bss_55C0;
@@ -76,8 +73,6 @@ extern u32 memoryUsedOrStorage[];
 s32 fn_80016710(s32 character, s32 item);
 void menuCamera_snapToPreset(void);
 void removeCurrentDrawingItem(void);
-extern u8 BatterStats_P1_P2[];
-extern u8 PitcherStats_P1_P2[];
 void CTRLSetTranslation(void *ctrl, f32 x, f32 y, f32 z);
 void CTRLSetRotation(void *ctrl, f32 x, f32 y, f32 z);
 void CTRLSetScale(void *ctrl, f32 x, f32 y, f32 z);
@@ -123,7 +118,6 @@ s32 fn_2_68690(s32 idx);
 void fn_2_68DAC(void *self, Vec *out);
 void fn_80031CA4(Vec *v, u32 *dst);
 void fn_2_513E0(void *a, s32 b, s32 c, s32 d, s32 e, s32 f, s32 g, s32 h);
-void *fn_80052768_getCamera(s32 mode);
 void fn_800BD670(void *model, void *arg);
 void fn_800A7D4C(s32 phase, void *node);
 void LITXForm(void *arg0, void *arg1);
@@ -149,16 +143,16 @@ void fn_2_4AEE4(void) {
     st = lbl_2_bss_1A8248;
     if (b[0x7843] == 0) {
         idx = st[0x4420];
-        *(s16 *)(b + 0x777C) = (s16)*(u32 *)(lbl_2_data_3840 + idx * 12 + g_d_GameSettings[0x3A] * 4);
-        *(s16 *)(b + 0x777E) = (s16)((f32)*(s16 *)(g_d_GameSettings + 0x20 + g_d_GameSettings[0x35] * 4) *
-                                     *(f32 *)(lbl_2_data_3804 + idx * 12 + g_d_GameSettings[0x3A] * 4));
+        *(s16 *)(b + 0x777C) = (s16)*(u32 *)(lbl_2_data_3840 + idx * 12 + g_d_GameSettings._3A * 4);
+        *(s16 *)(b + 0x777E) = (s16)((f32)g_d_GameSettings._20[g_d_GameSettings._35][0] *
+                                     *(f32 *)(lbl_2_data_3804 + idx * 12 + g_d_GameSettings._3A * 4));
         delta = *(s16 *)(b + 0x777C) + *(s16 *)(b + 0x777E);
         addStatCounter(delta);
         *(s16 *)(b + 0x7780) = (s16)delta;
         *(s16 *)(b + 0x7798) = (s16)delta;
     } else if (b[0x7843] == 1) {
         idx = st[0x4420];
-        delta = *(s32 *)(lbl_2_data_387C + idx * 12 + g_d_GameSettings[0x3A] * 4);
+        delta = *(s32 *)(lbl_2_data_387C + idx * 12 + g_d_GameSettings._3A * 4);
         addStatCounter(delta);
         *(s16 *)(b + 0x7782) = (s16)delta;
         *(s16 *)(b + 0x7798) = (s16)delta;
@@ -184,9 +178,9 @@ void fn_2_4AEE4(void) {
 void fn_2_4ACF8(void) {
     fn_2_4B2D0();
     if ((s8)(lbl_2_bss_1A824C + 0x190000)[0x7843] == 0) {
-        addStatCounter(*(s16 *)(g_d_GameSettings + 0x30));
-        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7792) = *(s16 *)(g_d_GameSettings + 0x30);
-        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = *(s16 *)(g_d_GameSettings + 0x30);
+        addStatCounter(g_d_GameSettings.challengeMinigame_baseCoinsEarned);
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7792) = g_d_GameSettings.challengeMinigame_baseCoinsEarned;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = g_d_GameSettings.challengeMinigame_baseCoinsEarned;
     } else if ((s8)(lbl_2_bss_1A824C + 0x190000)[0x7843] == 1) {
         addStatCounter(lbl_2_data_38B8);
         *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7794) = (s16)lbl_2_data_38B8;
@@ -214,8 +208,8 @@ void fn_2_4AB1C(void) {
     s32 bit;
 
     fn_2_4B2D0();
-    score0 = *(u16 *)(StatsScreenScores + 0x8);
-    score1 = *(u16 *)(StatsScreenScores + 0x2E);
+    score0 = StatsScreenScores.scores[0].total;
+    score1 = StatsScreenScores.scores[1].total;
     if (score0 < 0) {
         score0 = 0;
     }
@@ -350,123 +344,115 @@ void fn_2_4A6E8(void) {
 
 // .text:0x0004A340 size:0x3A8 mapped:0x806893D4
 void fn_2_4A340(void) {
-    u8 *ss = StatsScreenScores;
-    u8 *gs = g_d_GameSettings;
     u8 *st = lbl_2_bss_1A8248;
-    u8 *table;
-    u8 *bat;
-    u8 *pit;
-    u16 a;
-    u16 b;
-    u8 cur;
-    s32 s;
+    s32 i;
     s32 j;
-    s32 opp;
-    s32 base12;
-    s32 counter;
-    s32 idx25;
-    s32 idx24;
-    s32 idx;
+    s32 team;
+    s32 other;
 
-    gs[0xC] = st[0x441C];
-    idx25 = gs[0xE];
-    idx24 = idx25 ^ 1;
-    *(u8 *)(gs + 0xD) = st[(s16)*(s16 *)(st + 0x16C2) * 10 + 0x40F3];
+    g_d_GameSettings.maybeHomeAway[0] = st[0x441C];
+    team = g_d_GameSettings.home_AwaySetting;
+    other = team ^ 1;
+    g_d_GameSettings.maybeHomeAway[1] = st[*(s16 *)(st + 0x16C2) * 10 + 0x40F3];
+    StatsScreenScores.inning = 9;
 
-    *(s16 *)(ss + 0x8) = 0;
-    *(s16 *)(ss + 0xA) = 4;
-    *(s16 *)(ss + 0xC) = 0;
-    *(s16 *)(ss + 0xE) = 2;
-    *(s16 *)(ss + 0x10) = 0;
-    *(s16 *)(ss + 0x12) = 10;
-    *(s16 *)(ss + 0x14) = 0;
-    *(s16 *)(ss + 0x16) = 0;
-    *(s16 *)(ss + 0x18) = 0;
-    *(s16 *)(ss + 0x1A) = 0;
-    *(s16 *)(ss + idx25 * 0x26 + 0x1C) = 0;
-    for (idx = 0x2E; idx <= 0x44; idx += 2) {
-        *(s16 *)(ss + idx) = 0;
+    StatsScreenScores.scores[0].total = 0;
+    StatsScreenScores.scores[0].byInning[0] = 4;
+    StatsScreenScores.scores[0].byInning[1] = 0;
+    StatsScreenScores.scores[0].byInning[2] = 2;
+    StatsScreenScores.scores[0].byInning[3] = 0;
+    StatsScreenScores.scores[0].byInning[4] = 10;
+    StatsScreenScores.scores[0].byInning[5] = 0;
+    StatsScreenScores.scores[0].byInning[6] = 0;
+    StatsScreenScores.scores[0].byInning[7] = 0;
+    StatsScreenScores.scores[0].byInning[8] = 0;
+    StatsScreenScores.scores[team].byInning[9] = 0;
+    StatsScreenScores.scores[1].total = 0;
+    StatsScreenScores.scores[1].byInning[0] = 0;
+    StatsScreenScores.scores[1].byInning[1] = 0;
+    StatsScreenScores.scores[1].byInning[2] = 0;
+    StatsScreenScores.scores[1].byInning[3] = 0;
+    StatsScreenScores.scores[1].byInning[4] = 0;
+    StatsScreenScores.scores[1].byInning[5] = 0;
+    StatsScreenScores.scores[1].byInning[6] = 0;
+    StatsScreenScores.scores[1].byInning[7] = 0;
+    StatsScreenScores.scores[1].byInning[8] = 0;
+    StatsScreenScores.scores[1].byInning[9] = 0;
+    StatsScreenScores.scores[1].byInning[10] = 0;
+    StatsScreenScores.hits[team].total = 0;
+    StatsScreenScores.hits[other].total = 0;
+    StatsScreenScores.hits[0].total = 0;
+    StatsScreenScores.hits[0].byInning[0] = 0;
+    StatsScreenScores.hits[0].byInning[1] = 1;
+    StatsScreenScores.hits[0].byInning[2] = 2;
+    StatsScreenScores.hits[0].byInning[3] = 0;
+    StatsScreenScores.hits[0].byInning[4] = 0;
+    StatsScreenScores.hits[0].byInning[5] = 0;
+    StatsScreenScores.hits[0].byInning[6] = 3;
+    StatsScreenScores.hits[0].byInning[7] = 0;
+    StatsScreenScores.hits[0].byInning[8] = 0;
+    StatsScreenScores.hits[0].byInning[9] = 0;
+    StatsScreenScores.hits[0].byInning[10] = 0;
+    StatsScreenScores.hits[1].total = 1;
+    StatsScreenScores.hits[1].byInning[0] = 0;
+    StatsScreenScores.hits[1].byInning[1] = 0;
+    StatsScreenScores.hits[1].byInning[2] = 3;
+    StatsScreenScores.hits[1].byInning[3] = 0;
+    StatsScreenScores.hits[1].byInning[4] = 0;
+    StatsScreenScores.hits[1].byInning[5] = 0;
+    StatsScreenScores.hits[1].byInning[6] = 0;
+    StatsScreenScores.hits[1].byInning[7] = 0;
+    StatsScreenScores.hits[1].byInning[8] = 12;
+    StatsScreenScores.hits[1].byInning[9] = 0;
+    StatsScreenScores.hits[1].byInning[10] = 0;
+    StatsScreenScores.stealsAgainst[team] = 1;
+    StatsScreenScores.stealsAgainst[other] = 1;
+
+    for (i = 1; i <= StatsScreenScores.inning; i++) {
+        StatsScreenScores.scores[0].total += StatsScreenScores.scores[0].byInning[i - 1];
+        StatsScreenScores.scores[1].total += StatsScreenScores.scores[1].byInning[i - 1];
+        StatsScreenScores.hits[0].total += StatsScreenScores.hits[0].byInning[i - 1];
+        StatsScreenScores.hits[1].total += StatsScreenScores.hits[1].byInning[i - 1];
     }
-    *(s16 *)(ss + 0x54 + idx25 * 0x26) = 0;
-    *(s16 *)(ss + 0x54 + idx24 * 0x26) = 0;
-    *(s16 *)(ss + 0x54) = 0;
-    *(s16 *)(ss + 0x56) = 0;
-    *(s16 *)(ss + 0x58) = 1;
-    *(s16 *)(ss + 0x5A) = 2;
-    *(s16 *)(ss + 0x5C) = 0;
-    *(s16 *)(ss + 0x5E) = 0;
-    *(s16 *)(ss + 0x60) = 0;
-    *(s16 *)(ss + 0x62) = 3;
-    *(s16 *)(ss + 0x64) = 0;
-    *(s16 *)(ss + 0x66) = 0;
-    *(s16 *)(ss + 0x68) = 0;
-    *(s16 *)(ss + 0x6A) = 0;
-    *(s16 *)(ss + 0x7A) = 1;
-    *(s16 *)(ss + 0x7C) = 0;
-    *(s16 *)(ss + 0x7E) = 0;
-    *(s16 *)(ss + 0x80) = 3;
-    *(s16 *)(ss + 0x82) = 0;
-    *(s16 *)(ss + 0x84) = 0;
-    *(s16 *)(ss + 0x86) = 0;
-    *(s16 *)(ss + 0x88) = 0;
-    *(s16 *)(ss + 0x8A) = 0;
-    *(s16 *)(ss + 0x8C) = 0xC;
-    *(s16 *)(ss + 0x8E) = 0;
-    *(s16 *)(ss + 0x90) = 0;
-    ss[0xF0 + idx25] = 1;
-    ss[0xF0 + idx24] = 1;
-    ss[0xF6] = 9;
 
-    a = *(u16 *)(ss + 0x8);
-    b = *(u16 *)(ss + 0x2E);
-    if (a > b) {
-        ss[0xF2] = 0;
-    } else if (a < b) {
-        ss[0xF2] = 1;
+    if (StatsScreenScores.scores[0].total > StatsScreenScores.scores[1].total) {
+        StatsScreenScores.winnerSlot = 0;
+    } else if (StatsScreenScores.scores[0].total < StatsScreenScores.scores[1].total) {
+        StatsScreenScores.winnerSlot = 1;
     } else {
-        ss[0xF2] = 2;
+        StatsScreenScores.winnerSlot = 2;
     }
 
-    for (idx = 0; idx < 30; idx++) {
-        ss[0xA0 + idx] = 0xFF;
+    for (i = 0; i < 30; i++) {
+        StatsScreenScores._A0[i] = -1;
     }
 
-    table = lbl_803532A8;
-    table[1] = (table[1] & ~7) | 1;
-    table[2] = 0;
-    table[3] = 10;
-    table[5] = (table[5] & ~7) | 1;
-    table[6] = 0;
-    table[7] = 10;
-    table[9] = (table[9] & ~7) | 1;
-    table[0xA] = 0;
-    table[0xB] = 10;
-    ss[0xA0] = 0;
-    ss[0xA1] = 1;
-    ss[0xA2] = 2;
+    lbl_803532A8[0][0].e = 0;
+    lbl_803532A8[0][0].d = 1;
+    lbl_803532A8[0][0].f = 10;
+    StatsScreenScores._A0[0] = 0;
+    lbl_803532A8[0][1].e = 0;
+    lbl_803532A8[0][1].d = 1;
+    lbl_803532A8[0][1].f = 10;
+    StatsScreenScores._A0[1] = 1;
+    lbl_803532A8[0][2].e = 0;
+    lbl_803532A8[0][2].d = 1;
+    lbl_803532A8[0][2].f = 10;
+    StatsScreenScores._A0[2] = 2;
 
-    bat = BatterStats_P1_P2;
-    pit = PitcherStats_P1_P2;
-    for (s = 0; s < 2; s++) {
-        opp = 1 - s;
-        base12 = opp * 12;
-        cur = (u8)(u32)(g_d_GameSettings + s * 10);
-        counter = 0;
+    for (i = 0; i < 2; i++) {
+        other = 1 - i;
         for (j = 0; j < 9; j++) {
-            bat[0x26 * j + 0x4] = (u8)(base12 + counter);
-            bat[0x26 * j + 0x5] = (u8)(s + j);
-            *(s16 *)(pit + 0x1E * j + 0xA) = (s16)(s + j + 2);
-            pit[0x1E * j + 0x1A] = cur;
-            cur += 3;
-            *(s16 *)(pit + 0x1E * j + 0x2) = 3;
-            pit[0x1E * j + 0x1C] = 2;
-            counter += s;
-            bat[0x26 * j + 0x10] = (u8)(2 * j);
-            bat[0x26 * j + 0x12] = (u8)(s + 1);
-            bat[0x26 * j + 0x18] = (u8)j;
+            BatterStats_P1_P2[i][j].AtBats = other * 12 + i * j;
+            PitcherStats_P1_P2[i][j].outsAsPitcher = i * 10 + j * 3;
+            BatterStats_P1_P2[i][j].Hits = i + j;
+            BatterStats_P1_P2[i][j].HR_W_RISP = j;
+            BatterStats_P1_P2[i][j].RBI = j * 2;
+            PitcherStats_P1_P2[i][j].strikeouts = 2;
+            PitcherStats_P1_P2[i][j].hitsAllowed = i + j + 2;
+            BatterStats_P1_P2[i][j].BasesStolen = i + 1;
+            PitcherStats_P1_P2[i][j].runsAllowed = 3;
         }
-        pit += 0x10E;
-        bat += 0x156;
     }
 }
 
@@ -825,8 +811,7 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
 void fn_2_4906C(void) {
     s32 i;
     for (i = 0; i < 15; i++) {
-        TextBank *bank = screenTextArray.textBanks[lbl_2_bss_1A824C[0x1972B8]];
-        ((u16 **)(lbl_2_bss_1A824C + 0x19542C))[i] = bank->strings[i];
+        ((u16 **)lbl_2_bss_1A824C)[i + 0x6550B] = ((TextBank *)((u8 *)screenTextArray.textBanks[lbl_2_bss_1A824C[0x1972B8]] + i * 4))->strings[0];
     }
 }
 
@@ -924,7 +909,7 @@ void fn_2_48A1C(void) {
     PSVECSubtract(&pos, (Vec *)lbl_2_data_13310, &delta);
     delta.x *= lbl_2_rodata_9A0;
     delta.z *= lbl_2_rodata_9A0;
-    stick = AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20;
+    stick = (u8 *)&AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20;
     pos.x = pos.x + (f32)(s8)stick[0x10] / lbl_2_rodata_9A4;
     pos.z = pos.z + (f32)(s8)stick[0x11] / lbl_2_rodata_9A4;
     if (delta.x != lbl_2_rodata_94C || delta.z != lbl_2_rodata_94C) {
@@ -1510,7 +1495,7 @@ void fn_2_472C4(s16 *timer, s16 *value, s16 step, s16 period, s16 flags) {
     if (remainder != 0) lastPeriod = remainder;
     limit = step - period;
     if (flags & 4) limit = step - lastPeriod;
-    input = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+    input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
     switch (input) {
     case PAD_TRIGGER_R:
     case PAD_BUTTON_DOWN:
@@ -1575,7 +1560,7 @@ void fn_2_46D94(s16 *timer, s16 *value, s16 step, s16 period, u16 flags) {
     if (remainder != 0) lastPeriod = remainder;
     limit = step - period;
     if (flags & 4) limit = step - lastPeriod;
-    input = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+    input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
     switch (input) {
     case PAD_BUTTON_UP:
         if (value != NULL) {
