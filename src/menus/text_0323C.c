@@ -170,6 +170,8 @@ bool stopShowingCaptainProfile(u8 port) {
 /* Per-team cursor on the lineup grid (0-8 positions, 9 = done, 10 = extra button) and its previous value. */
 #define CSS_CURSOR(slot) (*(s32 *)&lbl_2_bss_F468[(slot) * 4])
 #define CSS_PREV_CURSOR(slot) (*(s32 *)&lbl_2_bss_F468[(slot) * 4 + 8])
+/* The same field indexed as an s32 array; the original code uses both forms, and they compile differently. */
+#define CSS_PREV_CURSOR_S32(slot) (((s32 *)lbl_2_bss_F468)[(slot) + 2])
 
 // .text:0x00003624 size:0x134C mapped:0x806426B8
 #pragma dont_inline on
@@ -544,7 +546,7 @@ void fn_2_4970(u8 team, s32 charID) {
         }
     } else {
         if (lbl_2_bss_F468[team + 0x37] == 0 && lbl_2_bss_F468[team + 0x3D] == 0) {
-            CSS_PREV_CURSOR(team) = CSS_CURSOR(team);
+            CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
             CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
             if (CSS_CURSOR(team) < 0) {
                 CSS_CURSOR(team) = 8;
@@ -3161,13 +3163,13 @@ void fn_2_CCE0(s32 port) {
 
     if (count == 9) {
         lbl_2_bss_F468[(u8)port + 0x37] = TRUE;
-        ((s32 *)lbl_2_bss_F468)[(u8)port + 2] = CSS_CURSOR((u8)port);
+        CSS_PREV_CURSOR_S32((u8)port) = CSS_CURSOR((u8)port);
         CSS_CURSOR((u8)port) = 9;
         lbl_2_bss_F468[(u8)port + 0x41] = FALSE;
         updateCharacterSelectProcessCode(port & 0xFF, 0x14);
         cssLoadingRelated_1(1, -1, -1, -1, -1, 0);
     } else {
-        ((s32 *)lbl_2_bss_F468)[(u8)port + 2] = CSS_CURSOR((u8)port);
+        CSS_PREV_CURSOR_S32((u8)port) = CSS_CURSOR((u8)port);
         CSS_CURSOR((u8)port) = (s8)cursorPositions.roster.positionSwapMapping[(u8)port][count];
         updateCharacterSelectProcessCode(port & 0xFF, 0xe);
     }
@@ -3218,7 +3220,7 @@ void cssReturnToCapSelect_maybe(s32 team) {
             }
         }
 
-        CSS_PREV_CURSOR(team) = CSS_CURSOR(team);
+        CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
         if (mismatchCount == 0) {
             lbl_2_bss_F468[team + 0x37] = 0;
             if (CSS_CURSOR(team) == 9) {
@@ -3242,7 +3244,7 @@ void cssReturnToCapSelect_maybe(s32 team) {
             if (CSS_CURSOR(team) != 9 && CSS_CURSOR(team) != 10 && mismatchCount != 0) {
                 fn_2_4970(team, captainID);
             } else if (CSS_CURSOR(team) == 9) {
-                CSS_PREV_CURSOR(team) = CSS_CURSOR(team);
+                CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
                 CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
                 if (captainID == cursorPositions.roster.rosterCharID[team][8]) {
                     CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
@@ -3290,7 +3292,7 @@ void cssReturnToCapSelect_maybe(s32 team) {
                         menuControlVariables->currentState = 8;
                     }
                 } else {
-                    CSS_PREV_CURSOR(team) = CSS_CURSOR(team);
+                    CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
                     CSS_CURSOR(team) = 8;
                     if (captainID == cursorPositions.roster.rosterCharID[team][8]) {
                         CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
@@ -3390,7 +3392,7 @@ void cssReturnToCapSelect_maybe(s32 team) {
                     return;
                 }
 
-                CSS_PREV_CURSOR(team) = CSS_CURSOR(team);
+                CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
                 CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
                 if (CSS_CURSOR(team) < 0) {
                     CSS_CURSOR(team) = 8;
@@ -3402,7 +3404,7 @@ void cssReturnToCapSelect_maybe(s32 team) {
                     }
                 }
 
-                cursor = CSS_PREV_CURSOR(team);
+                cursor = CSS_PREV_CURSOR_S32(team);
                 for (i = 0; i < 9; i++) {
                     if ((s8)cursorPositions.roster.positionSwapMapping[team][i] == cursor) {
                         idx = i;
@@ -3432,7 +3434,7 @@ void cssReturnToCapSelect_maybe(s32 team) {
                     return;
                 }
                 if (mismatchCount != 0) {
-                    CSS_PREV_CURSOR(team) = CSS_CURSOR(team);
+                    CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
                     CSS_CURSOR(team) = 8;
                     if (captainID == cursorPositions.roster.rosterCharID[team][8]) {
                         CSS_CURSOR(team) = CSS_CURSOR(team) - 1;
@@ -4430,7 +4432,7 @@ void characterSelectControls(u16 port) {
         lbl_2_bss_F468[team + 0x37] = 0;
         lbl_2_bss_F468[team + 0x41] = 0;
         lbl_2_bss_F468[team + 0x50] = 0;
-        CSS_PREV_CURSOR(team) = CSS_CURSOR(team);
+        CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
         CSS_CURSOR(team) = 10;
         lbl_2_bss_F468[team + 0x3d] = 0;
         lbl_2_bss_F468[team + 0x52] = 1;
@@ -4489,7 +4491,7 @@ void characterSelectControls(u16 port) {
         }
         if (CSS_CURSOR(team) == 10) {
             lbl_2_bss_F468[team + 0x63] = 1;
-            CSS_PREV_CURSOR(team) = CSS_CURSOR(team);
+            CSS_PREV_CURSOR_S32(team) = CSS_CURSOR(team);
             CSS_CURSOR(team) = 1;
             updateCharacterSelectProcessCode(team, 0xe);
             return;
