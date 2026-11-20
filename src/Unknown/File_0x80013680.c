@@ -1,8 +1,7 @@
 #include "Unknown/File_0x80013680.h"
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x80021ca4.h"
-#include "Unknown/File_0x80025c58.h"
-#include "Unknown/File_0x80025ddc.h"
+#include "Unknown/File_0x80024d2c.h"
 #include "C3/actor/act.h"
 #include "C3/geoPalette/geoPalette.h"
 

@@ -1135,6 +1135,95 @@ cast function pointer, which emits the same `bl`. `updateHUDRelatedUI` rose
 target); nothing dropped. The six headers became `Unknown/File_0x8000ba3c.h`.
 One `Matching` unit (`File_0x8000d838`) is absorbed. Units 1028 -> 1015.
 
+### `Unknown/File_0x80024d2c.c` (`0x80024D2C-0x80026134`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80024D2C-0x80026134` | the unowned `getHandTrackFlags`, `fn_80024DB0`, `fn_80024FA4`, then `File_0x80025c58` (`ACTActorRelated`, `Matching`) and `File_0x80025ddc` (`adjustInternalPointers`, `actorRelated`, `actRelated`, `fn_80026130`) |
+| `extab` / `extabindex` | `0x80005BA0-0x80005BC0` / `0x800074D0-0x80007500` | the four functions that have an entry (`File_0x80025ddc`'s are frameless) |
+| `.sdata` | `0x803CB7F0-0x803CB7F8` | unowned (read by `actorRelated`/`actRelated` only) |
+| `.sbss` | `0x803CBC68-0x803CBC70` | unowned (`fn_80024FA4`) |
+| `.sdata2` | `0x803CC5A8-0x803CC5D8` | unowned |
+
+- **One pool.** `0x803CC5A8-0x803CC5D8` (`umagic, 0, 1, 100, 2^24, 65536, magic,
+  0.5`) holds each value once. `0.0f` (`0x803CC5B0`) is read by `fn_80024DB0`,
+  `fn_80024FA4`, `actorRelated` and `actRelated`; the unsigned magic double by
+  the three gap functions. `sub.c`'s pool ends at `0x803CC5A8` (it already has
+  `0.0f`/`1.0f`), and `fn_80026134`'s pool starts with `0.0f` at `0x803CC5D8`,
+  so `fn_80026134` (with `.rodata 0x800E6768`) is the next TU and stays unowned.
+- `ACTActorRelated` reads no constants but sits between pool users.
+- **Order.** `.sdata`/`.sbss` sit between `sub.c`/objinit's objects and
+  `particle_effects.c`'s (`0x803CB7F8`, `0x803CBC70`).
+
+`File_0x80025ddc` was built without `-cpp_exceptions on`; its functions have no
+extab entries and compile to the same code with it. The two headers became
+`Unknown/File_0x80024d2c.h`. One `Matching` unit is absorbed.
+
+### `Unknown/spani_default.c` (`0x80034BCC-0x80036C88`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80034BCC-0x80036C88` | `File_0x80034cec` (`removeGraphicsElementFromScene`, `Matching`), `34e20` (`addGraphicsElementToScene`), `34f50` (`allocateGraphicsSlot`), `35168` (`maybeProcessUIUpdates`), `35838` (`diskReadRelated`), `35ca4` (`unregisterObjectByID`, `Matching`), `363d8` (`load_Icon`, `Matching`), `3649c` (`setIndicatorSlotState`) and 18 unowned functions (`fn_80034BCC`, `fn_800356B8`, `fn_80035750`, `fn_80035A00` ... `fn_80036A3C`) |
+| `extab` / `extabindex` | `0x80005D98-0x80005E40` / `0x800077C4-0x800078C0` | every function's entry (the leaves have none) |
+| `.rodata` | `0x800E68A8-0x800E6910` | unowned: `" SabNo = %d not to add"`, then `"spani_default.c"` + `"gasSpani No Empty"` and `"It is a number not registered."` |
+| `.data` | `0x800F78E0-0x800F79A0` | unowned (`lbl_800F78E0`, `maybeProcessUIUpdates`) |
+| `.bss` | `0x801F8640-0x8023DD80` | unowned (`lbl_801F8640`, `lbl_801F8680`, `lbl_801F86C0`, `textureContainerTags`) |
+| `.sdata` | `0x803CB810-0x803CB818` | unowned (`diskReadRelated`, `uiDrawLoopEnd`) |
+| `.sbss` | `0x803CBC90-0x803CBCA0` | unowned (`diskReadState` ... `lbl_803CBC9C`) |
+| `.sdata2` | `0x803CC6E8-0x803CC720` | unowned |
+
+- **The binary names the unit.** `lbl_800E68C4` is `"spani_default.c"`
+  followed by `"gasSpani No Empty \n"`, read by `fn_80035F20`, `fn_8003664C` and
+  `fn_80036824`, all inside the pool span below.
+- **One pool.** `0x803CC6E8-0x803CC720` (`0, 256.5, 511, 2, 1, magic, -0.175,
+  0.175, 0.25, -0.25, 512, 1280`) has no repeated value; its readers run from
+  `allocateGraphicsSlot` to `fn_80036A3C`. The next pool repeats `0.0f`
+  (`0x803CC728`).
+- **`.rodata` and `.bss` in TU order.** `lbl_800E68A8` is read by `fn_80035750`
+  and `diskReadRelated`, the `spani_default.c` strings by the later functions;
+  the run starts where `particle_effects.c`'s ends. `.bss` follows
+  `particle_effects.c`'s minigame buffer (`0x801F8040`); `textureContainerTags`
+  is read only by functions of this range.
+- **The head, `0x80034BCC-0x80034F50`.** `fn_80034BCC` is called only by
+  `maybeProcessUIUpdates`, and its one data object, `.sbss lbl_803CBC9C`, sits
+  in this unit's `.sbss` run after `diskReadState` and `uiDrawLoopStart`, where
+  an earlier TU's object cannot be. So it is in the unit and so are the two
+  graphics-element functions between it and `allocateGraphicsSlot`. The unit
+  starts where `particle_effects.c` ends.
+- **Not included:** `fn_80036C88` (no data; called from the game and menus REL
+  entry points) is left unowned.
+
+The eight headers are kept; `Unknown/spani_default.h` includes them (merging
+them made 85 includers see each other's prototypes, which clash with local
+redeclarations in a dozen REL files). Three `Matching` units are absorbed.
+
+### `Unknown/File_0x80037054.c` (`0x80037054-0x80039AA8`)
+
+Fifteen unowned functions and no source: a new `NonMatching` unit with an empty
+source file.
+
+| section | range |
+|---|---|
+| `.text` | `0x80037054-0x80039AA8` (`fn_80037054` ... `fn_80039A4C`) |
+| `extab` / `extabindex` | `0x80005E48-0x80005EE8` / `0x800078CC-0x800079BC` |
+| `.data` | `0x800F79A0-0x800F7A40` (`lbl_800F79A0`, `lbl_800F79B8`) |
+| `.sdata` | `0x803CB818-0x803CB828` |
+| `.sbss` | `0x803CBCA0-0x803CBCA8` |
+| `.sdata2` | `0x803CC720-0x803CC7A0` |
+
+- **One pool, no repeats** (`1/60, 100000, 0, 0.5, magic, -9.80665, 1, 0.25,
+  12, 9.80665, 10, 20, 2, 60, -1, 0.8, ...`). `0.0f` (`0x803CC728`) alone is read
+  by eleven functions from `fn_80037054` to `fn_80039310`.
+- **`fn_80039A4C` closes the unit:** it reads both `.data` objects (with
+  `fn_80038F08`/`fn_80038EC4`), `.sdata 0x803CB818/0x803CB820` and `.sbss
+  0x803CBCA1` (with `fn_80039310`).
+- **Order.** Every section starts exactly where `spani_default.c`'s ends
+  (`.data 0x800F79A0`, `.sdata 0x803CB818`, `.sbss 0x803CBCA0`, `.sdata2
+  0x803CC720`) and ends where `File_0x80039aa8`'s `UITexture` user
+  `lbl_800F7A40`, and the next pool (`0x803CC7A0`, `fn_80039AC0`), begin.
+
+Units 1015 -> 970 in the report after these three.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
