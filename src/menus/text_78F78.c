@@ -12,7 +12,7 @@
 #include "Unknown/orderchange.h"
 #include "menus/css_work.h"
 
-extern u8 gameSetUpStep[];
+extern GameSetUpStep gameSetUpStep;
 extern u8 lbl_2_bss_F468[];
 extern Text00110Ctl *menuControlVariables;
 
@@ -85,7 +85,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
     E(s32, CHAR_ID) captain;
     BOOL cpuPlayer;
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         SCENE_RECORD(scene, 0x6)->playMode = UI_PLAY_FORWARD;
         SCENE_RECORD(scene, 0x8)->playMode = UI_PLAY_FORWARD;
         SCENE_RECORD(scene, 0x1C)->flags |= UI_FLAG_VISIBLE;
@@ -285,7 +285,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
             }
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -294,7 +294,7 @@ void fn_2_7AC64(MenuScene *scene, s32 index) {
     s32 ready;
     s32 expected;
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         ready = maybeCheckAndResetGrapicsElement(scene, index, 20) != FALSE;
         ready += maybeCheckAndResetGrapicsElement(scene, index + 2, 20) != FALSE;
         ready += maybeCheckAndResetGrapicsElement(scene, index + 0x1C, 10) != FALSE;
@@ -311,7 +311,7 @@ void fn_2_7AC64(MenuScene *scene, s32 index) {
                 g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
                 updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_READY);
             } else {
-                gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+                gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
             }
         }
     }
@@ -319,7 +319,7 @@ void fn_2_7AC64(MenuScene *scene, s32 index) {
 
 // .text:0x0007A9D8 size:0x28C mapped:0x806B9A6C
 void fn_2_7A9D8(MenuScene *scene, s32 index) {
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         SCENE_RECORD(scene, index)->frame = 20 << 16;
         SCENE_RECORD(scene, index + 2)->frame = 20 << 16;
         SCENE_RECORD(scene, index)->playMode = UI_PLAY_BACKWARD;
@@ -342,7 +342,7 @@ void fn_2_7A9D8(MenuScene *scene, s32 index) {
         SCENE_RECORD(scene, index + 0xC)->flags &= ~UI_FLAG_VISIBLE;
         SCENE_RECORD(scene, index + 0x12)->flags &= ~UI_FLAG_VISIBLE;
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -350,7 +350,7 @@ void fn_2_7A9D8(MenuScene *scene, s32 index) {
 void fn_2_7A748(MenuScene *scene, s32 index) {
     s32 ready;
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         ready = maybeCheckAndResetGrapicsElement(scene, index, 0) != FALSE;
         ready += maybeCheckAndResetGrapicsElement(scene, index + 2, 0) != FALSE;
         ready += maybeCheckAndResetGrapicsElement(scene, index + 0x85, 0) != FALSE;
@@ -372,7 +372,7 @@ void fn_2_7A748(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, 0x81)->flags |= UI_FLAG_VISIBLE;
             SCENE_RECORD(scene, 0xF)->playMode = UI_PLAY_STOP;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -380,7 +380,7 @@ void fn_2_7A748(MenuScene *scene, s32 index) {
 // .text:0x0007A5B8 size:0x190 mapped:0x806B964C
 void fn_2_7A5B8(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         SCENE_RECORD(scene, index)->frame = 0x140000;
         SCENE_RECORD(scene, index + 2)->frame = 0x140000;
         SCENE_RECORD(scene, index)->playMode = UI_PLAY_FORWARD;
@@ -395,14 +395,14 @@ void fn_2_7A5B8(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x93)->flags &= ~UI_FLAG_VISIBLE;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
 // .text:0x0007A460 size:0x158 mapped:0x806B94F4
 void fn_2_7A460(MenuScene *scene, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         s32 done = 0;
 
         done += maybeCheckAndResetGrapicsElement(scene, index, 0x28) != FALSE;
@@ -414,7 +414,7 @@ void fn_2_7A460(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0xC)->flags &= ~UI_FLAG_VISIBLE;
             SCENE_RECORD(scene, index + 0x12)->flags &= ~UI_FLAG_VISIBLE;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -422,7 +422,7 @@ void fn_2_7A460(MenuScene *scene, s32 index) {
 // .text:0x0007A194 size:0x2CC mapped:0x806B9228
 void fn_2_7A194(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         s32 want = CSS_PREV_CURSOR_S32(index);
         s32 slot;
 
@@ -444,14 +444,14 @@ void fn_2_7A194(MenuScene *scene, s32 index) {
             }
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
 // .text:0x00079FAC size:0x1E8 mapped:0x806B9040
 void fn_2_79FAC(MenuScene *scene, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         s32 want = CSS_PREV_CURSOR_S32(index);
         s32 slot;
         s32 placed = 0;
@@ -465,7 +465,7 @@ void fn_2_79FAC(MenuScene *scene, s32 index) {
         }
         if (done == placed) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -473,7 +473,7 @@ void fn_2_79FAC(MenuScene *scene, s32 index) {
 // .text:0x00079CF8 size:0x2B4 mapped:0x806B8D8C
 void fn_2_79CF8(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         s32 want = (s8)CSS_CURSOR_S32(index);
         s32 copy = CSS_PREV_CURSOR_S32(index);
         s32 slot;
@@ -493,14 +493,14 @@ void fn_2_79CF8(MenuScene *scene, s32 index) {
             rosterRecord(scene, index, want, 0x34)->playMode = UI_PLAY_BACKWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
 // .text:0x00079B24 size:0x1D4 mapped:0x806B8BB8
 void fn_2_79B24(MenuScene *scene, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         s32 want = (s8)CSS_CURSOR_S32(index);
         s32 slot;
         s32 placed = 0;
@@ -513,7 +513,7 @@ void fn_2_79B24(MenuScene *scene, s32 index) {
         }
         if (done == placed) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -521,7 +521,7 @@ void fn_2_79B24(MenuScene *scene, s32 index) {
 // .text:0x00079930 size:0x1F4 mapped:0x806B89C4
 void randomTeamMemberSelection(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         s32 i;
 
         for (i = 0; i < PLAYERS_PER_TEAM; i++) {
@@ -543,14 +543,14 @@ void randomTeamMemberSelection(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_BACKWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
 // .text:0x00079764 size:0x1CC mapped:0x806B87F8
 void fn_2_79764(MenuScene *scene, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         s32 hits = 0;
         s32 total = 0;
         s32 i;
@@ -571,7 +571,7 @@ void fn_2_79764(MenuScene *scene, s32 index) {
             }
         }
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
     }
 }
 
@@ -579,7 +579,7 @@ void fn_2_79764(MenuScene *scene, s32 index) {
 void fn_2_79688(MenuScene *scene, s32 index) {
     int i;
 
-    if (gameSetUpStep[index + 0xD] != SET_UP_STEP_START) {
+    if (gameSetUpStep.stepFlags[2][index] != SET_UP_STEP_START) {
         return;
     }
     for (i = 0; i < (s32)PLAYERS_PER_TEAM; i++) {
@@ -595,16 +595,16 @@ void fn_2_79688(MenuScene *scene, s32 index) {
 // .text:0x00079634 size:0x54 mapped:0x806B86C8
 void fn_2_79634(void *unused, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
     }
 }
 
 // .text:0x00079394 size:0x2A0 mapped:0x806B8428
 void cssAction_0x18(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         if (CSS_CURSOR_S32(index) == CSS_LINEUP_CURSOR_DONE) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_FORWARD;
@@ -617,9 +617,9 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_FORWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == SET_UP_STEP_PLAYING) {
+    if (gameSetUpStep.stepFlags[2][index] == SET_UP_STEP_PLAYING) {
         s32 cursor = CSS_CURSOR_S32(index);
         s32 ready = 0;
         s32 target = 0;
@@ -636,7 +636,7 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
         if (ready == target) {
             CSS_PREV_CURSOR_S32(index) = cursor;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -644,8 +644,8 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
 // .text:0x0007912C size:0x268 mapped:0x806B81C0
 void cssAction_0x19(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
-        if (gameSetUpStep[0] == 2) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
+        if (gameSetUpStep.screen == 2) {
             s32 j;
 
             for (j = 1; j <= 8; j++) {
@@ -659,9 +659,9 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
             teamSelectionSetChemStars(scene, index);
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == SET_UP_STEP_PLAYING) {
+    if (gameSetUpStep.stepFlags[2][index] == SET_UP_STEP_PLAYING) {
         s32 attempted = 0;
         s32 succeeded = 0;
         s32 j;
@@ -675,7 +675,7 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
                 succeeded += maybeCheckAndResetGrapicsElement(scene, rosterHandle(index, j, 0x34), 0) != FALSE;
             }
         }
-        if (gameSetUpStep[0] == 2) {
+        if (gameSetUpStep.screen == 2) {
             s32 k;
             s32 limit = Static_Stats_Tables.startingChemStars[index];
             s32 attempted2 = 0;
@@ -691,7 +691,7 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
         }
         if (succeeded == attempted) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
             if (cssWork.randomFillAfterClear[index] != 0) {
                 cssRandomFillRoster(index);
                 cssWork.randomFillAfterClear[index] = 0;
@@ -703,7 +703,7 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
 // .text:0x00078F78 size:0x1B4 mapped:0x806B800C
 void cssAction_0x1a(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         SCENE_RECORD(scene, index + 0xA)->flags |= UI_FLAG_VISIBLE;
         SCENE_RECORD(scene, index + 0xA)->playMode = UI_PLAY_FORWARD;
         SCENE_RECORD(scene, index + 0x1E)->playMode = UI_PLAY_FORWARD;
@@ -718,10 +718,10 @@ void cssAction_0x1a(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x8F)->playMode = UI_PLAY_FORWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == SET_UP_STEP_PLAYING) {
+    if (gameSetUpStep.stepFlags[2][index] == SET_UP_STEP_PLAYING) {
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = SET_UP_STEP_DONE;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
     }
 }

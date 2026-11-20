@@ -13,8 +13,9 @@
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "Unknown/File_0x80034cec.h"
 #include "menus/css_work.h"
+#include "Unknown/game_set_up_step.h"
 
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern int menuCursors[0x16];
 extern int mainMenuCursorShown;
 extern u8 Static_Stats_Tables[];
@@ -116,7 +117,7 @@ void fn_2_7630C(MenuScene *scene, u8 arg) {
     if (g_d_GameSettings[0x10] != 0) {
         slot = arg;
     }
-    team = gameSetUpStep[0x59 + slot];
+    team = gameSetUpStep.portCaptainSlot[slot];
     cursorChar = mapCaptainCursorPositionToCharID[menuCursors[4 + team]];
     posChar = mapCaptainCursorPositionToCharID[cursorPositions[team]];
     cursorDiv = cursorChar / 9;
@@ -263,7 +264,7 @@ void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
     u8 running;
     u8 fielding;
 
-    if (menuControlVariables->currentScreen == 9 || gameSetUpStep[port + 0x5D] == 11) {
+    if (menuControlVariables->currentScreen == 9 || gameSetUpStep.currentCharacterSelectProcess[port] == 11) {
         if (g_d_GameSettings[7] != GAME_TYPE_CHALLENGE) {
             character = mapCaptainCursorPositionToCharID[menuCursors[port + 4]];
         } else {
@@ -443,9 +444,9 @@ void fn_2_747FC(void) {
         return;
     }
 
-    switch (gameSetUpStep[0x5D]) {
+    switch (gameSetUpStep.currentCharacterSelectProcess[0]) {
     case 0x54:
-        if (gameSetUpStep[0x7] == 0) {
+        if (gameSetUpStep.stepFlags[1][0] == 0) {
             for (i = 0; i < 7; i++) {
                 if (menuCursors[0] == i) {
                     gfxNodeObject(node, i + 3)->flags |= 2;
@@ -465,9 +466,9 @@ void fn_2_747FC(void) {
             gfxNodeSetU32(node, 0x20, 0);
             gfxNodeSetU8(node, 0x20, 1);
             makeCursorUnmovable(0);
-            gameSetUpStep[0x7] = 1;
+            gameSetUpStep.stepFlags[1][0] = 1;
         }
-        if (gameSetUpStep[0x7] == 1) {
+        if (gameSetUpStep.stepFlags[1][0] == 1) {
             s32 hits = 0;
             s32 ready = 0;
 
@@ -480,19 +481,19 @@ void fn_2_747FC(void) {
             ready += maybeCheckAndResetGrapicsElement((MenuScene *)node, 0x20, 0xA) != FALSE;
             if (ready == hits + 1) {
                 makeCursorMovable(0);
-                gameSetUpStep[0x7] = 2;
+                gameSetUpStep.stepFlags[1][0] = 2;
                 updateCharacterSelectProcessCode(0, 0x57);
             }
         }
         break;
     case 0x55:
-        if (gameSetUpStep[0x7] == 0) {
+        if (gameSetUpStep.stepFlags[1][0] == 0) {
             makeCursorUnmovable(0);
-            gameSetUpStep[0x7] = 1;
+            gameSetUpStep.stepFlags[1][0] = 1;
         }
-        if (gameSetUpStep[0x7] == 1) {
+        if (gameSetUpStep.stepFlags[1][0] == 1) {
             makeCursorMovable(0);
-            gameSetUpStep[0x7] = 2;
+            gameSetUpStep.stepFlags[1][0] = 2;
         }
         break;
     case 0x56:
@@ -500,12 +501,12 @@ void fn_2_747FC(void) {
         fn_2_73CBC(node);
         break;
     case 0x57:
-        if (gameSetUpStep[0x7] == 0) {
+        if (gameSetUpStep.stepFlags[1][0] == 0) {
             gfxNodeSetU32(node, cursor + 0x11, 0xE0000);
             gfxNodeSetU8(node, cursor + 0x11, 1);
-            gameSetUpStep[0x7] = 1;
+            gameSetUpStep.stepFlags[1][0] = 1;
         }
-        if (gameSetUpStep[0x7] == 1) {
+        if (gameSetUpStep.stepFlags[1][0] == 1) {
             if (*(u16 *)(Static_Stats_Tables + 0x472C) == 0 && Static_Stats_Tables[0x4751] != 0) {
                 Static_Stats_Tables[0x4752] = 1;
                 if (menuCursors[0] != menuCursors[1]) {
@@ -520,16 +521,16 @@ void fn_2_747FC(void) {
         }
         break;
     case 0x58:
-        if (gameSetUpStep[0x7] == 0) {
+        if (gameSetUpStep.stepFlags[1][0] == 0) {
             gfxNodeSetU32(node, cursor + 0x11, 0x370000);
             gfxNodeSetU8(node, cursor + 0x11, 1);
             makeCursorUnmovable(0);
-            gameSetUpStep[0x7] = 1;
+            gameSetUpStep.stepFlags[1][0] = 1;
         }
-        if (gameSetUpStep[0x7] == 1) {
+        if (gameSetUpStep.stepFlags[1][0] == 1) {
             if (maybeCheckAndResetGrapicsElement((MenuScene *)node, cursor + 0x11, 0x41)) {
                 makeCursorMovable(0);
-                gameSetUpStep[0x7] = 2;
+                gameSetUpStep.stepFlags[1][0] = 2;
             }
         }
         break;
@@ -540,7 +541,7 @@ void fn_2_747FC(void) {
 void fn_2_7463C(MenuScene *scene) {
     s32 i;
 
-    if (gameSetUpStep[0x7] == 0) {
+    if (gameSetUpStep.stepFlags[1][0] == 0) {
         for (i = 0; i < 7; i++) {
             if (menuCursors[0] == i) {
                 gfxObject(scene, i + 3)->flags |= 2;
@@ -560,13 +561,13 @@ void fn_2_7463C(MenuScene *scene) {
         *(u32 *)((u8 *)gfxObject(scene, 0x20) + 0x5C) = 0;
         *(u8 *)((u8 *)gfxObject(scene, 0x20) + 0x68) = 1;
         makeCursorUnmovable(0);
-        gameSetUpStep[0x7] = 1;
+        gameSetUpStep.stepFlags[1][0] = 1;
     }
 }
 
 // .text:0x00074564 size:0xD8 mapped:0x806B35F8
 void fn_2_74564(MenuScene *scene) {
-    if (gameSetUpStep[0x7] == 1) {
+    if (gameSetUpStep.stepFlags[1][0] == 1) {
         int hits = 0;
         int ready = 0;
         int i;
@@ -580,7 +581,7 @@ void fn_2_74564(MenuScene *scene) {
         ready += maybeCheckAndResetGrapicsElement(scene, 0x20, 0xA) != FALSE;
         if (ready == hits + 1) {
             makeCursorMovable(0);
-            gameSetUpStep[0x7] = 2;
+            gameSetUpStep.stepFlags[1][0] = 2;
             updateCharacterSelectProcessCode(0, 0x57);
         }
     }
@@ -588,16 +589,16 @@ void fn_2_74564(MenuScene *scene) {
 
 // .text:0x00074518 size:0x4C mapped:0x806B35AC
 void fn_2_74518(void) {
-    if (gameSetUpStep[0x7] == 0) {
+    if (gameSetUpStep.stepFlags[1][0] == 0) {
         makeCursorUnmovable(0);
-        gameSetUpStep[0x7] = 1;
+        gameSetUpStep.stepFlags[1][0] = 1;
     }
 }
 
 // .text:0x000744C8 size:0x50 mapped:0x806B355C
 void fn_2_744C8(void) {
-    if (!(1 - gameSetUpStep[0x7])) {
+    if (!(1 - gameSetUpStep.stepFlags[1][0])) {
         makeCursorMovable(0);
-        gameSetUpStep[0x7] = 2;
+        gameSetUpStep.stepFlags[1][0] = 2;
     }
 }

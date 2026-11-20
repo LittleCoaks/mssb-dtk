@@ -9,11 +9,7 @@
 #include "Unknown/File_0x800363d8.h"
 #include "menus/css_work.h"
 
-typedef struct {
-    u8 _00[0xD];
-    /* 0x0D */ E(u8, SET_UP_STEP) cssActionStep[4]; // stepFlags row 2
-} CssStepFlags;
-extern CssStepFlags gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 extern u8 lbl_2_bss_F468[0xC4C];
 void updateCharacterSelectProcessCode(int port, u8 process);
 void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 slot);
@@ -102,7 +98,7 @@ void fn_2_7E194(MenuScene* scene, s32 slot) {
     s32 threshold;
     s8 swapIdx;
 
-    if (isStepActive(gameSetUpStep.cssActionStep[slot])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][slot])) {
         count = maybeCheckAndResetGrapicsElement(scene, slot + 0x1C, 10) != 0;
         count += maybeCheckAndResetGrapicsElement(scene, slot + 0x6A, 10) != 0;
         count += maybeCheckAndResetGrapicsElement(scene, slot + 0x89, 5) != 0;
@@ -114,7 +110,7 @@ void fn_2_7E194(MenuScene* scene, s32 slot) {
         }
         if (count == threshold) {
             makeCursorMovable(slot);
-            gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][slot] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -130,7 +126,7 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
     s8 saved;
     E(s8, CHAR_ID) character;
 
-    if (isStepClear(gameSetUpStep.cssActionStep[slot])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][slot])) {
         previous = CSS_PREV_CURSOR_S32(slot);
         current = CSS_CURSOR_S32(slot);
         for (i = 0; i < 9; i++) {
@@ -199,7 +195,7 @@ void fn_2_7DAB8(MenuScene *scene, s32 slot) {
             }
         }
         makeCursorUnmovable(slot);
-        gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][slot] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -216,7 +212,7 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
     s32* pair;
 
     pair = (s32*)lbl_2_bss_F468;
-    if (gameSetUpStep.cssActionStep[slot] == SET_UP_STEP_PLAYING) {
+    if (gameSetUpStep.stepFlags[2][slot] == SET_UP_STEP_PLAYING) {
         valB = pair[slot + 2];
         valA = pair[slot];
         attempts = 0;
@@ -246,7 +242,7 @@ void fn_2_7D85C(MenuScene* scene, s32 slot) {
         if (successes == attempts) {
             pair[slot + 2] = pair[slot];
             makeCursorMovable(slot);
-            gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][slot] = SET_UP_STEP_DONE;
             if (lbl_2_bss_F468[CSS_WORK_ENTER_LINEUP_EDIT_AFTER_MOVE + slot] != 0) {
                 lbl_2_bss_F468[CSS_WORK_ENTER_LINEUP_EDIT_AFTER_MOVE + slot] = 0;
                 updateCharacterSelectProcessCode(slot, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_ENTER);
@@ -268,7 +264,7 @@ void cssAction_case9(MenuScene *scene, int slot) {
     int starCount;
     u8 mode;
 
-    if (isStepClear(gameSetUpStep.cssActionStep[slot])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][slot])) {
         setCaptainStarIcons(scene, slot);
         SCENE_RECORD(scene, 6)->playMode = UI_PLAY_FORWARD;
         SCENE_RECORD(scene, 8)->playMode = UI_PLAY_FORWARD;
@@ -452,9 +448,9 @@ void cssAction_case9(MenuScene *scene, int slot) {
             }
         }
         makeCursorUnmovable(slot);
-        gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][slot] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep.cssActionStep[slot] == SET_UP_STEP_PLAYING) {
+    if (gameSetUpStep.stepFlags[2][slot] == SET_UP_STEP_PLAYING) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             ready = maybeCheckAndResetGrapicsElement(scene, slot, 20) != 0;
             ready += maybeCheckAndResetGrapicsElement(scene, slot + 2, 20) != 0;
@@ -491,7 +487,7 @@ void cssAction_case9(MenuScene *scene, int slot) {
         }
         if (starsReady == starsExpected && ready == expected + 1) {
             makeCursorMovable(slot);
-            gameSetUpStep.cssActionStep[slot] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][slot] = SET_UP_STEP_DONE;
         }
     }
 }

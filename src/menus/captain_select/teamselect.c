@@ -29,16 +29,7 @@ extern menuControlStruct* menuControlVariables;
 extern u8 superstarUnlocked[0x130];
 extern u8 challengeCaptainCharIDArray[12];
 extern u8 captainIDOrderedOnCapSS[12];
-typedef struct {
-    u8 _00;
-    u8 _01[0xD];
-    u8 unk0E;
-    u8 _0F[0x46];
-    u8 preventCursorMovement[4];
-    u8 portCaptainSlot[4];
-    u8 _5D[7];
-} CaptainGameSetUp;
-extern CaptainGameSetUp gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 void fn_8004D990(s32 port, s32 team, s32 challengeCaptain);
 void fn_8004D460(s32 team, s32 selection);
 extern u8 lbl_803CBBC4[8];
@@ -198,8 +189,8 @@ void captainSelectScreen_manager(void) {
         if (g_TeamManagement.loadMatchRelInd != 0) {
             settingValuesTo0();
             Static_Stats_Tables._48AD = 1;
-            gameSetUpStep._00 = 0;
-            memset(&gameSetUpStep._01[0], 0, 6);
+            gameSetUpStep.screen = 0;
+            memset(&gameSetUpStep.stepFlags[0][0], 0, 6);
             ((u8*)&Static_Stats_Tables)[0x4755] = 3;
             fn_80062A74();
             maybeLoadsGameSoundFiles();
@@ -214,8 +205,8 @@ void captainSelectScreen_manager(void) {
             changeScreenVariables(4);
         } else {
             Static_Stats_Tables._48AD = 1;
-            gameSetUpStep._00 = 0;
-            memset(&gameSetUpStep._01[0], 0, 6);
+            gameSetUpStep.screen = 0;
+            memset(&gameSetUpStep.stepFlags[0][0], 0, 6);
             ((u8*)&Static_Stats_Tables)[0x4755] = 3;
             if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
                 Static_Stats_Tables.sceneAlive = 0;
@@ -293,13 +284,13 @@ void captainSelectScreen_manager(void) {
             fn_80021AC4();
             Static_Stats_Tables._48AD = 1;
             ((u8*)&Static_Stats_Tables)[0x4755] = 3;
-            gameSetUpStep._00 = 0;
+            gameSetUpStep.screen = 0;
             gameSetUpStep.portCaptainSlot[1] = 0;
             gameSetUpStep.portCaptainSlot[0] = 0;
             Static_Stats_Tables.sceneAlive = 0xFF;
             Static_Stats_Tables._48AF[0] = 1;
             Static_Stats_Tables._48AF[2] = 1;
-            memset(&gameSetUpStep._01[0], 0, 6);
+            memset(&gameSetUpStep.stepFlags[0][0], 0, 6);
             menuNumber[0x26] = 1;
             fn_800AD038(Static_Stats_Tables._46E8[0]);
             g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
@@ -356,7 +347,7 @@ void fn_2_12CD8(void) {
         capSelectState.modelSlotCount = 2;
     }
     ((u8*)&Static_Stats_Tables)[0x4755] = 0;
-    gameSetUpStep._00 = 1;
+    gameSetUpStep.screen = 1;
     fn_2_129AC();
     captainSelectLoadScreen();
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {

@@ -16,7 +16,7 @@
 #include "Unknown/File_0x800625a4.h"
 #include "menus/css_work.h"
 
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern u8 menuNumber[0x28];
 extern u8 lineUpInfoStruct[0x48];
 extern u8 lbl_8037169C[0x1C];
@@ -124,13 +124,13 @@ void fn_2_1216C(void) {
 void fn_2_120D0(void) {
     Static_Stats_Tables._48AD = 1;
     Static_Stats_Tables._4744[0x4755 - 0x4744] = 3;
-    gameSetUpStep[0] = 0;
-    gameSetUpStep[0x5A] = 0;
-    gameSetUpStep[0x59] = 0;
+    gameSetUpStep.screen = 0;
+    gameSetUpStep.portCaptainSlot[1] = 0;
+    gameSetUpStep.portCaptainSlot[0] = 0;
     Static_Stats_Tables.sceneAlive = 0xFF;
     Static_Stats_Tables._48AF[0] = 1;
     Static_Stats_Tables._48AF[2] = 1;
-    memset(&gameSetUpStep[1], 0, 6);
+    memset(&gameSetUpStep.stepFlags[0][0], 0, 6);
     menuNumber[0x26] = 1;
     fn_800AD038(Static_Stats_Tables._46E8[0]);
     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
@@ -239,14 +239,14 @@ void selectStadiumScreen(void) {
         } else {
             loadStadiumScreen_maybe();
 
-            if (gameSetUpStep[0x55] == 0 && gameSetUpStep[0x56] == 0) {
+            if (gameSetUpStep.preventCursorMovement[0] == 0 && gameSetUpStep.preventCursorMovement[1] == 0) {
                 menuNumber[0] = 5;
                 menuNumber[9] = menuNumber[8];
                 menuNumber[8] = *(u16*)&lbl_800FEF70[0x58];
                 g_MatchInfo.unk36 = 1;
                 g_MatchInfo.unk37 = g_MatchInfo.unk38;
                 g_MatchInfo.unk38 = 2;
-                gameSetUpStep[0] = 4;
+                gameSetUpStep.screen = 4;
 
                 if (Static_Stats_Tables._4700[3] == 0) {
                     menuCursors[0x11] = 0;
@@ -261,7 +261,7 @@ void selectStadiumScreen(void) {
         break;
 
     case 1:
-        if (gameSetUpStep[0x55] == 0 && gameSetUpStep[0x56] == 0) {
+        if (gameSetUpStep.preventCursorMovement[0] == 0 && gameSetUpStep.preventCursorMovement[1] == 0) {
             *(u16*)(menuControlVariables + 4) = 2;
         }
         break;
@@ -274,21 +274,21 @@ void selectStadiumScreen(void) {
 
     case 3:
         ss = lbl_803CBCD8;
-        if (ss[4] == 0 && gameSetUpStep[0x5D] == 0) {
-            gameSetUpStep[0] = 3;
+        if (ss[4] == 0 && gameSetUpStep.currentCharacterSelectProcess[0] == 0) {
+            gameSetUpStep.screen = 3;
             *(u16*)(menuControlVariables + 4) = 0xB;
         }
         break;
 
     case 4:
-        if (gameSetUpStep[0x5D] == 0) {
+        if (gameSetUpStep.currentCharacterSelectProcess[0] == 0) {
             lbl_2_bss_100B4 = 1;
             *(u16*)(menuControlVariables + 4) = 0xC;
         }
         break;
 
     case 5:
-        if (gameSetUpStep[0x55] == 0) {
+        if (gameSetUpStep.preventCursorMovement[0] == 0) {
             cb = lbl_803CBBC4;
             cb[0] = 0;
             cb[2] = 0;
@@ -306,7 +306,7 @@ void selectStadiumScreen(void) {
         break;
 
     case 6:
-        if (gameSetUpStep[0x55] == 0) {
+        if (gameSetUpStep.preventCursorMovement[0] == 0) {
             cb = lbl_803CBBC4;
             cursor = &menuCursors[0x11];
             cb[1] = *cursor;
@@ -404,7 +404,7 @@ void selectStadiumScreen(void) {
             if (ss[4] != 0) {
                 break;
             }
-            if (gameSetUpStep[0x5D] != 0) {
+            if (gameSetUpStep.currentCharacterSelectProcess[0] != 0) {
                 break;
             }
             ss[1] = 0;
@@ -480,7 +480,7 @@ void stadiumSelectControls(u8 idx) {
         return;
     }
 
-    if (gameSetUpStep[0x55] != 0) {
+    if (gameSetUpStep.preventCursorMovement[0] != 0) {
         return;
     }
 
@@ -505,7 +505,7 @@ void stadiumSelectControls(u8 idx) {
     input1 = Static_Stats_Tables.controllerInputs[idx].newInput;
 
     if (input0 & INPUT_BUTTON_LEFT) {
-        if (gameSetUpStep[0x5D] != 0x24) {
+        if (gameSetUpStep.currentCharacterSelectProcess[0] != 0x24) {
             v = menuCursors[0x11] - 1;
             if (v < 0) {
                 v = 5;
@@ -515,7 +515,7 @@ void stadiumSelectControls(u8 idx) {
             cursorSndFx(INPUT_BUTTON_LEFT);
         }
     } else if (input0 & INPUT_BUTTON_RIGHT) {
-        if (gameSetUpStep[0x5D] != 0x24) {
+        if (gameSetUpStep.currentCharacterSelectProcess[0] != 0x24) {
             v = menuCursors[0x11] + 1;
             if (v == 6) {
                 v = 0;
@@ -534,7 +534,7 @@ void stadiumSelectControls(u8 idx) {
             if (superstarUnlocked[0xF5] == 0 &&
                 cursorToStadIDMapping[menuCursors[0x11]] == 1) {
                 sndFXStartEx(0x1BA, lbl_800EFBA4[3], 0x3F, 0);
-            } else if (gameSetUpStep[0x5D] == 0) {
+            } else if (gameSetUpStep.currentCharacterSelectProcess[0] == 0) {
                 g_d_GameSettings.StadiumID = cursorToStadIDMapping[menuCursors[0x11]];
                 lbl_2_bss_F468[CSS_WORK_STADIUM_CHOSEN] = 1;
                 fn_2_328();
@@ -544,7 +544,7 @@ void stadiumSelectControls(u8 idx) {
             }
         }
     } else if (input1 & INPUT_BUTTON_B) {
-        if (lbl_803CBCD8[0] == 0 && gameSetUpStep[0x5D] == 0) {
+        if (lbl_803CBCD8[0] == 0 && gameSetUpStep.currentCharacterSelectProcess[0] == 0) {
             bPressOnStadSelectScreen();
             cursorSndFx(INPUT_BUTTON_B);
             *(u16*)(menuControlVariables + 6) = 0xC;

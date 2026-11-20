@@ -16,10 +16,7 @@ extern struct {
     /* 0xCF42 */ u8 onMainPauseMenu;
 } g_TeamManagement;
 
-extern struct {
-    /* 0x00 */ u8 _00[0x55];
-    /* 0x55 */ u8 preventCursorMovement[4];
-} gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 
 extern menuControlStruct* menuControlVariables;
 

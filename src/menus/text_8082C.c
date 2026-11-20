@@ -14,7 +14,7 @@
 #include "Unknown/orderchange.h"
 #include "menus/css_work.h"
 
-extern u8 gameSetUpStep[];
+extern GameSetUpStep gameSetUpStep;
 extern u8 superstarUnlocked[];
 extern u8 lbl_2_bss_100B8[];
 extern u8 lbl_2_bss_F468[];
@@ -104,11 +104,11 @@ static inline BOOL resetChannelAnimation(MenuScene *scene, s32 channel, s32 offs
 }
 
 void fn_2_8082C(MenuScene *scene, s32 channel) {
-    if (isStepActive(gameSetUpStep[channel + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][channel])) {
         s32 count = resetChannelAnimation(scene, channel, 0x89, 5);
         if (count + (resetChannelAnimation(scene, channel, 0x8B, 10)) == 2) {
             makeCursorMovable(channel);
-            gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -116,7 +116,7 @@ void fn_2_8082C(MenuScene *scene, s32 channel) {
 #pragma dont_inline on
 void fn_2_808D8(MenuScene *scene, s32 channel) {
     int *cursors = menuCursors;
-    if (isStepClear(gameSetUpStep[channel + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][channel])) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             fn_2_7630C(scene, (u8)channel);
         } else {
@@ -142,29 +142,29 @@ void fn_2_808D8(MenuScene *scene, s32 channel) {
         }
         gfx_cssCharStatBars_and_sthgElse(scene, channel);
         makeCursorUnmovable(channel);
-        gameSetUpStep[channel + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_PLAYING;
     }
 }
 
 #pragma dont_inline reset
 
 void fn_2_80B5C(MenuScene *scene, s32 channel) {
-    if (isStepActive(gameSetUpStep[channel + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][channel])) {
         s32 count = resetChannelAnimation(scene, channel, 0x0, 0);
         count += resetChannelAnimation(scene, channel, 2, 0);
         count += resetChannelAnimation(scene, channel, 0x89, 10);
         if (count == 3) {
             makeCursorMovable(channel);
-            gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
         }
     }
 }
 
 void fn_2_80C2C(MenuScene *scene, s32 channel) {
-    if (isStepClear(gameSetUpStep[channel + 0xD])) {
-        if (gameSetUpStep[channel + 0x55] != 0) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][channel])) {
+        if (gameSetUpStep.preventCursorMovement[channel] != 0) {
             makeCursorMovable(channel);
-            gameSetUpStep[channel + 0x5D] = 2;
+            gameSetUpStep.currentCharacterSelectProcess[channel] = 2;
         }
         SCENE_RECORD(scene, channel)->frame = 20 << 16;
         channelRecord(scene, channel, 2)->frame = 20 << 16;
@@ -180,12 +180,12 @@ void fn_2_80C2C(MenuScene *scene, s32 channel) {
         channelRecord(scene, channel, 0xAC)->playMode = UI_PLAY_BACKWARD;
         SCENE_RECORD(scene, 0x84)->flags &= ~UI_FLAG_VISIBLE;
         makeCursorUnmovable(channel);
-        gameSetUpStep[channel + 0xD] = SET_UP_STEP_PLAYING;
+        gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_PLAYING;
     }
 }
 
 void fn_2_80E0C(MenuScene *scene, s32 channel) {
-    if (isStepActive(gameSetUpStep[channel + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][channel])) {
         s32 count = resetChannelAnimation(scene, channel, 0, 20);
         s32 expected = 2;
         count += resetChannelAnimation(scene, channel, 2, 20);
@@ -198,13 +198,13 @@ void fn_2_80E0C(MenuScene *scene, s32 channel) {
         }
         if (count == expected) {
             makeCursorMovable(channel);
-            gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+            gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
         }
     }
 }
 
 void maybeBackgroundImagesForCaptain(MenuScene *scene, s32 channel) {
-    u8 *steps = &gameSetUpStep[0xD];
+    u8 *steps = &gameSetUpStep.stepFlags[2][0];
     if (isStepClear(steps[channel])) {
         channelRecord(scene, channel, 0)->elementIndex = 0x47;
         channelRecord(scene, channel, 2)->elementIndex = 0x47;
@@ -248,9 +248,9 @@ void maybeBackgroundImagesForCaptain(MenuScene *scene, s32 channel) {
                 SCENE_RECORD(scene, 0x19)->frame = Static_Stats_Tables.playerNumberByPort[1] << 16;
                 channelRecord(scene, channel, 0x1A)->flags |= UI_FLAG_VISIBLE;
                 channelRecord(scene, channel, 0x1A)->playMode = UI_PLAY_FORWARD;
-                if (gameSetUpStep[0x5D] == 4 && gameSetUpStep[0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.currentCharacterSelectProcess[0] == 4 && gameSetUpStep.stepFlags[2][0] == SET_UP_STEP_PLAYING) {
                     makeCursorMovable(0);
-                    gameSetUpStep[0xD] = SET_UP_STEP_DONE;
+                    gameSetUpStep.stepFlags[2][0] = SET_UP_STEP_DONE;
                 }
             }
             fn_2_7630C(scene, (u8)channel);
@@ -283,9 +283,9 @@ void cssActions(void) {
         removeGraphicsElementFromScene((DrawingSceneStruct *)scene);
         removeCurrentDrawingItem();
     }
-    if (gameSetUpStep[0] == 1) {
+    if (gameSetUpStep.screen == 1) {
         for (channel = 0; channel < 2; channel++) {
-            switch (gameSetUpStep[channel + 0x5D]) {
+            switch (gameSetUpStep.currentCharacterSelectProcess[channel]) {
             case CHAR_SELECT_PROCESS_CAP_LOAD:
                 maybeBackgroundImagesForCaptain(scene, channel);
                 fn_2_80E0C(scene, channel);
@@ -302,16 +302,16 @@ void cssActions(void) {
                 fn_2_805DC(scene, channel);
                 break;
             case CHAR_SELECT_PROCESS_CAP_CANCEL_P1_LOCKED:
-                if (isStepClear(gameSetUpStep[channel + 0xD])) {
+                if (isStepClear(gameSetUpStep.stepFlags[2][channel])) {
                     u8 isZero = Static_Stats_Tables.playerNumberByPort[0] == 0;
                     SCENE_RECORD(scene, 0x7B)->frame = isZero << 16;
                     SCENE_RECORD(scene, 0x19)->frame = (isZero + 4) << 16;
                     makeCursorUnmovable(channel);
-                    gameSetUpStep[channel + 0xD] = SET_UP_STEP_PLAYING;
+                    gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_PLAYING;
                 }
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     makeCursorMovable(channel);
-                    gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+                    gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
                     g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
                 }
                 break;
@@ -331,9 +331,9 @@ void cssActions(void) {
                 SCENE_RECORD(scene, 9)->playMode = UI_PLAY_FORWARD;
             }
         }
-    } else if (gameSetUpStep[0] == 2) {
+    } else if (gameSetUpStep.screen == 2) {
         for (channel = 0; channel < 2; channel++) {
-            switch (gameSetUpStep[channel + 0x5D]) {
+            switch (gameSetUpStep.currentCharacterSelectProcess[channel]) {
             case CHAR_SELECT_PROCESS_CSS_LOAD:
                 cssAction_case9(scene, channel);
                 break;
@@ -351,7 +351,7 @@ void cssActions(void) {
                 break;
             case CHAR_SELECT_PROCESS_CSS_SELECT_CHARACTER:
                 cssSelectCharacter(scene, channel);
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s8 position = currentRosterPosition(channel);
                     s32 ready = maybeCheckAndResetGrapicsElement(scene, position + channel * PLAYERS_PER_TEAM + 0x34, 10) != 0;
                     if (resetChemStars(scene, channel) && ready == 1) {
@@ -378,12 +378,12 @@ void cssActions(void) {
                     rosterRecord(scene, channel, CSS_CURSOR_S32(channel), 0x22)->flags |= UI_FLAG_VISIBLE;
                 }
                 gfx_cssCharStatBars_and_sthgElse(scene, channel);
-                gameSetUpStep[channel + 0x5D] = 0;
+                gameSetUpStep.currentCharacterSelectProcess[channel] = 0;
                 if (lbl_2_bss_F468[channel + CSS_WORK_LINEUP_EDIT_MODE] != 0) updateCharacterSelectProcessCode(channel, CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_ENTER);
                 break;
             case CHAR_SELECT_PROCESS_CSS_READY:
                 cssReady(scene, channel);
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s32 ready = maybeCheckAndResetGrapicsElement(scene, channel + 0xC, 10) != 0;
                     ready += maybeCheckAndResetGrapicsElement(scene, channel + 0xE, 14) != 0;
                     ready += maybeCheckAndResetGrapicsElement(scene, channel + 0x12, 10) != 0;
@@ -391,13 +391,13 @@ void cssActions(void) {
                     ready += maybeCheckAndResetGrapicsElement(scene, channel + 0x6A, 30) != 0;
                     if (ready == 5) {
                         makeCursorMovable(channel);
-                        gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+                        gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
                     }
                 }
                 break;
             case CHAR_SELECT_PROCESS_CSS_UNREADY:
                 cssUnready(scene, channel);
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s32 ready = maybeCheckAndResetGrapicsElement(scene, channel + 0x1C, 10) != 0;
                     s32 expected = 3;
                     ready += maybeCheckAndResetGrapicsElement(scene, channel + 0x6A, 10) != 0;
@@ -409,13 +409,13 @@ void cssActions(void) {
                     }
                     if (ready == expected) {
                         makeCursorMovable(channel);
-                        gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+                        gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
                     }
                 }
                 break;
             case CHAR_SELECT_PROCESS_CSS_LEAVE:
                 fn_2_7A5B8(scene, channel);
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s32 ready = maybeCheckAndResetGrapicsElement(scene, channel, 40) != 0;
                     ready += maybeCheckAndResetGrapicsElement(scene, channel + 2, 40) != 0;
                     ready += maybeCheckAndResetGrapicsElement(scene, channel + 0x85, 30) != 0;
@@ -425,13 +425,13 @@ void cssActions(void) {
                         channelRecord(scene, channel, 0xC)->flags &= ~UI_FLAG_VISIBLE;
                         channelRecord(scene, channel, 0x12)->flags &= ~UI_FLAG_VISIBLE;
                         makeCursorMovable(channel);
-                        gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+                        gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
                     }
                 }
                 break;
             case CHAR_SELECT_PROCESS_CSS_ROSTER_COMPLETE:
                 fn_2_7A194(scene, channel);
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s32 ready = 0;
                     s32 expected = 0;
                     s8 slot = findRosterSlot(channel, CSS_PREV_CURSOR_S32(channel));
@@ -442,13 +442,13 @@ void cssActions(void) {
                     }
                     if (ready == expected) {
                         makeCursorMovable(channel);
-                        gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+                        gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
                     }
                 }
                 break;
             case CHAR_SELECT_PROCESS_CSS_CURSOR_BACK_FROM_DONE:
                 fn_2_79CF8(scene, channel);
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s32 ready = 0;
                     s32 expected = 0;
                     s8 position = CSS_CURSOR_S32(channel);
@@ -459,13 +459,13 @@ void cssActions(void) {
                     }
                     if (ready == expected) {
                         makeCursorMovable(channel);
-                        gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+                        gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
                     }
                 }
                 break;
             case CHAR_SELECT_PROCESS_CSS_RANDOM_FILL:
                 randomTeamMemberSelection(scene, channel);
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     s32 ready = 0;
                     s32 expected = 0;
                     s32 i;
@@ -478,20 +478,20 @@ void cssActions(void) {
                             if ((s8)cursorPositions.roster.rosterSpotFilledInd[channel][i] == 0) cursorPositions.roster.rosterSpotFilledInd[channel][i] = TRUE;
                         }
                         makeCursorMovable(channel);
-                        gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+                        gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
                     }
                 }
                 break;
             case CHAR_SELECT_PROCESS_CSS_CURSOR_TO_DONE:
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_START) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_START) {
                     s32 i;
                     for (i = 0; i < PLAYERS_PER_TEAM; i++) rosterRecord(scene, channel, i, 0x46)->playMode = UI_PLAY_BACKWARD;
                     channelRecord(scene, channel, 0x95)->frame = 10 << 16;
                     channelRecord(scene, channel, 0x95)->playMode = UI_PLAY_FORWARD;
                 }
-                if (gameSetUpStep[channel + 0xD] == SET_UP_STEP_PLAYING) {
+                if (gameSetUpStep.stepFlags[2][channel] == SET_UP_STEP_PLAYING) {
                     makeCursorMovable(channel);
-                    gameSetUpStep[channel + 0xD] = SET_UP_STEP_DONE;
+                    gameSetUpStep.stepFlags[2][channel] = SET_UP_STEP_DONE;
                 }
                 break;
             case CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH: cssAction_0x18(scene, channel); break;

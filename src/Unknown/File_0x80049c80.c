@@ -6,10 +6,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 
-extern struct {
-    /* 0x00 */ u8 _00[0x55];
-    /* 0x55 */ u8 preventCursorMovement[4];
-} gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 
 extern u8 lbl_8037169C[0x1C];
 extern u16 lbl_803C5EE0[11];

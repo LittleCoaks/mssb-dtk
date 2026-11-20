@@ -10,7 +10,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "musyx/musyx.h"
 
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern u8 lbl_803C5EE0[0x18];
 extern u32 lbl_803CBCF0;
 extern u8 menuNumber[0x28];
@@ -26,7 +26,7 @@ void gameSettingsControllerInputs(u8 port) {
     s32 limit;
     u16 table;
 
-    if (gameSetUpStep[0x5D] != 0 || gameSetUpStep[0x5E] != 0) {
+    if (gameSetUpStep.currentCharacterSelectProcess[0] != 0 || gameSetUpStep.currentCharacterSelectProcess[1] != 0) {
         return;
     }
 

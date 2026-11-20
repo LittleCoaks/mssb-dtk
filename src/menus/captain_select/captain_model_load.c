@@ -285,13 +285,7 @@ extern menuControlStruct *menuControlVariables;
 extern u8 superstarUnlocked[0x130];
 extern u8 challengeCaptainCharIDArray[12];
 
-typedef struct {
-    /* 0x00 */ u8 _pad0[0x59];
-    /* 0x59 */ u8 portCaptainSlot[4];
-    /* 0x5D */ u8 _pad1[0x64 - 0x5D];
-} CapGameSetUp; // size: 0x64
-
-extern CapGameSetUp gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 
 void *getAnimObjectActor(void *obj);
 void fn_800B2C08(void *actor, u16 arg1);

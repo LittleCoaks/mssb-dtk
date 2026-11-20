@@ -6,6 +6,7 @@
 #include "Dolphin/mtx.h"
 #include "game/character_stats.h"   // CharacterStats
 #include "game/challenge/challenge_items.h"
+#include "Unknown/game_set_up_step.h" // GameSetUpStep
 
 typedef enum _P2_CPU_CODE {
     /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,   // team 1 (P2 side) is the CPU
@@ -489,8 +490,8 @@ typedef enum _CHAR_SELECT_PROCESS {
  * cursor (START), waits for it (PLAYING), then unlocks the cursor (DONE).
  * Row 2 (gameSetUpStep[0xD + port]) is the captain-select and
  * character-select action step (cssActions and its handlers), row 9
- * (gameSetUpStep[0x37 + port]) the team-management one. gameSetUpStep
- * itself has no shared type yet. */
+ * (gameSetUpStep[0x37 + port]) the team-management one (GameSetUpStep,
+ * Unknown/game_set_up_step.h). */
 typedef enum _SET_UP_STEP {
     /* 0 */ SET_UP_STEP_START,
     /* 1 */ SET_UP_STEP_PLAYING, // after makeCursorUnmovable

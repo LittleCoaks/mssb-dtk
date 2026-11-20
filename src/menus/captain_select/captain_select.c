@@ -68,16 +68,7 @@ int challengeCaptainSelect_returnsCharID(u16 currentHeldInput, u16 newInput, u16
 int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHeldInput, u16 newInput, u16 processedInput);
 void storeCursorLocOrCharIDs(int arg0, int arg1, int arg2, int arg3, int arg4);
 
-typedef struct {
-    /* 0x00 */ u8 _pad0a[0xE];
-    /* 0x0E */ u8 unk0E;
-    /* 0x0F */ u8 _pad0b[0x55 - 0xF];
-    /* 0x55 */ u8 preventCursorMovement[4];
-    /* 0x59 */ u8 portCaptainSlot[4];
-    /* 0x5D */ u8 _pad1[0x64 - 0x5D];
-} gameSetUpStruct_t; // size: 0x64
-
-extern gameSetUpStruct_t gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_803CBBC4[8];
 extern u8 lbl_803CBCD8[0x8];
@@ -884,7 +875,7 @@ void checkForNewPlayer(void) {
     if (capSelectState.initialModelsLoaded == 0 || capSelectState.modelLoadBusy != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
         return;
     }
-    if (gameSetUpStep.unk0E == 1) {
+    if (gameSetUpStep.stepFlags[2][1] == SET_UP_STEP_PLAYING) {
         return;
     }
 

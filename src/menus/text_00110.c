@@ -2,11 +2,12 @@
 
 #include "menus/yd_step.h"
 #include "Unknown/File_0x800b0a14.h"
+#include "Unknown/game_set_up_step.h"
 
 extern Text00110Ctl *menuControlVariables;
 extern u8 AtBat_ButtonInput1[];
 extern u8 g_d_GameSettings[];
-extern u8 gameSetUpStep[];
+extern GameSetUpStep gameSetUpStep;
 extern u8 Static_Stats_Tables[];
 extern u8 rosterFileDescriptorMenus[];
 extern u8 lbl_803C6CF8[];
@@ -161,7 +162,7 @@ void fn_2_664(void) {
     for (i = 0; i < 4; i++) {
         u8 *dst = Static_Stats_Tables + i * 6;
 
-        if (gameSetUpStep[0x55 + i] == 1 || (s8)Static_Stats_Tables[0x46F8 + i] == -1) {
+        if (gameSetUpStep.preventCursorMovement[i] == 1 || (s8)Static_Stats_Tables[0x46F8 + i] == -1) {
             *(u16 *)(dst + 0x472C) = 0;
             *(u16 *)(dst + 0x472E) = 0;
             *(u16 *)(dst + 0x4730) = 0;

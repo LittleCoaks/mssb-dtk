@@ -54,10 +54,7 @@ extern struct {
     /* 0xCFA2 */ E(u8, TEAM_MENU_TYPE) teamMenuType[4];
 } g_TeamManagement;
 
-extern struct {
-    /* 0x00 */ u8 _00[0x55];
-    /* 0x55 */ u8 preventCursorMovement[4];
-} gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 
 extern u8 superstarUnlocked[0x130];
 extern u8 lbl_800EFBA4[0x10];
