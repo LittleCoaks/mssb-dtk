@@ -113,6 +113,7 @@ void fn_8006C2B4(void *dst, void *src);
 #define NODE_U8(n, off)  (*(u8 *)((u8 *)(n) + (off)))
 #define PADB(i, off) (*(u8 *)((u8 *)&AtBat_ButtonInput1 + (i) * 0x20 + (off)))
 #define PADH(i, off) (*(u16 *)((u8 *)&AtBat_ButtonInput1 + (i) * 0x20 + (off)))
+#define PADW(i, off) (((u16 *)((u8 *)&AtBat_ButtonInput1 + (off)))[(i) * 16])
 
 #define SET_MENU(id)                                  \
     menuNumber[0] = (id);                             \
@@ -397,24 +398,22 @@ void fn_2_5DC5C(void) {
         break;
 
     case 3: {
-        s8 idx = (s8)WB(0x197863);
-        u16 pad4 = PADH(idx, 0x4);
         s16 cursor;
 
-        if (pad4 & 0x8) {
+        if (PADW((s8)WB(0x197863), 0x4) & INPUT_BUTTON_UP) {
             cursor = WBH(0x1976FE);
             WBH(0x1976FE) = (cursor + 3) % 4;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
-        } else if (pad4 & 0x4) {
+        } else if (PADW((s8)WB(0x197863), 0x4) & INPUT_BUTTON_DOWN) {
             cursor = WBH(0x1976FE);
             WBH(0x1976FE) = (cursor + 1) % 4;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
 
-        if (PADH(idx, 0x2) & 0x100) {
+        if (PADW((s8)WB(0x197863), 0x2) & INPUT_BUTTON_A) {
             WCH(0x32) = 4;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
-        } else if (PADH(idx, 0x2) & 0x200) {
+        } else if (PADW((s8)WB(0x197863), 0x2) & INPUT_BUTTON_B) {
             WCH(0x32) = 6;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
         }
@@ -584,7 +583,7 @@ void fn_2_5D26C(void) {
 
     case 9:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & 0x40) {
             WBH(0x197730) = 6;
             WA(0x162908) = 1;
@@ -632,7 +631,7 @@ void fn_2_5D26C(void) {
 
     case 14:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x4);
+        pad = PADW(idx, 0x4);
         if (pad & 0x8) {
             WBH(0x1976FE) = (WBH(0x1976FE) + 3) % 4;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
@@ -641,7 +640,7 @@ void fn_2_5D26C(void) {
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
 
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & 0x100) {
             WCH(0x32) = (WBH(0x1976FE) == 1) ? 18 : 15;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -766,7 +765,7 @@ void fn_2_5CB5C(void) {
 
     case 3:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & 0x40) {
             WBH(0x197730) = 0;
             WA(0x16283F) = 1;
@@ -811,7 +810,7 @@ void fn_2_5CB5C(void) {
 
     case 9:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x4);
+        pad = PADW(idx, 0x4);
         if (pad & 0x8) {
             WBH(0x1976FE) = (WBH(0x1976FE) + 3) % 4;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
@@ -820,7 +819,7 @@ void fn_2_5CB5C(void) {
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
 
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & 0x100) {
             WCH(0x32) = (WBH(0x1976FE) == 1) ? 13 : 10;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -915,7 +914,7 @@ void fn_2_5C5B8(void) {
 
     case 2:
         idx = (s8)WB(0x197863);
-        if (PADH(idx, 0x2) & 0x200) {
+        if (PADW(idx, 0x2) & 0x200) {
             WBH(0x1976FE) = 0;
             sndFXStartEx(0x1B9, lbl_800EFBA4[2], 0x3F, 0);
             WCH(0x32) = 5;
@@ -936,7 +935,7 @@ void fn_2_5C5B8(void) {
 
     case 7:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x4);
+        pad = PADW(idx, 0x4);
         if (pad & 0x8) {
             WBH(0x1976FE) = (WBH(0x1976FE) + 3) % 4;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
@@ -945,7 +944,7 @@ void fn_2_5C5B8(void) {
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
 
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & 0x100) {
             WCH(0x32) = (WBH(0x1976FE) == 2) ? 11 : 8;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -1044,7 +1043,7 @@ void fn_2_5B7DC(void) {
     case 2:
         updateRecordGridCursor();
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & INPUT_TRIGGER_L) {
             WBH(0x197730) = 3;
             WCH(0x32) = 3;
@@ -1093,7 +1092,7 @@ void fn_2_5B7DC(void) {
         break;
     case 7:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x4);
+        pad = PADW(idx, 0x4);
         if (pad & INPUT_BUTTON_UP) {
             WBH(0x1976FE) = (WBH(0x1976FE) + 3) % 4;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
@@ -1102,7 +1101,7 @@ void fn_2_5B7DC(void) {
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & INPUT_BUTTON_A) {
             if (WBH(0x1976FE) == 3) {
                 WCH(0x32) = 11;
@@ -1159,7 +1158,7 @@ void fn_2_5B7DC(void) {
         break;
     case 14:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & INPUT_BUTTON_A) {
             WAH(0x162600) = 4;
             WA(0x162840) = TRUE;
@@ -1224,7 +1223,7 @@ void fn_2_5AFB0(void) {
 
     case 2:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x4);
+        pad = PADW(idx, 0x4);
         v = WBH(0x1976FA);
         n = WBH(0x19772E);
         if (pad & 0x1) {
@@ -1240,7 +1239,7 @@ void fn_2_5AFB0(void) {
             WA(0x1627B0) = 1;
             WCH(0x32) = 3;
         } else {
-            pad = PADH(idx, 0x2);
+            pad = PADW(idx, 0x2);
             if (pad & 0x40) {
                 WBH(0x197730) = 4;
                 WA(0x162908) = 1;
@@ -1292,7 +1291,7 @@ void fn_2_5AFB0(void) {
 
     case 9:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x4);
+        pad = PADW(idx, 0x4);
         if (pad & 0x8) {
             WBH(0x1976FE) = (WBH(0x1976FE) + 3) % 4;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
@@ -1301,7 +1300,7 @@ void fn_2_5AFB0(void) {
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
 
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & 0x100) {
             WCH(0x32) = (WBH(0x1976FE) == 3) ? 13 : 10;
             sndFXStartEx(0x1B8, lbl_800EFBA4[1], 0x3F, 0);
@@ -1397,9 +1396,9 @@ void fn_2_5AF24(void) {
 
 // .text:0x0005AE54 size:0xD0 mapped:0x80699EE8
 void fn_2_5AE54(void) {
-    DrawingSceneStruct *item = currentDrawingItem;
+    DrawingSceneStruct *item;
 
-    switch (NODE_U16(item, 0x1C)) {
+    switch (NODE_U16(item = currentDrawingItem, 0x1C)) {
     case 0:
         fn_2_4E878(item, lbl_2_data_20C68);
         NODE_U16(item, 0x1C) = 1;
@@ -1449,7 +1448,7 @@ void fn_2_5A224(void) {
     case 2:
         updateRecordGridCursor();
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & INPUT_BUTTON_A) {
             if (lbl_80354768[0xCF18 + lbl_800E869C[WBH(0x197706)]] != 0) {
                 WAH(0x162600) = 0x10;
@@ -1474,7 +1473,7 @@ void fn_2_5A224(void) {
         break;
     case 7:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x4);
+        pad = PADW(idx, 0x4);
         if (pad & INPUT_BUTTON_UP) {
             WBH(0x1976FE) = (WBH(0x1976FE) + 3) % 4;
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
@@ -1483,7 +1482,7 @@ void fn_2_5A224(void) {
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0);
         }
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & INPUT_BUTTON_A) {
             if (WBH(0x1976FE) == 0) {
                 WCH(0x32) = 11;
@@ -1561,7 +1560,7 @@ void fn_2_5A224(void) {
         break;
     case 18:
         idx = (s8)WB(0x197863);
-        pad = PADH(idx, 0x2);
+        pad = PADW(idx, 0x2);
         if (pad & INPUT_BUTTON_A) {
             WAH(0x162600) = 0x14;
             WA(0x16283E) = 1;
