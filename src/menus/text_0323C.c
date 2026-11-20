@@ -2759,8 +2759,8 @@ static inline void initRosterSlot(u8 slot, u8 team) {
     s32 charID;
 
     if (id != CHAR_ID_NONE && id != NUM_CHOOSABLE_CHARACTERS) {
-        lineUpInfoStruct[team * 0x24 + slot * 4 + 1] = slot;
-        lineUpInfoStruct[team * 0x24 + slot * 4] = slot;
+        lineUpInfoStruct[team * 0x24 + (slot & 0xFF) * 4 + 1] = slot;
+        lineUpInfoStruct[team * 0x24 + (slot & 0xFF) * 4] = slot;
         ((CharacterStats (*)[9])inMemRoster)[team][slot].stats.CharID = id;
     } else {
         fn_2_A1A0(slot, team);
