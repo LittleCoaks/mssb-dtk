@@ -878,6 +878,13 @@ void fn_2_48BE0(void) {
     *(f32 *)(entry + 0x48) = *(f32 *)(lbl_2_data_132EC + 0x8);
 }
 
+static inline f32 safeAtan2(f32 y, f32 x) {
+    if (0.0f == x && 0.0f == y) {
+        return 0.0f;
+    }
+    return atan2(y, x);
+}
+
 // .text:0x00048A1C size:0x1C4 mapped:0x80687AB0
 void fn_2_48A1C(void) {
     Vec pos;
@@ -890,13 +897,13 @@ void fn_2_48A1C(void) {
     entry = hugeAnimStruct + idx * 0x27C + 0xC04;
     memcpy(&pos, entry + 0x34, 12);
     PSVECSubtract(&pos, (Vec *)lbl_2_data_13310, &delta);
-    delta.x *= lbl_2_rodata_9A0;
-    delta.z *= lbl_2_rodata_9A0;
+    delta.x *= -1.0f;
+    delta.z *= -1.0f;
     stick = (u8 *)&AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20;
-    pos.x = pos.x + (f32)(s8)stick[0x10] / lbl_2_rodata_9A4;
-    pos.z = pos.z + (f32)(s8)stick[0x11] / lbl_2_rodata_9A4;
-    if (delta.x != lbl_2_rodata_94C || delta.z != lbl_2_rodata_94C) {
-        lbl_2_bss_55BC = (f32)atan2(delta.x, delta.z);
+    pos.x = pos.x + (f32)(s8)stick[0x10] / 768.0f;
+    pos.z = pos.z + (f32)(s8)stick[0x11] / 768.0f;
+    if (0.0f != delta.x || 0.0f != delta.z) {
+        lbl_2_bss_55BC = safeAtan2(delta.x, delta.z);
     }
     memcpy(lbl_2_data_13310, entry + 0x34, 12);
     *(f32 *)(entry + 0x34) = pos.x;
