@@ -574,20 +574,22 @@ void fn_2_4A064(void) {
     return;
 }
 
-// .text:0x00049F7C size:0xE8 mapped:0x80689010
-u16 *fn_2_49F7C(u16 *str, s32 capacity, u16 ch, s32 pos) {
+static inline s32 glyphStrLen(u16 *str) {
     u16 *p = str;
-    s32 len;
-    s32 i;
     while (*p != 0x4000) {
         p++;
     }
-    len = p - str;
+    return p - str;
+}
+
+// .text:0x00049F7C size:0xE8 mapped:0x80689010
+u16 *fn_2_49F7C(u16 *str, s32 capacity, u16 ch, s32 pos) {
+    s32 len = glyphStrLen(str);
     if (len < pos || ch == 0x4000 || len + 2 > capacity) {
         return NULL;
     }
-    for (i = len; i >= pos; i--) {
-        str[i + 1] = str[i];
+    for (; len >= pos; len--) {
+        str[len + 1] = str[len];
     }
     str[pos] = ch;
     return str;
@@ -644,29 +646,17 @@ typedef struct NumberGlyphBuffer {
 
 u32 strlen(const char *str);
 
-static inline u16 *insertNumberGlyph(u16 *str, int capacity, u16 glyph, int position) {
-    u16 *end = str;
-    int length;
-    int i;
-
-    while (*end != 0x4000) end++;
-    length = end - str;
-    if (length < position || glyph == 0x4000 || length + 2 > capacity) return NULL;
-    for (i = length; i >= position; i--) str[i + 1] = str[i];
-    str[position] = glyph;
-    return str;
-}
-
 // .text:0x0004917C size:0xC3C mapped:0x80688210
 u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
     char digits[12];
     NumberGlyphBuffer *buffer = (NumberGlyphBuffer *)&lbl_2_bss_55B8;
     u16 *dst;
-    u16 *glyphs = buffer->glyphs;
+    u16 *src;
+    u16 sep;
     u8 *bank;
     char *start;
     s32 working;
-    int i;
+    s32 i;
     int digit;
     s32 count = 0;
     s32 specialFont;
@@ -674,7 +664,11 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
 
     if (flags & 0x20) {
         flags |= 4;
-        width = 3;
+        if (value < 0) {
+            width = 3;
+        } else {
+            width = 3;
+        }
     } else if (flags & 0x40) {
         flags |= 4;
         width = 4;
@@ -710,14 +704,14 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
             digits[i] = 0;
             i--;
             working = value;
-            if (value < 0) working = -value;
+            if (value < 0) working = value * -1;
             while (working != 0) {
                 digits[i] = working % 10 + '0';
                 working /= 10;
                 i--;
             }
             if (value < 0) {
-                if (flags & 0xE0) digits[i] = ' ';
+                if ((flags & 0x20) || (flags & 0x40) || (flags & 0x80)) digits[i] = ' ';
                 else digits[i] = '-';
                 i--;
             }
@@ -739,14 +733,15 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
     } else {
         buffer->separator = 0x4002;
     }
-    buffer->space = (flags & 1) + 0x4002;
-    specialFont = flags & 0x10;
     fullWidth = flags & 1;
+    buffer->space = fullWidth + 0x4002;
     bank = lbl_2_bss_1A824C + 0x190000;
-    dst = glyphs;
+    dst = buffer->glyphs;
+    sep = buffer->separator;
+    specialFont = flags & 0x10;
     while (*start != 0) {
         if (*start == ' ') {
-            *dst = buffer->separator;
+            *dst = sep;
         } else if (*start == '-') {
             if (specialFont) *dst = **(u16 **)(bank + 0x545C);
             else if (fullWidth) *dst = **(u16 **)(bank + 0x5458);
@@ -764,7 +759,7 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
         count++;
         start++;
     }
-    glyphs[count] = 0x4000;
+    buffer->glyphs[count] = 0x4000;
     if (specialFont) buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195464))[10];
     else if (fullWidth) buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195460))[10];
     else buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195460))[10];
@@ -773,19 +768,20 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
     else buffer->minus = **(u16 **)(lbl_2_bss_1A824C + 0x19545C);
 
     if (flags & 0x20) {
-        insertNumberGlyph(glyphs, 16, buffer->separator, count - 2);
-        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 4);
+        fn_2_49F7C(buffer->glyphs, 16, buffer->separator, count - 2);
+        if (value < 0) fn_2_49F7C(buffer->glyphs, 16, buffer->minus, count - 4);
     } else if (flags & 0x40) {
-        insertNumberGlyph(glyphs, 16, buffer->separator, count - 3);
-        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 5);
+        fn_2_49F7C(buffer->glyphs, 16, buffer->separator, count - 3);
+        if (value < 0) fn_2_49F7C(buffer->glyphs, 16, buffer->minus, count - 5);
     } else if (flags & 0x80) {
-        insertNumberGlyph(glyphs, 16, buffer->separator, count - 1);
-        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 3);
+        fn_2_49F7C(buffer->glyphs, 16, buffer->separator, count - 1);
+        if (value < 0) fn_2_49F7C(buffer->glyphs, 16, buffer->minus, count - 3);
     }
     if (output != NULL) {
         dst = output;
-        while (*glyphs != 0x4000) *dst++ = *glyphs++;
-        *dst = *glyphs;
+        src = buffer->glyphs;
+        while (*src != 0x4000) *dst++ = *src++;
+        *dst = *src;
     }
     return buffer->glyphs;
 }
