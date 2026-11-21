@@ -1506,6 +1506,41 @@ exactly the unowned slots between the two SDK units in every section:
   `Unknown/File_0x80009180.c` and `0x803CD308-0x803CD30E` (read only by
   `fn_80011CA8`) to `Unknown/model.c`, in their `.text` order.
 
+### A rule used below: a unit's data starts 8-aligned
+
+Of the 300-odd `.data`/`.rodata`/`.sdata`/`.sbss`/`.sdata2` ranges in
+`splits.txt` before this batch, all but three start on an 8-byte boundary,
+and 4-byte holes sit at the boundaries (`0x803CC8D4`, `0x80108D2C`). A run of
+objects that has no 8-aligned break (an object starting at `4 mod 8`, or a
+byte object) therefore cannot be split between two TUs. The three exceptions
+are each wrong or doubtful: `File_0x8004ad54`'s `.data` (`0x800FBEF4`, in the
+contradictory `0x8004AC00` region), `Musyx/hardware.c`'s `.sdata2`
+(`0x803CD27C`) and `File_0x80069b68`'s `.sbss` (fixed below).
+
+### `0x80062764-0x80064534`: three units
+
+| unit | sections | was | evidence |
+|---|---|---|---|
+| `Unknown/File_0x80062764.c` (`NonMatching`) | `.text 0x80062764-0x80062948`, `extab 0x80006398-0x800063D8`, `extabindex 0x800080C4-0x80008124`, `.data 0x80108B18-0x80108B90` | `File_0x800628d4` (`playPlayerSelectedSound`, `Matching`) + `fn_80062764`, `fn_80062794`, `pushDictionaryAudioGroup`, `fn_800627F8`, `fn_8006282C`, `fn_8006285C`, `fn_80062890` | the `.data` run after `team_management_screens.c`'s (`0x80108B18`) is `lbl_80108B18` (`playPlayerSelectedSound`), `lbl_80108B3C` (`fn_80062890`), `lbl_80108B84` (`fn_80062764`): the reverse of their readers' order, with no 8-aligned break before `0x80108B90`, so one TU holds all three readers and the sound helpers between them |
+| `Unknown/File_0x80062be4.c` (`NonMatching`) | `.text 0x80062BE4-0x80062F38`, `extab 0x800063E8-0x80006410`, `extabindex 0x8000813C-0x80008178`, `.data 0x80108B90-0x80108D30`, `.sdata2 0x803CC8D0-0x803CC8D8` | `fn_80062BE4`, `fn_80062C24`, `fn_80062C60`, `fn_80062D94`, `fn_80062E6C`, `fn_80062ED4` | the rest of that `.data` run, up to the 4-byte hole at `0x80108D2C`, is read only by this code: `lbl_80108B90` (`fn_80062BE4`, `fn_80062C60`, `fn_80062D94`), `lbl_80108BE0` (`fn_80062C60`, `fn_80062D94`), `lbl_80108BF0` (`fn_80062E6C`) and `fn_80062ED4`'s jump table last; `fn_80062C60`'s `0.5f` is the 8-byte pool between `File_0x8005268c`'s and `File_0x80063028`'s. `fn_80062F38`/`fn_80063010` (no data) stay unowned: they may open `File_0x80063028`'s TU |
+| `Unknown/File_0x800639bc.c` (`NonMatching`) | `.text 0x800639BC-0x80064534`, `extab 0x80006448-0x80006460`, `extabindex 0x800081CC-0x800081F0`, `.data 0x80108D30-0x80108DB8`, `.sdata 0x803CB898-0x803CB8D0`, `.sdata2 0x803CC8F0-0x803CC8F8` | `fn_800639BC` + `File_0x80064344` (`handleBallRollInWater`) + `File_0x80064430` (`spawnDustPuff`, `Matching`) | the pool `0x803CC8F0` (`0.0f`, `fn_800639BC`), `0x803CC8F4` (`3.0f`, `handleBallRollInWater`) is followed by `File_0x80069b68`'s at `0x803CC8F8`; `0x803CC8F4` cannot start a TU, so both readers share one; `.data lbl_80108D48` is read by `handleBallRollInWater` and `spawnDustPuff`, after `fn_800639BC`'s `lbl_80108D30` and before `mb_subfunc.c`'s `0x80108DB8`; the `.sdata` run `0x803CB898-0x803CB8D0` is read only by `fn_800639BC` and ends at `mb_subfunc.c`'s |
+
+`File_0x80063958` (`maybeUpdateFielderTerrainStatus`) and `fn_800638CC` share
+only the `.bss` object `lbl_802E4BC0` with `fn_800639BC`, so they stay out;
+`fn_80064534` (globals only) stays unowned. Two `Matching` units are absorbed.
+
+### `File_0x80069b68.c`'s `.sbss` starts at `0x803CBD30`
+
+The 2026-11-20 unit started its `.sbss` at `0x803CBD34` (`lbl_803CBD34`,
+`fn_8006C088`), which no TU can. `lbl_803CBD30` (read by `fn_80069B68` and by
+`endDemo`) is the unit's first `.sbss` word. `endDemo`, `fn_80069AD4` and
+`fn_80069B08` still stay out: `endDemo` may read the word as an `extern`.
+
+`mb_subfunc.c`'s `.sbss` (`0x803CBD18-0x803CBD30`) and `.bss`
+(`0x802E4CE8-0x802E5200`) are read only by its code too, but it is
+`Matching` and declares them `extern`; claiming them needs the definitions in
+C first (tried: the link fails with the objects undefined).
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between

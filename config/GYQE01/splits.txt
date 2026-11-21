@@ -451,16 +451,24 @@ Unknown/File_0x800625a4.c:
 Unknown/File_0x80062674.c:
 	.text       start:0x80062674 end:0x80062764
 
-Unknown/File_0x800628d4.c:
-	extab       start:0x800063D0 end:0x800063D8
-	extabindex  start:0x80008118 end:0x80008124
-	.text       start:0x800628D4 end:0x80062948
+Unknown/File_0x80062764.c:
+	extab       start:0x80006398 end:0x800063D8
+	extabindex  start:0x800080C4 end:0x80008124
+	.text       start:0x80062764 end:0x80062948
+	.data       start:0x80108B18 end:0x80108B90
 
 Unknown/File_0x8006295c.c:
 	extab       start:0x800063D8 end:0x800063E8
 	extabindex  start:0x80008124 end:0x8000813C
 	.text       start:0x8006295C end:0x80062BE4
 	.rodata     start:0x800E69A8 end:0x800E69B8
+
+Unknown/File_0x80062be4.c:
+	extab       start:0x800063E8 end:0x80006410
+	extabindex  start:0x8000813C end:0x80008178
+	.text       start:0x80062BE4 end:0x80062F38
+	.data       start:0x80108B90 end:0x80108D30
+	.sdata2     start:0x803CC8D0 end:0x803CC8D8
 
 Unknown/File_0x80063028.c:
 	extab       start:0x80006418 end:0x80006428
@@ -473,15 +481,13 @@ Unknown/File_0x80063958.c:
 	extabindex  start:0x800081C0 end:0x800081CC
 	.text       start:0x80063958 end:0x800639BC
 
-Unknown/File_0x80064344.c:
-	extab       start:0x80006450 end:0x80006458
-	extabindex  start:0x800081D8 end:0x800081E4
-	.text       start:0x80064344 end:0x80064430
-
-Unknown/File_0x80064430.c:
-	extab       start:0x80006458 end:0x80006460
-	extabindex  start:0x800081E4 end:0x800081F0
-	.text       start:0x80064430 end:0x80064534
+Unknown/File_0x800639bc.c:
+	extab       start:0x80006448 end:0x80006460
+	extabindex  start:0x800081CC end:0x800081F0
+	.text       start:0x800639BC end:0x80064534
+	.data       start:0x80108D30 end:0x80108DB8
+	.sdata      start:0x803CB898 end:0x803CB8D0
+	.sdata2     start:0x803CC8F0 end:0x803CC8F8
 
 Unknown/mb_subfunc.c:
 	extab       start:0x80006468 end:0x800064F8
@@ -502,7 +508,7 @@ Unknown/File_0x80069b68.c:
 	.text       start:0x80069B68 end:0x8006C0D0
 	.data       start:0x80109250 end:0x801093E8
 	.sdata      start:0x803CB8D8 end:0x803CB8E0
-	.sbss       start:0x803CBD34 end:0x803CBD38
+	.sbss       start:0x803CBD30 end:0x803CBD38
 	.sdata2     start:0x803CC8F8 end:0x803CC938
 
 Unknown/File_0x8006c100.c:
