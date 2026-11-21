@@ -43,7 +43,7 @@ static inline BOOL cursorLockStateIs(u8 state) {
 }
 
 static inline TextGraphicsObject *gfxObject(MenuScene *scene, s32 index) {
-    return graphicsRelatedArray[index + scene->firstHandle].object;
+    return graphicsRelatedArray[scene->firstHandle + index].object;
 }
 
 
@@ -416,10 +416,10 @@ void fn_2_74D8C(void) {
 
 // .text:0x00074CD8 size:0xB4 mapped:0x806B3D6C
 void fn_2_74CD8(void) {
-    DrawingSceneStruct *node = currentDrawingItem;
+    DrawingSceneStruct *node;
     int i;
 
-    addGraphicsElementToScene(node, lbl_2_data_2D33C);
+    addGraphicsElementToScene(node = currentDrawingItem, lbl_2_data_2D33C);
     for (i = 0; i < 7; i++) {
         load_Icon(node, i + 0x18, 1, 0x36, i);
     }
@@ -536,11 +536,12 @@ void fn_2_747FC(void) {
 
 // .text:0x0007463C size:0x1C0 mapped:0x806B36D0
 void fn_2_7463C(MenuScene *scene) {
+    int cursor = menuCursors[0];
     s32 i;
 
-    if (gameSetUpStep.stepFlags[1][0] == 0) {
+    if (cursorLockStateIs(0)) {
         for (i = 0; i < 7; i++) {
-            if (menuCursors[0] == i) {
+            if (cursor == i) {
                 gfxObject(scene, i + 3)->flags |= 2;
                 *(u32 *)((u8 *)gfxObject(scene, i + 3) + 0x5C) = 0;
                 *(u8 *)((u8 *)gfxObject(scene, i + 3) + 0x68) = 1;
@@ -564,13 +565,15 @@ void fn_2_7463C(MenuScene *scene) {
 
 // .text:0x00074564 size:0xD8 mapped:0x806B35F8
 void fn_2_74564(MenuScene *scene) {
-    if (gameSetUpStep.stepFlags[1][0] == 1) {
-        int hits = 0;
+    int cursor = menuCursors[0];
+
+    if (cursorLockStateIs(1)) {
         int ready = 0;
+        int hits = 0;
         int i;
 
         for (i = 0; i < 7; i++) {
-            if (menuCursors[0] == i) {
+            if (cursor == i) {
                 hits++;
                 ready += maybeCheckAndResetGrapicsElement(scene, i + 3, 0xE) != FALSE;
             }
