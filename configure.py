@@ -423,6 +423,7 @@ config.libs = [
             Object(Matching, "Dolphin/os/OSSync.c"),
             Object(Matching, "Dolphin/os/OSThread.c"),
             Object(Matching, "Dolphin/os/OSTime.c"),
+            Object(Matching, "Dolphin/os/__start.c"),
             Object(Matching, "Dolphin/os/__ppc_eabi_init.cpp"),
         ],
         extra_cflags=["-str noreadonly", "-sym on"]
@@ -566,6 +567,7 @@ config.libs = [
             Object(Matching, "Dolphin/TRK_MINNOW_DOLPHIN/targsupp.c",
                    extra_cflags=["-inline deferred", "-func_align 16"]),
             Object(Matching, "Dolphin/TRK_MINNOW_DOLPHIN/mpc_7xx_603e.c"),
+            Object(Matching, "Dolphin/TRK_MINNOW_DOLPHIN/__exception.s"),
             Object(Matching, "Dolphin/TRK_MINNOW_DOLPHIN/dolphin_trk.c"),
             Object(Matching, "Dolphin/TRK_MINNOW_DOLPHIN/main_TRK.c"),
             Object(Matching, "Dolphin/TRK_MINNOW_DOLPHIN/dolphin_trk_glue.c"),
@@ -715,6 +717,7 @@ config.libs = [
             Object(Matching, "Unknown/File_0x80069a98.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x80069b68.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x8006c100.c", extra_cflags=["-cpp_exceptions on"]),
+            Object(NonMatching, "Unknown/File_0x800dfdd4.c"),
             Object(NonMatching, "challenge/challenge_progress.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/dvdsys.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "Unknown/File_0x800a7544.c", extra_cflags=["-cpp_exceptions on"]),

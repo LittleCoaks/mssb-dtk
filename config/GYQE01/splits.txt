@@ -621,6 +621,10 @@ Dolphin/os/OSTime.c:
 	.text       start:0x80074A60 end:0x80074E84
 	.data       start:0x8010CBC0 end:0x8010CC20
 
+Dolphin/os/__start.c:
+	.init       start:0x80003100 end:0x80003400
+	.sbss       start:0x803CBE10 end:0x803CBE18
+
 Dolphin/os/__ppc_eabi_init.cpp:
 	.init       start:0x80003400 end:0x80003458
 	.text       start:0x80074E84 end:0x80074F18
@@ -955,6 +959,9 @@ Dolphin/TRK_MINNOW_DOLPHIN/targsupp.c:
 
 Dolphin/TRK_MINNOW_DOLPHIN/mpc_7xx_603e.c:
 	.text       start:0x80095CD0 end:0x80096040
+
+Dolphin/TRK_MINNOW_DOLPHIN/__exception.s:
+	.init       start:0x800034AC end:0x800053E0
 
 Dolphin/TRK_MINNOW_DOLPHIN/dolphin_trk.c:
 	.init       start:0x800053E0 end:0x8000540C
@@ -1571,6 +1578,12 @@ Musyx/chorus_fx.c:
 	.text       start:0x800DF594 end:0x800DFDD4
 	.data       start:0x801177E0 end:0x80117FE0
 	.sdata2     start:0x803CD2E0 end:0x803CD2E8
+
+Unknown/File_0x800dfdd4.c:
+	.text       start:0x800DFDD4 end:0x800E6330
+	.rodata     start:0x800E82D8 end:0x800E82F0
+	.data       start:0x80117FE0 end:0x80118184
+	.sbss       start:0x803CC3F8 end:0x803CC400
 
 Dolphin/Runtime/__mem.c:
 	.init       start:0x8000540C end:0x80005544

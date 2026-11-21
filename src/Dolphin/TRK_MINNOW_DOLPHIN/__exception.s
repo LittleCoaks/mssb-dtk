@@ -474,3 +474,11 @@ gTRKInterruptVectorTable:
 /* 80005084 00002084  4C 00 00 64 */	rfi 
 .global gTRKInterruptVectorTableEnd
 gTRKInterruptVectorTableEnd:
+
+# Labels inside the table that dtk resolves pointer-shaped .data words to.
+.global lbl_80003800
+.set lbl_80003800, gTRKInterruptVectorTable + 0x354
+.global lbl_80004400
+.set lbl_80004400, gTRKInterruptVectorTable + 0xF54
+.global lbl_80004800
+.set lbl_80004800, gTRKInterruptVectorTable + 0x1354

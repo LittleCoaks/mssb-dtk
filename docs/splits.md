@@ -1390,6 +1390,57 @@ keeps its score and `LoadModel` rises 76.43% -> 80.22%. Units 941 -> 848.
 
 Units 970 -> 941 after this batch; `Matching` units 313 -> 310.
 
+## Main DOL: library tails and leftover gaps (2026-11-21)
+
+A follow-up to the 2026-11-20 pass, aimed at the ~117 KB of main-DOL code still
+in `auto_*` units. Evidence per group is given as in the earlier sections:
+shared anonymous literals, section order (a TU's objects start where the
+previous unit's end and are read only by its code), embedded file names, and
+known SDK layouts. No function gained C; every check below is "build `ok`,
+report has every function of `rep_c19` at the same or a higher score".
+
+### SDK `.init` code: `Dolphin/os/__start.c` and `TRK_MINNOW_DOLPHIN/__exception.s`
+
+Both sources were already in `src/` but not split, so `.init`
+`0x80003100-0x80003400` and `0x800034AC-0x800053E0` were the units
+`auto_00_80003100_init` and `auto_00_800034AC_init`.
+
+| unit | sections | evidence |
+|---|---|---|
+| `Dolphin/os/__start.c` (`Matching`) | `.init 0x80003100-0x80003400` (`__check_pad3`, `__set_debug_bba`, `__get_debug_bba`, `__start`, `__init_registers`, `__init_data`), `.sbss 0x803CBE10-0x803CBE18` (`Debug_BBA`) | the SDK file, in the SDK's `os` order: `OSTime.c` -> `__start.c` -> `__ppc_eabi_init.cpp`; `Debug_BBA` sits in the 8-byte `.sbss` slot between `OSThread.c` and `db.c` that `OSTime.c`/`__ppc_eabi_init.cpp` (no `.sbss`) leave. |
+| `Dolphin/TRK_MINNOW_DOLPHIN/__exception.s` (`Matching`) | `.init 0x800034AC-0x800053E0` (`gTRKInterruptVectorTable` .. `gTRKInterruptVectorTableEnd`) | the TRK vector table, between `mem_TRK.c`'s `.init` (`TRK_memset`/`TRK_memcpy`) and `dolphin_trk.c`'s (`__TRK_reset`); split directly before `dolphin_trk.c`. |
+
+Both match byte for byte as written. `__exception.s` gained three `.set`
+labels (`lbl_80003800`, `lbl_80004400`, `lbl_80004800`, at table offsets
+`0x354`/`0xF54`/`0x1354`) because dtk resolves pointer-shaped words in
+`auto_08_800E8F08_data` to them. Seven functions rise to 100%.
+
+### The HVQM4 movie decoder: `Unknown/File_0x800dfdd4.c`
+
+`.text 0x800DFDD4-0x800E6330` (33 functions, `auto_03_800DFDD4_text`) is the
+last code in the DOL, after `Musyx/chorus_fx.c`. It calls nothing outside
+itself and is called only from `Unknown/movie.c` (`MovStreamThread`,
+`fn_800AD500`, `fn_800AF1A8`, `fn_800AF5FC`, ...), whose strings check an
+`"HVQM4 1.3"` header, so it is Hudson's HVQM4 decoder. One unit:
+
+- **Section order.** Its data is the tail of every data section, starting
+  exactly where the last MusyX unit's ends: `.rodata lbl_800E82D8` (read by
+  `fn_800E423C`) at `Musyx/hardware.c`'s end `0x800E82D8`; `.data
+  lbl_80117FE0`/`lbl_80118020` (read by `fn_800DFDD4`) at `chorus_fx.c`'s end
+  `0x80117FE0`; `.sbss lbl_803CC3F8`/`lbl_803CC3FC` at `hw_dolphin.c`'s end
+  `0x803CC3F8`. No other code reads any of them.
+- **Shared statics.** The two `.sbss` words are read by `fn_800E0904` and by
+  `fn_800E4FF4`/`fn_800E5940` at the other end of the range; `.bss
+  lbl_80328DA0` by `fn_800E0488`, `fn_800E156C`, `fn_800E2580` and
+  `fn_800E3860`.
+- No extab, no `.sdata2`. The `.bss` objects (`lbl_80328DA0`,
+  `lbl_80328FA0`) sit in the block after the SDK `.bss` and stay unowned, as in
+  the earlier passes.
+
+The binary gives no file name, so the unit is address-named (empty source,
+links from the original asm). It may be more than one file of the HVQM4
+library; nothing here can split it further.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
