@@ -1,5 +1,4 @@
 #include "Unknown/File_0x80056120.h"
-
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x800363d8.h"
@@ -7,6 +6,10 @@
 #include "text/text.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/challenge/challenge_state.h"
+
+// 0x800542C4-0x800569C8: one translation unit by its .data order and call graph
+// (docs/splits.md, 2026-11-21): the former File_0x80056120.c (newMenuRelated)
+// plus fn_800542C4 ... fn_800559EC, which have no C yet.
 
 #define SCENE_FIRST_HANDLE(s) (*(u16 *)((u8 *)(s) + 0x14))
 #define GRA_OBJECT(idx) (graphicsRelatedArray[(idx)].object)

@@ -1756,6 +1756,40 @@ Not merged: `fn_80023AA4` and `File_0x80023b04` (`initActorArray`) share
 `objinit.c`'s `.bss` (and `actorSize`, which is packed with `objinit.c`'s
 `.sbss` word `0x803CBC58`), a lead for a later pass.
 
+### `0x8004617C-0x800569C8`: team management, its neighbour, and the menu-number code
+
+The second `.bss` block (`0x802E4B00-0x802E5200`, after `File_0x8003ae64`'s
+and before the SDK's) is per-TU too: `0x802E4B00`/`0x802E4B14`
+(`fn_800471F4`; the first also `transferStatsToInMemRoster`), `0x802E4B28`
+(`fn_80048C28`, `fn_80048E00`), `0x802E4BB0` (`newMenuRelated`),
+`0x802E4BC0` (`fn_800638CC`, `maybeUpdateFielderTerrainStatus`,
+`fn_800639BC`), `0x802E4CE8` (`mb_subfunc.c`). The `0x8023DD80` block
+confirms the 2026-11-21 split of `0x80039AA8-0x8003AE64`: `UITexture` (read
+only by `GetUITexture` ... `fn_8003A2EC`) then `lbl_802D3D80` (only
+`fn_8003A550` ... `fn_8003A85C`); those two units get `.bss
+0x8023DD80-0x802D3D80` and `0x802D3D80-0x802D4AC0`.
+
+| unit | sections | was | evidence |
+|---|---|---|---|
+| `Unknown/File_0x8004617c.c` (`NonMatching`) | `.text 0x8004617C-0x800486E0`, `extab 0x80006018-0x80006038`, `extabindex 0x80007B84-0x80007BB4`, `.data 0x800FB488-0x800FB4C8`, `.bss 0x802E4B00-0x802E4B28`, `.sbss 0x803CBCC8-0x803CBCD8` | `File_0x8004617c` (`teamManagement_takeInputs`), `File_0x80047ce0` (`initTeamManagementScreen`), `File_0x80047fe4` (`pauseMenuSelection`) + `fn_800471F4` | `.sbss` bytes `0x803CBCC8` (`teamManagement_takeInputs`), `0x803CBCC9` (`pauseMenuSelection`) and the words `0x803CBCCC`/`0x803CBCD0` (`fn_800471F4`) are packed in one 8-byte slot, `pauseMenuSelection`'s before `fn_800471F4`'s; the `.bss` pair `0x802E4B00`/`0x802E4B14` (`4 mod 8`) is `fn_800471F4`'s; `pauseMenuSelection`'s jump table is the run's only `.data`, right after `orderchange.c`'s |
+| `Unknown/File_0x80048c14.c` | `.text 0x80048C14-0x80048EB8`, `extab 0x80006050-0x80006068`, `extabindex 0x80007BD8-0x80007BFC`, `.data 0x800FB4C8-0x800FB5B0`, `.bss 0x802E4B28-0x802E4BB0`, `.sdata 0x803CB838-0x803CB848`, `.sbss 0x803CBCE8-0x803CBCF0` | `fn_80048C14`, `fn_80048C1C`, `fn_80048C28`, `fn_80048D4C`, `fn_80048E00`, `fn_80048EA8` | every object is read only by these six and shared among them (`.sbss 0x803CBCE8`: four of them; `.sdata 0x803CB838`/`0x803CB83C`; `.bss 0x802E4B28`; `.data 0x800FB4C8`/`0x800FB554`), each run starting where the previous unit's ends; `fn_80048820`/`fn_80048BEC` (no data) stay unowned |
+| `Unknown/File_0x800542c4.c` (`NonMatching`) | `.text 0x800542C4-0x800569C8`, `extab 0x80006240-0x80006278`, `extabindex 0x80007EC0-0x80007F14`, `.data 0x800FF540-0x801000A8`, `.bss 0x802E4BB0-0x802E4BC0` | `File_0x80056120` (`newMenuRelated`) + `fn_800542C4`, `fn_80054910`, `fn_80054B00`, `fn_80055374`, `fn_80055798`, `fn_800559EC` | `newMenuRelated`'s `.data lbl_800FF540` comes before `fn_800559EC`'s jump table, the last object before the 4-byte hole; `fn_800559EC` is called only by `newMenuRelated`, `fn_80054910`/`fn_80054B00`/`fn_80055374`/`fn_80055798` only by `fn_800559EC`, `fn_800542C4` only by `fn_80054B00` |
+
+`fn_800531D0`/`fn_80053810`/`fn_80053FE8` (a call chain ending in
+`updateMenuNumbers`, `.data 0x800FEB30`) stay unowned: they may open this
+unit or close `File_0x8005268c`'s. `File_0x800486e0`/`File_0x80048764` (the
+`createTeamManagementScreen_*` pair, `Matching`, no data) stay separate.
+
+Source of `File_0x8004617c.c`: the three files in address order with
+`TEAM_MANAGEMENT_LOCAL_VIEW` defined first. `File_0x8004617c.c` and
+`File_0x80047fe4.c` each declared a small view of `g_TeamManagement`; a
+`#define` cast to the second view cost `pauseMenuSelection` 1.1 points, so the
+two views are merged into one declaration that names the fields of both (same
+size and offsets). `File_0x80047ce0.c`'s stretch, which used the full
+`TeamManagementState_s`, reads it through a `#define` view; its
+`initTeamManagementScreen` rises 74.0% -> 76.3%. No `Matching` unit is
+absorbed in this group.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
