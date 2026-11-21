@@ -1401,11 +1401,11 @@ known SDK layouts. No function gained C; every check below is "build `ok`,
 report has every function of `rep_c19` at the same or a higher score".
 
 Result: main-DOL code in `auto_*` units 117,120 bytes / 287 functions ->
-27,512 bytes / 87 functions; main units in the report 611 -> 430; 46
-`Unknown`/SDK-adjacent sources merged away (17 of them `Matching`, so
-`Matching` main units drop accordingly; every function keeps its score, eight
-rise: the six `__start.c` functions, the TRK vector table and
-`initTeamManagementScreen`).
+27,512 bytes / 87 functions; main units in the report 611 -> 430; 32
+old `Unknown` sources folded into merged units (21 of them `Matching`, so
+complete units drop 296 -> 277 even with `__start.c` and `__exception.s`
+added); every function keeps its score and eight rise (the six `__start.c`
+functions, the TRK vector table, `initTeamManagementScreen`).
 
 ### SDK `.init` code: `Dolphin/os/__start.c` and `TRK_MINNOW_DOLPHIN/__exception.s`
 
