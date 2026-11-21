@@ -1818,6 +1818,22 @@ these objects `extern`.
 | `hardware.c` | `.sdata2` now from `0x803CD270` (was `0x803CD27C`, which cannot start a TU) | `hwLowPassFrqToCoef`'s `2, 2pi, 32000` |
 | `hw_dolphin.c` | `.data 0x80115900-0x801177C0`, `.sdata 0x803CBB88-0x803CBB8A` | `dspSlave`, `dspSlaveLength` (`salInitDsp`) |
 
+### Data for existing game units
+
+| unit | added | evidence |
+|---|---|---|
+| `text/text.c` | `.data` now `0x800E8F60-0x800EE800` (was from `0x800EE6A0`) | after `handleLoadingProcess`'s jump table and a 0x1C hole come `lbl_800E8F60` (`fn_8000F150`, `calculateTextBlockWidth`, `DrawText`), `lbl_800E90F4` (`calculateTextBlockWidth`), `lbl_800E9908` (`fn_8000F3E8`), `lbl_800E9920` (`somethingSetTexturePointer`) and thirteen unreferenced font tables, then `text.c`'s own jump tables; no TU between `File_0x800097a0` and `text.c` has `.data`, and an earlier TU's objects cannot follow `text.c`'s |
+| `Unknown/File_0x800097a0.c` | `.data 0x800E8F08-0x800E8F60`, `.rodata 0x800E6588-0x800E65D0` | `handleLoadingProcess`'s jump table, and the two `.rodata` objects only it reads, between `File_0x800096dc`'s and the next unit's |
+| `Unknown/File_0x80009e94.c` | `.sdata2 0x803CC400-0x803CC420` | the pool of `interpolatePointsUnknown`/`BezierInterpolate`, noted on 2026-11-20 but not claimed |
+| `Unknown/File_0x800a76bc.c` | `.data 0x8010F420-0x8010F460` | read only by `initializeDVDSystem`, right after `SISamplingRate.c`'s |
+| `Unknown/File_0x80048eb8.c` | `.rodata 0x800E6950-0x800E6970` | `startGameRelated`'s `"Goto Game ..."` string, between `orderchange.c`'s and `File_0x800625a4`'s |
+
+Not claimed: `.data 0x801000A8-0x80108AA8` (`teamManagementGraphics_initialLoad`,
+`fn_8006CF6C`, `scoutFlagMenu`, `starMenu`) holds objects whose readers come
+in the order `0x80061B9C`, `0x8006CF6C`, `0x80058050`, `0x80057C08`, so they
+are globals of one or more TUs before `team_management_screens.c`'s jump
+tables, not their readers' statics.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
