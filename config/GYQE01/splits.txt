@@ -74,6 +74,7 @@ Unknown/model.c:
 	.text       start:0x80011468 end:0x8001FE00
 	.rodata     start:0x800E6600 end:0x800E6698
 	.data       start:0x800EE800 end:0x800EEFD0
+	.bss        start:0x80118220 end:0x80118740
 	.sdata      start:0x803CB790 end:0x803CB7C8
 	.sbss       start:0x803CBBF0 end:0x803CBC40
 	.sdata2     start:0x803CC4B8 end:0x803CC530
@@ -96,25 +97,25 @@ Unknown/File_0x800211f0.c:
 	extabindex  start:0x800072B4 end:0x8000735C
 	.text       start:0x800211F0 end:0x80021AA0
 	.data       start:0x800EF508 end:0x800EFBE8
+	.bss        start:0x80118740 end:0x8017E320
 	.sdata      start:0x803CB7D8 end:0x803CB7E0
 	.sbss       start:0x803CBC40 end:0x803CBC48
 	.sdata2     start:0x803CC548 end:0x803CC560
 
-Unknown/File_0x80021ca4.c:
-	extab       start:0x80005AC0 end:0x80005AC8
-	extabindex  start:0x80007380 end:0x8000738C
-	.text       start:0x80021CA4 end:0x8002204C
-
-Unknown/File_0x80022634.c:
-	extab       start:0x80005AD0 end:0x80005AD8
-	extabindex  start:0x80007398 end:0x800073A4
-	.text       start:0x80022634 end:0x800227A0
+Unknown/File_0x80021ac8.c:
+	extab       start:0x80005AB0 end:0x80005B08
+	extabindex  start:0x80007368 end:0x800073EC
+	.text       start:0x80021AC8 end:0x80022DAC
+	.data       start:0x800EFBE8 end:0x800F7478
+	.bss        start:0x8017E320 end:0x8017EB40
+	.sdata      start:0x803CB7E0 end:0x803CB7E8
 
 Unknown/objinit.c:
 	extab       start:0x80005B08 end:0x80005B38
 	extabindex  start:0x800073EC end:0x80007434
 	.text       start:0x80022DAC end:0x80023AA4
 	.rodata     start:0x800E6698 end:0x800E6708
+	.bss        start:0x8017EB40 end:0x8017EC00
 	.sdata2     start:0x803CC560 end:0x803CC568
 
 Unknown/File_0x80023b04.c:
@@ -151,6 +152,7 @@ Unknown/particle_effects.c:
 	.text       start:0x800263FC end:0x80034BCC
 	.rodata     start:0x800E6778 end:0x800E68A8
 	.data       start:0x800F7840 end:0x800F78E0
+	.bss        start:0x8017EC00 end:0x801F8640
 	.sdata      start:0x803CB7F8 end:0x803CB810
 	.sbss       start:0x803CBC70 end:0x803CBC90
 	.sdata2     start:0x803CC5F0 end:0x803CC6E8

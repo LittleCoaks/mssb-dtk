@@ -1710,6 +1710,52 @@ is that function's TU's, so an object of a *later* function that sits
 
 Five `Matching` units are absorbed; every function keeps its score.
 
+### The first `.bss` block is in TU order; `Unknown/File_0x80021ac8.c`
+
+`.bss 0x801181A0-0x8023DD80` (before the SDK's) holds one run of objects per
+TU in `.text` order, each read only by its TU's code: `0x801181A0` (`main`),
+`0x80118220` (`model.c` only), `0x80118740`/`0x80158740`/`0x8015C740`
+(`soundOrMusicRelated`, `f_initSound`), `0x8017E320` (`fn_800227E4`),
+`0x8017EB40`/`0x8017EBB0` (`objinit.c`'s `fn_800238E0` and
+`characterAndBallDisplayRelated`; also `fn_80023AA4`, `initActorArray`),
+`0x8017EC00` ... `0x801F8040` (only `particle_effects.c`), and from
+`0x801F8640` `spani_default.c`'s, which was already split. So:
+
+| unit | `.bss` added |
+|---|---|
+| `Unknown/model.c` | `0x80118220-0x80118740` |
+| `Unknown/File_0x800211f0.c` (sound setup) | `0x80118740-0x8017E320` |
+| `Unknown/File_0x80021ac8.c` (below) | `0x8017E320-0x8017EB40` |
+| `Unknown/objinit.c` | `0x8017EB40-0x8017EC00` |
+| `Unknown/particle_effects.c` | `0x8017EC00-0x801F8640` |
+
+**`Unknown/File_0x80021ac8.c`** (`0x80021AC8-0x80022DAC`, `NonMatching`): the
+character / stadium file loader between the sound unit and `objinit.c`:
+`File_0x80021ca4` (`loadCharacterHandItem`), `File_0x80022634`
+(`maybe_somethingAnimRelated`, `Matching`) and `fn_80021AC8`, `fn_80021ADC`,
+`fn_80021BBC`, `fn_8002204C`, `fn_8002244C`, `fn_8002254C`, `fn_80022620`,
+`fn_800227A0`, `fn_800227E4`, `fn_800229CC`, `fn_80022A24`, `fn_80022B14`,
+`fn_80022B68`, `fn_80022CB4`, `fn_80022D58`. All read the `.bss` queue
+`lbl_803716B8`. Its `.data` follows the sound unit's: `StadiumFiles`
+(`loadCharacterHandItem`, `fn_8002204C`, `fn_80022A24`),
+`AramCharacterFiles` (`fn_80021ADC` ... `fn_800227E4`), `fn_800227E4`'s
+`0x800F1D68`, then `CharacterFiles` (`fn_80021BBC`), `CharacterHandFiles`,
+`HandPoseEventSetFiles` (`fn_80021ADC`) and the hand-item tables up to
+`inputParams` (`0x800F7478`, read by `model.c` and defined later): the last
+function's object before the first ones' tables. `.sdata 0x803CB7E0`
+(`fn_800227E4`) follows the sound unit's; `.bss` as above. Takes `extab
+0x80005AB0-0x80005B08`, `extabindex 0x80007368-0x800073EC`, `.data
+0x800EFBE8-0x800F7478`, `.bss 0x8017E320-0x8017EB40`, `.sdata
+0x803CB7E0-0x803CB7E8`. `fn_80021AA0`, `fn_80021AC0`, `fn_80021AC4` (no data)
+stay unowned. `File_0x80022634.c` declared `lbl_803716B8` as an anonymous
+ARAM-queue struct against `File_0x80021ca4.c`'s `HandItemQueue`; its stretch
+now uses the typedef `AramQueue_80022634` through a `#define` view, as in
+`model.c`. One `Matching` unit is absorbed.
+
+Not merged: `fn_80023AA4` and `File_0x80023b04` (`initActorArray`) share
+`objinit.c`'s `.bss` (and `actorSize`, which is packed with `objinit.c`'s
+`.sbss` word `0x803CBC58`), a lead for a later pass.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
