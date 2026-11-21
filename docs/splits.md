@@ -1799,6 +1799,25 @@ absorbed in this group.
 | `Unknown/File_0x8006c3f0.c` | `.text 0x8006C3F0-0x8006C488` (two getter/setter pairs), `extab 0x800065A0-0x800065B0`, `extabindex 0x800083D0-0x800083E8`, `.sbss 0x803CBD38-0x803CBD40` | `0x803CBD38` (`fn_8006C3F0`/`fn_8006C3F8`) and `0x803CBD3C` (`fn_8006C43C`/`fn_8006C444`) share an 8-byte slot after `File_0x80069b68`'s; `fn_8006C398` (no data) and the `blr` stub `fn_8006C488` stay out |
 | `Unknown/File_0x80023cf4.c` | `.text 0x80023CF4-0x80023D4C` (`fn_80023CF4`, `fn_80023D3C`, `fn_80023D44`), `extab 0x80005B50-0x80005B58`, `extabindex 0x80007458-0x80007464`, `.sbss 0x803CBC60-0x803CBC68` | the three access the `.sbss` word between `objinit.c`'s slot and `File_0x80024d2c`'s; `fn_80023D4C` ... `fn_80023F0C` (no data) may open `sub.c` and stay unowned |
 
+### MusyX: unowned data given to its `NonMatching` units
+
+Each object below is read only by the named unit's functions and sits in the
+slot between that unit's neighbours in link order. `Matching` units
+(`synth_adsr.c`, `snd_service.c`, ...) are left alone: their sources declare
+these objects `extern`.
+
+| unit | added | objects (reader) |
+|---|---|---|
+| `stream.c` | `.sbss 0x803CC290-0x803CC2A0` | `streamCallDelay`, `streamCallCnt` and two words (`streamInit`, `streamHandle`) |
+| `synthmacros.c` | `.data 0x801123F8-0x80112840`, `.sdata2 0x803CD158-0x803CD180` | `mask$874`/`dirty$875`/`mask$894`/`dirty$895`, `DoSetPitch`'s and `mcmdSetADSRFromCtrl`'s tables, `macHandleActive`'s jump table; the `mcmdSetADSR`/`mcmdSetPitchADSR`/`macHandleActive` pool |
+| `s_data.c` | `.sbss 0x803CC328-0x803CC338` | three words read by `dataInitStack`, `InsertData`, `sndPushGroup`, `sndPopGroup`, `seqPlaySong`, `sndSeqPlayEx` |
+| `hw_dspctrl.c` | `.sbss` now `0x803CC338-0x803CC378` (was from `0x803CC330`, `s_data.c`'s word), `.rodata 0x800E8060-0x800E8098`, `.data 0x801133E0-0x80114E38` | `salBuildCommandList`'s tables |
+| `hw_volconv.c` | `.sdata2 0x803CD1C0-0x803CD1F8` | `salCalcVolume`'s pool |
+| `snd3d.c` | `.sbss 0x803CC378-0x803CC398`, `.sdata2 0x803CD1F8-0x803CD248` | the emitter/listener state and pool (`CalcEmitter` ... `s3dInit`, `maxVolume`) |
+| `snd_midictrl.c` | `.rodata 0x800E8098-0x800E81B0`, `.data 0x80115060-0x801150F0`, `.sbss 0x803CC398-0x803CC3A0` | `inpResetMidiCtrl`'s tables, `inpGetAuxA`/`inpGetAuxB`'s objects and three jump tables, `inpResetChannelDefaults`/`inpInit`'s words |
+| `hardware.c` | `.sdata2` now from `0x803CD270` (was `0x803CD27C`, which cannot start a TU) | `hwLowPassFrqToCoef`'s `2, 2pi, 32000` |
+| `hw_dolphin.c` | `.data 0x80115900-0x801177C0`, `.sdata 0x803CBB88-0x803CBB8A` | `dspSlave`, `dspSlaveLength` (`salInitDsp`) |
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between

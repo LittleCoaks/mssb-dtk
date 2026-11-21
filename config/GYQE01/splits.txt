@@ -1510,6 +1510,7 @@ Musyx/snd_synthapi.c:
 
 Musyx/stream.c:
 	.text       start:0x800C87AC end:0x800C9324
+	.sbss       start:0x803CC290 end:0x803CC2A0
 	.sdata2     start:0x803CD140 end:0x803CD158
 
 Musyx/synthdata.c:
@@ -1518,7 +1519,9 @@ Musyx/synthdata.c:
 
 Musyx/synthmacros.c:
 	.text       start:0x800CB030 end:0x800CFF18
+	.data       start:0x801123F8 end:0x80112840
 	.sbss       start:0x803CC2F0 end:0x803CC310
+	.sdata2     start:0x803CD158 end:0x803CD180
 
 Musyx/synthvoice.c:
 	.text       start:0x800CFF18 end:0x800D1BDC
@@ -1538,17 +1541,23 @@ Musyx/synth_vsamples.c:
 
 Musyx/s_data.c:
 	.text       start:0x800D2E54 end:0x800D3A34
+	.sbss       start:0x803CC328 end:0x803CC338
 
 Musyx/hw_dspctrl.c:
 	.text       start:0x800D3A34 end:0x800D70A4
-	.sbss       start:0x803CC330 end:0x803CC378
+	.rodata     start:0x800E8060 end:0x800E8098
+	.data       start:0x801133E0 end:0x80114E38
+	.sbss       start:0x803CC338 end:0x803CC378
 
 Musyx/hw_volconv.c:
 	.text       start:0x800D70A4 end:0x800D7794
 	.data       start:0x80114E38 end:0x80115060
+	.sdata2     start:0x803CD1C0 end:0x803CD1F8
 
 Musyx/snd3d.c:
 	.text       start:0x800D7794 end:0x800D9C10
+	.sbss       start:0x803CC378 end:0x803CC398
+	.sdata2     start:0x803CD1F8 end:0x803CD248
 
 Musyx/snd_init.c:
 	.text       start:0x800D9C10 end:0x800D9D7C
@@ -1559,6 +1568,9 @@ Musyx/snd_math.c:
 
 Musyx/snd_midictrl.c:
 	.text       start:0x800DA13C end:0x800DC44C
+	.rodata     start:0x800E8098 end:0x800E81B0
+	.data       start:0x80115060 end:0x801150F0
+	.sbss       start:0x803CC398 end:0x803CC3A0
 
 Musyx/snd_service.c:
 	.text       start:0x800DC44C end:0x800DC720
@@ -1570,7 +1582,7 @@ Musyx/hardware.c:
 	.rodata     start:0x800E81D8 end:0x800E82D8
 	.sdata      start:0x803CBB78 end:0x803CBB88
 	.sbss       start:0x803CC3A0 end:0x803CC3A8
-	.sdata2     start:0x803CD27C end:0x803CD298
+	.sdata2     start:0x803CD270 end:0x803CD298
 
 Musyx/hw_aramdma.c:
 	.text       start:0x800DD7A0 end:0x800DE2A0
@@ -1578,6 +1590,8 @@ Musyx/hw_aramdma.c:
 
 Musyx/hw_dolphin.c:
 	.text       start:0x800DE2A0 end:0x800DE7F0
+	.data       start:0x80115900 end:0x801177C0
+	.sdata      start:0x803CBB88 end:0x803CBB8A
 	.sbss       start:0x803CC3C8 end:0x803CC3F8
 
 Musyx/hw_memory.c:
