@@ -93,40 +93,52 @@ static void tickCountdown(TextScene *scene, TextHandleRec *rec) {
     }
 }
 
-// Draws the low `digitCount` decimal digits of `value`, one icon part per digit
-// (part 1 is the ones digit). Digits above the magnitude of `value` are blank.
-static void drawNumber(TextScene *scene, TextHandleRec *rec, s32 value, s32 digitCount, u32 element) {
-    s32 place = 1;
-    s32 part;
-    for (part = 1; part <= digitCount; part++) {
-        s32 digit = (value / place) % 10;
-        if (part > 1 && value < place) {
-            digit = NUMBER_BLANK_FRAME;
-        }
-        load_Icon(scene, rec->handle, part, element, digit);
-        place *= 10;
+// Digit icons: part 1 is the ones digit. The "blanked" forms show NUMBER_BLANK_FRAME for the
+// leading digits above the magnitude of `value`; the plain forms always draw every digit.
+static inline void drawBlanked3(TextScene *scene, TextHandleRec *rec, s32 value, u32 element) {
+    s32 tens;
+    s32 hundreds;
+    s32 ones;
+
+    hundreds = (value / 100) % 10;
+    tens = (value / 10) % 10;
+    ones = value % 10;
+
+    if (value < 100) {
+        hundreds = NUMBER_BLANK_FRAME;
     }
+    if (value < 10) {
+        tens = NUMBER_BLANK_FRAME;
+    }
+    load_Icon(scene, rec->handle, 1, element, ones);
+    load_Icon(scene, rec->handle, 2, element, tens);
+    load_Icon(scene, rec->handle, 3, element, hundreds);
 }
 
-// Prepare the four digits before issuing the icon updates.
-static inline void drawFourDigits(TextScene *scene, TextHandleRec *rec, s32 value, u32 element) {
-    s32 digits[4];
-    s32 place = 1;
-    s32 part;
-    for (part = 0; part < 4; part++) {
-        digits[part] = (value / place) % 10;
-        place *= 10;
+static inline void drawBlanked4(TextScene *scene, TextHandleRec *rec, s32 value, u32 element) {
+    s32 tens;
+    s32 hundreds;
+    s32 thousands;
+    s32 ones;
+
+    thousands = (value / 1000) % 10;
+    hundreds = (value / 100) % 10;
+    tens = (value / 10) % 10;
+    ones = value % 10;
+
+    if (value < 1000) {
+        thousands = NUMBER_BLANK_FRAME;
     }
-    place = 10;
-    for (part = 1; part < 4; part++) {
-        if (value < place) {
-            digits[part] = NUMBER_BLANK_FRAME;
-        }
-        place *= 10;
+    if (value < 100) {
+        hundreds = NUMBER_BLANK_FRAME;
     }
-    for (part = 0; part < 4; part++) {
-        load_Icon(scene, rec->handle, part + 1, element, digits[part]);
+    if (value < 10) {
+        tens = NUMBER_BLANK_FRAME;
     }
+    load_Icon(scene, rec->handle, 1, element, ones);
+    load_Icon(scene, rec->handle, 2, element, tens);
+    load_Icon(scene, rec->handle, 3, element, hundreds);
+    load_Icon(scene, rec->handle, 4, element, thousands);
 }
 
 // .text:0x00060DF4 size:0x188 mapped:0x8069FE88
@@ -281,8 +293,7 @@ void fn_2_6051C(TextScene *scene, TextHandleRec *rec) {
         hideRecord(scene, rec);
         break;
     case 2: {
-        s32 value = fn_8006C268(WORK_BASE() + 0x7430);
-        drawFourDigits(scene, rec, value, 0x74);
+        drawBlanked4(scene, rec, fn_8006C268(WORK_BASE() + 0x7430), 0x74);
         showRecord(scene, rec);
         break;
     }
@@ -393,17 +404,17 @@ void fn_2_5FDC4(TextScene *scene, TextHandleRec *rec) {
         break;
     case 2: {
         s16 unitIndex = rec->unkA;
-        s32 value = 0;
+        s32 value;
+
+        /* The original leaves value unset for any other unitIndex. */
         if (unitIndex >= 0 && unitIndex <= 5) {
-            value = *(s16 *)(WORK_BASE() + 0x7430 + unitIndex * 2);
+            value = ((s16 *)(WORK_BASE() + 0x7430))[unitIndex];
         } else if (unitIndex == 6) {
             value = *(s16 *)(WORK_BASE() + 0x743C);
         } else if (unitIndex == 7) {
             value = *(s16 *)(WORK_BASE() + 0x743E);
         }
-        if (unitIndex >= 0 && unitIndex <= 7) {
-            drawNumber(scene, rec, value, 3, 0x74);
-        }
+        drawBlanked3(scene, rec, value, 0x74);
         showRecord(scene, rec);
         break;
     }
@@ -434,54 +445,55 @@ void fn_2_5F458(TextScene *scene, TextHandleRec *rec) {
     case 2: {
         s16 unitIndex = rec->unkA;
         if (unitIndex >= 0 && unitIndex <= 5) {
-            s32 value = *(s16 *)(WORK_BASE() + 0x7404 + unitIndex * 2);
-            TextGraphicsObject *node;
+            s32 value = ((s16 *)(WORK_BASE() + 0x7404))[unitIndex];
             switch (unitIndex) {
             case 0:
-                node = nodeOf(scene, rec);
-                nodeSetElement(node, 0x75);
-                drawNumber(scene, rec, value, 4, 6);
+                nodeSetElement(nodeOf(scene, rec), 0x75);
+                drawBlanked4(scene, rec, value, 6);
                 break;
             case 1:
-                node = nodeOf(scene, rec);
                 if (value < 10) {
-                    nodeSetElement(node, 0x79);
+                    nodeSetElement(nodeOf(scene, rec), 0x79);
                 } else if (value < 100) {
-                    nodeSetElement(node, 0x78);
+                    nodeSetElement(nodeOf(scene, rec), 0x78);
                 } else if (value < 1000) {
-                    nodeSetElement(node, 0x77);
+                    nodeSetElement(nodeOf(scene, rec), 0x77);
                 } else if (value < 10000) {
-                    nodeSetElement(node, 0x76);
+                    nodeSetElement(nodeOf(scene, rec), 0x76);
                 }
-                drawNumber(scene, rec, value, 4, 6);
+                load_Icon(scene, rec->handle, 1, 6, value % 10);
+                load_Icon(scene, rec->handle, 2, 6, (value / 10) % 10);
+                load_Icon(scene, rec->handle, 3, 6, (value / 100) % 10);
+                load_Icon(scene, rec->handle, 4, 6, (value / 1000) % 10);
                 break;
             case 2:
-                node = nodeOf(scene, rec);
                 if (value < 10) {
-                    nodeSetElement(node, 0x7D);
+                    nodeSetElement(nodeOf(scene, rec), 0x7D);
                 } else if (value < 100) {
-                    nodeSetElement(node, 0x7C);
+                    nodeSetElement(nodeOf(scene, rec), 0x7C);
                 }
-                drawNumber(scene, rec, value, 2, 6);
+                load_Icon(scene, rec->handle, 1, 6, value % 10);
+                load_Icon(scene, rec->handle, 2, 6, (value / 10) % 10);
                 break;
             case 3:
                 nodeSetElement(nodeOf(scene, rec), 0x7B);
-                drawNumber(scene, rec, value, 3, 6);
+                drawBlanked3(scene, rec, value, 6);
                 break;
             case 4:
                 nodeSetElement(nodeOf(scene, rec), 0x7A);
-                drawNumber(scene, rec, value, 4, 6);
+                drawBlanked4(scene, rec, value, 6);
                 break;
             case 5:
-                node = nodeOf(scene, rec);
                 if (value < 10) {
-                    nodeSetElement(node, 0x80);
+                    nodeSetElement(nodeOf(scene, rec), 0x80);
                 } else if (value < 100) {
-                    nodeSetElement(node, 0x7F);
+                    nodeSetElement(nodeOf(scene, rec), 0x7F);
                 } else if (value < 1000) {
-                    nodeSetElement(node, 0x7E);
+                    nodeSetElement(nodeOf(scene, rec), 0x7E);
                 }
-                drawNumber(scene, rec, value, 3, 6);
+                load_Icon(scene, rec->handle, 1, 6, value % 10);
+                load_Icon(scene, rec->handle, 2, 6, (value / 10) % 10);
+                load_Icon(scene, rec->handle, 3, 6, (value / 100) % 10);
                 break;
             }
         }
@@ -490,6 +502,7 @@ void fn_2_5F458(TextScene *scene, TextHandleRec *rec) {
     }
     case 1:
     case 3:
+    case 4:
     case 0x25:
         break;
     case 5:
