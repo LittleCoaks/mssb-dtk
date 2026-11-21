@@ -1441,6 +1441,71 @@ The binary gives no file name, so the unit is address-named (empty source,
 links from the original asm). It may be more than one file of the HVQM4
 library; nothing here can split it further.
 
+### `0x80039AA8-0x8003AE64`: two units on data order
+
+The stretch between `File_0x80037054.c` and `File_0x8003ae64.c` was three small
+`Matching` units (`File_0x80039aa8`: `GetUITexture`/`returnTexture`;
+`File_0x8003a538`: `fn_8003A538`/`fn_8003A540`/`updateFunctionPtr`;
+`File_0x8003a688`) and twelve unowned functions. Its objects, in section
+order:
+
+| section | objects (reader) |
+|---|---|
+| `.data` | `0x800F7A40` (`returnTexture`, `fn_80039AC0`, `fn_80039FF8`, `fn_8003A090`, `fn_8003A144`, `fn_8003A1D0`), `0x800F7A60` (`fn_8003A1D0`), `0x800F7AC0` (`GXTexObjRelated`), `0x800F7AE0` (`fn_8003A37C`), then `File_0x8003ae64` at `0x800F7B00` |
+| `.sdata` | `0x803CB828` (`fn_8003A848`), `0x803CB82C` (`fn_8003A550`), then `File_0x8003ae64` |
+| `.sbss` | `0x803CBCA8` (`updateFunctionPtr`, `fn_8003A8A0`), `0x803CBCAC` (`GXTexObjRelated`), `0x803CBCB0` (`fn_8003A538`/`fn_8003A540`), `0x803CBCB4` (`fn_8003AC90`, `fn_8003AE54`, `fn_8003AE5C`), then `File_0x8003ae64` |
+| `.sdata2` | `0x803CC7A0-0x803CC7D0` (`fn_80039AC0`: `640, 1280, 0.5, 0.125, 448, 255, 0, -1`, both magic doubles), `0x803CC7D0` (`fn_8003A2EC`: `30, 1`), `0x803CC7D8-0x803CC7E8` (`fn_8003A688`/`fn_8003A6B0`/`GXTexObjRelated`: `0.5`, magic) |
+
+- **Two pools.** `0.5f` and the magic double come back at `0x803CC7D8`, so the
+  `File_0x8003a688` functions are not in `fn_80039AC0`'s TU; `0.5f`
+  (`0x803CC72C`) also separates `fn_80039AC0`'s pool from
+  `File_0x80037054`'s.
+- **The second TU starts at `fn_8003A37C`.** An object read by an earlier TU
+  cannot come after a later TU's object, yet `fn_8003A538`'s `.sbss` word
+  follows `GXTexObjRelated`'s, `fn_8003A550`'s `.sdata` byte follows
+  `fn_8003A848`'s, and `fn_8003A37C`'s `.data` object follows
+  `GXTexObjRelated`'s. So `fn_8003A37C` ... `fn_8003AE5C` are one TU (with
+  `updateFunctionPtr`, whose word is the TU's first `.sbss` object, and
+  `fn_8003AE54`/`fn_8003AE5C`, which share `fn_8003AC90`'s). `fn_8003A37C`
+  and `fn_8003A4C8` reach `UITexture` through `GetUITexture()`, while
+  `fn_80039FF8` ... `fn_8003A2EC` read it directly.
+- **The first TU** runs from `GetUITexture` to `fn_8003A2EC`: `returnTexture`
+  returns the `.data` object the gap functions read, and `fn_8003A2EC`'s
+  `30, 1` cannot be in the next pool's TU (it reads `UITexture` and
+  `lbl_803C5090` directly, like `fn_8003A090`).
+
+| unit | sections | was |
+|---|---|---|
+| `Unknown/File_0x80039aa8.c` (now `NonMatching`) | `.text 0x80039AA8-0x8003A37C`, `extab 0x80005EE8-0x80005F20`, `extabindex 0x800079BC-0x80007A10`, `.data 0x800F7A40-0x800F7AC0`, `.sdata2 0x803CC7A0-0x803CC7D8` | `File_0x80039aa8` (`Matching`) + `fn_80039AC0` ... `fn_8003A2EC` |
+| `Unknown/File_0x8003a37c.c` (`NonMatching`) | `.text 0x8003A37C-0x8003AE64`, `extab 0x80005F20-0x80005F60`, `extabindex 0x80007A10-0x80007A70`, `.data 0x800F7AC0-0x800F7B00`, `.sdata 0x803CB828-0x803CB830`, `.sbss 0x803CBCA8-0x803CBCB8`, `.sdata2 0x803CC7D8-0x803CC7E8` | `File_0x8003a538` + `File_0x8003a688` (both `Matching`) + `fn_8003A37C`, `fn_8003A4C8`, `fn_8003A550`, `fn_8003AE54`, `fn_8003AE5C` |
+
+The merged source is the two old files in address order (their headers are
+kept and included; a duplicate `extern` dropped). Three `Matching` units are
+absorbed; every function keeps its score.
+
+### `Unknown/File_0x800a1a70.c` (`0x800A1A70-0x800A2B5C`)
+
+Eleven functions between `Dolphin/OdemuExi2/DebuggerDriver.c` and
+`Dolphin/exi/EXIBios.c` (`auto_03_800A1A70_text`). They call nothing outside
+the range and are called only from `Unknown/sprt.c` (`DrawSprite`,
+`fn_800B1EBC`, `fn_800B2854`); all but `fn_800A1A70` read `.sbss
+lbl_803CC0F0`, and eight call the helper `fn_800A1B80`. Their objects fill
+exactly the unowned slots between the two SDK units in every section:
+`.data 0x8010F158-0x8010F160` (`fn_800A1F40`), `.sdata 0x803CBA98-0x803CBAC0`
+(five 8-byte objects of `fn_800A1F40`, `fn_800A2194`, `fn_800A2294`,
+`fn_800A237C`), `.sbss 0x803CC0F0-0x803CC0F8`, `.sdata2
+0x803CCEC0-0x803CCEC8` (`32.0f`, `16.0f`, `fn_800A1F40`; the next float,
+`0x803CCEC8`, is `fn_800A7AD8`'s). One gap-only unit, empty source.
+
+### Data for existing units
+
+- `Unknown/File_0x8004207c.c` gets `.sdata2 0x803CC7E8-0x803CC7F8` (`100.0f`
+  and the magic double, read only by its `capApplicationFunction`, between
+  `File_0x8003a37c`'s pool and `File_0x8004ac00`'s).
+- `.sbss2`: `0x803CD300-0x803CD308` (read only by `main`) goes to
+  `Unknown/File_0x80009180.c` and `0x803CD308-0x803CD30E` (read only by
+  `fn_80011CA8`) to `Unknown/model.c`, in their `.text` order.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between

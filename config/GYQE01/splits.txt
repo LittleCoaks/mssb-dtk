@@ -23,6 +23,7 @@ Unknown/File_0x80009180.c:
 	extab       start:0x80005628 end:0x80005630
 	extabindex  start:0x80006C9C end:0x80006CA8
 	.text       start:0x80009180 end:0x800096DC
+	.sbss2      start:0x803CD300 end:0x803CD308
 
 Unknown/File_0x800096dc.c:
 	extab       start:0x80005630 end:0x80005638
@@ -79,6 +80,7 @@ Unknown/model.c:
 	.sdata      start:0x803CB790 end:0x803CB7C8
 	.sbss       start:0x803CBBF0 end:0x803CBC40
 	.sdata2     start:0x803CC4B8 end:0x803CC530
+	.sbss2      start:0x803CD308 end:0x803CD30E
 
 Unknown/File_0x80020048.c:
 	extab       start:0x800059D8 end:0x800059E0
@@ -187,16 +189,19 @@ Unknown/File_0x80037054.c:
 	.sdata2     start:0x803CC720 end:0x803CC7A0
 
 Unknown/File_0x80039aa8.c:
-	.text       start:0x80039AA8 end:0x80039AC0
+	extab       start:0x80005EE8 end:0x80005F20
+	extabindex  start:0x800079BC end:0x80007A10
+	.text       start:0x80039AA8 end:0x8003A37C
+	.data       start:0x800F7A40 end:0x800F7AC0
+	.sdata2     start:0x803CC7A0 end:0x803CC7D8
 
-Unknown/File_0x8003a538.c:
-	.text       start:0x8003A538 end:0x8003A550
-
-Unknown/File_0x8003a688.c:
-	extab       start:0x80005F38 end:0x80005F60
-	extabindex  start:0x80007A34 end:0x80007A70
-	.text       start:0x8003A688 end:0x8003AE54
-	.data       start:0x800F7AC0 end:0x800F7AE0
+Unknown/File_0x8003a37c.c:
+	extab       start:0x80005F20 end:0x80005F60
+	extabindex  start:0x80007A10 end:0x80007A70
+	.text       start:0x8003A37C end:0x8003AE64
+	.data       start:0x800F7AC0 end:0x800F7B00
+	.sdata      start:0x803CB828 end:0x803CB830
+	.sbss       start:0x803CBCA8 end:0x803CBCB8
 	.sdata2     start:0x803CC7D8 end:0x803CC7E8
 
 Unknown/File_0x8003ae64.c:
@@ -213,6 +218,7 @@ Unknown/File_0x8004207c.c:
 	extab       start:0x80005FD8 end:0x80005FE0
 	extabindex  start:0x80007B24 end:0x80007B30
 	.text       start:0x8004207C end:0x80042598
+	.sdata2     start:0x803CC7E8 end:0x803CC7F8
 
 Unknown/orderchange.c:
 	extab       start:0x80005FE0 end:0x80006018
@@ -1229,6 +1235,13 @@ Dolphin/OdemuExi2/DebuggerDriver.c:
 	.text       start:0x800A0FF0 end:0x800A1A70
 	.sdata      start:0x803CBA90 end:0x803CBA98
 	.sbss       start:0x803CC0D8 end:0x803CC0F0
+
+Unknown/File_0x800a1a70.c:
+	.text       start:0x800A1A70 end:0x800A2B5C
+	.data       start:0x8010F158 end:0x8010F160
+	.sdata      start:0x803CBA98 end:0x803CBAC0
+	.sbss       start:0x803CC0F0 end:0x803CC0F8
+	.sdata2     start:0x803CCEC0 end:0x803CCEC8
 
 Dolphin/exi/EXIBios.c:
 	.text       start:0x800A2B5C end:0x800A4538

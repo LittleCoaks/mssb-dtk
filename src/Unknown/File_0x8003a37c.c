@@ -1,12 +1,32 @@
+#include "Unknown/File_0x8003a538.h"
 #include "Unknown/File_0x8003a688.h"
 #include "Unknown/sub.h"
 #include "Dolphin/mtx.h"
 #include "string.h"
 
+// 0x8003A37C-0x8003AE64: one translation unit by its .sbss/.sdata/.data order
+// (docs/splits.md, 2026-11-21): the former File_0x8003a538.c and
+// File_0x8003a688.c plus the unowned fn_8003A37C, fn_8003A4C8, fn_8003A550,
+// fn_8003AE54 and fn_8003AE5C, which have no C yet.
+
+extern void (*lbl_803CBCA8)(void);
+extern s32 lbl_803CBCB0;
+
+s32 fn_8003A538(void) {
+    return lbl_803CBCB0;
+}
+
+void fn_8003A540(s32 value) {
+    lbl_803CBCB0 = value;
+}
+
+void updateFunctionPtr(void (*func)(void)) {
+    lbl_803CBCA8 = func;
+}
+
 extern GXTexObj lbl_803C50B0;
 extern GXTlutObj lbl_803C50DC;
 extern u8 lbl_803CBCAC;
-extern void (*lbl_803CBCA8)(void);
 extern u8 lbl_803CBCB4;
 extern u8 lbl_803CB828[3];
 
