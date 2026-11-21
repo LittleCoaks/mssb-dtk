@@ -2473,3 +2473,195 @@ void initShortsHandleCompressedDiskReads(ShortsTableOwner* owner) {
         swapShortPairs(owner, pairs);
     }
 }
+
+/* Small accessors over the animation/model state block, addressed by raw offset. */
+#define HA(off)       (((u8*)&hugeAnimStruct) + (off))
+#define HA_OBJ(index) (*(u8**)HA(0x2C50 + (index) * 4))
+
+extern u32 lbl_803CBC18;
+BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h);
+
+u32 fn_80011570(void) {
+    return lbl_803CBC18;
+}
+
+static inline void clearObjectField5C(s8 index) {
+    u8* obj;
+
+    if (index < 0 || index >= 13) {
+        return;
+    }
+    obj = HA_OBJ(index);
+    if (obj == NULL) {
+        return;
+    }
+    *(u32*)(obj + 0x5C) = 0;
+}
+
+void fn_80011578(void) {
+    s8 i;
+
+    for (i = 0; i < 13; i++) {
+        clearObjectField5C(i);
+    }
+}
+
+void fn_800115C8(s8 index) {
+    clearObjectField5C(index);
+}
+
+void fn_80011604(s8 index, u32 value) {
+    u8* obj;
+
+    if (index < 0 || index >= 13) {
+        return;
+    }
+    obj = HA_OBJ(index);
+    if (obj == NULL) {
+        return;
+    }
+    *(u32*)(obj + 0x5C) = value;
+}
+
+void fn_80011B64(int index) {
+    u8** slot = (u8**)HA(0x2C50 + index * 4);
+    u8* part;
+
+    if (*slot == NULL) {
+        return;
+    }
+    part = *(u8**)(*slot + 0x2C);
+    if (part != NULL) {
+        part[0x61] = -1;
+        part[0x5C] = -2;
+        *(u8**)(*slot + 0x2C) = NULL;
+    }
+    part = *(u8**)(*slot + 0x30);
+    if (part == NULL) {
+        return;
+    }
+    part[0xD1] = part[0xD0];
+    part[0xD0] = -1;
+    part[0x5C] = -2;
+    part[0xC0] = -2;
+    *(u8**)(*slot + 0x30) = NULL;
+}
+
+void fn_80014990(int index, void* file, u32 value) {
+    u8* obj;
+    u8* effect;
+
+    if (index < 0 || index >= 13) {
+        return;
+    }
+    obj = HA_OBJ(index);
+    if (obj == NULL) {
+        return;
+    }
+    effect = lbl_80118220 + index * 0x64;
+    *(u8**)(obj + 0x2C) = effect;
+    effect[0x60] = obj[0x252];
+    effect[0x61] = obj[0x254];
+    *(u32*)(effect + 4) = value;
+    *(void**)(effect + 0x30) = file;
+    actRelated(file, effect + 4);
+}
+
+void fn_800177B4(void) {
+    DrawingSceneStruct* item = currentDrawingItem;
+
+    if (fn_8001758C((u8*)item + 0x14, ((u8*)item)[0x1C], ((u8*)item)[0x16], ((u8*)item)[0x19], ((u8*)item)[0x1A],
+                    ((u8*)item)[0x1B], ((u8*)item)[0x15], ((u8*)item)[0x1D])) {
+        *HA(0x2D77) = 2;
+        removeCurrentDrawingItem();
+    }
+}
+
+void fn_800189B8(void) {
+    fn_800ACFB0(*(void**)HA(0x2C88));
+}
+
+void fn_80018B38(void) {
+    fn_800ACFB0(*(void**)HA(0x2C88));
+    *(s16*)HA(0x2D68) = -1;
+}
+
+void fn_8001AAA4(void) {
+    DrawingSceneStruct* item = insertGraphicDrawingFunction(challengeMapRelated, 0);
+
+    ((u8*)item)[0x14] = 0;
+    item->currentDrawingItem->state = 0;
+    *HA(0x3082) = 0;
+    lbl_803CBBF0 = 0;
+}
+
+void fn_8001AAF0(void) {
+    fn_8003AC90();
+}
+
+void fn_8001B200(void) {
+    *(u32*)HA(0x308C) = 0;
+}
+
+void fn_8001B214(void (*func)(void)) {
+    *(void (**)(void))HA(0x308C) = func;
+}
+
+void fn_8001B308(int index, int attach) {
+    u8* obj = HA_OBJ(index);
+    u8* node;
+
+    if (obj == NULL) {
+        return;
+    }
+    node = (u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34;
+    if (attach != 0) {
+        *(u8**)(node + 0x68) = obj + 0x72;
+    } else {
+        *(u8**)(node + 0x68) = NULL;
+    }
+}
+
+void fn_8001C528(void) {
+    u8* p = HA(0);
+    s32 i;
+
+    for (i = 0; i < 13; i++) {
+        *(s16*)(p + 0xC64) = -1;
+        *(s16*)(p + 0xC66) = -1;
+        *(s16*)(p + 0xC68) = -1;
+        *(s16*)(p + 0xC6A) = -1;
+        *(s16*)(p + 0xC6C) = 0;
+        *(s16*)(p + 0xC6E) = 0;
+        p[0xE62] = 1;
+        p[0xE63] = 0;
+        p[0xE66] = 0;
+        p[0xE6C] = 0;
+        p[0xE6D] = 0;
+        p[0xE6E] = 0;
+        p[0xE6F] = 0;
+        p[0xE73] = 0;
+        p += 0x27C;
+    }
+}
+
+void fn_8001D074(int index, int enable) {
+    u8* obj = HA_OBJ(index);
+    u8* node;
+
+    if (obj == NULL) {
+        return;
+    }
+    node = *(u8**)((u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34);
+    if (enable != 0) {
+        node[0x98] |= 4;
+    } else {
+        node[0x98] &= ~4;
+    }
+}
+
+void fn_8001FDD4(u8* obj) {
+    if (*(void**)(obj + 0x70) != NULL) {
+        setLITLightPtr(*(void**)(obj + 0x70));
+    }
+}
