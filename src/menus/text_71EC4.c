@@ -306,7 +306,6 @@ int fn_2_73B54(int x) {
 // .text:0x00073994 size:0x1C0
 void fn_2_73994(DrawingSceneStruct *node, int idx) {
     MenuScene *scene = (MenuScene *)node;
-    u8 *table = Static_Stats_Tables + 0x34;
     s32 a;
     s32 b;
     u8 v1;
@@ -322,8 +321,8 @@ void fn_2_73994(DrawingSceneStruct *node, int idx) {
         b = *((u8 *)&g_Challenge + 0x441D);
         a = b;
     }
-    v1 = table[(a / 9) * 0x5A0 + (a % 9) * 0xA0];
-    t2 = table[(b / 9) * 0x5A0 + (b % 9) * 0xA0];
+    v1 = Static_Stats_Tables[0x34 + (a / 9) * 0x5A0 + (a % 9) * 0xA0];
+    t2 = Static_Stats_Tables[0x34 + (b / 9) * 0x5A0 + (b % 9) * 0xA0];
     *(u32 *)(gfxRecord(scene->firstHandle + idx + 0x82) + 0x5C) = lbl_2_data_2B3A4[v1] << 16;
     *(u32 *)(gfxRecord(scene->firstHandle + idx + 0x7E) + 0x5C) = lbl_2_data_2B3A4[v1] << 16;
     load_Icon(node, idx + 0x89, 1, 3, lbl_2_data_2B3A4[v1]);
