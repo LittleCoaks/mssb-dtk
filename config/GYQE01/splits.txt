@@ -14,15 +14,12 @@ Sections:
 	.sdata2     type:rodata align:4
 	.sbss2      type:bss align:32
 
-Unknown/File_0x80008fd0.c:
-	extab       start:0x80005608 end:0x80005610
-	extabindex  start:0x80006C6C end:0x80006C78
-	.text       start:0x80008FD0 end:0x8000900C
-
-Unknown/File_0x80009180.c:
-	extab       start:0x80005628 end:0x80005630
-	extabindex  start:0x80006C9C end:0x80006CA8
-	.text       start:0x80009180 end:0x800096DC
+Unknown/File_0x80008e00.c:
+	extab       start:0x80005600 end:0x80005630
+	extabindex  start:0x80006C60 end:0x80006CA8
+	.text       start:0x80008E00 end:0x800096DC
+	.bss        start:0x801181A0 end:0x80118220
+	.sbss       start:0x803CBBA0 end:0x803CBBD0
 	.sbss2      start:0x803CD300 end:0x803CD308
 
 Unknown/File_0x800096dc.c:
@@ -1323,10 +1320,11 @@ Unknown/graphic.c:
 	.sdata      start:0x803CBAD0 end:0x803CBAD8
 	.sdata2     start:0x803CCED0 end:0x803CCEE0
 
-Unknown/File_0x800a8cbc.c:
-	extab       start:0x800066F8 end:0x80006700
-	extabindex  start:0x800085D4 end:0x800085E0
-	.text       start:0x800A8CBC end:0x800A8E30
+Unknown/File_0x800a8518.c:
+	extab       start:0x800066C8 end:0x80006750
+	extabindex  start:0x8000858C end:0x80008658
+	.text       start:0x800A8518 end:0x800A94C4
+	.sbss       start:0x803CC128 end:0x803CC158
 
 Unknown/File_0x800a983c.c:
 	extab       start:0x80006760 end:0x80006768

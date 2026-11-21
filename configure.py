@@ -627,8 +627,7 @@ config.libs = [
         "objects": [
             Object(NonMatching, "Unknown/File_0x800a6304.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x800a64e0.c", extra_cflags=["-cpp_exceptions on"]),
-            Object(Matching, "Unknown/File_0x80008fd0.c", extra_cflags=["-cpp_exceptions on"]),
-            Object(NonMatching, "Unknown/File_0x80009180.c", extra_cflags=["-cpp_exceptions on"]),
+            Object(NonMatching, "Unknown/File_0x80008e00.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "Unknown/File_0x800096dc.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x800097a0.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x80009e94.c"),
@@ -726,7 +725,7 @@ config.libs = [
             Object(Matching, "Unknown/File_0x800a7670.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x800a76bc.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/graphic.c", extra_cflags=["-cpp_exceptions on"]),
-            Object(Matching, "Unknown/File_0x800a8cbc.c", extra_cflags=["-cpp_exceptions on"]),
+            Object(NonMatching, "Unknown/File_0x800a8518.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "Unknown/File_0x800a983c.c", extra_cflags=["-cpp_exceptions on"]),
             Object(Matching, "Unknown/mcard.c", extra_cflags=["-cpp_exceptions on"]),
             Object(NonMatching, "Unknown/File_0x800acf14.c"),

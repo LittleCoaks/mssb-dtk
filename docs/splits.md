@@ -1503,7 +1503,7 @@ exactly the unowned slots between the two SDK units in every section:
   and the magic double, read only by its `capApplicationFunction`, between
   `File_0x8003a37c`'s pool and `File_0x8004ac00`'s).
 - `.sbss2`: `0x803CD300-0x803CD308` (read only by `main`) goes to
-  `Unknown/File_0x80009180.c` and `0x803CD308-0x803CD30E` (read only by
+  `main`'s unit (now `File_0x80008e00.c`, below) and `0x803CD308-0x803CD30E` (read only by
   `fn_80011CA8`) to `Unknown/model.c`, in their `.text` order.
 
 ### A rule used below: a unit's data starts 8-aligned
@@ -1540,6 +1540,57 @@ The 2026-11-20 unit started its `.sbss` at `0x803CBD34` (`lbl_803CBD34`,
 (`0x802E4CE8-0x802E5200`) are read only by its code too, but it is
 `Matching` and declares them `extern`; claiming them needs the definitions in
 C first (tried: the link fails with the objects undefined).
+
+### `Unknown/File_0x80008e00.c`: `main`'s TU (`0x80008E00-0x800096DC`)
+
+The first `.text` TU. The `.sbss` section opens with a packed run that only
+this code reads:
+
+| object | readers |
+|---|---|
+| `0x803CBBA0`, `0x803CBBA4` (byte) | `fn_80008E08`, `fn_80009028`, `fn_800090B4`, `main` |
+| `0x803CBBA8`, `0x803CBBAC` | `main`; `fn_80008E08`, `PostRetraceCallback`, `fn_8000900C`, `main` |
+| `0x803CBBB0`, `0x803CBBB4` (byte) | `fn_80008E08`, `main` |
+| `0x803CBBB8`, `0x803CBBBC` | `fn_80008E00`, `main`; `fn_80009018`, `main` |
+| `0x803CBBC0` (byte, `drawStadiumRelated`), `0x803CBBC1`, `0x803CBBC2`, `0x803CBBC4`, `0x803CBBCC` (`menuControlVariables`) | many; `fn_80008E08`, `main`; `fn_80008E08`, `PostRetraceCallback`, `main`; none; many |
+
+Each 8-byte slot pairs a `main`-only (or `main` + helper) word with a helper
+word, and the byte objects cannot start a TU, so `main` and the helpers before
+it share the run (`fn_80009144` calls `fn_80009094` and `fn_800090B4`, `main`
+calls `fn_80008E08` and `PostRetraceCallback`). `.bss lbl_801181A0` (read only
+by `main`) is the first `.bss` object; `.sbss2 0x803CD300` (read only by
+`main`, claimed for `File_0x80009180` earlier today) moves with it.
+`s32DataId`/`s32ProgId` (`0x803CBBD0`, read by `PrepFilesToBeLoaded` and
+`handleLoadingProcess`) start the next TU and stay unowned.
+
+| section | range |
+|---|---|
+| `.text` | `0x80008E00-0x800096DC` (`File_0x80008fd0` (`PostRetraceCallback`, `Matching`) + `File_0x80009180` (`main`) + `fn_80008E00`, `fn_80008E08`, `fn_8000900C`, `fn_80009018`, `fn_80009028`, `fn_80009094`, `fn_800090B4`, `fn_80009144`) |
+| `extab` / `extabindex` | `0x80005600-0x80005630` / `0x80006C60-0x80006CA8` |
+| `.bss` / `.sbss` / `.sbss2` | `0x801181A0-0x80118220` / `0x803CBBA0-0x803CBBD0` / `0x803CD300-0x803CD308` |
+
+Source: the two files in address order; `File_0x80008fd0.c`'s
+`Dolphin/OS/OSReset.h` include clashed with `main`'s own `extern`s for
+`OSGetResetButtonState`/`OSResetSystem`, so it was dropped and
+`PostRetraceCallback` uses `main`'s `extern s32 OSGetResetButtonState(void)`
+(same code, still 100%).
+
+### `Unknown/File_0x800a8518.c`: the jukebox (`0x800A8518-0x800A94C4`)
+
+`LoadFile` (`File_0x800a8cbc`, `Matching`) and the 18 unowned functions around
+it (`fn_800A8518`, `jukeboxCmd`, ..., `jukeboxStop`, ..., `fn_800A94A8`) all
+work the DVD-stream queue in `.sbss 0x803CC128-0x803CC158`, which sits exactly
+between `SISamplingRate.c`'s `.sbss` and `mcard.c`'s and is read by nothing
+else: `jukeboxQueueHead`, `lbl_803CC14C` and `lbl_803CC154` by `LoadFile`,
+`fn_800A8AB8`, `fn_800A8B78`, `fn_800A8E30`, `jukeboxStop`, `fn_800A90E4`,
+...; the bytes `0x803CC134`/`0x803CC135` (which cannot start a TU) by
+`fn_800A8864`, `fn_800A8878`, `fn_800A88D8`, `jukeboxStop` and `fn_800A9424`.
+The unit takes `extab 0x800066C8-0x80006750`, `extabindex
+0x8000858C-0x80008658` and that `.sbss`. Left out: `fn_800A84C4` (reads only
+`lbl_803C7420`, like `graphic.c` and `fn_800A7BAC`), and the PAD functions
+`fn_800A94C4` ... `fn_800A97EC` (`AtBat_ButtonInput1`, `.data
+lbl_80110080`, which `PrepFilesToBeLoaded` also reads) before
+`initInputDevices`. One `Matching` unit is absorbed.
 
 ## The options / settings gap in the menus REL (2026-10-21)
 
