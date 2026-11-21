@@ -1790,6 +1790,15 @@ size and offsets). `File_0x80047ce0.c`'s stretch, which used the full
 `initTeamManagementScreen` rises 74.0% -> 76.3%. No `Matching` unit is
 absorbed in this group.
 
+### Four more gap-only units
+
+| unit | sections | evidence |
+|---|---|---|
+| `Unknown/File_0x80026134.c` | `.text 0x80026134-0x800263FC` (`fn_80026134`), `extab 0x80005BC0-0x80005BC8`, `extabindex 0x80007500-0x8000750C`, `.rodata 0x800E6768-0x800E6778`, `.sdata2 0x803CC5D8-0x803CC5F0` | its own pool (`0, 1e-6, 1, 0.4pi, 0.5, 0.3pi`): `File_0x80024d2c`'s before it holds `0.0f` and `0.5`, `particle_effects.c`'s after it starts with `0.5f`, `0.0f`; its `.rodata` matrix sits between `sub.c`'s and `particle_effects.c`'s (the 2026-11-20 lead) |
+| `Unknown/File_0x800bd548.c` | `.text 0x800BD548-0x800BD8C4` (`fn_800BD548`, `fn_800BD670`), `extab 0x80006BA0-0x80006BB0`, `extabindex 0x80008CD0-0x80008CE8`, `.data 0x80112338-0x80112380` | their jump tables are packed (`0x8011235C` at `4 mod 8` follows `0x80112338`), so one TU; the run sits between `normalTable.c`'s `.data` and `File_0x800bd8c4`'s jump table. `fn_800BD478` (no data) stays unowned |
+| `Unknown/File_0x8006c3f0.c` | `.text 0x8006C3F0-0x8006C488` (two getter/setter pairs), `extab 0x800065A0-0x800065B0`, `extabindex 0x800083D0-0x800083E8`, `.sbss 0x803CBD38-0x803CBD40` | `0x803CBD38` (`fn_8006C3F0`/`fn_8006C3F8`) and `0x803CBD3C` (`fn_8006C43C`/`fn_8006C444`) share an 8-byte slot after `File_0x80069b68`'s; `fn_8006C398` (no data) and the `blr` stub `fn_8006C488` stay out |
+| `Unknown/File_0x80023cf4.c` | `.text 0x80023CF4-0x80023D4C` (`fn_80023CF4`, `fn_80023D3C`, `fn_80023D44`), `extab 0x80005B50-0x80005B58`, `extabindex 0x80007458-0x80007464`, `.sbss 0x803CBC60-0x803CBC68` | the three access the `.sbss` word between `objinit.c`'s slot and `File_0x80024d2c`'s; `fn_80023D4C` ... `fn_80023F0C` (no data) may open `sub.c` and stay unowned |
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between

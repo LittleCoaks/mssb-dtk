@@ -130,6 +130,12 @@ Unknown/File_0x80023b90.c:
 	.rodata     start:0x800E6708 end:0x800E6720
 	.sdata2     start:0x803CC568 end:0x803CC580
 
+Unknown/File_0x80023cf4.c:
+	extab       start:0x80005B50 end:0x80005B58
+	extabindex  start:0x80007458 end:0x80007464
+	.text       start:0x80023CF4 end:0x80023D4C
+	.sbss       start:0x803CBC60 end:0x803CBC68
+
 Unknown/sub.c:
 	extab       start:0x80005B60 end:0x80005BA0
 	extabindex  start:0x80007470 end:0x800074D0
@@ -145,6 +151,13 @@ Unknown/File_0x80024d2c.c:
 	.sdata      start:0x803CB7F0 end:0x803CB7F8
 	.sbss       start:0x803CBC68 end:0x803CBC70
 	.sdata2     start:0x803CC5A8 end:0x803CC5D8
+
+Unknown/File_0x80026134.c:
+	extab       start:0x80005BC0 end:0x80005BC8
+	extabindex  start:0x80007500 end:0x8000750C
+	.text       start:0x80026134 end:0x800263FC
+	.rodata     start:0x800E6768 end:0x800E6778
+	.sdata2     start:0x803CC5D8 end:0x803CC5F0
 
 Unknown/particle_effects.c:
 	extab       start:0x80005BC8 end:0x80005D98
@@ -490,6 +503,12 @@ Unknown/File_0x8006c100.c:
 	.data       start:0x801093E8 end:0x80109420
 	.sdata      start:0x803CB8E0 end:0x803CB8F0
 	.sdata2     start:0x803CC938 end:0x803CC940
+
+Unknown/File_0x8006c3f0.c:
+	extab       start:0x800065A0 end:0x800065B0
+	extabindex  start:0x800083D0 end:0x800083E8
+	.text       start:0x8006C3F0 end:0x8006C488
+	.sbss       start:0x803CBD38 end:0x803CBD40
 
 challenge/challenge_progress.c:
 	extab       start:0x800065B0 end:0x800065C8
@@ -1437,6 +1456,12 @@ C3/light/light.c:
 	.text       start:0x800BD2B0 end:0x800BD478
 	.sbss       start:0x803CC220 end:0x803CC228
 	.sdata2     start:0x803CD058 end:0x803CD060
+
+Unknown/File_0x800bd548.c:
+	extab       start:0x80006BA0 end:0x80006BB0
+	extabindex  start:0x80008CD0 end:0x80008CE8
+	.text       start:0x800BD548 end:0x800BD8C4
+	.data       start:0x80112338 end:0x80112380
 
 Unknown/File_0x800bd8c4.c:
 	extab       start:0x80006BB0 end:0x80006BD8
