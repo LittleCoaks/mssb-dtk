@@ -1400,6 +1400,13 @@ previous unit's end and are read only by its code), embedded file names, and
 known SDK layouts. No function gained C; every check below is "build `ok`,
 report has every function of `rep_c19` at the same or a higher score".
 
+Result: main-DOL code in `auto_*` units 117,120 bytes / 287 functions ->
+27,512 bytes / 87 functions; main units in the report 611 -> 430; 46
+`Unknown`/SDK-adjacent sources merged away (17 of them `Matching`, so
+`Matching` main units drop accordingly; every function keeps its score, eight
+rise: the six `__start.c` functions, the TRK vector table and
+`initTeamManagementScreen`).
+
 ### SDK `.init` code: `Dolphin/os/__start.c` and `TRK_MINNOW_DOLPHIN/__exception.s`
 
 Both sources were already in `src/` but not split, so `.init`
@@ -1833,6 +1840,30 @@ Not claimed: `.data 0x801000A8-0x80108AA8` (`teamManagementGraphics_initialLoad`
 in the order `0x80061B9C`, `0x8006CF6C`, `0x80058050`, `0x80057C08`, so they
 are globals of one or more TUs before `team_management_screens.c`'s jump
 tables, not their readers' statics.
+
+### Leads left open (2026-11-21)
+
+- `fn_80011000` ... `fn_80011358` (`0x80011000-0x80011468`): no data of their
+  own; `screenTextArray` and `hugeAnimStruct` only.
+- `0x80040FE0-0x8004207C` (save/roster code): `.sbss lbl_803CBCC0` follows
+  `File_0x8003ae64`'s, but nothing ties it to either neighbour.
+- `fn_800531D0`/`fn_80053810`/`fn_80053FE8` and `.data 0x800FEB30-0x800FF540`:
+  either the head of `File_0x800542c4` or the tail of `File_0x8005268c`;
+  `fn_80053FE8` is called only by `updateMenuNumbers`.
+- `fn_80023AA4` and `File_0x80023b04` (`initActorArray`) share `objinit.c`'s
+  `.bss` and `actorSize`; `File_0x80063958` and `fn_800638CC` share
+  `File_0x800639bc`'s `.bss lbl_802E4BC0`.
+- `mb_subfunc.c` (`Matching`) should own `.sbss 0x803CBD18-0x803CBD30` and
+  `.bss 0x802E4CE8-0x802E5200` once its source defines them.
+- `Dolphin/os/OS.c`'s `.sbss` should start at `0x803CBD40`: `BI2DebugFlag`
+  (`0x803CBD44`) cannot start a TU.
+- The PAD functions `fn_800A94C4` ... `fn_800A97EC`, `fn_800A84C4`,
+  `fn_800A77A0` ... `fn_800A7BAC` (with `.data 0x8010F460-0x80110080` and
+  pool `0x803CCEC8`), `fn_8001FE00` (own pool `0x803CC530`), and
+  `.data 0x801000A8-0x80108AA8` (globals, see above).
+- `fn_8000B9C8`, `fn_80036C88`, `fn_800C07BC`, `fn_80057CAC`,
+  `fn_80058644` ... `fn_80058E0C`, `fn_8004A328` ... `fn_8004A9E0`: globals
+  only, no evidence either way.
 
 ## The options / settings gap in the menus REL (2026-10-21)
 
