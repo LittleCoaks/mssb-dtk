@@ -16,16 +16,50 @@
 #include "Unknown/File_0x80050760.h"
 #include "Unknown/File_0x80050fe8.h"
 #include "Unknown/sub.h"
+#include "Unknown/File_0x80034e20.h"
+#include "Unknown/File_0x80034cec.h"
+#include "Unknown/File_0x800363d8.h"
+#include "text/text.h"
 
 // 0x8004C9FC-0x80052188: the character-select (CSS) translation unit, one unit by
 // its .data/.sdata order (docs/splits.md, 2026-11-21): the former
 // File_0x8004ca6c ... File_0x80050fe8 sources in address order, plus unowned
 // functions that have no C yet.
 
+#define CHAR_SELECT_BYTE(off) (((u8 *)&charSelectStruct)[off])
+
 extern Unk803C5F74 lbl_803C5F74;
 extern u8 lbl_800EFBA4[0x10];
+extern u8 lbl_800FCA60[];
 extern s32 lbl_803CB874;
 extern s32 lbl_803CB878;
+extern u16 lbl_800FEAAC[][3];
+extern u8 lbl_80366158[0x30];
+extern u8 challengeCaptainCharIDArray[0xC];
+extern u8 variantCharIDs[0x170];
+extern u8 mapCaptainCursorPositionToCharID[0x350];
+extern u8 characterIconsOnCSS[0x744];
+
+void fn_8004C9FC(void) {
+    lbl_803CB874 = lbl_803CB878;
+}
+
+void fn_8004CA08(s32 frames) {
+    lbl_803CB878 = frames;
+    lbl_803CB874 = frames;
+}
+
+void fn_8004CA14(s32 bankIndex, s32 stringIndex) {
+    text_setPtrToWhereCharsAreStored(lbl_803C5F74.unk16, bankIndex, stringIndex);
+}
+
+void fn_8004CA48(s16 arg0, s16 arg1, s16 arg2, s16 arg3) {
+    lbl_803C5F74.unk1C = 1;
+    lbl_803C5F74.unk0E[0] = arg0;
+    lbl_803C5F74.unk0E[1] = arg1;
+    lbl_803C5F74.unk0E[2] = arg2;
+    lbl_803C5F74.unk0E[3] = arg3;
+}
 
 int exitMenu(u16 input) {
     if (lbl_803C5F74.state == 4) {
@@ -112,11 +146,231 @@ void fn_8004CC4C(u8 arg0, u8 arg1, u8 arg2, int arg3, u16 arg4) {
 }
 
 #define CHAR_SELECT_BYTE(off) (((u8 *)&charSelectStruct)[off])
+#define CSS_TEXT_SCENE_RECORD(n) ((UIRecord *)graphicsRelatedArray[((MenuScene *)item)->firstHandle + (n)].object)
+
+void fn_8004CCC0(void) {
+    DrawingSceneStruct *item = currentDrawingItem;
+    int flags;
+    s32 frame;
+
+    if (lbl_803C5F74.state == 0) {
+        lbl_803C5F74.state = 1;
+        if (lbl_803C5F74.unk1A >= 0) {
+            s32 channel = text_initializeNewChannel((UnkText988Arg *)item, 8, lbl_800FEAAC[lbl_803C5F74.unk01][2],
+                                                    lbl_803C5F74.unk1A, lbl_803C5F74.unk18, 0);
+            u16 block = channel;
+            screenTextArray.blocks[block].justify = 1;
+            lbl_803C5F74.unk16 = channel;
+            screenTextArray.blocks[block].verticalAlign = 1;
+            if (lbl_803C5F74.unk1B != 0) {
+                ((void (*)(s32, s16, s16, s16, s16))text_setInsertedValues)(
+                    block, lbl_803C5F74.unk06[0], lbl_803C5F74.unk06[1], lbl_803C5F74.unk06[2], lbl_803C5F74.unk06[3]);
+            }
+            if (lbl_803C5F74.unk1C != 0) {
+                text_setSubstringIndices(lbl_803C5F74.unk16, lbl_803C5F74.unk0E[0], lbl_803C5F74.unk0E[1],
+                                         lbl_803C5F74.unk0E[2], lbl_803C5F74.unk0E[3]);
+            }
+        }
+    } else if (lbl_803C5F74.state == 1) {
+        flags = 0;
+        if (lbl_803C5F74.unk01 == 7 || lbl_803C5F74.unk01 == 8 || lbl_803C5F74.unk01 == 10) {
+            frame = CSS_TEXT_SCENE_RECORD(1)->frame >> 16;
+            if (frame >= 3) {
+                flags |= 1;
+            }
+        } else {
+            frame = CSS_TEXT_SCENE_RECORD(3)->frame >> 16;
+            if (lbl_803C5F74.unk02 == 0) {
+                if (frame >= 5) {
+                    flags |= 1;
+                    CSS_TEXT_SCENE_RECORD(3)->playMode = 0;
+                }
+            } else if (frame <= 10) {
+                flags |= 1;
+                CSS_TEXT_SCENE_RECORD(3)->playMode = 0;
+            }
+        }
+        if (flags == 1) {
+            lbl_803C5F74.state = 2;
+        }
+    } else if (lbl_803C5F74.state == 2) {
+        if (lbl_803C5F74.unk01 != 7 && lbl_803C5F74.unk01 != 8 && lbl_803C5F74.unk01 != 10) {
+            frame = CSS_TEXT_SCENE_RECORD(3)->frame >> 16;
+            if (lbl_803C5F74.unk02 == 0) {
+                if (frame <= 5) {
+                    CSS_TEXT_SCENE_RECORD(3)->playMode = 0;
+                } else {
+                    CSS_TEXT_SCENE_RECORD(3)->playMode = 4;
+                }
+            } else if (frame >= 10) {
+                CSS_TEXT_SCENE_RECORD(3)->playMode = 0;
+            } else {
+                CSS_TEXT_SCENE_RECORD(3)->playMode = 1;
+            }
+        }
+    } else if (lbl_803C5F74.state == 3) {
+        if (lbl_803C5F74.unk04 != 0) {
+            CSS_TEXT_SCENE_RECORD(0)->playMode = 4;
+        }
+        CSS_TEXT_SCENE_RECORD(1)->playMode = 4;
+        flags = 0;
+        if (lbl_803C5F74.unk01 == 7 || lbl_803C5F74.unk01 == 8 || lbl_803C5F74.unk01 == 10 ||
+            lbl_803C5F74.unk01 == 9) {
+            frame = CSS_TEXT_SCENE_RECORD(1)->frame >> 16;
+            if (frame <= 0) {
+                flags |= 1;
+            }
+        } else {
+            frame = CSS_TEXT_SCENE_RECORD(3)->frame >> 16;
+            if (lbl_803C5F74.unk02 == 0) {
+                CSS_TEXT_SCENE_RECORD(3)->playMode = 4;
+                if (frame <= 0) {
+                    flags |= 1;
+                }
+            } else {
+                CSS_TEXT_SCENE_RECORD(3)->playMode = 1;
+                if (frame >= 15) {
+                    flags |= 1;
+                }
+            }
+        }
+        if (flags == 1) {
+            goto remove;
+        }
+    } else if (lbl_803C5F74.state == 4) {
+        goto remove;
+    }
+
+    if (lbl_803C5F74.unk1D != 0) {
+        CSS_TEXT_SCENE_RECORD(6)->flags |= UI_FLAG_VISIBLE;
+        CSS_TEXT_SCENE_RECORD(6)->playMode = 1;
+    } else {
+        CSS_TEXT_SCENE_RECORD(6)->flags &= ~UI_FLAG_VISIBLE;
+    }
+    return;
+
+remove:
+    if (lbl_803C5F74.unk1A >= 0) {
+        text_freeBlock(lbl_803C5F74.unk16);
+        fn_8000F8F4(item);
+    }
+    lbl_803C5F74.state = 4;
+    lbl_803C5F74.unk00 = 0;
+    removeGraphicsElementFromScene(item);
+    removeCurrentDrawingItem();
+    lbl_80366158[0x20] = 1;
+}
+
+#define CSS_TEXT_LAYOUT_ELEMENTS elements
+#define CSS_TEXT_LAYOUT_ANCHORS  anchors
+
+void fn_8004D0F0(void) {
+    u8 *data = lbl_800FCA60;
+    DrawingSceneStruct *item = currentDrawingItem;
+    u16 (*elements)[3];
+    u8 *anchors;
+
+    if (lbl_803C5F74.unk00 != 0) {
+        removeCurrentDrawingItem();
+        return;
+    }
+
+    lbl_803C5F74.unk00 = 1;
+    addGraphicsElementToScene(item, (const UIRecordDescriptor *)(data + 0x1F0C));
+    if (lbl_803C5F74.unk04 == 0) {
+        CSS_TEXT_SCENE_RECORD(0)->flags &= ~UI_FLAG_VISIBLE;
+    }
+
+    elements = (u16(*)[3])(data + 0x204C);
+    anchors = data + 0x2090;
+    CSS_TEXT_SCENE_RECORD(1)->elementIndex = CSS_TEXT_LAYOUT_ELEMENTS[lbl_803C5F74.unk01][0];
+    CSS_TEXT_SCENE_RECORD(2)->elementIndex = CSS_TEXT_LAYOUT_ELEMENTS[lbl_803C5F74.unk01][1];
+    CSS_TEXT_SCENE_RECORD(8)->frame = CSS_TEXT_LAYOUT_ELEMENTS[lbl_803C5F74.unk01][2] << 16;
+    CSS_TEXT_SCENE_RECORD(2)->anchorSub = CSS_TEXT_LAYOUT_ANCHORS[lbl_803C5F74.unk01 * 2];
+    CSS_TEXT_SCENE_RECORD(3)->anchorSub = CSS_TEXT_LAYOUT_ANCHORS[lbl_803C5F74.unk01 * 2 + 1];
+    CSS_TEXT_SCENE_RECORD(8)->anchorSub = CSS_TEXT_LAYOUT_ANCHORS[lbl_803C5F74.unk01 * 2];
+
+    if (lbl_803C5F74.unk1E == 1) {
+        CSS_TEXT_SCENE_RECORD(3)->elementIndex = 0xE3;
+    }
+    if (lbl_803C5F74.unk02 == 1) {
+        CSS_TEXT_SCENE_RECORD(3)->frame = 15 << 16;
+        CSS_TEXT_SCENE_RECORD(3)->playMode = 4;
+    }
+    if (lbl_803C5F74.unk01 == 7 || lbl_803C5F74.unk01 == 10) {
+        CSS_TEXT_SCENE_RECORD(3)->flags &= ~UI_FLAG_VISIBLE;
+    }
+
+    if (lbl_803C5F74.unk01 != 9) {
+        CSS_TEXT_SCENE_RECORD(4)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_TEXT_SCENE_RECORD(5)->flags &= ~UI_FLAG_VISIBLE;
+    } else {
+        load_Icon(item, 4, 1, 0xCD, lbl_803C5F74.unk02);
+        CSS_TEXT_SCENE_RECORD(3)->flags &= ~UI_FLAG_VISIBLE;
+    }
+
+    if (lbl_803C5F74.unk01 != 10) {
+        CSS_TEXT_SCENE_RECORD(6)->flags &= ~UI_FLAG_VISIBLE;
+        lbl_803C5F74.unk1D = 0;
+    } else {
+        lbl_803C5F74.unk1D = 1;
+    }
+
+    if (lbl_803C5F74.unk1D != 0) {
+        sndFXStartEx(0x1C2, lbl_800EFBA4[11], 0x3F, SND_STUDIO_DEFAULT);
+    } else if (lbl_803C5F74.unk01 == 0 || (lbl_803C5F74.unk01 >= 1 && lbl_803C5F74.unk01 <= 5) ||
+               lbl_803C5F74.unk01 == 6) {
+        sndFXStartEx(0x1BF, lbl_800EFBA4[8], 0x3F, SND_STUDIO_DEFAULT);
+    }
+
+    ((u16 *)((u8 *)item + 0x18))[0] = 0;
+    ((u16 *)((u8 *)item + 0x18))[1] = 0;
+    currentDrawingItem->func = fn_8004CCC0;
+}
+
 #define CHAR_SELECT_HALF(off) (*(s16 *)&CHAR_SELECT_BYTE(off))
 
-extern u8 challengeCaptainCharIDArray[0xC];
-extern u8 variantCharIDs[];
 extern u8 lbl_800EFBA4[];
+
+void fn_8004D460(BOOL isCharID, int value) {
+    int values[4];
+    int i;
+    int charID;
+    int slot;
+
+    values[0] = value;
+    for (i = 0; i < 1; i++) {
+        if (charSelectStruct.cursorPos[i] >= 0 && values[i] >= 0) {
+            if (!isCharID) {
+                charSelectStruct.cursorPos[i] = values[i];
+            } else {
+                charID = characterStaticIndexes[values[i]].trackerIdx;
+                for (slot = 0; slot < CHAR_SELECT_GRID_SLOTS; slot++) {
+                    if (charID == challengeCaptainCharIDArray[CHAR_SELECT_BYTE(0x8C) * 6 + slot]) {
+                        charSelectStruct.cursorPos[i] = slot;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void fn_8004D4F0(int team, int charID, BOOL add) {
+    int i;
+    int id = characterStaticIndexes[charID].trackerIdx;
+
+    for (i = 0; i < CHAR_SELECT_GRID_SLOTS; i++) {
+        if (id == challengeCaptainCharIDArray[CHAR_SELECT_BYTE(0x8C) * 6 + i]) {
+            if (add) {
+                charSelectStruct.slotTeam[i] = team;
+            } else {
+                charSelectStruct.slotTeam[i] = -1;
+            }
+            return;
+        }
+    }
+}
 
 int challengeCaptainSelect_returnsCharID(u16 currentHeldInput, u16 newInput, u16 processedInput) {
     s32 slots[CHAR_SELECT_GRID_SLOTS];
@@ -203,10 +457,10 @@ int challengeCaptainSelect_returnsCharID(u16 currentHeldInput, u16 newInput, u16
 
 BOOL challengeTransitionRelated(BOOL arg0) {
     if (CHAR_SELECT_BYTE(0x7E) == 0) {
-        if (arg0 == 0) {
-            CHAR_SELECT_BYTE(0x7E) = 1;
-        } else {
+        if (arg0 != 0) {
             CHAR_SELECT_BYTE(0x7E) = 3;
+        } else {
+            CHAR_SELECT_BYTE(0x7E) = 1;
         }
     }
 
@@ -297,8 +551,6 @@ void add_or_RemoveCharToATeam(int team, int charID, BOOL add) {
     }
 }
 
-extern u8 mapCaptainCursorPositionToCharID[0x350];
-extern u8 variantCharIDs[0x170];
 
 int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHeldInput, u16 newInput, u16 processedInput) {
     s32 slotClaim[12];
@@ -510,6 +762,26 @@ void fn_8004EEF4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     }
 }
 
+int fn_8004FD64(int team) {
+    int slot = charSelectStruct.cursorPos[team];
+
+    if ((s8)charSelectStruct.unk4C[slot] != 0) {
+        return -1;
+    }
+    return characterIconsOnCSS[slot];
+}
+
+void fn_8004FDA0(int charID) {
+    int i;
+
+    for (i = 0; i < CHAR_SELECT_GRID_SLOTS; i++) {
+        if (characterIconsOnCSS[i] == charID) {
+            charSelectStruct.unk4C[i] = 1;
+            return;
+        }
+    }
+}
+
 void cssLoadingRelated_1(BOOL valuesAreCharIDs, int cursor0, int cursor1, int cursor2, int cursor3, BOOL excludeAllCursors) {
     int requests[4];
     int avail[CHAR_SELECT_GRID_SLOTS];
@@ -646,7 +918,6 @@ void addOrRemoveCharacterToTeam(int team, int charID, BOOL add) {
     }
 }
 
-extern u8 lbl_800FCA60[];
 
 #define CSS_U8(off) (((u8 *)&charSelectStruct)[off])
 #define CSS_S8(off) (((s8 *)&charSelectStruct)[off])
@@ -813,9 +1084,27 @@ s32 charGrid_moveCursor(s32 port, s32 unused, s32 flags2, s32 flags3, s32 mode) 
     return CSS_S16(0x20 + port * 2);
 }
 
+s32 fn_80050F78(s32 arg) {
+    if (CHAR_SELECT_BYTE(0x7C) == 0) {
+        if (arg == 2) {
+            CHAR_SELECT_BYTE(0x7C) = 4;
+            CHAR_SELECT_BYTE(0x90) = 1;
+        } else if (arg != 0) {
+            CHAR_SELECT_BYTE(0x7C) = 3;
+        } else {
+            CHAR_SELECT_BYTE(0x7C) = 1;
+        }
+    }
+
+    if (CHAR_SELECT_BYTE(0x7C) == 2) {
+        CHAR_SELECT_BYTE(0x7C) = 0;
+        return TRUE;
+    }
+    return FALSE;
+}
+
 /* File_0x80050fe8 viewed charSelectStruct as s8[0x94]. */
 #define charSelectStruct (*(s8(*)[0x94])&charSelectStruct)
-extern u8 characterIconsOnCSS[0x744];
 
 void css_initValues(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
     s32 i;
