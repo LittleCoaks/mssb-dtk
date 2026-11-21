@@ -1592,6 +1592,48 @@ The unit takes `extab 0x800066C8-0x80006750`, `extabindex
 lbl_80110080`, which `PrepFilesToBeLoaded` also reads) before
 `initInputDevices`. One `Matching` unit is absorbed.
 
+### `Unknown/File_0x8004c9fc.c`: the character-select TU (`0x8004C9FC-0x80052188`)
+
+The `.data` run `0x800FCA60-0x800FEB08` and the `.sdata` run
+`0x803CB870-0x803CB880` are read only by the character-select code between
+`fn_8004C5F8` and `File_0x800521b0`, and their small objects come in the
+*reverse* of their readers' `.text` order:
+
+| `.data` object | reader |
+|---|---|
+| `0x800FCA60` (0x1400) | `fn_8004D0F0`, `fn_8004E2EC`, `captainSelect_processCursorMovement_getCharID`, `fn_8004F964`, `charGrid_moveCursor`, `fn_80051D00` |
+| `0x800FDE60`, `0x800FDE84` (`characterIconsOnCSS`) | `fn_8005138C`; `fn_8004FD64` ... `fn_8005138C` |
+| `0x800FE5C8`, `0x800FE5D4` (`mapCaptainCursorPositionToCharID`), `0x800FE924` | `fn_8004F10C`; `storeCursorLocOrCharIDs`, `add_or_RemoveCharToATeam`, `fn_8004EEF4`; `fn_8004DB90` |
+| `0x800FE930` (`challengeCaptainCharIDArray`), `0x800FE93C` (`variantCharIDs`), `0x800FEAAC` | `fn_8004D460` ... `fn_8004D990`; `challengeCaptainSelect_returnsCharID`; `fn_8004CCC0` |
+
+`.sdata`: `0x803CB870` (`fn_8004E2EC`) before `0x803CB874`/`0x803CB878`
+(`fn_8004C9FC`, `fn_8004CA08`, `exitMenu`).
+
+Within each row the later objects start at `4 mod 8` (`0x800FDE84`,
+`0x800FE5D4`, `0x800FE924`, `0x800FE93C`, `0x800FEAAC`, `0x803CB874`), so
+each row is one TU's data, and the rows run backwards against `.text`
+(`fn_8005138C` > `fn_8004F10C` > `fn_8004DB90` > `fn_8004CCC0`;
+`fn_8004E2EC` > `fn_8004C9FC`). Separate TUs would put them in ascending
+order, so `fn_8004C9FC` ... `fn_8005138C` is one TU. Its ends:
+`fn_8004C5F8`'s jump table (`0x800FCA28`) and a 4-byte hole come right before
+`0x800FCA60`, so the previous TU ends at `0x8004C9FC`; `File_0x800521b0`'s
+`.data` follows at `0x800FEB08`. `fn_80051D00` (reads `0x800FCA60`) is the
+last reader; `fn_80052188` (reads only `charSelectStruct`) stays unowned.
+
+| section | range |
+|---|---|
+| `.text` | `0x8004C9FC-0x80052188`: `File_0x8004ca6c` (`exitMenu`), `8004cc18`, `8004d57c`, `8004d93c`, `8004e504`, `8004e5b4`, `8004e62c`, `8004ee84`, `80050138`, `800506e8`, `80050760`, `80050fe8` and 18 unowned functions (`fn_8004C9FC`, `fn_8004CA08`, `fn_8004CA14`, `fn_8004CA48`, `fn_8004CCC0`, `fn_8004D0F0`, `fn_8004D460`, `fn_8004D4F0`, `fn_8004DB90`, `fn_8004E2EC`, `fn_8004F10C`, `fn_8004F964`, `fn_8004FD64`, `fn_8004FDA0`, `fn_8004FDE8`, `fn_80050F78`, `fn_8005138C`, `fn_80051D00`) |
+| `extab` / `extabindex` | `0x80006150-0x800061E0` / `0x80007D58-0x80007E30` |
+| `.data` / `.sdata` | `0x800FCA60-0x800FEB08` / `0x803CB870-0x803CB880` |
+
+Source: the twelve files concatenated in address order (headers kept and
+included, duplicate `extern`s dropped). `File_0x80050fe8.c` declared
+`charSelectStruct` as `s8[0x94]` against the `CharSelectState` of
+`File_0x8004e5b4.h`; its stretch now reads it through `#define
+charSelectStruct (*(s8(*)[0x94])&charSelectStruct)`, `#undef`'d at the end.
+Five of the units were built without `-cpp_exceptions on`; the merged unit
+uses it. Five `Matching` units are absorbed; every function keeps its score.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
