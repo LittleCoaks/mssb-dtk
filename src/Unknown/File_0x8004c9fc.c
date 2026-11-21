@@ -20,6 +20,7 @@
 #include "Unknown/File_0x80034cec.h"
 #include "Unknown/File_0x800363d8.h"
 #include "text/text.h"
+#include "game/challenge/challenge_state.h"
 
 // 0x8004C9FC-0x80052188: the character-select (CSS) translation unit, one unit by
 // its .data/.sdata order (docs/splits.md, 2026-11-21): the former
@@ -31,9 +32,16 @@
 extern Unk803C5F74 lbl_803C5F74;
 extern u8 lbl_800EFBA4[0x10];
 extern u8 lbl_800FCA60[];
+extern u8 lbl_800FE924[];
+extern u8 lbl_800FE5C8[];
+extern u8 superstarUnlocked[];
+extern u8 lbl_800FDE60[CHAR_SELECT_GRID_SLOTS];
+extern u8 lbl_800E854C[12];
 extern s32 lbl_803CB874;
 extern s32 lbl_803CB878;
 extern u16 lbl_800FEAAC[][3];
+extern u16 lbl_803CB870[2];
+s32 fn_80036214(void *scene, s32 a, s32 b, s32 c);
 extern u8 lbl_80366158[0x30];
 extern u8 challengeCaptainCharIDArray[0xC];
 extern u8 variantCharIDs[0x170];
@@ -508,6 +516,185 @@ void fn_8004D990(u8 arg0, BOOL arg1, u8 arg2) {
     }
 }
 
+#define CSS_CAPTAIN_SCENE_PHASE (*(u16 *)((u8 *)item + 0x1C))
+#define CSS_CAPTAIN_RECORD(n)   CSS_TEXT_SCENE_RECORD(n)
+
+void fn_8004DB90(void) {
+    DrawingSceneStruct *item;
+    s32 i;
+    s32 k;
+    s32 frame;
+    s32 loopCount;
+    u8 *table;
+
+    CHAR_SELECT_BYTE(0x92) = 0;
+    item = currentDrawingItem;
+    frame = CSS_CAPTAIN_RECORD(2)->frame >> 16;
+
+    if (CSS_CAPTAIN_SCENE_PHASE == 0) {
+        if (frame == 30) {
+            CSS_CAPTAIN_RECORD(2)->playMode = 0;
+            CSS_CAPTAIN_SCENE_PHASE = 1;
+        }
+    } else if (CSS_CAPTAIN_SCENE_PHASE == 1) {
+        CHAR_SELECT_BYTE(0x92) = 1;
+        if (CHAR_SELECT_BYTE(0x7E) == 3) {
+            goto remove;
+        }
+        if (CHAR_SELECT_BYTE(0x7E) == 1) {
+            CSS_CAPTAIN_RECORD(2)->playMode = UI_PLAY_BACKWARD;
+            CSS_CAPTAIN_RECORD(1)->playMode = UI_PLAY_BACKWARD;
+            CSS_CAPTAIN_SCENE_PHASE = 2;
+        }
+    } else if (CSS_CAPTAIN_SCENE_PHASE == 2) {
+        if (frame <= 5) {
+            goto remove;
+        }
+    }
+
+    if (CSS_CAPTAIN_SCENE_PHASE != 3) {
+        for (i = 0; i < 6; i++) {
+            s32 r11 = i + 11;
+            s32 r3 = i + 3;
+            s32 r17 = i + 17;
+            if (CHAR_SELECT_BYTE(0x8C) == 0 && i == 5) {
+                break;
+            }
+            if (CSS_CAPTAIN_SCENE_PHASE == 0) {
+                if ((CSS_CAPTAIN_RECORD(r11)->frame >> 16) >= 5) {
+                    CSS_CAPTAIN_RECORD(r11)->playMode = 0;
+                }
+            } else if (charSelectStruct.slotTeam[i] >= 0) {
+                CSS_CAPTAIN_RECORD(r11)->playMode = UI_PLAY_FORWARD;
+                CSS_CAPTAIN_RECORD(r3)->rgba =
+                    (fn_80036214(item, 0, 0, CHAR_SELECT_BYTE(0x8D)) & 0xFFFFFF00) | (CSS_CAPTAIN_RECORD(r3)->rgba & 0xFF);
+                CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_FORWARD;
+                CSS_CAPTAIN_RECORD(r17)->flags |= UI_FLAG_VISIBLE;
+                if ((CSS_CAPTAIN_RECORD(r17)->frame >> 16) <= 12) {
+                    CSS_CAPTAIN_RECORD(r17)->frame = 12 << 16;
+                    CSS_CAPTAIN_RECORD(r17)->playMode = UI_PLAY_FORWARD;
+                    for (k = 0; k < 4; k++) {
+                        if (CHAR_SELECT_BYTE(0x78 + CHAR_SELECT_BYTE(0x8D)) != 0 && charSelectStruct.cursorPos[k] == i) {
+                            CSS_CAPTAIN_RECORD(23 + k)->frame = 0;
+                        }
+                    }
+                }
+                load_Icon(item, r17, 1, 0x1A, charSelectStruct.slotTeam[i]);
+            } else {
+                if ((CSS_CAPTAIN_RECORD(r17)->frame >> 16) > 12) {
+                    CSS_CAPTAIN_RECORD(r17)->playMode = UI_PLAY_BACKWARD;
+                } else {
+                    CSS_CAPTAIN_RECORD(r17)->flags &= ~UI_FLAG_VISIBLE;
+                }
+                for (k = 0; k < 4; k++) {
+                    if (CHAR_SELECT_BYTE(0x78 + CHAR_SELECT_BYTE(0x8D)) != 0 &&
+                        charSelectStruct.cursorPos[CHAR_SELECT_BYTE(0x8D)] == i) {
+                        frame = CSS_CAPTAIN_RECORD(r11)->frame >> 16;
+                        if (frame < 15) {
+                            CSS_CAPTAIN_RECORD(r11)->playMode = UI_PLAY_FORWARD;
+                        } else if (frame <= 15) {
+                            CSS_CAPTAIN_RECORD(r11)->playMode = 0;
+                        } else {
+                            CSS_CAPTAIN_RECORD(r11)->playMode = UI_PLAY_BACKWARD;
+                        }
+                        frame = CSS_CAPTAIN_RECORD(r3)->frame >> 16;
+                        if (frame < 10) {
+                            CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_FORWARD;
+                        } else {
+                            CSS_CAPTAIN_RECORD(r3)->playMode = 0;
+                        }
+                        CSS_CAPTAIN_RECORD(r3)->rgba = 0xFFFFFF00 | (CSS_CAPTAIN_RECORD(r3)->rgba & 0xFF);
+                        break;
+                    }
+                }
+                if (k >= 4) {
+                    if ((CSS_CAPTAIN_RECORD(r11)->frame >> 16) <= 5) {
+                        CSS_CAPTAIN_RECORD(r11)->playMode = 0;
+                    } else {
+                        CSS_CAPTAIN_RECORD(r11)->playMode = UI_PLAY_BACKWARD;
+                    }
+                    if ((CSS_CAPTAIN_RECORD(r3)->frame >> 16) != 0) {
+                        CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_BACKWARD;
+                    } else {
+                        CSS_CAPTAIN_RECORD(r3)->playMode = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    if (CHAR_SELECT_BYTE(0x78 + CHAR_SELECT_BYTE(0x8D)) != 0 && CSS_CAPTAIN_SCENE_PHASE == 1) {
+        table = lbl_800FE924;
+        CSS_CAPTAIN_RECORD(10)->flags |= UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(9)->flags |= UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(23)->flags |= UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(10)->anchorSub = table[CHAR_SELECT_BYTE(0x8C) * 6 + charSelectStruct.cursorPos[CHAR_SELECT_BYTE(0x8D)]];
+        CSS_CAPTAIN_RECORD(9)->anchorSub = table[CHAR_SELECT_BYTE(0x8C) * 6 + charSelectStruct.cursorPos[CHAR_SELECT_BYTE(0x8D)]];
+        CSS_CAPTAIN_RECORD(23)->anchorSub = table[CHAR_SELECT_BYTE(0x8C) * 6 + charSelectStruct.cursorPos[CHAR_SELECT_BYTE(0x8D)]];
+        if ((CSS_CAPTAIN_RECORD(23)->frame >> 16) < 12) {
+            CSS_CAPTAIN_RECORD(23)->playMode = UI_PLAY_FORWARD;
+        } else {
+            CSS_CAPTAIN_RECORD(23)->playMode = 0;
+            CSS_CAPTAIN_RECORD(23)->frame = 12 << 16;
+        }
+    } else {
+        CSS_CAPTAIN_RECORD(10)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(9)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(23)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(23)->frame = 0;
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (CHAR_SELECT_BYTE(0x78 + i) != 0) {
+            CHAR_SELECT_BYTE(0x78 + i)--;
+        }
+    }
+    return;
+
+remove:
+    CHAR_SELECT_BYTE(0x7E) = 2;
+    removeGraphicsElementFromScene(item);
+    removeCurrentDrawingItem();
+}
+
+void fn_8004E2EC(void) {
+    u8 *data = lbl_800FCA60;
+    UIRecordDescriptor *descriptors = (UIRecordDescriptor *)(data + 0x1BA4);
+    DrawingSceneStruct *item;
+    s32 mode = CHAR_SELECT_BYTE(0x8C);
+    u8 *icons;
+    u8 *anchors;
+    s32 i;
+
+    item = currentDrawingItem;
+    descriptors[2].elementIndex = lbl_803CB870[mode];
+    addGraphicsElementToScene(item, descriptors);
+    icons = data + 0x1ED0 + mode * 6;
+    anchors = data + 0x1EC4 + mode * 6;
+    for (i = 0; i < 6; i++) {
+        if (i == 5 && mode == 0) {
+            continue;
+        }
+        load_Icon(item, 11 + i, 1, 0x19, icons[i]);
+        CSS_CAPTAIN_RECORD(11 + i)->anchorSub = anchors[i];
+        CSS_CAPTAIN_RECORD(17 + i)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(17 + i)->anchorSub = anchors[i];
+        load_Icon(item, 17 + i, 1, 0x1A, CHAR_SELECT_BYTE(0x8D));
+        CSS_CAPTAIN_RECORD(3 + i)->anchorSub = anchors[i];
+    }
+    CSS_CAPTAIN_RECORD(10)->frame = CHAR_SELECT_BYTE(0x8D) << 16;
+    load_Icon(item, 23, 1, 0x1A, CHAR_SELECT_BYTE(0x8D));
+    if (mode == 0) {
+        CSS_CAPTAIN_RECORD(8)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(16)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(22)->flags &= ~UI_FLAG_VISIBLE;
+    }
+    CHAR_SELECT_BYTE(0x7E) = 0;
+    CHAR_SELECT_BYTE(0x92) = 0;
+    CSS_CAPTAIN_SCENE_PHASE = 0;
+    currentDrawingItem->func = fn_8004DB90;
+}
+
 void storeCursorLocOrCharIDs(BOOL isCharID, int port0, int port1, int port2, int port3) {
     int values[4];
     int i;
@@ -762,6 +949,248 @@ void fn_8004EEF4(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     }
 }
 
+void fn_8004F10C(void) {
+    DrawingSceneStruct *item;
+    s32 i;
+    s32 k;
+    s32 frame;
+    s32 done;
+
+    CHAR_SELECT_BYTE(0x92) = 0;
+    item = currentDrawingItem;
+    frame = CSS_CAPTAIN_RECORD(2)->frame >> 16;
+
+    if (CSS_CAPTAIN_SCENE_PHASE == 0) {
+        done = 0;
+        if (frame == 15) {
+            CSS_CAPTAIN_RECORD(2)->playMode = 0;
+            done = 1;
+        }
+        if ((CSS_CAPTAIN_RECORD(1)->frame >> 16) == 15) {
+            CSS_CAPTAIN_RECORD(1)->playMode = 0;
+            done++;
+        }
+        if (done == 2) {
+            CSS_CAPTAIN_SCENE_PHASE = 1;
+            CHAR_SELECT_BYTE(0x90) = 0;
+        }
+    } else if (CSS_CAPTAIN_SCENE_PHASE == 1) {
+        CHAR_SELECT_BYTE(0x92) = 1;
+        if (CHAR_SELECT_BYTE(0x7D) == 3) {
+            goto remove;
+        }
+        if (CHAR_SELECT_BYTE(0x7D) == 1) {
+            CSS_CAPTAIN_RECORD(2)->playMode = UI_PLAY_BACKWARD;
+            CSS_CAPTAIN_RECORD(1)->playMode = UI_PLAY_BACKWARD;
+            CSS_CAPTAIN_SCENE_PHASE = 2;
+        } else if (CHAR_SELECT_BYTE(0x7D) == 4) {
+            CSS_CAPTAIN_RECORD(2)->playMode = UI_PLAY_FORWARD;
+            CSS_CAPTAIN_RECORD(1)->playMode = UI_PLAY_FORWARD;
+            CSS_CAPTAIN_SCENE_PHASE = 3;
+        }
+    } else if (CSS_CAPTAIN_SCENE_PHASE == 2) {
+        if (frame <= 5) {
+            goto remove;
+        }
+    } else if (CSS_CAPTAIN_SCENE_PHASE == 3) {
+        CHAR_SELECT_BYTE(0x7D) = 2;
+        if (CHAR_SELECT_BYTE(0x8E) == 2) {
+            goto remove;
+        }
+        done = 0;
+        if (frame >= 55) {
+            CSS_CAPTAIN_RECORD(2)->playMode = 0;
+            done = 1;
+        }
+        if ((CSS_CAPTAIN_RECORD(1)->frame >> 16) >= 50) {
+            CSS_CAPTAIN_RECORD(1)->playMode = 0;
+            done++;
+        }
+        if (done >= 2) {
+            CHAR_SELECT_BYTE(0x8E) = 2;
+        }
+    }
+
+    if (CSS_CAPTAIN_SCENE_PHASE != 3) {
+        for (i = 0; i < 12; i++) {
+            s32 r23 = i + 23;
+            s32 r3 = i + 3;
+            s32 r35 = i + 35;
+            if (CSS_CAPTAIN_SCENE_PHASE == 0) {
+                if ((CSS_CAPTAIN_RECORD(r23)->frame >> 16) >= 5) {
+                    CSS_CAPTAIN_RECORD(r23)->playMode = 0;
+                }
+            } else if (charSelectStruct.slotTeam[i] >= 0) {
+                CSS_CAPTAIN_RECORD(r23)->playMode = UI_PLAY_FORWARD;
+                CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_FORWARD;
+                CSS_CAPTAIN_RECORD(r35)->flags |= UI_FLAG_VISIBLE;
+                if ((CSS_CAPTAIN_RECORD(r35)->frame >> 16) <= 12) {
+                    CSS_CAPTAIN_RECORD(r35)->frame = 12 << 16;
+                    CSS_CAPTAIN_RECORD(r35)->playMode = UI_PLAY_FORWARD;
+                    for (k = 0; k < 4; k++) {
+                        if (CHAR_SELECT_BYTE(0x78 + k) != 0 && charSelectStruct.cursorPos[k] == i) {
+                            CSS_CAPTAIN_RECORD(47 + k)->frame = 0;
+                        }
+                    }
+                }
+                if (CHAR_SELECT_BYTE(0x74 + charSelectStruct.slotTeam[i]) != 0) {
+                    load_Icon(item, r35, 1, 0x1A, charSelectStruct.slotTeam[i] + 4);
+                } else {
+                    load_Icon(item, r35, 1, 0x1A, charSelectStruct.slotTeam[i]);
+                }
+            } else {
+                if ((CSS_CAPTAIN_RECORD(r35)->frame >> 16) > 12) {
+                    CSS_CAPTAIN_RECORD(r35)->playMode = UI_PLAY_BACKWARD;
+                } else {
+                    CSS_CAPTAIN_RECORD(r35)->flags &= ~UI_FLAG_VISIBLE;
+                }
+                for (k = 0; k < 4; k++) {
+                    if (CHAR_SELECT_BYTE(0x78 + k) != 0 && charSelectStruct.cursorPos[k] == i) {
+                        frame = CSS_CAPTAIN_RECORD(r23)->frame >> 16;
+                        if (frame < 15) {
+                            CSS_CAPTAIN_RECORD(r23)->playMode = UI_PLAY_FORWARD;
+                        } else if (frame <= 15) {
+                            CSS_CAPTAIN_RECORD(r23)->playMode = 0;
+                        } else {
+                            CSS_CAPTAIN_RECORD(r23)->playMode = UI_PLAY_BACKWARD;
+                        }
+                        frame = CSS_CAPTAIN_RECORD(r3)->frame >> 16;
+                        if (frame < 10) {
+                            CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_FORWARD;
+                        } else {
+                            CSS_CAPTAIN_RECORD(r3)->playMode = 0;
+                        }
+                        CSS_CAPTAIN_RECORD(r3)->rgba = 0xFFFFFF00 | (CSS_CAPTAIN_RECORD(r3)->rgba & 0xFF);
+                        break;
+                    }
+                }
+                if (k >= 4) {
+                    if ((CSS_CAPTAIN_RECORD(r23)->frame >> 16) <= 5) {
+                        CSS_CAPTAIN_RECORD(r23)->playMode = 0;
+                    } else {
+                        CSS_CAPTAIN_RECORD(r23)->playMode = UI_PLAY_BACKWARD;
+                    }
+                    if ((CSS_CAPTAIN_RECORD(r3)->frame >> 16) != 0) {
+                        CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_BACKWARD;
+                    } else {
+                        CSS_CAPTAIN_RECORD(r3)->playMode = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (CHAR_SELECT_BYTE(0x78 + i) != 0 && CSS_CAPTAIN_SCENE_PHASE == 1) {
+            if (CHAR_SELECT_BYTE(0x74 + i) != 0) {
+                load_Icon(item, 47 + i, 1, 0x1A, i + 4);
+            } else {
+                load_Icon(item, 47 + i, 1, 0x1A, i);
+            }
+            CSS_CAPTAIN_RECORD(19 + i)->flags |= UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(15 + i)->flags |= UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(47 + i)->flags |= UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(19 + i)->anchorSub = lbl_800FE5C8[charSelectStruct.cursorPos[i]];
+            CSS_CAPTAIN_RECORD(15 + i)->anchorSub = lbl_800FE5C8[charSelectStruct.cursorPos[i]];
+            CSS_CAPTAIN_RECORD(47 + i)->anchorSub = lbl_800FE5C8[charSelectStruct.cursorPos[i]];
+            if ((CSS_CAPTAIN_RECORD(47 + i)->frame >> 16) < 12) {
+                CSS_CAPTAIN_RECORD(47 + i)->playMode = UI_PLAY_FORWARD;
+            } else {
+                CSS_CAPTAIN_RECORD(47 + i)->playMode = 0;
+                CSS_CAPTAIN_RECORD(47 + i)->frame = 12 << 16;
+            }
+        } else {
+            CSS_CAPTAIN_RECORD(19 + i)->flags &= ~UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(15 + i)->flags &= ~UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(47 + i)->flags &= ~UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(47 + i)->frame = 0;
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (CHAR_SELECT_BYTE(0x78 + i) != 0) {
+            CHAR_SELECT_BYTE(0x78 + i)--;
+        }
+    }
+    return;
+
+remove:
+    CHAR_SELECT_BYTE(0x7D) = 2;
+    CHAR_SELECT_BYTE(0x8E) = 0;
+    removeGraphicsElementFromScene(item);
+    removeCurrentDrawingItem();
+}
+
+void fn_8004F964(void) {
+    u8 *data = lbl_800FCA60;
+    DrawingSceneStruct *item = currentDrawingItem;
+    u8 *icons;
+    u8 *anchors;
+    s32 i;
+    s32 j;
+
+    addGraphicsElementToScene(item, (const UIRecordDescriptor *)(data + 0x14E8));
+    if (CHAR_SELECT_BYTE(0x90) != 0) {
+        CSS_CAPTAIN_RECORD(2)->frame = 55 << 16;
+        CSS_CAPTAIN_RECORD(2)->playMode = UI_PLAY_BACKWARD;
+    }
+    if (CHAR_SELECT_BYTE(0x90) != 0) {
+        CSS_CAPTAIN_RECORD(1)->frame = 50 << 16;
+        CSS_CAPTAIN_RECORD(1)->playMode = UI_PLAY_BACKWARD;
+    } else {
+        CSS_CAPTAIN_RECORD(1)->frame = 0;
+        CSS_CAPTAIN_RECORD(1)->playMode = UI_PLAY_FORWARD;
+    }
+
+    icons = data + 0x1B74;
+    anchors = data + 0x1B68;
+    for (i = 0; i < 12; i++) {
+        load_Icon(item, 23 + i, 1, 0x19, icons[i]);
+        CSS_CAPTAIN_RECORD(23 + i)->anchorSub = anchors[i];
+        if (CHAR_SELECT_BYTE(0x90) != 0) {
+            for (j = 0; j < 12; j++) {
+                if (lbl_800E854C[j] == icons[i]) {
+                    CSS_CAPTAIN_RECORD(23 + i)->frame = 5 << 16;
+                    CSS_CAPTAIN_RECORD(23 + i)->playMode = 0;
+                    break;
+                }
+            }
+        }
+        CSS_CAPTAIN_RECORD(35 + i)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(35 + i)->anchorSub = anchors[i];
+        CSS_CAPTAIN_RECORD(3 + i)->anchorSub = anchors[i];
+        if (charSelectStruct.slotTeam[i] >= 0) {
+            CSS_CAPTAIN_RECORD(23 + i)->frame = 25 << 16;
+            CSS_CAPTAIN_RECORD(23 + i)->playMode = 0;
+            CSS_CAPTAIN_RECORD(3 + i)->frame = 25 << 16;
+            CSS_CAPTAIN_RECORD(3 + i)->playMode = 0;
+            CSS_CAPTAIN_RECORD(35 + i)->flags |= UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(35 + i)->frame = 25 << 16;
+            CSS_CAPTAIN_RECORD(35 + i)->playMode = 0;
+            if (CHAR_SELECT_BYTE(0x74 + charSelectStruct.slotTeam[i]) != 0) {
+                load_Icon(item, 35 + i, 1, 0x1A, charSelectStruct.slotTeam[i] + 4);
+            } else {
+                load_Icon(item, 35 + i, 1, 0x1A, charSelectStruct.slotTeam[i]);
+            }
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        CSS_CAPTAIN_RECORD(19 + i)->frame = i << 16;
+        if (CHAR_SELECT_BYTE(0x74 + i) != 0) {
+            load_Icon(item, 47 + i, 1, 0x1A, i + 4);
+        } else {
+            load_Icon(item, 47 + i, 1, 0x1A, i);
+        }
+    }
+
+    CHAR_SELECT_BYTE(0x7D) = 0;
+    CHAR_SELECT_BYTE(0x92) = 0;
+    CSS_CAPTAIN_SCENE_PHASE = 0;
+    CHAR_SELECT_BYTE(0x8E) = 1;
+    currentDrawingItem->func = fn_8004F10C;
+}
+
 int fn_8004FD64(int team) {
     int slot = charSelectStruct.cursorPos[team];
 
@@ -780,6 +1209,70 @@ void fn_8004FDA0(int charID) {
             return;
         }
     }
+}
+
+int fn_8004FDE8(int portA, int portB) {
+    s32 candidates[8];
+    s32 state[CHAR_SELECT_GRID_SLOTS];
+    s32 count;
+    s32 i;
+    s32 cur;
+
+    if (charSelectStruct.cursorPos[portA] != charSelectStruct.cursorPos[portB]) {
+        return -2;
+    }
+
+    for (i = 0; i < CHAR_SELECT_GRID_SLOTS; i++) {
+        state[i] = -1;
+        if ((s8)charSelectStruct.unk4C[i] != 0) {
+            state[i] = 0;
+        } else if (charSelectStruct.slotTeam[i] >= 0) {
+            state[i] = 0;
+        } else if (characterIconsOnCSS[i] == 0xFF) {
+            state[i] = 5;
+        } else if (CHAR_SELECT_HALF(0x18) == i && CHAR_SELECT_BYTE(0x78) != 0) {
+            state[i] = 1;
+        } else if (CHAR_SELECT_HALF(0x1A) == i && CHAR_SELECT_BYTE(0x79) != 0) {
+            state[i] = 2;
+        } else if (CHAR_SELECT_HALF(0x1C) == i && CHAR_SELECT_BYTE(0x7A) != 0) {
+            state[i] = 3;
+        } else if (CHAR_SELECT_HALF(0x1E) == i && CHAR_SELECT_BYTE(0x7B) != 0) {
+            state[i] = 4;
+        }
+    }
+
+    cur = charSelectStruct.cursorPos[portA];
+    for (i = 0; i < 8; i++) {
+        candidates[i] = -1;
+    }
+    count = 0;
+    if (cur - 13 >= 0 && state[cur - 13] < 0) {
+        candidates[count++] = cur - 13;
+    }
+    if (cur - 12 >= 0 && state[cur - 12] < 0) {
+        candidates[count++] = cur - 12;
+    }
+    if (cur - 11 >= 0 && state[cur - 11] < 0) {
+        candidates[count++] = cur - 11;
+    }
+    if (cur - 1 >= 0 && state[cur - 1] < 0) {
+        candidates[count++] = cur - 1;
+    }
+    if (cur + 1 < CHAR_SELECT_GRID_SLOTS && state[cur + 1] < 0) {
+        candidates[count++] = cur + 1;
+    }
+    if (cur + 11 < CHAR_SELECT_GRID_SLOTS && state[cur + 11] < 0) {
+        candidates[count++] = cur + 11;
+    }
+    if (cur + 12 < CHAR_SELECT_GRID_SLOTS && state[cur + 12] < 0) {
+        candidates[count++] = cur + 12;
+    }
+    if (cur + 13 < CHAR_SELECT_GRID_SLOTS && state[cur + 13] < 0) {
+        candidates[count++] = cur + 13;
+    }
+
+    charSelectStruct.cursorPos[portB] = candidates[rand() % count];
+    return characterIconsOnCSS[charSelectStruct.cursorPos[portB]];
 }
 
 void cssLoadingRelated_1(BOOL valuesAreCharIDs, int cursor0, int cursor1, int cursor2, int cursor3, BOOL excludeAllCursors) {
@@ -1181,3 +1674,254 @@ void css_initValues(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
 }
 
 #undef charSelectStruct
+
+void fn_8005138C(void) {
+    DrawingSceneStruct *item;
+    s32 i;
+    s32 k;
+    s32 frame;
+
+    CHAR_SELECT_BYTE(0x92) = 0;
+    item = currentDrawingItem;
+    frame = CSS_CAPTAIN_RECORD(2)->frame >> 16;
+
+    if (CSS_CAPTAIN_SCENE_PHASE == 0) {
+        if (frame >= 20) {
+            CSS_CAPTAIN_RECORD(2)->playMode = 0;
+            CSS_CAPTAIN_SCENE_PHASE = 1;
+        }
+    } else if (CSS_CAPTAIN_SCENE_PHASE == 1) {
+        CHAR_SELECT_BYTE(0x92) = 1;
+        if (CHAR_SELECT_BYTE(0x7C) == 3) {
+            goto remove;
+        }
+        if (CHAR_SELECT_BYTE(0x7C) == 1) {
+            CSS_CAPTAIN_RECORD(2)->elementIndex = 0x13;
+            CSS_CAPTAIN_RECORD(2)->frame = 20 << 16;
+            CSS_CAPTAIN_RECORD(2)->playMode = UI_PLAY_BACKWARD;
+            CSS_CAPTAIN_RECORD(1)->playMode = UI_PLAY_FORWARD;
+            CSS_CAPTAIN_SCENE_PHASE = 2;
+        } else if (CHAR_SELECT_BYTE(0x7C) == 4) {
+            CSS_CAPTAIN_RECORD(2)->elementIndex = 0x14;
+            CSS_CAPTAIN_RECORD(2)->frame = 20 << 16;
+            CSS_CAPTAIN_RECORD(2)->playMode = UI_PLAY_BACKWARD;
+            CSS_CAPTAIN_SCENE_PHASE = 3;
+        }
+    } else if (CSS_CAPTAIN_SCENE_PHASE == 2) {
+        if (frame <= 0) {
+            goto remove;
+        }
+    } else if (CSS_CAPTAIN_SCENE_PHASE == 3) {
+        if ((CSS_CAPTAIN_RECORD(1)->frame >> 16) >= 50) {
+            CSS_CAPTAIN_RECORD(1)->playMode = 0;
+        }
+        if ((CSS_CAPTAIN_RECORD(2)->frame >> 16) == 0) {
+            CHAR_SELECT_BYTE(0x7C) = 2;
+        }
+        if (CHAR_SELECT_BYTE(0x8E) != 0) {
+            goto remove;
+        }
+    }
+
+    if (CSS_CAPTAIN_SCENE_PHASE != 3) {
+        for (i = 0; i < CHAR_SELECT_GRID_SLOTS; i++) {
+            s32 r47 = i + 47;
+            s32 r3 = i + 3;
+            s32 r119 = i + 119;
+            if (characterIconsOnCSS[i] == 0xFF) {
+                continue;
+            }
+            if (CSS_CAPTAIN_SCENE_PHASE == 0) {
+                if ((CSS_CAPTAIN_RECORD(r47)->frame >> 16) >= 5) {
+                    CSS_CAPTAIN_RECORD(r47)->playMode = 0;
+                }
+            } else if (charSelectStruct.slotTeam[i] >= 0) {
+                CSS_CAPTAIN_RECORD(r47)->playMode = UI_PLAY_FORWARD;
+                CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_FORWARD;
+                CSS_CAPTAIN_RECORD(r119)->flags |= UI_FLAG_VISIBLE;
+                if ((CSS_CAPTAIN_RECORD(r119)->frame >> 16) <= 12) {
+                    CSS_CAPTAIN_RECORD(r119)->frame = 12 << 16;
+                    CSS_CAPTAIN_RECORD(r119)->playMode = UI_PLAY_FORWARD;
+                    for (k = 0; k < 4; k++) {
+                        if (CHAR_SELECT_BYTE(0x78 + k) != 0 && charSelectStruct.cursorPos[k] == i) {
+                            CSS_CAPTAIN_RECORD(155 + k)->frame = 0;
+                        }
+                    }
+                }
+                if (CHAR_SELECT_BYTE(0x74 + charSelectStruct.slotTeam[i]) != 0) {
+                    load_Icon(item, r119, 1, 0x1A, charSelectStruct.slotTeam[i] + 4);
+                } else {
+                    load_Icon(item, r119, 1, 0x1A, charSelectStruct.slotTeam[i]);
+                }
+            } else {
+                if ((CSS_CAPTAIN_RECORD(r119)->frame >> 16) > 12) {
+                    CSS_CAPTAIN_RECORD(r119)->playMode = UI_PLAY_BACKWARD;
+                } else {
+                    CSS_CAPTAIN_RECORD(r119)->flags &= ~UI_FLAG_VISIBLE;
+                }
+                for (k = 0; k < 4; k++) {
+                    if (CHAR_SELECT_BYTE(0x78 + k) != 0 && charSelectStruct.cursorPos[k] == i) {
+                        frame = CSS_CAPTAIN_RECORD(r47)->frame >> 16;
+                        if (frame < 15) {
+                            CSS_CAPTAIN_RECORD(r47)->playMode = UI_PLAY_FORWARD;
+                        } else if (frame <= 15) {
+                            CSS_CAPTAIN_RECORD(r47)->playMode = 0;
+                        } else {
+                            CSS_CAPTAIN_RECORD(r47)->playMode = UI_PLAY_BACKWARD;
+                        }
+                        frame = CSS_CAPTAIN_RECORD(r3)->frame >> 16;
+                        if (frame < 10) {
+                            CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_FORWARD;
+                        } else {
+                            CSS_CAPTAIN_RECORD(r3)->playMode = 0;
+                        }
+                        CSS_CAPTAIN_RECORD(r3)->rgba = 0xFFFFFF00 | (CSS_CAPTAIN_RECORD(r3)->rgba & 0xFF);
+                        break;
+                    }
+                }
+                if (k >= 4) {
+                    if ((CSS_CAPTAIN_RECORD(r47)->frame >> 16) <= 5) {
+                        CSS_CAPTAIN_RECORD(r47)->playMode = 0;
+                    } else {
+                        CSS_CAPTAIN_RECORD(r47)->playMode = UI_PLAY_BACKWARD;
+                    }
+                    if ((CSS_CAPTAIN_RECORD(r3)->frame >> 16) != 0) {
+                        CSS_CAPTAIN_RECORD(r3)->playMode = UI_PLAY_BACKWARD;
+                    } else {
+                        CSS_CAPTAIN_RECORD(r3)->playMode = 0;
+                    }
+                }
+            }
+        }
+    } else {
+        for (i = 0; i < CHAR_SELECT_GRID_SLOTS; i++) {
+            if ((CSS_CAPTAIN_RECORD(47 + i)->frame >> 16) <= 5) {
+                CSS_CAPTAIN_RECORD(47 + i)->playMode = 0;
+            }
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (CHAR_SELECT_BYTE(0x78 + i) != 0 && CSS_CAPTAIN_SCENE_PHASE <= 1) {
+            if (CHAR_SELECT_BYTE(0x74 + i) != 0) {
+                load_Icon(item, 155 + i, 1, 0x1A, i + 4);
+            } else {
+                load_Icon(item, 155 + i, 1, 0x1A, i);
+            }
+            CSS_CAPTAIN_RECORD(43 + i)->flags |= UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(39 + i)->flags |= UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(155 + i)->flags |= UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(43 + i)->anchorSub = lbl_800FDE60[charSelectStruct.cursorPos[i]];
+            CSS_CAPTAIN_RECORD(39 + i)->anchorSub = lbl_800FDE60[charSelectStruct.cursorPos[i]];
+            CSS_CAPTAIN_RECORD(155 + i)->anchorSub = lbl_800FDE60[charSelectStruct.cursorPos[i]];
+            if ((CSS_CAPTAIN_RECORD(155 + i)->frame >> 16) < 12) {
+                CSS_CAPTAIN_RECORD(155 + i)->playMode = UI_PLAY_FORWARD;
+            } else {
+                CSS_CAPTAIN_RECORD(155 + i)->playMode = 0;
+                CSS_CAPTAIN_RECORD(155 + i)->frame = 12 << 16;
+            }
+        } else {
+            CSS_CAPTAIN_RECORD(43 + i)->flags &= ~UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(39 + i)->flags &= ~UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(155 + i)->flags &= ~UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(155 + i)->frame = 0;
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (CHAR_SELECT_BYTE(0x78 + i) != 0) {
+            CHAR_SELECT_BYTE(0x78 + i)--;
+        }
+    }
+    return;
+
+remove:
+    CHAR_SELECT_BYTE(0x8F) = 0;
+    CHAR_SELECT_BYTE(0x7C) = 2;
+    removeGraphicsElementFromScene(item);
+    removeCurrentDrawingItem();
+}
+
+void fn_80051D00(void) {
+    u8 *data = lbl_800FCA60;
+    DrawingSceneStruct *item = currentDrawingItem;
+    u8 *icons;
+    u8 *anchors;
+    s32 i;
+    s32 j;
+    s32 icon;
+
+    if (CHAR_SELECT_BYTE(0x8E) == 1) {
+        return;
+    }
+
+    addGraphicsElementToScene(item, (const UIRecordDescriptor *)data);
+    if (CHAR_SELECT_BYTE(0x8F) == 1) {
+        CSS_CAPTAIN_RECORD(2)->elementIndex = 0x14;
+    }
+    CSS_CAPTAIN_RECORD(1)->frame = 50 << 16;
+
+    icons = data + 0x1424;
+    anchors = data + 0x1400;
+    for (i = 0; i < CHAR_SELECT_GRID_SLOTS; i++) {
+        if (icons[i] == 0xFF) {
+            CSS_CAPTAIN_RECORD(47 + i)->flags &= ~UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(3 + i)->flags &= ~UI_FLAG_VISIBLE;
+            continue;
+        }
+        icon = icons[i];
+        if ((s8)charSelectStruct.unk4C[i] != 0) {
+            icon = 0x36;
+        }
+        load_Icon(item, 47 + i, 1, 0x19, icon);
+        CSS_CAPTAIN_RECORD(47 + i)->anchorSub = anchors[i];
+        if (CHAR_SELECT_BYTE(0x8F) == 1) {
+            for (j = 0; j < 12; j++) {
+                if (lbl_800E854C[j] == icon) {
+                    CSS_CAPTAIN_RECORD(47 + i)->frame = 5 << 16;
+                    CSS_CAPTAIN_RECORD(47 + i)->playMode = 0;
+                    break;
+                }
+            }
+        }
+        if (icon < 0x36) {
+            if (g_d_GameSettings.exhibitionMatchInd == 0) {
+                if (g_Challenge.charIsSuperstar[icon] != 0) {
+                    CSS_CAPTAIN_RECORD(83 + i)->flags |= UI_FLAG_VISIBLE;
+                }
+            } else if (superstarUnlocked[icon] != 0) {
+                CSS_CAPTAIN_RECORD(83 + i)->flags |= UI_FLAG_VISIBLE;
+            }
+        }
+        CSS_CAPTAIN_RECORD(119 + i)->flags &= ~UI_FLAG_VISIBLE;
+        CSS_CAPTAIN_RECORD(119 + i)->anchorSub = anchors[i];
+        if (charSelectStruct.slotTeam[i] >= 0) {
+            CSS_CAPTAIN_RECORD(47 + i)->frame = 25 << 16;
+            CSS_CAPTAIN_RECORD(47 + i)->playMode = 0;
+            CSS_CAPTAIN_RECORD(3 + i)->frame = 25 << 16;
+            CSS_CAPTAIN_RECORD(3 + i)->playMode = 0;
+            CSS_CAPTAIN_RECORD(119 + i)->flags |= UI_FLAG_VISIBLE;
+            CSS_CAPTAIN_RECORD(119 + i)->frame = 25 << 16;
+            CSS_CAPTAIN_RECORD(119 + i)->playMode = 0;
+            if (CHAR_SELECT_BYTE(0x74 + charSelectStruct.slotTeam[i]) != 0) {
+                load_Icon(item, 119 + i, 1, 0x1A, charSelectStruct.slotTeam[i] + 4);
+            } else {
+                load_Icon(item, 119 + i, 1, 0x1A, charSelectStruct.slotTeam[i]);
+            }
+        }
+    }
+
+    for (i = 0; i < 4; i++) {
+        CSS_CAPTAIN_RECORD(43 + i)->frame = i << 16;
+        if (CHAR_SELECT_BYTE(0x74 + i) != 0) {
+            load_Icon(item, 155 + i, 1, 0x1A, i + 4);
+        } else {
+            load_Icon(item, 155 + i, 1, 0x1A, i);
+        }
+    }
+
+    CHAR_SELECT_BYTE(0x7C) = 0;
+    CHAR_SELECT_BYTE(0x92) = 0;
+    CSS_CAPTAIN_SCENE_PHASE = 0;
+    currentDrawingItem->func = fn_8005138C;
+}
