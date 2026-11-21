@@ -3,6 +3,10 @@
 #include "Unknown/File_0x800a7568.h"
 #include "Dolphin/OS/OSInterrupt.h"
 
+// 0x800A8518-0x800A94C4: the jukebox / DVD-stream TU, one unit by its .sbss
+// (docs/splits.md, 2026-11-21): the former File_0x800a8cbc.c (LoadFile) plus
+// fn_800A8518 ... fn_800A94A8, which have no C yet.
+
 extern LoadFileNode* jukeboxQueueHead;
 extern LoadFileNode* lbl_803CC14C;
 extern LoadFileNode* lbl_803CC154;

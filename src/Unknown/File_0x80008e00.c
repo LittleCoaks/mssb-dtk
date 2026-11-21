@@ -1,6 +1,20 @@
-#include "Unknown/File_0x80009180.h"
 #include "Unknown/File_0x80008fd0.h"
+#include "Unknown/File_0x80009180.h"
 #include "Unknown/graphic.h"
+
+// 0x80008E00-0x800096DC: one translation unit by its .sbss (docs/splits.md,
+// 2026-11-21): main, the former File_0x80008fd0.c (PostRetraceCallback) and
+// the unowned fn_80008E00 ... fn_80009144, which have no C yet.
+
+extern s32 OSGetResetButtonState(void);
+extern s32 lbl_803CBBAC;
+extern u8 lbl_803CBBC2;
+
+void PostRetraceCallback(u32 retraceCount) {
+    if (OSGetResetButtonState() && lbl_803CBBAC != 0) {
+        lbl_803CBBC2 = 1;
+    }
+}
 
 extern void fn_800BEC30(s32 a);
 extern void somethingSetTexturePointer(void);
@@ -17,7 +31,6 @@ extern void fn_800356B8(void);
 extern void VIFlush(void);
 extern void VIWaitForRetrace(void);
 extern u32 OSGetResetCode(void);
-extern s32 OSGetResetButtonState(void);
 extern void minigamesSetSomePointers2(void);
 extern void fn_8003A2EC(void);
 extern void fn_8004B270(void);
@@ -65,12 +78,10 @@ extern u8 lbl_803C7420[0x398];
 extern u8 lbl_803C6CF8[0x708];
 extern u8 lbl_80366158[0x30];
 extern u8 lbl_803CBBC1;
-extern u8 lbl_803CBBC2;
 extern u8 lbl_803CBBA4;
 extern u8 lbl_803CBBB4;
 extern s32 lbl_803CBBA0;
 extern s32 lbl_803CBBA8;
-extern s32 lbl_803CBBAC;
 extern s32 lbl_803CBBB0;
 extern void *lbl_803CBBBC;
 extern void (*lbl_803CBBB8)(void);
