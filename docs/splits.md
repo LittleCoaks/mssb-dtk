@@ -1312,6 +1312,69 @@ next TU", so it and the unowned `fn_80069AD4`/`fn_80069B08` stay as they are;
 `fn_8006C0D0` (between the two new units, no data), `fn_80052634` and
 `fn_8006C398` are unowned.
 
+### `Unknown/model.c` (`0x80011468-0x8001FE00`)
+
+The character model / animation / stadium-load TU, 58 KB and 102 functions: the
+27 `Unknown/File_0x800127f8` ... `File_0x8001fc4c` units and 75 unowned
+functions between them. The binary names it.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80011468-0x8001FE00` | `File_0x800127f8` (`LoadModel`), `13680`, `14d4c`, `14e50`, `14f40`, `1594c`, `18024`, `18270`, `1a6b0`, `1b2d0`, `1b728`, `1b80c`, `1b918`, `1c588`, `1c67c`, `1c920`, `1cbd4`, `1ce74`, `1d0d0`, `1d110`, `1d148`, `1d180`, `1e460`, `1f228`, `1f4c0`, `1f5e8`, `1fc4c` (`initShortsHandleCompressedDiskReads`) and the gaps `fn_80011468` ... `fn_8001FDD4` |
+| `extab` / `extabindex` | `0x80005740-0x800059D0` / `0x80006E40-0x80007218` | |
+| `.rodata` | `0x800E6600-0x800E6698` | unowned: `identityMtx`, `lbl_800E6630` (`fn_80011640`), `LoadModel`'s two "Character ... Data None" messages |
+| `.data` | `0x800EE800-0x800EEFD0` | unowned: `lbl_800EE800`, `BallModelFiles`, `MinigameCommonFiles`, ..., `lbl_800EEB18`, then 14 jump tables |
+| `.sdata` | `0x803CB790-0x803CB7C8` | unowned |
+| `.sbss` | `0x803CBBF0-0x803CBC40` | unowned (`lbl_803CBBF0` ... `highLevelSimulationFlag`) |
+| `.sdata2` | `0x803CC4B8-0x803CC530` | unowned |
+
+- **The binary names the unit.** The pool holds `"model.c"` (`0x803CC4C8`,
+  read by `LoadModel`'s panic call) between its floats.
+- **One pool, no repeats:** `0, umagic, "model.c", 0.5f, 0.5, 3.0, 0.0, 1, 2,
+  -30, -0.5, 30, 0.125, magic, 180/pi, 1280, -0.175, 0.175, 0.25, -0.25, 512`
+  (float and double zero/half are different literals). `0.0f` alone is read
+  from `fn_800116DC` to `fn_8001F8A4`; `1.0f`, `0.5f` and the three doubles tie
+  `fn_80017814`, `fn_800196D8`, `challengeMapRelated`, `fn_8001B35C` and
+  `challengeMapMaybe` together. `text.c`'s pool ends right before it; the next
+  pool (`fn_8001FE00`, `0x803CC530`) repeats `0.0f` and `1.0f`.
+- **One `.data` run.** It starts at `text.c`'s end with `lbl_800EE800`, which
+  `initShortsHandleCompressedDiskReads` (the last unit, `File_0x8001fc4c`)
+  addresses as the base of its unit's `.data` (its source already defined the
+  objects ahead of its tables for that reason). The file-scope objects
+  (`BallModelFiles` for `fn_800188C0`, `MinigameCommonFiles` for `fn_80019C00`,
+  `lbl_800EEAAC` for `LoadModel` and five others) come first, then the jump
+  tables of `fn_80011468`, `fn_80012B90`, `fn_80017814`, ... `fn_8001E784` and
+  `initShortsHandleCompressedDiskReads` in function order, eight of them
+  starting 4-aligned. The last one ends at `CommonUIFiles_main` (`0x800EEFD0`,
+  next unit).
+- **`.sdata`, `.sbss`, `.rodata`** are contiguous runs read only by functions of
+  this range (`lbl_803CBC18` by `fn_80011570` and `fn_8001E0D8`, the far ends),
+  each between `text.c`'s objects and the next unit's.
+- **Edges.** The unit starts at `fn_80011468`, the first function whose data
+  (its jump table) is in the run. `fn_80011000` ... `fn_80011358` (after
+  `text_init.c`) use only `screenTextArray` and the common `hugeAnimStruct`, so
+  they stay unowned. `fn_8001FDD4` (no data) is included: it is called only by
+  `fn_8001758C` and `fn_80017D28` and sits before the next pool's first user.
+  `.sbss2 0x803CD308-0x803CD30E` (read only by `fn_80011CA8`) is left unowned.
+
+Source notes. The 27 sources were concatenated in address order; their headers
+are kept and included. They declared nine globals with clashing types, above
+all `hugeAnimStruct` (17 different views). The merged file declares each global
+once; a former unit whose view differs gets a typedef and a `#define NAME
+(*(View*)&NAME)` for its stretch, `#undef`'d at its end. Two kinds of change
+were needed to keep codegen: the cast changes MWCC's operand order for indexed
+struct members, so the declared `HugeAnimStruct` carries the fields the
+`Matching` users index directly (`actorTable`, `modelEntries`, `objects`) and
+their element casts move to the loaded value; and a view of an `.sdata` scalar
+through a cast changes addressing, so identical declarations are never viewed.
+`stadiumSetupRelated`'s light types are declared once at the top.
+`initShortsHandleCompressedDiskReads`'s `.data` objects go first in the file
+(before any jump table). Duplicate typedefs were dropped, differing ones renamed
+with the former unit's address, and each former unit's macros are `#undef`'d at
+its end. `getAnimRelatedCoordinates` now takes `VecXYZ*`, the type
+`UnknownHomes_Game.h` gives it. 14 `Matching` units are absorbed; every function
+keeps its score and `LoadModel` rises 76.43% -> 80.22%. Units 941 -> 848.
+
 ### Groups not applied
 
 - **`0x8004AE18-0x8004B1B8` and `0x8004C19C-0x8004C5F8`.** Each pair shares a
