@@ -84,31 +84,21 @@ Unknown/File_0x80020048.c:
 	extabindex  start:0x80007224 end:0x80007230
 	.text       start:0x80020048 end:0x80020218
 
-Unknown/File_0x800203e0.c:
-	extab       start:0x800059F8 end:0x80005A00
-	extabindex  start:0x80007254 end:0x80007260
-	.text       start:0x800203E0 end:0x800204CC
+Unknown/File_0x80020278.c:
+	extab       start:0x800059E8 end:0x80005A28
+	extabindex  start:0x8000723C end:0x8000729C
+	.text       start:0x80020278 end:0x80021188
+	.data       start:0x800EEFD0 end:0x800EF508
+	.sdata      start:0x803CB7C8 end:0x803CB7D8
 
-Unknown/File_0x800204cc.c:
-	extab       start:0x80005A00 end:0x80005A08
-	extabindex  start:0x80007260 end:0x8000726C
-	.text       start:0x800204CC end:0x8002059C
-
-Unknown/File_0x80021308.c:
-	extab       start:0x80005A48 end:0x80005A50
-	extabindex  start:0x800072CC end:0x800072D8
-	.text       start:0x80021308 end:0x800213F4
+Unknown/File_0x800211f0.c:
+	extab       start:0x80005A38 end:0x80005AA8
+	extabindex  start:0x800072B4 end:0x8000735C
+	.text       start:0x800211F0 end:0x80021AA0
+	.data       start:0x800EF508 end:0x800EFBE8
+	.sdata      start:0x803CB7D8 end:0x803CB7E0
+	.sbss       start:0x803CBC40 end:0x803CBC48
 	.sdata2     start:0x803CC548 end:0x803CC560
-
-Unknown/File_0x80021410.c:
-	extab       start:0x80005A50 end:0x80005A58
-	extabindex  start:0x800072D8 end:0x800072E4
-	.text       start:0x80021410 end:0x8002149C
-
-Unknown/File_0x800219b4.c:
-	extab       start:0x80005AA0 end:0x80005AA8
-	extabindex  start:0x80007350 end:0x8000735C
-	.text       start:0x800219B4 end:0x80021AA0
 
 Unknown/File_0x80021ca4.c:
 	extab       start:0x80005AC0 end:0x80005AC8

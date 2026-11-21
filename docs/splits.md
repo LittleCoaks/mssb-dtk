@@ -1662,6 +1662,54 @@ Left unowned: `fn_8004B6EC`, `fn_8004B7B4` (no data), and
 `s32` against `File_0x8004abd8.c`'s `BOOL`; the merged file keeps `BOOL`.
 Three `Matching` units are absorbed; every function keeps its score.
 
+### `0x80020278-0x80021AA0`: the UI-scene and sound-setup TUs
+
+Both rest on the same reading as above: an object read by one function only
+is that function's TU's, so an object of a *later* function that sits
+*before* an earlier function's object ties the two into one TU.
+
+**`Unknown/File_0x80020278.c`** (`0x80020278-0x80021188`, `NonMatching`):
+`File_0x800203e0` (`challenge_setTransitionScreenCharacterPortrait`) and
+`File_0x800204cc` (`changeScene`), both `Matching`, plus `fn_80020278`,
+`fn_80020388`, `fn_8002059C`, `fn_80020624`, `fn_800206FC`, `fn_80021064`.
+
+- `.sdata` after `model.c`'s: `0x803CB7C8` (`fn_800206FC`) then
+  `0x803CB7CC` (`fn_80020388`, `4 mod 8`, so the same TU's).
+- `.data` after `model.c`'s: `CommonUIFiles_main` (`0x800EEFD0`,
+  `fn_80020278`, `fn_80020388`), `0x800EF3B0` (`fn_80021064`), `0x800EF470`
+  (`fn_80020624`), `0x800EF4B0` and the jump table `0x800EF4C8`
+  (`fn_800206FC`), then `audioFileTable` (next unit). `fn_80021064`'s object
+  comes before `fn_80020624`'s and `fn_800206FC`'s.
+- Takes `extab 0x800059E8-0x80005A28`, `extabindex 0x8000723C-0x8000729C`,
+  `.data 0x800EEFD0-0x800EF508`, `.sdata 0x803CB7C8-0x803CB7D8`.
+- Left out: `fn_8001FE00` (its own pool `0x803CC530-0x803CC548`, called by
+  `fn_800206FC`), `File_0x80020048` (`calledWhenStartingMatch`),
+  `fn_80020218`, `fn_8002024C`: they share only the `.bss` word
+  `lbl_8037169C` with this code. `fn_80021188`/`fn_800211BC`
+  (`sndMasterVolume` wrappers, no data) are left between the two units.
+
+**`Unknown/File_0x800211f0.c`** (`0x800211F0-0x80021AA0`, `NonMatching`):
+`File_0x80021308` (`soundOrMusicRelated`), `File_0x80021410`
+(`maybeLoadsGameSoundFiles`) and `File_0x800219b4` (`f_initSound`), all
+`Matching`, plus `fn_800211F0`, `fn_80021204`, `fn_80021228`,
+`fn_8002128C`, `fn_800213F4`, `fn_800213F8`, `fn_8002149C` ...
+`fn_80021980` (13 functions).
+
+- `.data`: `audioFileTable` (`0x800EF508`: `fn_800215F8`,
+  `audioFileLoaderTask`), `audioFileDescriptors` (`0x800EF808`), then
+  `lbl_800EFBA4` and `f_initSound`'s `0x800EFBB4`, both at `4 mod 8` (so in
+  `audioFileDescriptors`' TU), then `fn_800211F0`'s `0x800EFBC0`: the first
+  function's object after the last one's.
+- `.sdata 0x803CB7D8` and the first `.sbss` word after `model.c`'s,
+  `0x803CBC40`, are read by `soundOrMusicRelated` (the latter also by
+  `fn_800213F8`); its pool `0x803CC548-0x803CC560` was already its own.
+- Takes `extab 0x80005A38-0x80005AA8`, `extabindex 0x800072B4-0x8000735C`,
+  `.data 0x800EF508-0x800EFBE8`, `.sdata 0x803CB7D8-0x803CB7E0`, `.sbss
+  0x803CBC40-0x803CBC48`, `.sdata2 0x803CC548-0x803CC560`. `StadiumFiles`
+  (`0x800EFBE8`) starts the next TU's `.data`.
+
+Five `Matching` units are absorbed; every function keeps its score.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between
