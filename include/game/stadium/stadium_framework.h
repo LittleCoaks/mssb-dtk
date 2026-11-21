@@ -287,4 +287,7 @@ s16 rng(s16 max);
 void fn_80033620(void* emitter);
 void fn_80033CC8(void* particle, int arg);
 
+struct _VecXYZ;
+f32 vecDotProduct(struct _VecXYZ* a, struct _VecXYZ* b);
+
 #endif // !__GAME_STADIUM_STADIUM_FRAMEWORK_H_

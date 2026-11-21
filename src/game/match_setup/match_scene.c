@@ -4,6 +4,7 @@
 #include "game/match_setup/pause_menu.h"
 #include "game/hud/hud_gauges.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/sound/m_sound.h"
 #include "static/UnknownHomes_Static.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_matchScene
 #include "header_rep_data.h"

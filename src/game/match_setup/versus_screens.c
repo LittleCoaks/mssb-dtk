@@ -5,6 +5,7 @@
 #include "header_rep_data.h"
 
 #include "game/UnknownHomes_Game.h"
+#include "game/camera/camera_script.h"
 #include "game/camera/camera.h"
 #include "static/UnknownHomes_Static.h"
 #include "Unknown/File_0x800204cc.h"

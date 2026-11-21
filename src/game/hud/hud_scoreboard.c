@@ -2,6 +2,7 @@
 #include "game/hud/hud_scoreboard.h"
 #include "game/challenge/scout_state.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/sound/m_sound.h"
 #include "static/UnknownHomes_Static.h"
 #include "text/text.h"
 #include "musyx/musyx.h"

@@ -1011,8 +1011,6 @@ typedef struct _UnkSimulationRelatedStruct {
 
 extern UnkSimulationRelatedStruct unkSimulationRelatedStruct;
 
-extern f32 vecDotProduct(VecXYZ* a, VecXYZ* b);
-
 typedef struct _SomeStarDashStruct {
     /*0x000*/ s16 _0[2];
     /*0x004*/ u8 _4[6];
@@ -2057,8 +2055,6 @@ typedef struct _BatterReachStruct {
     /*0x020*/ f32 TrimmedBat;
 } BatterReachStruct; // size: 0x24
 
-extern u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(s8);
-
 extern struct SoundCrowdEffects {
     /* 0x00 */ u32 _00;
     /* 0x04 */ u32 _04;
@@ -2498,15 +2494,6 @@ typedef struct {
     /* 0x0004 */ u8 _0004[0x240 - 0x4];   // not yet labelled
 } lbl_3_common_bss_DE94_s; // size: 0x240 (0x2AF4 in the symbol map: mwld's common-size inflation)
 
-extern BOOL getAnimRelatedCoordinates(int, int, VecXYZ*);
-extern void setCharacterAnimations(int, int);
-extern u32 playSoundEffect(int);
-extern void switchFromAtBatToLiveBall(void);
-extern int RandomIndexFromWeights(u8* weights, int count);
-extern void camera_switchScene(int);
-extern void camera_replay(void);
-extern BOOL checkFieldingStat(int, int, E(int, FIELDING_ABILITY));
-
 /* ==========================================================================
  *  Objects the symbol table names but nothing here typed until now.
  *  Layouts come from Ghidra's type export; both sizes cross-check exactly
@@ -2554,5 +2541,9 @@ typedef struct _GameScoresControlsStruct {
 #include "game/replay/replay_inputs.h"
 #include "game/data_only/gameplay_tables.h"
 #include "game/match_setup/character_constants.h"
+#include "game/batting/at_bat_results.h"
+#include "game/stats/stat_lookups.h"
+#include "game/match_setup/scene_skip.h"
+#include "Unknown/File_0x8001b80c.h"
 
 #endif // !__UNKNOWN_HOMES_H_
