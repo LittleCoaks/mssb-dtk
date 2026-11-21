@@ -288,27 +288,47 @@ Unknown/File_0x8004a2bc.c:
 	.text       start:0x8004A2BC end:0x8004A328
 
 Unknown/File_0x8004abd8.c:
-	.text       start:0x8004ABD8 end:0x8004AC00
+	extab       start:0x800060C0 end:0x800060F0
+	extabindex  start:0x80007C80 end:0x80007CC8
+	.text       start:0x8004ABD8 end:0x8004B284
+	.data       start:0x800FB798 end:0x800FBF10
+	.sdata      start:0x803CB848 end:0x803CB860
+	.sbss       start:0x803CBCF8 end:0x803CBD10
+	.sdata2     start:0x803CC7F8 end:0x803CC818
 
-Unknown/File_0x8004ac00.c:
-	extab       start:0x800060C0 end:0x800060C8
-	extabindex  start:0x80007C80 end:0x80007C8C
-	.text       start:0x8004AC00 end:0x8004ACC4
-	.sdata2     start:0x803CC7F8 end:0x803CC808
-
-Unknown/File_0x8004ad54.c:
-	.text       start:0x8004AD54 end:0x8004AE18
-	.data       start:0x800FBEF4 end:0x800FBF10
+Unknown/File_0x8004b284.c:
+	extab       start:0x800060F0 end:0x800060F8
+	extabindex  start:0x80007CC8 end:0x80007CD4
+	.text       start:0x8004B284 end:0x8004B6EC
+	.data       start:0x800FBF10 end:0x800FC388
+	.sdata2     start:0x803CC818 end:0x803CC828
 
 Unknown/File_0x8004b7f4.c:
 	extab       start:0x80006108 end:0x80006110
 	extabindex  start:0x80007CEC end:0x80007CF8
 	.text       start:0x8004B7F4 end:0x8004BAEC
 
+Unknown/File_0x8004beb0.c:
+	extab       start:0x80006120 end:0x80006128
+	extabindex  start:0x80007D10 end:0x80007D1C
+	.text       start:0x8004BEB0 end:0x8004C094
+	.data       start:0x800FC488 end:0x800FC720
+	.sdata2     start:0x803CC828 end:0x803CC840
+
 Unknown/File_0x8004c094.c:
-	extab       start:0x80006128 end:0x80006130
-	extabindex  start:0x80007D1C end:0x80007D28
-	.text       start:0x8004C094 end:0x8004C108
+	extab       start:0x80006128 end:0x80006148
+	extabindex  start:0x80007D1C end:0x80007D4C
+	.text       start:0x8004C094 end:0x8004C5F8
+	.data       start:0x800FC720 end:0x800FC890
+	.sdata      start:0x803CB860 end:0x803CB870
+	.sdata2     start:0x803CC840 end:0x803CC850
+
+Unknown/File_0x8004c5f8.c:
+	extab       start:0x80006148 end:0x80006150
+	extabindex  start:0x80007D4C end:0x80007D58
+	.text       start:0x8004C5F8 end:0x8004C9FC
+	.data       start:0x800FC890 end:0x800FCA60
+	.sdata2     start:0x803CC850 end:0x803CC860
 
 Unknown/File_0x8004c9fc.c:
 	extab       start:0x80006150 end:0x800061E0

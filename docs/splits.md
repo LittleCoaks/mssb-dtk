@@ -1387,6 +1387,7 @@ keeps its score and `LoadModel` rises 76.43% -> 80.22%. Units 941 -> 848.
   `fn_8004ACF4`, `fn_8004AFA8`, `fn_8004AE18`, `stadiumCollisionRelated`'s jump
   table, `fn_8004B284` again), which only one TU produces. Until that is
   resolved no boundary here can be trusted, so neither pair became a unit.
+  (Resolved on 2026-11-21, below: the run is two TUs' `.data`.)
 
 Units 970 -> 941 after this batch; `Matching` units 313 -> 310.
 
@@ -1633,6 +1634,33 @@ included, duplicate `extern`s dropped). `File_0x80050fe8.c` declared
 charSelectStruct (*(s8(*)[0x94])&charSelectStruct)`, `#undef`'d at the end.
 Five of the units were built without `-cpp_exceptions on`; the merged unit
 uses it. Five `Matching` units are absorbed; every function keeps its score.
+
+### `0x8004ABD8-0x8004C9FC`: the region left open on 2026-11-20, resolved
+
+The 2026-11-20 pass saw five pools that each repeat `0.0f` (five TUs) against
+one `.data` run that seemed to mix all of their objects. The run is not one
+TU's: `fn_8004AD54`'s jump table `0x800FBEF4` is followed by more objects
+(`lbl_800FBF10`, `lbl_800FC0FC`) and then `fn_8004B284`'s two jump tables,
+and no proven unit here has an object after a jump table, so a TU boundary
+sits at `0x800FBF10` and the 0x6C-byte effect templates before it
+(`0x800FB798` ... `0x800FBDEC`, read by `fn_8004B284`, `fn_8004BEB0`,
+`fn_8004C510`, `fn_8004B208`) are defined in the first TU and read from later
+ones. With that, every section agrees on five TUs plus the CSS unit above:
+
+| unit | `.text` | data | evidence |
+|---|---|---|---|
+| `Unknown/File_0x8004abd8.c` (`NonMatching`) | `0x8004ABD8-0x8004B284`: `File_0x8004abd8` (`Set_803cb848`, `fn_8004ABE0`, `marioHandOnFire_endFireAnimation`; `Matching`), `File_0x8004ac00` (`newPitcherEnteringGame`, `Matching`), `File_0x8004ad54` (`stadiumCollisionRelated`) and `fn_8004ACC4`, `fn_8004ACDC`, `fn_8004ACF4`, `fn_8004AE18`, `fn_8004AFA8`, `fn_8004B1B8`, `fn_8004B1C0`, `fn_8004B208`, `fn_8004B270` | `extab 0x800060C0-0x800060F0`, `extabindex 0x80007C80-0x80007CC8`, `.data 0x800FB798-0x800FBF10`, `.sdata 0x803CB848-0x803CB860`, `.sbss 0x803CBCF8-0x803CBD10`, `.sdata2 0x803CC7F8-0x803CC818` | pool `0.5f` (`fn_8004ACF4`) + `0.0f`/`1.0f` at `0x803CC80C` (`fn_8004AE18`, `fn_8004AFA8`), which cannot start a TU; `.sdata` `changesToZeroOnBlackTransitionScreen` (`Set_803cb848`, `fn_8004B208`) + `0x803CB84C` (`fn_8004AE18`, `fn_8004AFA8`) at `4 mod 8`, then `newPitcherEnteringGame`'s `0x803CB850` *after* them; `.sbss` `setHandOnFireAsPitcher` (`marioHandOnFire_endFireAnimation`, `newPitcherEnteringGame`) + `0x803CBD04` (`fn_8004ACC4`, `fn_8004ACF4`, `fn_8004B270`); the jump table `0x800FBEF4` (`4 mod 8`) shares a TU with `fn_8004AE18`/`fn_8004AFA8`'s `0x800FBE90`/`0x800FBEA4` |
+| `Unknown/File_0x8004b284.c` | `0x8004B284-0x8004B6EC` (`fn_8004B284`) | `extab 0x800060F0-0x800060F8`, `extabindex 0x80007CC8-0x80007CD4`, `.data 0x800FBF10-0x800FC388`, `.sdata2 0x803CC818-0x803CC828` | own pool (`0.0f` again, magic); `.data` `lbl_800FBF10`, the shared table `lbl_800FC0FC`, its two jump tables, then a 4-byte hole |
+| `Unknown/File_0x8004beb0.c` | `0x8004BEB0-0x8004C094` (`fn_8004BEB0`) | `extab 0x80006120-0x80006128`, `extabindex 0x80007D10-0x80007D1C`, `.data 0x800FC488-0x800FC720`, `.sdata2 0x803CC828-0x803CC840` | own pool (`100000, 0, 1`, magic); `.data` `0x800FC488` + `0x800FC494` |
+| `Unknown/File_0x8004c094.c` (now `NonMatching`) | `0x8004C094-0x8004C5F8`: `spawnDust` (`Matching`) + `fn_8004C108`, `fn_8004C19C`, `fn_8004C510` | `extab 0x80006128-0x80006148`, `extabindex 0x80007D1C-0x80007D4C`, `.data 0x800FC720-0x800FC890`, `.sdata 0x803CB860-0x803CB870`, `.sdata2 0x803CC840-0x803CC850` | pool `100000, 0`, magic read by `fn_8004C19C`/`fn_8004C510`; `.sdata 0x803CB860` read by `spawnDust`, `fn_8004C108` and `fn_8004C510`, with `fn_8004C108`'s `0x803CB864` at `4 mod 8` |
+| `Unknown/File_0x8004c5f8.c` | `0x8004C5F8-0x8004C9FC` (`fn_8004C5F8`) | `extab 0x80006148-0x80006150`, `extabindex 0x80007D4C-0x80007D58`, `.data 0x800FC890-0x800FCA60`, `.sdata2 0x803CC850-0x803CC860` | own pool (`0.5, 1024, pi, 0`); `.data lbl_800FC890` + its jump table, then the hole before the CSS unit |
+
+Left unowned: `fn_8004B6EC`, `fn_8004B7B4` (no data), and
+`updateSpecialBatAttach`/`initSpecialHandBones` (only the named
+`specialBatAttachSlots` links them to `File_0x8004b7f4`), with `.data
+0x800FC388-0x800FC488`. `File_0x8004ac00.c` declared `setHandOnFireAsPitcher`
+`s32` against `File_0x8004abd8.c`'s `BOOL`; the merged file keeps `BOOL`.
+Three `Matching` units are absorbed; every function keeps its score.
 
 ## The options / settings gap in the menus REL (2026-10-21)
 
