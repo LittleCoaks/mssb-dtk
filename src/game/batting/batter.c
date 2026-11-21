@@ -10,6 +10,9 @@
  * addressing depends on, so codegen is unaffected. */
 #define SQRT2_LINKAGE static
 #include "game/UnknownHomes_Game.h"
+#include "game/minigame/minigame_framework.h"
+#include "game/match_setup/match_flow.h"
+#include "game/sound/m_sound.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_batter
 #include "header_rep_data.h"
 

@@ -14,6 +14,7 @@
 #include "Dolphin/GX/GXPixel.h"
 #include "Dolphin/GX/GXTev.h"
 #include "C3/light/light.h"
+#include "static/UnknownHomes_Static.h"
 
 extern u8 *lbl_2_bss_1A8248;
 extern u8 *lbl_2_bss_1A824C;
@@ -26,11 +27,8 @@ extern u16 lbl_2_data_13238[];
 
 extern u32 lbl_803CBD0C;
 extern u32 *lbl_2_data_13374;
-extern u8 g_d_GameSettings[];
 extern s32 lbl_2_data_38B8;
 extern u8 *lbl_2_bss_340140;
-extern u8 StatsScreenScores[];
-extern u8 AtBat_ButtonInput1[];
 extern u8 lbl_800EFBA4[];
 extern u8 lbl_2_data_3804[];
 extern u8 lbl_2_data_3840[];
@@ -62,12 +60,10 @@ extern f32 lbl_2_rodata_954;
 extern f32 lbl_2_rodata_958;
 extern f32 lbl_2_rodata_95C;
 extern f32 lbl_2_rodata_964;
-extern f32 lbl_2_rodata_968;
 extern f32 lbl_2_rodata_96C;
 extern f32 lbl_2_rodata_970;
 extern u8 lbl_2_data_12EA8[];
 extern u8 lbl_2_data_12EB4[];
-extern u8 lbl_803532A8[];
 extern u8 *lbl_2_bss_1A823C;
 s32 fn_80062890(s32 arg);
 extern u8 lbl_2_bss_55C0;
@@ -76,8 +72,6 @@ extern u32 memoryUsedOrStorage[];
 s32 fn_80016710(s32 character, s32 item);
 void menuCamera_snapToPreset(void);
 void removeCurrentDrawingItem(void);
-extern u8 BatterStats_P1_P2[];
-extern u8 PitcherStats_P1_P2[];
 void CTRLSetTranslation(void *ctrl, f32 x, f32 y, f32 z);
 void CTRLSetRotation(void *ctrl, f32 x, f32 y, f32 z);
 void CTRLSetScale(void *ctrl, f32 x, f32 y, f32 z);
@@ -123,7 +117,6 @@ s32 fn_2_68690(s32 idx);
 void fn_2_68DAC(void *self, Vec *out);
 void fn_80031CA4(Vec *v, u32 *dst);
 void fn_2_513E0(void *a, s32 b, s32 c, s32 d, s32 e, s32 f, s32 g, s32 h);
-void *fn_80052768_getCamera(s32 mode);
 void fn_800BD670(void *model, void *arg);
 void fn_800A7D4C(s32 phase, void *node);
 void LITXForm(void *arg0, void *arg1);
@@ -138,84 +131,77 @@ f64 atan2(f64 y, f64 x);
 
 // .text:0x0004AEE4 size:0x2C8 mapped:0x80689F78
 void fn_2_4AEE4(void) {
-    u8 *st;
-    u8 *b;
-    u8 idx;
+    GameInitVariables *gs = &g_d_GameSettings;
     s32 delta;
-    s32 bit;
 
     fn_2_4B2D0();
-    b = lbl_2_bss_1A824C + 0x190000;
-    st = lbl_2_bss_1A8248;
-    if (b[0x7843] == 0) {
-        idx = st[0x4420];
-        *(s16 *)(b + 0x777C) = (s16)*(u32 *)(lbl_2_data_3840 + idx * 12 + g_d_GameSettings[0x3A] * 4);
-        *(s16 *)(b + 0x777E) = (s16)((f32)*(s16 *)(g_d_GameSettings + 0x20 + g_d_GameSettings[0x35] * 4) *
-                                     *(f32 *)(lbl_2_data_3804 + idx * 12 + g_d_GameSettings[0x3A] * 4));
-        delta = *(s16 *)(b + 0x777C) + *(s16 *)(b + 0x777E);
+    if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x777C) =
+            *(s32 *)(lbl_2_data_3840 + lbl_2_bss_1A8248[0x4420] * 12 + gs->_3A * 4);
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x777E) =
+            (f32)gs->_20[gs->_35][0] *
+            *(f32 *)(lbl_2_data_3804 + lbl_2_bss_1A8248[0x4420] * 12 + gs->_3A * 4);
+        delta = *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x777C) + *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x777E);
         addStatCounter(delta);
-        *(s16 *)(b + 0x7780) = (s16)delta;
-        *(s16 *)(b + 0x7798) = (s16)delta;
-    } else if (b[0x7843] == 1) {
-        idx = st[0x4420];
-        delta = *(s32 *)(lbl_2_data_387C + idx * 12 + g_d_GameSettings[0x3A] * 4);
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7780) = delta;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = delta;
+    } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+        delta = *(s32 *)(lbl_2_data_387C + lbl_2_bss_1A8248[0x4420] * 12 + gs->_3A * 4);
         addStatCounter(delta);
-        *(s16 *)(b + 0x7782) = (s16)delta;
-        *(s16 *)(b + 0x7798) = (s16)delta;
-    } else if (b[0x7843] == 2) {
-        *(s16 *)(b + 0x7796) = 0;
-        *(s16 *)(b + 0x7798) = 0;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7782) = delta;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = delta;
+    } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 2) {
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7796) = 0;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = 0;
     }
 
-    idx = st[0x4420];
-    if ((s8)st[0x44F8 + idx] > 0) {
-        st[0x44F8 + idx]--;
+    if ((s8)lbl_2_bss_1A8248[0x44F8 + lbl_2_bss_1A8248[0x4420]] > 0) {
+        lbl_2_bss_1A8248[0x44F8 + lbl_2_bss_1A8248[0x4420]]--;
     }
-    if (b[0x7843] == 0) {
-        bit = 1 << st[0x4420];
-        if ((st[0x4428] & bit) == 0) {
-            st[0x4423]++;
-            st[0x4428] |= bit;
+    if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+        if ((lbl_2_bss_1A8248[0x4428] & (1 << lbl_2_bss_1A8248[0x4420])) == 0) {
+            lbl_2_bss_1A8248[0x4423]++;
+            lbl_2_bss_1A8248[0x4428] |= 1 << lbl_2_bss_1A8248[0x4420];
         }
     }
 }
 
 // .text:0x0004ACF8 size:0x1EC mapped:0x80689D8C
 void fn_2_4ACF8(void) {
+    GameInitVariables *gs = &g_d_GameSettings;
+
     fn_2_4B2D0();
-    if ((s8)(lbl_2_bss_1A824C + 0x190000)[0x7843] == 0) {
-        addStatCounter(*(s16 *)(g_d_GameSettings + 0x30));
-        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7792) = *(s16 *)(g_d_GameSettings + 0x30);
-        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = *(s16 *)(g_d_GameSettings + 0x30);
-    } else if ((s8)(lbl_2_bss_1A824C + 0x190000)[0x7843] == 1) {
+    if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+        addStatCounter(gs->challengeMinigame_baseCoinsEarned);
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7792) = gs->challengeMinigame_baseCoinsEarned;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = gs->challengeMinigame_baseCoinsEarned;
+    } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
         addStatCounter(lbl_2_data_38B8);
         *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7794) = (s16)lbl_2_data_38B8;
         *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = (s16)lbl_2_data_38B8;
-    } else if ((s8)(lbl_2_bss_1A824C + 0x190000)[0x7843] == 2) {
+    } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 2) {
         *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7796) = 0;
         *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = 0;
-        if ((s8)lbl_2_bss_1A8248[0x44FD] > 0) {
-            lbl_2_bss_1A8248[0x44FD]--;
-        }
-        if ((s8)(lbl_2_bss_1A824C + 0x190000)[0x7843] == 0) {
-            if (lbl_2_bss_1A8248[0x4429] == 0) {
-                lbl_2_bss_1A8248[0x4429] = 1;
-            }
+    }
+
+    if ((s8)lbl_2_bss_1A8248[0x44FD] > 0) {
+        lbl_2_bss_1A8248[0x44FD]--;
+    }
+    if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+        if (lbl_2_bss_1A8248[0x4429] == 0) {
+            lbl_2_bss_1A8248[0x4429] = 1;
         }
     }
 }
 
 // .text:0x0004AB1C size:0x1DC mapped:0x80689BB0
 void fn_2_4AB1C(void) {
-    volatile s32 score0;
-    volatile s32 score1;
-    u8 *st;
-    u8 *b;
-    s32 bit;
+    s32 score0;
+    s32 score1;
 
     fn_2_4B2D0();
-    score0 = *(u16 *)(StatsScreenScores + 0x8);
-    score1 = *(u16 *)(StatsScreenScores + 0x2E);
+    score0 = StatsScreenScores.scores[0].total;
+    score1 = StatsScreenScores.scores[1].total;
     if (score0 < 0) {
         score0 = 0;
     }
@@ -226,38 +212,35 @@ void fn_2_4AB1C(void) {
         score1 = 99;
     }
 
-    b = lbl_2_bss_1A824C + 0x190000;
-    if (b[0x7843] == 0) {
-        *(s16 *)(b + 0x776E) = 0;
-        *(s16 *)(b + 0x7772) = 0;
-        *(s16 *)(b + 0x7776) = 0;
-        *(s16 *)(b + 0x7798) = *(s16 *)(b + 0x776E) + *(s16 *)(b + 0x7772) + *(s16 *)(b + 0x7776);
-    } else if (b[0x7843] == 1) {
-        *(s16 *)(b + 0x7770) = 0;
-        *(s16 *)(b + 0x7774) = 0;
-        *(s16 *)(b + 0x7798) = *(s16 *)(b + 0x7770) + *(s16 *)(b + 0x7774);
-    } else if (b[0x7843] == 2) {
-        *(s16 *)(b + 0x7796) = 0;
-        *(s16 *)(b + 0x7798) = 0;
+    if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x776E) = 0;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7772) = 0;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7776) = 0;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x776E) +
+                                                          *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7772) +
+                                                          *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7776);
+    } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 1) {
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7770) = 0;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7774) = 0;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7770) +
+                                                          *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7774);
+    } else if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 2) {
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7796) = 0;
+        *(s16 *)(lbl_2_bss_1A824C + 0x190000 + 0x7798) = 0;
     }
 
-    st = lbl_2_bss_1A8248;
-    if (!(st[0x441C] == 5 && st[0x44EF] == 1)) {
-        bit = 1 << st[0x441E];
-        if ((st[0x4427] & bit) == 0) {
-            st[0x4427] |= bit;
+    if (!(lbl_2_bss_1A8248[0x441C] == 5 && (s32)lbl_2_bss_1A8248[0x44EF] == 1)) {
+        if ((lbl_2_bss_1A8248[0x4427] & (1 << lbl_2_bss_1A8248[0x441E])) == 0) {
+            lbl_2_bss_1A8248[0x4427] |= 1 << lbl_2_bss_1A8248[0x441E];
         }
     }
 
-    if (b[0x7843] == 0) {
-        if (st[0x441C] == 5 && st[0x44EF] == 1) {
-            st[0x4422]++;
-        } else {
-            bit = 1 << st[0x441E];
-            if ((st[0x4426] & bit) == 0) {
-                st[0x4422]++;
-                st[0x4426] |= bit;
-            }
+    if (*(s8 *)(lbl_2_bss_1A824C + 0x197843) == 0) {
+        if (lbl_2_bss_1A8248[0x441C] == 5 && (s32)lbl_2_bss_1A8248[0x44EF] == 1) {
+            lbl_2_bss_1A8248[0x4422]++;
+        } else if ((lbl_2_bss_1A8248[0x4426] & (1 << lbl_2_bss_1A8248[0x441E])) == 0) {
+            lbl_2_bss_1A8248[0x4422]++;
+            lbl_2_bss_1A8248[0x4426] |= 1 << lbl_2_bss_1A8248[0x441E];
         }
     }
     challenge_leftoverTeammatesJoinBowserJr();
@@ -350,123 +333,115 @@ void fn_2_4A6E8(void) {
 
 // .text:0x0004A340 size:0x3A8 mapped:0x806893D4
 void fn_2_4A340(void) {
-    u8 *ss = StatsScreenScores;
-    u8 *gs = g_d_GameSettings;
     u8 *st = lbl_2_bss_1A8248;
-    u8 *table;
-    u8 *bat;
-    u8 *pit;
-    u16 a;
-    u16 b;
-    u8 cur;
-    s32 s;
+    s32 i;
     s32 j;
-    s32 opp;
-    s32 base12;
-    s32 counter;
-    s32 idx25;
-    s32 idx24;
-    s32 idx;
+    s32 team;
+    s32 other;
 
-    gs[0xC] = st[0x441C];
-    idx25 = gs[0xE];
-    idx24 = idx25 ^ 1;
-    *(u8 *)(gs + 0xD) = st[(s16)*(s16 *)(st + 0x16C2) * 10 + 0x40F3];
+    g_d_GameSettings.maybeHomeAway[0] = st[0x441C];
+    team = g_d_GameSettings.home_AwaySetting;
+    other = team ^ 1;
+    g_d_GameSettings.maybeHomeAway[1] = st[*(s16 *)(st + 0x16C2) * 10 + 0x40F3];
+    StatsScreenScores.inning = 9;
 
-    *(s16 *)(ss + 0x8) = 0;
-    *(s16 *)(ss + 0xA) = 4;
-    *(s16 *)(ss + 0xC) = 0;
-    *(s16 *)(ss + 0xE) = 2;
-    *(s16 *)(ss + 0x10) = 0;
-    *(s16 *)(ss + 0x12) = 10;
-    *(s16 *)(ss + 0x14) = 0;
-    *(s16 *)(ss + 0x16) = 0;
-    *(s16 *)(ss + 0x18) = 0;
-    *(s16 *)(ss + 0x1A) = 0;
-    *(s16 *)(ss + idx25 * 0x26 + 0x1C) = 0;
-    for (idx = 0x2E; idx <= 0x44; idx += 2) {
-        *(s16 *)(ss + idx) = 0;
+    StatsScreenScores.scores[0].total = 0;
+    StatsScreenScores.scores[0].byInning[0] = 4;
+    StatsScreenScores.scores[0].byInning[1] = 0;
+    StatsScreenScores.scores[0].byInning[2] = 2;
+    StatsScreenScores.scores[0].byInning[3] = 0;
+    StatsScreenScores.scores[0].byInning[4] = 10;
+    StatsScreenScores.scores[0].byInning[5] = 0;
+    StatsScreenScores.scores[0].byInning[6] = 0;
+    StatsScreenScores.scores[0].byInning[7] = 0;
+    StatsScreenScores.scores[0].byInning[8] = 0;
+    StatsScreenScores.scores[team].byInning[9] = 0;
+    StatsScreenScores.scores[1].total = 0;
+    StatsScreenScores.scores[1].byInning[0] = 0;
+    StatsScreenScores.scores[1].byInning[1] = 0;
+    StatsScreenScores.scores[1].byInning[2] = 0;
+    StatsScreenScores.scores[1].byInning[3] = 0;
+    StatsScreenScores.scores[1].byInning[4] = 0;
+    StatsScreenScores.scores[1].byInning[5] = 0;
+    StatsScreenScores.scores[1].byInning[6] = 0;
+    StatsScreenScores.scores[1].byInning[7] = 0;
+    StatsScreenScores.scores[1].byInning[8] = 0;
+    StatsScreenScores.scores[1].byInning[9] = 0;
+    StatsScreenScores.scores[1].byInning[10] = 0;
+    StatsScreenScores.hits[team].total = 0;
+    StatsScreenScores.hits[other].total = 0;
+    StatsScreenScores.hits[0].total = 0;
+    StatsScreenScores.hits[0].byInning[0] = 0;
+    StatsScreenScores.hits[0].byInning[1] = 1;
+    StatsScreenScores.hits[0].byInning[2] = 2;
+    StatsScreenScores.hits[0].byInning[3] = 0;
+    StatsScreenScores.hits[0].byInning[4] = 0;
+    StatsScreenScores.hits[0].byInning[5] = 0;
+    StatsScreenScores.hits[0].byInning[6] = 3;
+    StatsScreenScores.hits[0].byInning[7] = 0;
+    StatsScreenScores.hits[0].byInning[8] = 0;
+    StatsScreenScores.hits[0].byInning[9] = 0;
+    StatsScreenScores.hits[0].byInning[10] = 0;
+    StatsScreenScores.hits[1].total = 1;
+    StatsScreenScores.hits[1].byInning[0] = 0;
+    StatsScreenScores.hits[1].byInning[1] = 0;
+    StatsScreenScores.hits[1].byInning[2] = 3;
+    StatsScreenScores.hits[1].byInning[3] = 0;
+    StatsScreenScores.hits[1].byInning[4] = 0;
+    StatsScreenScores.hits[1].byInning[5] = 0;
+    StatsScreenScores.hits[1].byInning[6] = 0;
+    StatsScreenScores.hits[1].byInning[7] = 0;
+    StatsScreenScores.hits[1].byInning[8] = 12;
+    StatsScreenScores.hits[1].byInning[9] = 0;
+    StatsScreenScores.hits[1].byInning[10] = 0;
+    StatsScreenScores.stealsAgainst[team] = 1;
+    StatsScreenScores.stealsAgainst[other] = 1;
+
+    for (i = 1; i <= StatsScreenScores.inning; i++) {
+        StatsScreenScores.scores[0].total += StatsScreenScores.scores[0].byInning[i - 1];
+        StatsScreenScores.scores[1].total += StatsScreenScores.scores[1].byInning[i - 1];
+        StatsScreenScores.hits[0].total += StatsScreenScores.hits[0].byInning[i - 1];
+        StatsScreenScores.hits[1].total += StatsScreenScores.hits[1].byInning[i - 1];
     }
-    *(s16 *)(ss + 0x54 + idx25 * 0x26) = 0;
-    *(s16 *)(ss + 0x54 + idx24 * 0x26) = 0;
-    *(s16 *)(ss + 0x54) = 0;
-    *(s16 *)(ss + 0x56) = 0;
-    *(s16 *)(ss + 0x58) = 1;
-    *(s16 *)(ss + 0x5A) = 2;
-    *(s16 *)(ss + 0x5C) = 0;
-    *(s16 *)(ss + 0x5E) = 0;
-    *(s16 *)(ss + 0x60) = 0;
-    *(s16 *)(ss + 0x62) = 3;
-    *(s16 *)(ss + 0x64) = 0;
-    *(s16 *)(ss + 0x66) = 0;
-    *(s16 *)(ss + 0x68) = 0;
-    *(s16 *)(ss + 0x6A) = 0;
-    *(s16 *)(ss + 0x7A) = 1;
-    *(s16 *)(ss + 0x7C) = 0;
-    *(s16 *)(ss + 0x7E) = 0;
-    *(s16 *)(ss + 0x80) = 3;
-    *(s16 *)(ss + 0x82) = 0;
-    *(s16 *)(ss + 0x84) = 0;
-    *(s16 *)(ss + 0x86) = 0;
-    *(s16 *)(ss + 0x88) = 0;
-    *(s16 *)(ss + 0x8A) = 0;
-    *(s16 *)(ss + 0x8C) = 0xC;
-    *(s16 *)(ss + 0x8E) = 0;
-    *(s16 *)(ss + 0x90) = 0;
-    ss[0xF0 + idx25] = 1;
-    ss[0xF0 + idx24] = 1;
-    ss[0xF6] = 9;
 
-    a = *(u16 *)(ss + 0x8);
-    b = *(u16 *)(ss + 0x2E);
-    if (a > b) {
-        ss[0xF2] = 0;
-    } else if (a < b) {
-        ss[0xF2] = 1;
+    if (StatsScreenScores.scores[0].total > StatsScreenScores.scores[1].total) {
+        StatsScreenScores.winnerSlot = 0;
+    } else if (StatsScreenScores.scores[0].total < StatsScreenScores.scores[1].total) {
+        StatsScreenScores.winnerSlot = 1;
     } else {
-        ss[0xF2] = 2;
+        StatsScreenScores.winnerSlot = 2;
     }
 
-    for (idx = 0; idx < 30; idx++) {
-        ss[0xA0 + idx] = 0xFF;
+    for (i = 0; i < 30; i++) {
+        StatsScreenScores._A0[i] = -1;
     }
 
-    table = lbl_803532A8;
-    table[1] = (table[1] & ~7) | 1;
-    table[2] = 0;
-    table[3] = 10;
-    table[5] = (table[5] & ~7) | 1;
-    table[6] = 0;
-    table[7] = 10;
-    table[9] = (table[9] & ~7) | 1;
-    table[0xA] = 0;
-    table[0xB] = 10;
-    ss[0xA0] = 0;
-    ss[0xA1] = 1;
-    ss[0xA2] = 2;
+    lbl_803532A8[0][0].e = 0;
+    lbl_803532A8[0][0].d = 1;
+    lbl_803532A8[0][0].f = 10;
+    StatsScreenScores._A0[0] = 0;
+    lbl_803532A8[0][1].e = 0;
+    lbl_803532A8[0][1].d = 1;
+    lbl_803532A8[0][1].f = 10;
+    StatsScreenScores._A0[1] = 1;
+    lbl_803532A8[0][2].e = 0;
+    lbl_803532A8[0][2].d = 1;
+    lbl_803532A8[0][2].f = 10;
+    StatsScreenScores._A0[2] = 2;
 
-    bat = BatterStats_P1_P2;
-    pit = PitcherStats_P1_P2;
-    for (s = 0; s < 2; s++) {
-        opp = 1 - s;
-        base12 = opp * 12;
-        cur = (u8)(u32)(g_d_GameSettings + s * 10);
-        counter = 0;
+    for (i = 0; i < 2; i++) {
+        other = 1 - i;
         for (j = 0; j < 9; j++) {
-            bat[0x26 * j + 0x4] = (u8)(base12 + counter);
-            bat[0x26 * j + 0x5] = (u8)(s + j);
-            *(s16 *)(pit + 0x1E * j + 0xA) = (s16)(s + j + 2);
-            pit[0x1E * j + 0x1A] = cur;
-            cur += 3;
-            *(s16 *)(pit + 0x1E * j + 0x2) = 3;
-            pit[0x1E * j + 0x1C] = 2;
-            counter += s;
-            bat[0x26 * j + 0x10] = (u8)(2 * j);
-            bat[0x26 * j + 0x12] = (u8)(s + 1);
-            bat[0x26 * j + 0x18] = (u8)j;
+            BatterStats_P1_P2[i][j].AtBats = other * 12 + i * j;
+            PitcherStats_P1_P2[i][j].outsAsPitcher = i * 10 + j * 3;
+            BatterStats_P1_P2[i][j].Hits = i + j;
+            BatterStats_P1_P2[i][j].HR_W_RISP = j;
+            BatterStats_P1_P2[i][j].RBI = j * 2;
+            PitcherStats_P1_P2[i][j].strikeouts = 2;
+            PitcherStats_P1_P2[i][j].hitsAllowed = i + j + 2;
+            BatterStats_P1_P2[i][j].BasesStolen = i + 1;
+            PitcherStats_P1_P2[i][j].runsAllowed = 3;
         }
-        pit += 0x10E;
-        bat += 0x156;
     }
 }
 
@@ -599,26 +574,22 @@ void fn_2_4A064(void) {
     return;
 }
 
-// .text:0x00049F7C size:0xE8 mapped:0x80689010
-u16 *fn_2_49F7C(u16 *str, s32 capacity, u16 ch, s32 pos) {
+static inline s32 glyphStrLen(u16 *str) {
     u16 *p = str;
-    s32 len;
-    s32 i;
     while (*p != 0x4000) {
         p++;
     }
-    len = p - str;
-    if (len < pos) {
+    return p - str;
+}
+
+// .text:0x00049F7C size:0xE8 mapped:0x80689010
+u16 *fn_2_49F7C(u16 *str, s32 capacity, u16 ch, s32 pos) {
+    s32 len = glyphStrLen(str);
+    if (len < pos || ch == 0x4000 || len + 2 > capacity) {
         return NULL;
     }
-    if (ch == 0x4000) {
-        return NULL;
-    }
-    if (len + 2 > capacity) {
-        return NULL;
-    }
-    for (i = len; i >= pos; i--) {
-        str[i + 1] = str[i];
+    for (; len >= pos; len--) {
+        str[len + 1] = str[len];
     }
     str[pos] = ch;
     return str;
@@ -675,29 +646,17 @@ typedef struct NumberGlyphBuffer {
 
 u32 strlen(const char *str);
 
-static inline u16 *insertNumberGlyph(u16 *str, int capacity, u16 glyph, int position) {
-    u16 *end = str;
-    int length;
-    int i;
-
-    while (*end != 0x4000) end++;
-    length = end - str;
-    if (length < position || glyph == 0x4000 || length + 2 > capacity) return NULL;
-    for (i = length; i >= position; i--) str[i + 1] = str[i];
-    str[position] = glyph;
-    return str;
-}
-
 // .text:0x0004917C size:0xC3C mapped:0x80688210
 u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
     char digits[12];
     NumberGlyphBuffer *buffer = (NumberGlyphBuffer *)&lbl_2_bss_55B8;
     u16 *dst;
-    u16 *glyphs = buffer->glyphs;
+    u16 *src;
+    u16 sep;
     u8 *bank;
     char *start;
     s32 working;
-    int i;
+    s32 i;
     int digit;
     s32 count = 0;
     s32 specialFont;
@@ -705,7 +664,11 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
 
     if (flags & 0x20) {
         flags |= 4;
-        width = 3;
+        if (value < 0) {
+            width = 3;
+        } else {
+            width = 3;
+        }
     } else if (flags & 0x40) {
         flags |= 4;
         width = 4;
@@ -741,14 +704,14 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
             digits[i] = 0;
             i--;
             working = value;
-            if (value < 0) working = -value;
+            if (value < 0) working = value * -1;
             while (working != 0) {
                 digits[i] = working % 10 + '0';
                 working /= 10;
                 i--;
             }
             if (value < 0) {
-                if (flags & 0xE0) digits[i] = ' ';
+                if ((flags & 0x20) || (flags & 0x40) || (flags & 0x80)) digits[i] = ' ';
                 else digits[i] = '-';
                 i--;
             }
@@ -770,14 +733,15 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
     } else {
         buffer->separator = 0x4002;
     }
-    buffer->space = (flags & 1) + 0x4002;
-    specialFont = flags & 0x10;
     fullWidth = flags & 1;
+    buffer->space = fullWidth + 0x4002;
     bank = lbl_2_bss_1A824C + 0x190000;
-    dst = glyphs;
+    dst = buffer->glyphs;
+    sep = buffer->separator;
+    specialFont = flags & 0x10;
     while (*start != 0) {
         if (*start == ' ') {
-            *dst = buffer->separator;
+            *dst = sep;
         } else if (*start == '-') {
             if (specialFont) *dst = **(u16 **)(bank + 0x545C);
             else if (fullWidth) *dst = **(u16 **)(bank + 0x5458);
@@ -795,7 +759,7 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
         count++;
         start++;
     }
-    glyphs[count] = 0x4000;
+    buffer->glyphs[count] = 0x4000;
     if (specialFont) buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195464))[10];
     else if (fullWidth) buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195460))[10];
     else buffer->separator = (*(u16 **)(lbl_2_bss_1A824C + 0x195460))[10];
@@ -804,19 +768,20 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
     else buffer->minus = **(u16 **)(lbl_2_bss_1A824C + 0x19545C);
 
     if (flags & 0x20) {
-        insertNumberGlyph(glyphs, 16, buffer->separator, count - 2);
-        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 4);
+        fn_2_49F7C(buffer->glyphs, 16, buffer->separator, count - 2);
+        if (value < 0) fn_2_49F7C(buffer->glyphs, 16, buffer->minus, count - 4);
     } else if (flags & 0x40) {
-        insertNumberGlyph(glyphs, 16, buffer->separator, count - 3);
-        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 5);
+        fn_2_49F7C(buffer->glyphs, 16, buffer->separator, count - 3);
+        if (value < 0) fn_2_49F7C(buffer->glyphs, 16, buffer->minus, count - 5);
     } else if (flags & 0x80) {
-        insertNumberGlyph(glyphs, 16, buffer->separator, count - 1);
-        if (value < 0) insertNumberGlyph(glyphs, 16, buffer->minus, count - 3);
+        fn_2_49F7C(buffer->glyphs, 16, buffer->separator, count - 1);
+        if (value < 0) fn_2_49F7C(buffer->glyphs, 16, buffer->minus, count - 3);
     }
     if (output != NULL) {
         dst = output;
-        while (*glyphs != 0x4000) *dst++ = *glyphs++;
-        *dst = *glyphs;
+        src = buffer->glyphs;
+        while (*src != 0x4000) *dst++ = *src++;
+        *dst = *src;
     }
     return buffer->glyphs;
 }
@@ -825,43 +790,51 @@ u16 *fn_2_4917C(void *output, s32 value, s32 flags, s32 width, s32 unused) {
 void fn_2_4906C(void) {
     s32 i;
     for (i = 0; i < 15; i++) {
-        TextBank *bank = screenTextArray.textBanks[lbl_2_bss_1A824C[0x1972B8]];
-        ((u16 **)(lbl_2_bss_1A824C + 0x19542C))[i] = bank->strings[i];
+        ((u16 **)lbl_2_bss_1A824C)[i + 0x6550B] = ((TextBank *)((u8 *)screenTextArray.textBanks[lbl_2_bss_1A824C[0x1972B8]] + i * 4))->strings[0];
     }
 }
 
 // .text:0x00048DB4 size:0x2B8 mapped:0x80687E48
+/* LITInitColor takes the colour by value in this unit (the call sites copy
+ * it to a stack temporary); light.h declares the pointer form. */
+static inline void setLightColor(void *light, GXColor color) {
+    LITInitColor(light, &color);
+}
+
 void fn_2_48DB4(void) {
-    u32 color0 = lbl_2_rodata_940;
-    u32 color1 = lbl_2_rodata_93C;
-    u32 color2 = lbl_2_rodata_938;
-    u32 color3 = lbl_2_rodata_938;
+    GXColor color2;
+    GXColor color1;
+    GXColor color0;
+
+    *(u32 *)&color2 = lbl_2_rodata_938;
+    *(u32 *)&color1 = lbl_2_rodata_93C;
+    *(u32 *)&color0 = lbl_2_rodata_940;
 
     LITAlloc((void **)(hugeAnimStruct + 0xAC));
     LITAlloc((void **)(hugeAnimStruct + 0xB0));
     LITAlloc((void **)(hugeAnimStruct + 0xB4));
     LITAlloc((void **)(hugeAnimStruct + 0xB8));
 
-    LITInitAttn(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+    LITInitAttn(*(void **)(hugeAnimStruct + 0xAC), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     LITInitPos(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_974, lbl_2_rodata_978, lbl_2_rodata_97C);
     LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-    LITInitColor(*(void **)(hugeAnimStruct + 0xAC), (GXColor *)&color0);
+    setLightColor(*(void **)(hugeAnimStruct + 0xAC), color0);
     LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_980, lbl_2_rodata_978, lbl_2_rodata_97C);
 
-    LITInitAttn(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+    LITInitAttn(*(void **)(hugeAnimStruct + 0xB0), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     LITInitPos(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_980, lbl_2_rodata_984, lbl_2_rodata_988);
     LITInitDir(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-    LITInitColor(*(void **)(hugeAnimStruct + 0xB0), (GXColor *)&color1);
+    setLightColor(*(void **)(hugeAnimStruct + 0xB0), color1);
 
-    LITInitAttn(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+    LITInitAttn(*(void **)(hugeAnimStruct + 0xB4), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     LITInitPos(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
     LITInitDir(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-    LITInitColor(*(void **)(hugeAnimStruct + 0xB4), (GXColor *)&color2);
+    setLightColor(*(void **)(hugeAnimStruct + 0xB4), color2);
 
-    LITInitAttn(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
+    LITInitAttn(*(void **)(hugeAnimStruct + 0xB8), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
     LITInitPos(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
     LITInitDir(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-    LITInitColor(*(void **)(hugeAnimStruct + 0xB8), (GXColor *)&color3);
+    setLightColor(*(void **)(hugeAnimStruct + 0xB8), color2);
 }
 
 // .text:0x00048D54 size:0x60 mapped:0x80687DE8
@@ -876,12 +849,19 @@ void fn_2_48D54(void) {
 void fn_2_48D08(void) {
     u32 idx = *(u32 *)(lbl_2_bss_1A824C + 0x19769C);
     f32 *p = (f32 *)(hugeAnimStruct + idx * 0x27C + 0xC04);
-    p[13] = lbl_2_rodata_94C;
-    p[14] = lbl_2_rodata_94C;
-    p[15] = lbl_2_rodata_94C;
-    p[16] = lbl_2_rodata_94C;
-    p[17] = lbl_2_rodata_94C;
-    p[18] = lbl_2_rodata_94C;
+    p[13] = 0.0f;
+    p[14] = 0.0f;
+    p[15] = 0.0f;
+    p[16] = 0.0f;
+    p[17] = 0.0f;
+    p[18] = 0.0f;
+}
+
+static inline f32 safeAtan2(f32 y, f32 x) {
+    if (0.0f == x && 0.0f == y) {
+        return 0.0f;
+    }
+    return atan2(y, x);
 }
 
 // .text:0x00048BE0 size:0x128 mapped:0x80687C74
@@ -890,16 +870,15 @@ void fn_2_48BE0(void) {
     Vec delta;
     u8 *entry;
     u32 idx;
-    f32 angle;
 
     idx = *(u32 *)(lbl_2_bss_1A824C + 0x19769C);
     entry = hugeAnimStruct + idx * 0x27C + 0xC04;
     memcpy(&pos, entry + 0x34, 12);
     PSVECSubtract(&pos, (Vec *)lbl_2_data_132F8, &delta);
-    delta.x *= lbl_2_rodata_9A0;
-    delta.z *= lbl_2_rodata_9A0;
-    if (delta.x != lbl_2_rodata_94C || delta.z != lbl_2_rodata_94C) {
-        lbl_2_bss_55B8 = (f32)atan2(delta.x, delta.z);
+    delta.x *= -1.0f;
+    delta.z *= -1.0f;
+    if (0.0f != delta.x || 0.0f != delta.z) {
+        lbl_2_bss_55B8 = safeAtan2(delta.x, delta.z);
     }
     memcpy(lbl_2_data_132F8, entry + 0x34, 12);
     *(f32 *)(entry + 0x34) = pos.x;
@@ -922,13 +901,13 @@ void fn_2_48A1C(void) {
     entry = hugeAnimStruct + idx * 0x27C + 0xC04;
     memcpy(&pos, entry + 0x34, 12);
     PSVECSubtract(&pos, (Vec *)lbl_2_data_13310, &delta);
-    delta.x *= lbl_2_rodata_9A0;
-    delta.z *= lbl_2_rodata_9A0;
-    stick = AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20;
-    pos.x = pos.x + (f32)(s8)stick[0x10] / lbl_2_rodata_9A4;
-    pos.z = pos.z + (f32)(s8)stick[0x11] / lbl_2_rodata_9A4;
-    if (delta.x != lbl_2_rodata_94C || delta.z != lbl_2_rodata_94C) {
-        lbl_2_bss_55BC = (f32)atan2(delta.x, delta.z);
+    delta.x *= -1.0f;
+    delta.z *= -1.0f;
+    stick = (u8 *)&AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20;
+    pos.x = pos.x + (f32)(s8)stick[0x10] / 768.0f;
+    pos.z = pos.z + (f32)(s8)stick[0x11] / 768.0f;
+    if (0.0f != delta.x || 0.0f != delta.z) {
+        lbl_2_bss_55BC = safeAtan2(delta.x, delta.z);
     }
     memcpy(lbl_2_data_13310, entry + 0x34, 12);
     *(f32 *)(entry + 0x34) = pos.x;
@@ -1000,21 +979,19 @@ void fn_2_487A0(void) {
     }
 }
 
+static inline void resetSelectionSlots(void) {
+    *(s8 *)(hugeAnimStruct + 0x2D89) = -1;
+    *(s8 *)(hugeAnimStruct + 0x2D8A) = -1;
+    *(s8 *)(hugeAnimStruct + 0x2D8B) = -1;
+    *(s8 *)(hugeAnimStruct + 0x2D8C) = -1;
+    hugeAnimStruct[0x2D77] = 0;
+    hugeAnimStruct[0x2D7B] = 0;
+    hugeAnimStruct[0x2D7C] = 0;
+}
+
 // .text:0x000481F4 size:0x5AC mapped:0x80687288
 void fn_2_481F4(void) {
-    u32 maxSize = 0;
-    u32 aligned;
-    u8 *pool;
-    u8 *next;
-    s32 off = 0;
     s32 i;
-    s32 j;
-    u32 color0;
-    u32 color1;
-    u32 color2;
-    u32 color3;
-    u8 *entry;
-    u32 idx;
     u8 *cdi = currentDrawingItem;
     s32 character = lbl_2_bss_1A8248[0x441D];
 
@@ -1023,95 +1000,25 @@ void fn_2_481F4(void) {
         *(u32 *)(lbl_2_bss_1A824C + 0x195424) = memoryUsedOrStorage[1];
         *(u32 *)(lbl_2_bss_1A824C + 0x195428) = memoryUsedOrStorage[2];
 
-        color0 = lbl_2_rodata_940;
-        color1 = lbl_2_rodata_93C;
-        color2 = lbl_2_rodata_938;
-        color3 = lbl_2_rodata_938;
-        LITAlloc((void **)(hugeAnimStruct + 0xAC));
-        LITAlloc((void **)(hugeAnimStruct + 0xB0));
-        LITAlloc((void **)(hugeAnimStruct + 0xB4));
-        LITAlloc((void **)(hugeAnimStruct + 0xB8));
-
-        LITInitAttn(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitPos(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_974, lbl_2_rodata_978, lbl_2_rodata_97C);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitColor(*(void **)(hugeAnimStruct + 0xAC), (GXColor *)&color0);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xAC), lbl_2_rodata_980, lbl_2_rodata_978, lbl_2_rodata_97C);
-
-        LITInitAttn(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitPos(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_980, lbl_2_rodata_984, lbl_2_rodata_988);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xB0), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitColor(*(void **)(hugeAnimStruct + 0xB0), (GXColor *)&color1);
-
-        LITInitAttn(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitPos(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xB4), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitColor(*(void **)(hugeAnimStruct + 0xB4), (GXColor *)&color2);
-
-        LITInitAttn(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_960, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitPos(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_978, lbl_2_rodata_97C);
-        LITInitDir(*(void **)(hugeAnimStruct + 0xB8), lbl_2_rodata_94C, lbl_2_rodata_94C, lbl_2_rodata_94C);
-        LITInitColor(*(void **)(hugeAnimStruct + 0xB8), (GXColor *)&color3);
-
+        fn_2_48DB4();
         menuCamera_snapToPreset();
-        for (i = 0; i < 9; i++) {
-            for (j = 0; j < 6; j++) {
-                u32 size = allocationEntrySize(off);
-                if (maxSize < size) {
-                    maxSize = size;
-                }
-                off += 0x130;
-            }
-        }
-        aligned = OSRoundUp32B(maxSize);
-        pool = _OSAllocFromHeap(0x20, aligned * 4);
-        next = pool + aligned;
-        *(u8 **)(hugeAnimStruct + 0xE88) = next;
-        next += aligned;
-        *(u8 **)(hugeAnimStruct + 0x1104) = next;
-        next += aligned;
-        *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
-        *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-        *(u8 **)(hugeAnimStruct + 0x1380) = next;
-
+        fn_2_477C0();
         fn_2_47540();
         initActorArray(0xD);
         fn_80014204(4);
         *(s32 *)(hugeAnimStruct + 0x13C) = fn_80023AA4();
 
-        hugeAnimStruct[0xE59] = 0;
-        *(u32 *)(hugeAnimStruct + 0x2C50) = 0;
-        hugeAnimStruct[0x2D6A] = 0xFF;
-        hugeAnimStruct[0xE5B] = 0xFF;
-        hugeAnimStruct[0x10D5] = 1;
-        *(u32 *)(hugeAnimStruct + 0x2C54) = 0;
-        hugeAnimStruct[0x2D6B] = 0xFF;
-        hugeAnimStruct[0x10D7] = 0xFF;
-        hugeAnimStruct[0x1351] = 2;
-        *(u32 *)(hugeAnimStruct + 0x2C58) = 0;
-        hugeAnimStruct[0x2D6C] = 0xFF;
-        hugeAnimStruct[0x1353] = 0xFF;
-        hugeAnimStruct[0x15CD] = 3;
-        *(u32 *)(hugeAnimStruct + 0x2C5C) = 0;
-        hugeAnimStruct[0x2D6D] = 0xFF;
-        hugeAnimStruct[0x15CF] = 0xFF;
-        hugeAnimStruct[0x2D7F] = 0xFF;
-        hugeAnimStruct[0x2D80] = 0xFF;
-        hugeAnimStruct[0x2D81] = 0xFF;
-        hugeAnimStruct[0x2D82] = 0xFF;
-        hugeAnimStruct[0x2D83] = 0xFF;
-        hugeAnimStruct[0x2D84] = 0xFF;
-        hugeAnimStruct[0x2D85] = 0xFF;
-        hugeAnimStruct[0x2D86] = 0xFF;
-        hugeAnimStruct[0x2D87] = 0xFF;
+        for (i = 0; i < 4; i++) {
+            hugeAnimStruct[0xE59 + i * 0x27C] = i;
+            *(u32 *)(hugeAnimStruct + 0x2C50 + i * 4) = 0;
+            *(s8 *)(hugeAnimStruct + 0x2D6A + i) = -1;
+            *(s8 *)(hugeAnimStruct + 0xE5B + i * 0x27C) = -1;
+        }
+        for (i = 0; i < 9; i++) {
+            *(s8 *)(hugeAnimStruct + 0x2D7F + i) = -1;
+        }
+        resetSelectionSlots();
         hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D89] = 0xFF;
-        hugeAnimStruct[0x2D8A] = 0xFF;
-        hugeAnimStruct[0x2D8B] = 0xFF;
-        hugeAnimStruct[0x2D8C] = 0xFF;
-        hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D7B] = 0;
-        hugeAnimStruct[0x2D7C] = 0;
         lbl_2_bss_55C0 = 1;
         break;
     case 1:
@@ -1120,14 +1027,7 @@ void fn_2_481F4(void) {
         }
         *(s32 *)(lbl_2_bss_1A824C + 0x19769C) = *(s16 *)(cdi + 0x16);
         lbl_2_bss_55C0 = 0;
-        idx = *(u32 *)(lbl_2_bss_1A824C + 0x19769C);
-        entry = hugeAnimStruct + idx * 0x27C + 0xC04;
-        *(f32 *)(entry + 0x34) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x38) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x3C) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x40) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x44) = lbl_2_rodata_94C;
-        *(f32 *)(entry + 0x48) = lbl_2_rodata_94C;
+        fn_2_48D08();
         hugeAnimStruct[0x2D77] = 0;
         *(s16 *)(*(u8 **)(currentDrawingItem + 0xC) + 0x10) = 1;
         removeCurrentDrawingItem();
@@ -1143,20 +1043,18 @@ void fn_2_481B8(void) {
 // .text:0x00047FF8 size:0x1C0 mapped:0x8068708C
 void fn_2_47FF8(void) {
     Mtx44 proj;
-    s32 i;
-    u8 *base = lbl_2_bss_1A824C + 0x190000;
     C_MTXFrustum(proj, -0.175f, 0.175f, 0.25f, -0.25f, 1.0f, 512.0f);
     GXSetProjection(proj, GX_PERSPECTIVE);
-    for (i = 0; i < 4; i++) {
-        LITXForm(*(void **)(hugeAnimStruct + 0xAC + i * 4), (u8 *)fn_80052768_getCamera(0) + 0x40);
-    }
-    if (base[0x784A] != 0) {
-        if (base[0x7846] == 1) {
-            fn_2_6A87C();
-            if (base[0x7847] != 0) {
+    fn_2_48D54();
+    if ((lbl_2_bss_1A824C + 0x190000)[0x784A] != 0) {
+        if ((lbl_2_bss_1A824C + 0x190000)[0x7846] == 1) {
+            if ((lbl_2_bss_1A824C + 0x190000)[0x7847] == 0) {
+                fn_2_6A87C();
+            } else {
+                fn_2_6A87C();
                 menuCamera_update(lbl_2_bss_1A81D4);
             }
-        } else if (base[0x7846] == 2) {
+        } else if ((lbl_2_bss_1A824C + 0x190000)[0x7846] == 2) {
             fn_2_9007C();
         } else {
             menuCamera_update(lbl_2_bss_1A81D4);
@@ -1167,60 +1065,75 @@ void fn_2_47FF8(void) {
     memcpy((u8 *)fn_80052768_getCamera(0) + 0x70, lbl_2_bss_1A81D4 + 0x4C, 12);
     memcpy((u8 *)fn_80052768_getCamera(0) + 0x7C, lbl_2_bss_1A81D4 + 0x40, 12);
     *(f32 *)((u8 *)fn_80052768_getCamera(0) + 0xA4) = *(f32 *)(lbl_2_bss_1A81D4 + 0x3C);
-    PSMTXCopy((f32 (*)[4])((u8 *)fn_80052768_getCamera(0) + 0x40), (f32 (*)[4])lbl_2_bss_1A81D4);
+    PSMTXCopy((f32 (*)[4])lbl_2_bss_1A81D4, (f32 (*)[4])((u8 *)fn_80052768_getCamera(0) + 0x40));
     graphics_relatedToVsScreen();
 }
 
 // .text:0x00047CFC size:0x2FC mapped:0x80686D90
+typedef struct {
+    u8 apply : 1;
+    u8 : 7;
+} AnimStateFlags;
+
+static inline void applyAnimPose(u8 *sub, u8 *pose) {
+    u8 *state = sub + 0xC;
+
+    if (state != NULL) {
+        *(f32 *)(state + 4) = 0.5f;
+    }
+    if (state != NULL) {
+        ((AnimStateFlags *)(state + 0x11))->apply = 1;
+    }
+    fn_80024DB0(state);
+    fn_80024FA4(pose, *(void **)(sub + 0x2C), sub + 0xC, -1);
+}
+
 void fn_2_47CFC(void) {
     Mtx44 proj;
     Vec tmp;
+    u8 *sub;
     s32 i;
     u8 *entry;
     u8 *rec;
-    u8 *obj;
-    u8 *pose;
+    f32 one;
     f32 rotScale;
 
     C_MTXFrustum(proj, lbl_2_rodata_950, lbl_2_rodata_954, lbl_2_rodata_958, lbl_2_rodata_95C, lbl_2_rodata_960, lbl_2_rodata_964);
     GXSetProjection(proj, GX_PERSPECTIVE);
     fn_2_8D024();
 
-    rotScale = lbl_2_rodata_968;
+    rotScale = 57.295776f;
+    one = 0.5f;
     for (i = 0; i < *(s16 *)(lbl_2_bss_1A824C + 0x197746); i++) {
         entry = hugeAnimStruct + i * 0x27C;
+        sub = entry + 0xC04;
         rec = *(u8 **)(hugeAnimStruct + 0x60) + 0x34 + i * 0x90;
-        rec[0x6C] = entry[0xE61] & 1;
+        rec[0x6C] = sub[0x25D] & 1;
         CTRLSetTranslation(rec + 0x10, *(f32 *)(entry + 0xC38), *(f32 *)(entry + 0xC3C), *(f32 *)(entry + 0xC40));
-        CTRLSetRotation(rec + 0x10, rotScale * *(f32 *)(entry + 0xC44), rotScale * *(f32 *)(entry + 0xC48),
-                        rotScale * *(f32 *)(entry + 0xC4C));
+        CTRLSetRotation(rec + 0x10, rotScale * *(f32 *)(sub + 0x40), rotScale * *(f32 *)(sub + 0x44),
+                        rotScale * *(f32 *)(sub + 0x48));
 
         if (lbl_2_bss_1A824C[0x197848] == 0) {
             memcpy(&tmp, lbl_2_data_12EA8, 12);
             if (lbl_2_bss_1A8248[0x441C] == 5 && i == 0) {
                 PSVECScale(&tmp, lbl_2_rodata_96C, &tmp);
+                CTRLSetScale(rec + 0x10, tmp.x, tmp.y, tmp.z);
+            } else {
+                CTRLSetScale(rec + 0x10, tmp.x, tmp.y, tmp.z);
             }
-            CTRLSetScale(rec + 0x10, tmp.x, tmp.y, tmp.z);
         } else {
             memcpy(&tmp, lbl_2_data_12EB4, 12);
             CTRLSetScale(rec + 0x10, tmp.x, tmp.y, tmp.z);
         }
-        *(f32 *)(rec + 0x54) = lbl_2_rodata_970;
+        *(f32 *)(rec + 0x54) = one;
         rec[0x5A] = 1;
 
-        obj = *(u8 **)(entry + 0xC34);
-        if (obj != NULL && *(u32 *)(obj + 4) != 0 && *(u32 *)(obj + 0x68) != 0 && obj[0xCC] != 0) {
-            pose = *(u8 **)(hugeAnimStruct + 0x13C) + obj[0x60] * 0x90 + 0x34;
-            *(f32 *)(obj + 0x14) = lbl_2_rodata_970;
-            obj[0x21] |= 0x80;
-            fn_80024DB0(obj + 0x10);
-            fn_80024FA4(pose, *(void **)(obj + 0x30), obj + 0x10, -1);
-
-            pose = *(u8 **)(hugeAnimStruct + 0x13C) + obj[0xC4] * 0x90 + 0x34;
-            *(f32 *)(obj + 0x78) = lbl_2_rodata_970;
-            obj[0x85] |= 0x80;
-            fn_80024DB0(obj + 0x74);
-            fn_80024FA4(pose, *(void **)(obj + 0x94), obj + 0x74, -1);
+        if (*(u8 **)(sub + 0x30) != NULL && *(u32 *)(*(u8 **)(sub + 0x30) + 4) != 0 &&
+            *(u32 *)(*(u8 **)(sub + 0x30) + 0x68) != 0 && (*(u8 **)(sub + 0x30))[0xCC] != 0) {
+            applyAnimPose(*(u8 **)(sub + 0x30) + 4,
+                          *(u8 **)(hugeAnimStruct + 0x13C) + (*(u8 **)(sub + 0x30))[0x60] * 0x90 + 0x34);
+            applyAnimPose(*(u8 **)(sub + 0x30) + 0x68,
+                          *(u8 **)(hugeAnimStruct + 0x13C) + (*(u8 **)(sub + 0x30))[0xC4] * 0x90 + 0x34);
         }
     }
     fn_2_47B24(*(u16 **)(hugeAnimStruct + 0x60));
@@ -1228,12 +1141,14 @@ void fn_2_47CFC(void) {
 
 // .text:0x00047B24 size:0x1D8 mapped:0x80686BB8
 void fn_2_47B24(u16 *list) {
+    u8 *cam;
+    u8 *root;
     u16 i;
     u16 k;
     Mtx mtx;
     u8 *obj;
-    u8 *actor;
     u8 *anim;
+    u8 boneFlag;
 
     if (lbl_2_bss_340140[0x307A] == 3) {
         return;
@@ -1242,29 +1157,30 @@ void fn_2_47B24(u16 *list) {
         anim = *(u8 **)(hugeAnimStruct + 0x2C50 + i * 4);
         if (anim != NULL && anim[0x25D] != 0) {
             obj = getAnimObjectActor(anim);
-            actor = *(u8 **)obj;
-            if (actor != NULL) {
+            if (*(void **)obj != NULL) {
                 if (obj[0x58] != 0) {
-                    ACTSetAnimation(actor, *(void **)(obj + 0x4), NULL, *(u16 *)(obj + 0xE), 0.0f, *(f32 *)(obj + 0x60));
+                    ACTSetAnimation(*(void **)obj, *(void **)(obj + 0x4), NULL, *(u16 *)(obj + 0xE), 0.0f, *(f32 *)(obj + 0x60));
                 }
                 if (obj[0x59] != 0) {
-                    setActorAnimFrame(actor, *(f32 *)(obj + 0x5C));
+                    setActorAnimFrame(*(void **)obj, *(f32 *)(obj + 0x5C));
                 }
                 if (obj[0x5A] != 0) {
-                    ACTSetSpeed(actor, *(f32 *)(obj + 0x54));
+                    ACTSetSpeed(*(void **)obj, *(f32 *)(obj + 0x54));
                 }
                 if (obj[0x5B] & 2) {
-                    updateBoneParam(actor, obj[0x5B] & 1);
+                    boneFlag = obj[0x5B] & 1;
+                    updateBoneParam(*(void **)obj, boneFlag);
                 }
-                Set_FUN_800b2b6c(actor, *(s32 *)(obj + 0x68));
+                Set_FUN_800b2b6c(*(void **)obj, *(s32 *)(obj + 0x68));
                 if (obj[0x6C] != 0) {
                     fn_800BDA24(obj);
                 }
                 for (k = 0; k < returnScissorMode(); k++) {
-                    u8 *cam = (u8 *)returnFloatFromModeIndex(k) + 0x40;
+                    cam = (u8 *)returnFloatFromModeIndex(k) + 0x40;
                     PSMTXTrans(mtx, *(f32 *)(anim + 0x34), *(f32 *)(anim + 0x38), *(f32 *)(anim + 0x3C));
                     PSMTXConcat((f32 (*)[4])cam, mtx, mtx);
-                    actor[0x98] = (actor[0x98] & ~(3 << (3 * k))) | (fn_800B3C04(k, actor, mtx) << (3 * k));
+                    root = *(u8 **)obj;
+                    root[0x98] = (root[0x98] & (u8)~(3 << (k * 3))) | ((u8)fn_800B3C04(k, root, mtx) << (k * 3));
                 }
                 obj[0x58] = 0;
                 obj[0x59] = 0;
@@ -1284,65 +1200,23 @@ void fn_2_47AFC(void) {
 
 // .text:0x000478F4 size:0x208 mapped:0x80686988
 void fn_2_478F4(void) {
-    u32 maxSize = 0;
-    u32 aligned;
-    u8 *pool;
-    u8 *next;
     s32 i;
-    for (i = 0; i < 54; i++) {
-        u32 size = allocationEntrySize(i * 0x130);
-        if (maxSize < size) {
-            maxSize = size;
-        }
-    }
-    aligned = OSRoundUp32B(maxSize);
-    pool = _OSAllocFromHeap(0x20, aligned * 4);
-    next = pool + aligned;
-    *(u8 **)(hugeAnimStruct + 0xE88) = next;
-    next += aligned;
-    *(u8 **)(hugeAnimStruct + 0x1104) = next;
-    next += aligned;
-    *(u8 **)(hugeAnimStruct + 0x2C8C) = pool;
-    *(u8 **)(hugeAnimStruct + 0xC0C) = pool;
-    *(u8 **)(hugeAnimStruct + 0x1380) = next;
 
+    fn_2_477C0();
     fn_2_47540();
     initActorArray(0xD);
     fn_80014204(4);
     *(s32 *)(hugeAnimStruct + 0x13C) = fn_80023AA4();
-
-    hugeAnimStruct[0xE59] = 0;
-    *(u32 *)(hugeAnimStruct + 0x2C50) = 0;
-    hugeAnimStruct[0x2D6A] = 0xFF;
-    hugeAnimStruct[0xE5B] = 0xFF;
-    hugeAnimStruct[0x10D5] = 1;
-    *(u32 *)(hugeAnimStruct + 0x2C54) = 0;
-    hugeAnimStruct[0x2D6B] = 0xFF;
-    hugeAnimStruct[0x10D7] = 0xFF;
-    hugeAnimStruct[0x1351] = 2;
-    *(u32 *)(hugeAnimStruct + 0x2C58) = 0;
-    hugeAnimStruct[0x2D6C] = 0xFF;
-    hugeAnimStruct[0x1353] = 0xFF;
-    hugeAnimStruct[0x15CD] = 3;
-    *(u32 *)(hugeAnimStruct + 0x2C5C) = 0;
-    hugeAnimStruct[0x2D6D] = 0xFF;
-    hugeAnimStruct[0x15CF] = 0xFF;
-    hugeAnimStruct[0x2D7F] = 0xFF;
-    hugeAnimStruct[0x2D80] = 0xFF;
-    hugeAnimStruct[0x2D81] = 0xFF;
-    hugeAnimStruct[0x2D82] = 0xFF;
-    hugeAnimStruct[0x2D83] = 0xFF;
-    hugeAnimStruct[0x2D84] = 0xFF;
-    hugeAnimStruct[0x2D85] = 0xFF;
-    hugeAnimStruct[0x2D86] = 0xFF;
-    hugeAnimStruct[0x2D87] = 0xFF;
-    hugeAnimStruct[0x2D89] = 0xFF;
-    hugeAnimStruct[0x2D8A] = 0xFF;
-    hugeAnimStruct[0x2D8B] = 0xFF;
-    hugeAnimStruct[0x2D8C] = 0xFF;
-    hugeAnimStruct[0x2D77] = 0;
-    hugeAnimStruct[0x2D7B] = 0;
-    hugeAnimStruct[0x2D7C] = 0;
+    for (i = 0; i < 4; i++) {
+        hugeAnimStruct[0xE59 + i * 0x27C] = i;
+        *(u32 *)(hugeAnimStruct + 0x2C50 + i * 4) = 0;
+        *(s8 *)(hugeAnimStruct + 0x2D6A + i) = -1;
+        *(s8 *)(hugeAnimStruct + 0xE5B + i * 0x27C) = -1;
+    }
+    for (i = 0; i < 9; i++) {
+        *(s8 *)(hugeAnimStruct + 0x2D7F + i) = -1;
+    }
+    resetSelectionSlots();
 }
 
 // .text:0x000477C0 size:0x134 mapped:0x80686854
@@ -1510,7 +1384,7 @@ void fn_2_472C4(s16 *timer, s16 *value, s16 step, s16 period, s16 flags) {
     if (remainder != 0) lastPeriod = remainder;
     limit = step - period;
     if (flags & 4) limit = step - lastPeriod;
-    input = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+    input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
     switch (input) {
     case PAD_TRIGGER_R:
     case PAD_BUTTON_DOWN:
@@ -1575,7 +1449,7 @@ void fn_2_46D94(s16 *timer, s16 *value, s16 step, s16 period, u16 flags) {
     if (remainder != 0) lastPeriod = remainder;
     limit = step - period;
     if (flags & 4) limit = step - lastPeriod;
-    input = *(u16 *)(AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
+    input = *(u16 *)((u8 *)&AtBat_ButtonInput1 + (s8)lbl_2_bss_1A824C[0x197863] * 0x20 + 4);
     switch (input) {
     case PAD_BUTTON_UP:
         if (value != NULL) {

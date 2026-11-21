@@ -30,17 +30,6 @@ void *ARAMTransfer(void *file, s32 arg1, s32 arg2, s32 arg3);
 #define AT_BAT_U16(idx, off) (*(u16 *)(AtBat_ButtonInput1 + (idx) * 0x20 + (off)))
 #define CURSOR_WRAP(x) ((x) % 32)
 
-// Advance the cursor at +0x16 (limit at +0x15) and store the byte at +0x17 + cursor into dst.
-#define CURSOR_STEP(obj, dst)                                          \
-    do {                                                               \
-        if (OBJ_U8(obj, 0x16) == OBJ_U8(obj, 0x15)) {                 \
-            (dst) = 0;                                                 \
-        } else {                                                       \
-            OBJ_U8(obj, 0x16) = CURSOR_WRAP(OBJ_U8(obj, 0x16) + 1);    \
-            (dst) = *((u8 *)(obj) + OBJ_U8(obj, 0x16) + 0x17);         \
-        }                                                              \
-    } while (0)
-
 // .text:0x00000A14 size:0x5C mapped:0x8063FAA8
 void fn_2_A14(void) {
     insertGraphicDrawingFunction(fn_2_160, 0x1000);
@@ -91,47 +80,26 @@ void fn_2_940(void) {
 // .text:0x00000794 size:0x1AC mapped:0x8063F828
 void fn_2_794(void) {
     DrawingSceneStruct *node = currentDrawingItem;
-    Text00110Ctl *ctl = menuControlVariables;
-    u8 screen;
 
-    switch (ctl->unk00) {
+    switch (menuControlVariables->unk00) {
     case 0:
         *(s16 *)((u8 *)node + 0x10) = 0;
-        insertGraphicDrawingFunction(fn_2_160, 0x1000);
-        insertGraphicDrawingFunction(fn_2_110, 0xF000);
-        menuControlVariables->currentState = 0;
-        menuControlVariables->currentScreen = 0;
+        fn_2_A14();
         insertGraphicDrawingFunction(fn_2_940, 0x100);
-        ctl->unk00++;
+        menuControlVariables->unk00++;
         break;
     case 1:
-        ctl->unk00 = 3;
+        menuControlVariables->unk00 = 3;
         break;
     case 3:
-        screen = lbl_80366158[0x1D];
-        insertGraphicDrawingFunction(currentScreenFunctionChooser, 0x2000);
-        switch (screen) {
-        case 0:
-            changeScreenVariables(0x11);
-            break;
-        case 1:
-            changeScreenVariables(0xE);
-            break;
-        case 7:
-        case 9:
-            changeScreenVariables(1);
-            break;
-        default:
-            break;
-        }
-        lbl_80366158[0x1D] = 1;
-        ctl->unk00 = 4;
+        fn_2_978();
+        menuControlVariables->unk00 = 4;
         /* fall through */
     case 4:
         if (*(s16 *)((u8 *)node + 0x10) == 0) {
             break;
         }
-        ctl->unk00 = 5;
+        menuControlVariables->unk00 = 5;
         /* fall through */
     case 5:
         node->currentDrawingItem->state = *(s16 *)((u8 *)node + 0x10);
@@ -217,7 +185,7 @@ u8 fn_2_510(u8 *obj) {
     }
     next = CURSOR_WRAP(OBJ_U8(obj, 0x16) + 1);
     OBJ_U8(obj, 0x16) = next;
-    return *((u8 *)obj + OBJ_U8(obj, 0x16) + 0x17);
+    return (obj + OBJ_U8(obj, 0x16))[0x17];
 }
 
 // .text:0x000004C4 size:0x4C mapped:0x8063F558
@@ -228,36 +196,32 @@ s32 fn_2_4C4(u8 *obj, u8 value) {
         return 0;
     }
     OBJ_U8(obj, 0x15) = next;
-    *((u8 *)obj + OBJ_U8(obj, 0x15) + 0x17) = value;
+    (obj + OBJ_U8(obj, 0x15))[0x17] = value;
     return 1;
 }
 
 // .text:0x00000374 size:0x150 mapped:0x8063F408
 void fn_2_374(void) {
-    DrawingSceneStruct *node = currentDrawingItem;
-    u8 state = OBJ_U8(node, 0x14);
+    u8 *node = (u8 *)currentDrawingItem;
     u8 next;
 
-    switch (state) {
+    switch (OBJ_U8(node, 0x14)) {
     case 0:
-        CURSOR_STEP(node, next);
-        OBJ_U8(node, 0x14) = next;
+        OBJ_U8(node, 0x14) = fn_2_510(node);
         break;
     case 1:
-        if (fn_80022A24(g_d_GameSettings[0x9], g_d_GameSettings[0xA]) != 0) {
-            CURSOR_STEP(node, next);
-            OBJ_U8(node, 0x14) = next;
-            if (next == 2) {
-                fn_800229CC();
-                CURSOR_STEP(node, next);
-                OBJ_U8(node, 0x14) = next;
-            }
+        if (fn_80022A24(g_d_GameSettings[0x9], g_d_GameSettings[0xA]) == 0) {
+            break;
         }
-        break;
+        next = fn_2_510(node);
+        OBJ_U8(node, 0x14) = next;
+        if (next != 2) {
+            break;
+        }
+        /* fall through */
     case 2:
         fn_800229CC();
-        CURSOR_STEP(node, next);
-        OBJ_U8(node, 0x14) = next;
+        OBJ_U8(node, 0x14) = fn_2_510(node);
         break;
     default:
         break;
@@ -266,26 +230,12 @@ void fn_2_374(void) {
 
 // .text:0x00000328 size:0x4C mapped:0x8063F3BC
 void fn_2_328(void) {
-    u8 *obj = (u8 *)lbl_2_bss_4;
-    u8 next = CURSOR_WRAP(OBJ_U8(obj, 0x15) + 1);
-
-    if (next == OBJ_U8(obj, 0x16)) {
-        return;
-    }
-    OBJ_U8(obj, 0x15) = next;
-    *((u8 *)obj + OBJ_U8(obj, 0x15) + 0x17) = 1;
+    fn_2_4C4((u8 *)lbl_2_bss_4, 1);
 }
 
 // .text:0x000002DC size:0x4C mapped:0x8063F370
 void bPressOnStadSelectScreen(void) {
-    u8 *obj = (u8 *)lbl_2_bss_4;
-    u8 next = CURSOR_WRAP(OBJ_U8(obj, 0x15) + 1);
-
-    if (next == OBJ_U8(obj, 0x16)) {
-        return;
-    }
-    OBJ_U8(obj, 0x15) = next;
-    ((u8 *)obj + OBJ_U8(obj, 0x15))[0x17] = 2;
+    fn_2_4C4((u8 *)lbl_2_bss_4, 2);
 }
 
 // .text:0x000002D8 size:0x4 mapped:0x8063F36C
@@ -297,12 +247,16 @@ s32 fn_2_1A8(u8 index, u8 mode, u16 mask) {
     u16 value = 0;
     s32 result = -1;
 
-    if (mode == 0) {
+    switch (mode) {
+    case 0:
         value = AT_BAT_U16(index, 0x0);
-    } else if (mode == 1) {
+        break;
+    case 1:
         value = menuControlVariables->slots[index];
-    } else if (mode == 2) {
+        break;
+    case 2:
         value = AT_BAT_U16(index, 0x4);
+        break;
     }
     value &= mask;
     if (mode == 1) {

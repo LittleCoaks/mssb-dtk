@@ -24,7 +24,7 @@ inline const f32 *getRepLeadData_rep0010(void) {
 #include "Unknown/File_0x800a7568.h"
 #include "Unknown/File_0x800a8cbc.h"
 #include "Unknown/dvdsys.h"
-#include "Unknown/File_0x80025ddc.h"
+#include "Unknown/File_0x80024d2c.h"
 #include "C3/actor/actorAnim.h"
 #include "C3/actor/act.h"
 #include "C3/geoPalette/geoPalette.h"

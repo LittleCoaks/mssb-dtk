@@ -2,6 +2,7 @@
 #include "game/math/game_math.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/stadium/stadium_framework.h"
 #include "Dolphin/rand.h"
 #include "static/UnknownHomes_Static.h"
 

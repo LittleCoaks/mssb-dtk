@@ -1055,6 +1055,341 @@ generates the same code. `somethingSetTexturePointer` no longer includes
 translation unit and was not needed. The seven headers became `include/text/text.h`
 (37 files include it).
 
+## Main DOL: units merged on shared literal pools (2026-11-20)
+
+A union-find over every main-DOL function's `@sda21`/`@ha`/`@l` references to
+`.sdata2` and `.rodata` symbols (functions joined when they read the same
+address) gave sixteen groups that touch unsplit (`auto_*`) code. MWCC pools a
+TU's float literals once, in first-use order, and the linker never merges two
+TUs' pools, so two functions that read the same anonymous literal were compiled
+together. Each shared symbol below was checked to be an anonymous literal (an
+`lbl_` float/double, a magic int-to-float double, or a `__FILE__`/message string
+read by `OSPanic`-style calls) rather than a named table, and each pool was
+checked for repeated values: a repeated `0.0f` or `1.0f` means a second pool, so
+the pool boundaries are where a value comes back. The other sections were then
+checked for TU order (each unit's `.rodata`/`.data`/`.sdata`/`.sbss`/`.bss` must
+sit between its neighbours' and start 8-aligned) and for jump tables that start
+4-aligned (never a unit's first `.data` byte).
+
+As in the 2026-10-14 pass, gap functions keep no C: a merged unit is
+`NonMatching` unless all its parts were `Matching`, and links from the original
+asm. Merged sources keep their functions in address order. Unless noted, every
+function that had C keeps its score.
+
+### `Unknown/File_0x8000a0ac.c` (`0x8000A0AC-0x8000B9C8`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8000A0AC-0x8000B9C8` | `File_0x8000a1e8` (`interpolatePointsBezier_Vec2s`) and the unowned `fn_8000A0AC`, `fn_8000A3EC`, `fn_8000AF1C` |
+| `extab` / `extabindex` | `0x80005640-0x80005660` / `0x80006CC0-0x80006CF0` | the four functions' entries |
+| `.sdata2` | `0x803CC420-0x803CC458` | unowned |
+
+- **One pool.** The int-to-float magic double at `0x803CC420` is read by all four
+  functions; `fn_8000A3EC` and `fn_8000AF1C` also share `1.0f`, `0.0f`, `1/1024`,
+  `4096.0f` and the unsigned magic double. The pool (`magic, 1, 0, 1/1024, 4096,
+  2pi, umagic, 360, 0.5, pi/2, pi/180`) holds no value twice.
+- **Boundaries.** The pool before it (`0x803CC400-0x803CC420`,
+  `File_0x80009e94`'s `interpolatePointsUnknown`/`BezierInterpolate`) already
+  holds `1.0f` (`0x803CC418`), and the next one starts with `1.0f` again
+  (`0x803CC458`), so `File_0x80009e94` is its own TU and the unit ends with the
+  pool. `fn_8000B9C8` (a frameless pointer-fixup leaf, no constants, no extab,
+  called from `fn_80035750` and `diskReadRelated`) is left unowned.
+
+The file is renamed to its new start address (`File_0x8000a1e8.c/.h` ->
+`File_0x8000a0ac.c/.h`). Units 1030 -> 1028 in the report.
+
+### `Unknown/File_0x8000ba3c.c` (`0x8000BA3C-0x8000F150`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8000BA3C-0x8000F150` | `File_0x8000ba3c` (`updateMenuOrBackgroundUI`), `c194` (`updateHUDRelatedUI`), `d164` (`triggerDefaultHUDAction`), `d838` (`handleUIAction`, `Matching`), `e900` (`SetSpriteRect`), `ef1c` (`AddVec2iToQuad`) and nine unowned functions (`fn_8000CC4C`, `fn_8000CEF0`, `fn_8000D8A4`, `fn_8000DC9C`, `fn_8000E030`, `fn_8000E2D4`, `fn_8000E764`, `fn_8000E7BC`, `fn_8000EC0C`) |
+| `extab` / `extabindex` | `0x80005660-0x800056D8` / `0x80006CF0-0x80006DA4` | all 15 functions have an entry |
+| `.rodata` | `0x800E65D0-0x800E6600` | unowned (`lbl_800E65D0`, a 0x30-byte matrix read by `updateHUDRelatedUI`) |
+| `.sbss` | `0x803CBBD8-0x803CBBDC` | unowned (`lbl_803CBBD8`, read by `updateHUDRelatedUI`, `triggerDefaultHUDAction`, `SetSpriteRect`, `fn_8000EC0C` only) |
+| `.sdata2` | `0x803CC458-0x803CC490` | unowned |
+
+- **One pool, read across the whole range.** `0x803CC458-0x803CC490` holds
+  `1, magic, umagic, 1280, 1/1280, -1, 0, 256, 128, 2pi/65536` once each.
+  `IntToDouble` (`0x803CC460`) is the pool's int-to-float double that someone
+  named; it is read only by functions of this range. Sharers:
+  `updateMenuOrBackgroundUI`, `updateHUDRelatedUI`, `triggerDefaultHUDAction`,
+  `fn_8000D8A4`...`fn_8000E7BC`, `SetSpriteRect`, `fn_8000EC0C` and
+  `AddVec2iToQuad` (the last function before `text.c`).
+- **The functions in between** (`fn_8000CC4C`, `fn_8000CEF0`, `handleUIAction`,
+  `fn_8000E764`) read no constants; they sit between pool users, so the
+  contiguous unit includes them. `handleUIAction` was `Matching` and stays 100%.
+- **Order.** `.rodata 0x800E65D0` sits between `handleLoadingProcess`'s strings
+  and the next unit's `identityMtx`; `.sbss 0x803CBBD8` precedes `text.c`'s
+  `0x803CBBE8`; the pool runs from the previous unit's pool to `text.c`'s
+  (`0x803CC490`). `.bss lbl_80366188` (the UI sprite buffer) is shared with
+  `File_0x80009e94` and later code and is not claimed.
+
+Source notes: the six files declared the sprite buffer `lbl_80366188` as
+`u8[]`, `HUDSprite` and `SpriteRectBuf`; the merged file declares `u8[]` and
+casts where a struct view is used. `fn_8000A0AC`/`fn_8000A3EC` had two
+prototypes (`Vec*` / `f32*` context); the merged one takes `void*`.
+`triggerDefaultHUDAction` called `DrawSprite_TexObj` with two arguments through
+a private prototype while `sprt.h` declares three; the call now goes through a
+cast function pointer, which emits the same `bl`. `updateHUDRelatedUI` rose
+39.68% -> 41.52% (the struct accesses through the cast compile closer to the
+target); nothing dropped. The six headers became `Unknown/File_0x8000ba3c.h`.
+One `Matching` unit (`File_0x8000d838`) is absorbed. Units 1028 -> 1015.
+
+### `Unknown/File_0x80024d2c.c` (`0x80024D2C-0x80026134`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80024D2C-0x80026134` | the unowned `getHandTrackFlags`, `fn_80024DB0`, `fn_80024FA4`, then `File_0x80025c58` (`ACTActorRelated`, `Matching`) and `File_0x80025ddc` (`adjustInternalPointers`, `actorRelated`, `actRelated`, `fn_80026130`) |
+| `extab` / `extabindex` | `0x80005BA0-0x80005BC0` / `0x800074D0-0x80007500` | the four functions that have an entry (`File_0x80025ddc`'s are frameless) |
+| `.sdata` | `0x803CB7F0-0x803CB7F8` | unowned (read by `actorRelated`/`actRelated` only) |
+| `.sbss` | `0x803CBC68-0x803CBC70` | unowned (`fn_80024FA4`) |
+| `.sdata2` | `0x803CC5A8-0x803CC5D8` | unowned |
+
+- **One pool.** `0x803CC5A8-0x803CC5D8` (`umagic, 0, 1, 100, 2^24, 65536, magic,
+  0.5`) holds each value once. `0.0f` (`0x803CC5B0`) is read by `fn_80024DB0`,
+  `fn_80024FA4`, `actorRelated` and `actRelated`; the unsigned magic double by
+  the three gap functions. `sub.c`'s pool ends at `0x803CC5A8` (it already has
+  `0.0f`/`1.0f`), and `fn_80026134`'s pool starts with `0.0f` at `0x803CC5D8`,
+  so `fn_80026134` (with `.rodata 0x800E6768`) is the next TU and stays unowned.
+- `ACTActorRelated` reads no constants but sits between pool users.
+- **Order.** `.sdata`/`.sbss` sit between `sub.c`/objinit's objects and
+  `particle_effects.c`'s (`0x803CB7F8`, `0x803CBC70`).
+
+`File_0x80025ddc` was built without `-cpp_exceptions on`; its functions have no
+extab entries and compile to the same code with it. The two headers became
+`Unknown/File_0x80024d2c.h`. One `Matching` unit is absorbed.
+
+### `Unknown/spani_default.c` (`0x80034BCC-0x80036C88`)
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80034BCC-0x80036C88` | `File_0x80034cec` (`removeGraphicsElementFromScene`, `Matching`), `34e20` (`addGraphicsElementToScene`), `34f50` (`allocateGraphicsSlot`), `35168` (`maybeProcessUIUpdates`), `35838` (`diskReadRelated`), `35ca4` (`unregisterObjectByID`, `Matching`), `363d8` (`load_Icon`, `Matching`), `3649c` (`setIndicatorSlotState`) and 18 unowned functions (`fn_80034BCC`, `fn_800356B8`, `fn_80035750`, `fn_80035A00` ... `fn_80036A3C`) |
+| `extab` / `extabindex` | `0x80005D98-0x80005E40` / `0x800077C4-0x800078C0` | every function's entry (the leaves have none) |
+| `.rodata` | `0x800E68A8-0x800E6910` | unowned: `" SabNo = %d not to add"`, then `"spani_default.c"` + `"gasSpani No Empty"` and `"It is a number not registered."` |
+| `.data` | `0x800F78E0-0x800F79A0` | unowned (`lbl_800F78E0`, `maybeProcessUIUpdates`) |
+| `.bss` | `0x801F8640-0x8023DD80` | unowned (`lbl_801F8640`, `lbl_801F8680`, `lbl_801F86C0`, `textureContainerTags`) |
+| `.sdata` | `0x803CB810-0x803CB818` | unowned (`diskReadRelated`, `uiDrawLoopEnd`) |
+| `.sbss` | `0x803CBC90-0x803CBCA0` | unowned (`diskReadState` ... `lbl_803CBC9C`) |
+| `.sdata2` | `0x803CC6E8-0x803CC720` | unowned |
+
+- **The binary names the unit.** `lbl_800E68C4` is `"spani_default.c"`
+  followed by `"gasSpani No Empty \n"`, read by `fn_80035F20`, `fn_8003664C` and
+  `fn_80036824`, all inside the pool span below.
+- **One pool.** `0x803CC6E8-0x803CC720` (`0, 256.5, 511, 2, 1, magic, -0.175,
+  0.175, 0.25, -0.25, 512, 1280`) has no repeated value; its readers run from
+  `allocateGraphicsSlot` to `fn_80036A3C`. The next pool repeats `0.0f`
+  (`0x803CC728`).
+- **`.rodata` and `.bss` in TU order.** `lbl_800E68A8` is read by `fn_80035750`
+  and `diskReadRelated`, the `spani_default.c` strings by the later functions;
+  the run starts where `particle_effects.c`'s ends. `.bss` follows
+  `particle_effects.c`'s minigame buffer (`0x801F8040`); `textureContainerTags`
+  is read only by functions of this range.
+- **The head, `0x80034BCC-0x80034F50`.** `fn_80034BCC` is called only by
+  `maybeProcessUIUpdates`, and its one data object, `.sbss lbl_803CBC9C`, sits
+  in this unit's `.sbss` run after `diskReadState` and `uiDrawLoopStart`, where
+  an earlier TU's object cannot be. So it is in the unit and so are the two
+  graphics-element functions between it and `allocateGraphicsSlot`. The unit
+  starts where `particle_effects.c` ends.
+- **Not included:** `fn_80036C88` (no data; called from the game and menus REL
+  entry points) is left unowned.
+
+The eight headers are kept; `Unknown/spani_default.h` includes them (merging
+them made 85 includers see each other's prototypes, which clash with local
+redeclarations in a dozen REL files). Three `Matching` units are absorbed.
+
+### `Unknown/File_0x80037054.c` (`0x80037054-0x80039AA8`)
+
+Fifteen unowned functions and no source: a new `NonMatching` unit with an empty
+source file.
+
+| section | range |
+|---|---|
+| `.text` | `0x80037054-0x80039AA8` (`fn_80037054` ... `fn_80039A4C`) |
+| `extab` / `extabindex` | `0x80005E48-0x80005EE8` / `0x800078CC-0x800079BC` |
+| `.data` | `0x800F79A0-0x800F7A40` (`lbl_800F79A0`, `lbl_800F79B8`) |
+| `.sdata` | `0x803CB818-0x803CB828` |
+| `.sbss` | `0x803CBCA0-0x803CBCA8` |
+| `.sdata2` | `0x803CC720-0x803CC7A0` |
+
+- **One pool, no repeats** (`1/60, 100000, 0, 0.5, magic, -9.80665, 1, 0.25,
+  12, 9.80665, 10, 20, 2, 60, -1, 0.8, ...`). `0.0f` (`0x803CC728`) alone is read
+  by eleven functions from `fn_80037054` to `fn_80039310`.
+- **`fn_80039A4C` closes the unit:** it reads both `.data` objects (with
+  `fn_80038F08`/`fn_80038EC4`), `.sdata 0x803CB818/0x803CB820` and `.sbss
+  0x803CBCA1` (with `fn_80039310`).
+- **Order.** Every section starts exactly where `spani_default.c`'s ends
+  (`.data 0x800F79A0`, `.sdata 0x803CB818`, `.sbss 0x803CBCA0`, `.sdata2
+  0x803CC720`) and ends where `File_0x80039aa8`'s `UITexture` user
+  `lbl_800F7A40`, and the next pool (`0x803CC7A0`, `fn_80039AC0`), begin.
+
+Units 1015 -> 970 in the report after these three.
+
+### `Unknown/File_0x8003ae64.c` (`0x8003AE64-0x80040FE0`)
+
+The memory-card / save screen TU. No literal pool: the evidence is a shared
+string plus the `.data`, `.bss` and `.sbss` layout.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8003AE64-0x80040FE0` | `File_0x8003c00c` (`sceneDrawingLogic`) and the unowned `fn_8003AE64`, `fn_8003AE70`, `fn_8003AECC`, `fn_8003B5B0`, `fn_8003BB90`, `fn_8003BF54`, `fn_8003E8D8`, `startMemoryCardCheck`, `fn_8003F2B8`, `fn_8004053C`, `fn_80040C14` |
+| `extab` / `extabindex` | `0x80005F60-0x80005FB0` / `0x80007A70-0x80007AE8` | the entries from `fn_8003AECC` to `fn_80040C14` |
+| `.rodata` | `0x800E6910-0x800E6920` | unowned (`"MarioBaseball"`) |
+| `.data` | `0x800F7B00-0x800FB3F8` | unowned: `lbl_800F7B00` (0x32A0) and 25 jump tables |
+| `.bss` | `0x802D4AC0-0x802E4B00` | unowned (`lbl_802D4AC0`, `lbl_802D4AE0`, `lbl_802D4B00`) |
+| `.sdata` | `0x803CB830-0x803CB838` | unowned (`sceneDrawingLogic`) |
+| `.sbss` | `0x803CBCB8-0x803CBCC0` | unowned (`fn_8003AE64` + `sceneDrawingLogic`, `sceneDrawingLogic`) |
+
+- **One string literal.** `"MarioBaseball"` (`.rodata 0x800E6910`, the card file
+  name) is read by `fn_8003B5B0`, `sceneDrawingLogic`, `fn_8003F2B8`,
+  `fn_8004053C` and `fn_80040C14`. It sits between `spani_default.c`'s strings
+  and `orderchange.c`'s `"orderchange.c"` (`0x800E6920`).
+- **One `.data` run.** `lbl_800F7B00` (read by `fn_8003B5B0` and
+  `sceneDrawingLogic`) is followed directly by the jump tables of `fn_8003AECC`,
+  `fn_8003B5B0`, `fn_8003BB90`, `sceneDrawingLogic`, `fn_8003E8D8`,
+  `fn_8003F2B8`, `fn_8004053C` and `fn_80040C14`, in that order, up to
+  `orderchange.c`'s first table at `0x800FB3F8`. Several start 4-aligned
+  (`0x800FAF14` after `fn_8003BB90`'s, `0x800FB164` after `fn_8003E8D8`'s). The
+  object comes first and the tables follow in function order, as in the other
+  units (an earlier TU's tables cannot come after a later TU's object), so
+  `fn_8003AECC` is in the unit.
+- **`.bss` and `.sbss` place the head.** `.bss` runs `lbl_802D4AC0`
+  (`sceneDrawingLogic`), `lbl_802D4AE0` (`fn_8003AECC` and nine others) and
+  `lbl_802D4B00` (`fn_8003AE70` and six others), directly after
+  `File_0x8003a688`'s `lbl_802D3D80`. In `.sbss`, `File_0x8003a688`'s
+  `fn_8003AC90` shares `lbl_803CBCB4` with `fn_8003AE54`/`fn_8003AE5C`, and the
+  next object, `lbl_803CBCB8`, is shared by `fn_8003AE64` and
+  `sceneDrawingLogic`. So the unit starts at `fn_8003AE64`; `fn_8003AE54` and
+  `fn_8003AE5C` stay unowned (they belong with `File_0x8003a688`, which this pass
+  does not change).
+- **Not included:** `0x80040FE0-0x8004207C` (`fn_80040FE0` ... `fn_800415A8`)
+  has no object of its own in these runs; `lbl_803CBCC0` (`fn_8004157C`,
+  `fn_800415A0`) directly follows the unit's `.sbss`, which fits either side.
+
+The file is renamed `File_0x8003c00c` -> `File_0x8003ae64` (`.c` and `.h`).
+
+### `Unknown/File_0x8005268c.c` (`0x8005268C-0x800531D0`)
+
+The camera / scissor / projection TU.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x8005268C-0x800531D0` | `File_0x8005268c` (`returnsCurrentMode`), `52694` (`setScissorAndProjection`), `52734` (`returnFloatFromModeIndex`, `fn_80052768_getCamera`, `setScissorMode`, `returnScissorMode`), all `Matching`; `527c4` (`isWorldPosOnScreen`), `52968` (`graphics_relatedToVsScreen`), `52f98` (`possiblyTransitionBlackScreen`), and the unowned `fn_800528AC`, `fn_800528B4`, `fn_800528C0`, `fn_80052D70` |
+| `extab` / `extabindex` | `0x800061F8-0x80006228` / `0x80007E54-0x80007E9C` | |
+| `.sdata` | `0x803CB880-0x803CB888` | unowned (`scissorMode`) |
+| `.sbss` | `0x803CBD10-0x803CBD18` | unowned (`lbl_803CBD10`, `currentMode`) |
+| `.sdata2` | `0x803CC870-0x803CC8D0` | unowned |
+
+- **One pool, no repeats** (`0, 0.25, -1, 1, 320, 224, -0.175, 0.175, -0.25, 512,
+  -240, 240, -320, -512, 1280, 0.375, -0.125, -160, 160, 0.125, -0.375, -5, -4,
+  -pi`), read by `isWorldPosOnScreen`, `fn_800528C0`,
+  `graphics_relatedToVsScreen`, `fn_80052D70` and `possiblyTransitionBlackScreen`.
+  `fn_800528AC`/`fn_800528B4` share `.sbss lbl_803CBD10` with the last three.
+- **The head.** `.sbss` holds `lbl_803CBD10` (the pool functions) and then
+  `currentMode` (read only by `returnsCurrentMode` and `setScissorAndProjection`).
+  If `0x8005268C-0x800527C4` were its own earlier TU, `currentMode` would come
+  before `lbl_803CBD10`; so the three small `Matching` units are the head of this
+  unit. `scissorMode` (`.sdata`) is read by both halves.
+- `.bss` (`lbl_803C60BC`, `cameras`) lies in the block after the SDK's `.bss`;
+  claiming it creates a link-order cycle, so it is left unowned (the 2026-10-14
+  units leave their late `.bss` objects alone for the same reason).
+
+The headers are kept; the merged source includes them. `File_0x80052694.h`
+declares `currentMode` as `int`, so the duplicate `extern u32` went.
+Three `Matching` units are absorbed (all nine functions keep their scores).
+
+### Four new units for gap-only TUs
+
+| unit | `.text` | other sections | evidence |
+|---|---|---|---|
+| `Unknown/File_0x800521b0.c` | `0x800521B0-0x80052634` (`fn_800521B0`, `fn_8005240C`) | `extab 0x800061E0-0x800061F0`, `extabindex 0x80007E30-0x80007E48`, `.data 0x800FEB08-0x800FEB30`, `.sdata2 0x803CC860-0x803CC870` | both read `255.0f` and the magic double at `0x803CC860/0x803CC868` and the `.data` object `lbl_800FEB08` |
+| `Unknown/File_0x80063028.c` | `0x80063028-0x80063718` (`fn_80063028`, `fn_800633AC`) | `extab 0x80006418-0x80006428`, `extabindex 0x80008184-0x8000819C`, `.sdata2 0x803CC8D8-0x803CC8F0` | both read the whole pool (`1, -1, pi, 0, pi/180`); `fn_80062C60`'s `0.5f` (`0x803CC8D0`) is before it and `fn_800639BC`'s `0.0f` (`0x803CC8F0`) after it |
+| `Unknown/File_0x80069b68.c` | `0x80069B68-0x8006C0D0` (`fn_80069B68` ... `fn_8006C088`, 16 functions) | `extab 0x80006510-0x80006580`, `extabindex 0x800082F8-0x800083A0`, `.data 0x80109250-0x801093E8`, `.sdata 0x803CB8D8-0x803CB8E0`, `.sbss 0x803CBD34-0x803CBD38`, `.sdata2 0x803CC8F8-0x803CC938` | one pool with no repeats (`0, 608, 448, -1, 1, 255, umagic, 220, -23, -100, 100, 640, -0.5, 30`) read from `fn_80069BDC` to `fn_8006BB60`; `.data lbl_80109250` is read by `fn_80069BDC`...`fn_8006A824`, `fn_8006BE00` and `fn_8006C088`, and the run continues with `BootSequenceFiles` (`fn_8006AF9C`), `titleScreenTexturesFileDescriptor` and `lbl_80109378` (`fn_80069B68`), `lbl_801092F8` (`fn_8006B668`) and ends with `fn_8006B78C`'s jump table |
+| `Unknown/File_0x8006c100.c` | `0x8006C100-0x8006C398` (`fn_8006C100`, `fn_8006C13C`, `fn_8006C268`, `fn_8006C2B4`) | `extab 0x80006588-0x80006598`, `extabindex 0x800083AC-0x800083C4`, `.data 0x801093E8-0x80109420`, `.sdata 0x803CB8E0-0x803CB8F0`, `.sdata2 0x803CC938-0x803CC940` | `fn_8006C13C`/`fn_8006C2B4` share the magic double `0x803CC938`, `.data lbl_801093E8`/`lbl_80109410` and both `.sdata` objects; `fn_8006C100`'s `lbl_80109400` sits between their two `.data` objects. The run starts 8-aligned after the previous unit's jump table, and ends at `challenge_progress.c` (`0x80109420`) |
+
+Left out at the edges: `endDemo` (`File_0x80069a98`, `Matching`) shares `.sbss
+lbl_803CBD30` with `fn_80069B68`, which fits both "same TU" and "global of the
+next TU", so it and the unowned `fn_80069AD4`/`fn_80069B08` stay as they are;
+`fn_8006C0D0` (between the two new units, no data), `fn_80052634` and
+`fn_8006C398` are unowned.
+
+### `Unknown/model.c` (`0x80011468-0x8001FE00`)
+
+The character model / animation / stadium-load TU, 58 KB and 102 functions: the
+27 `Unknown/File_0x800127f8` ... `File_0x8001fc4c` units and 75 unowned
+functions between them. The binary names it.
+
+| section | range | was |
+|---|---|---|
+| `.text` | `0x80011468-0x8001FE00` | `File_0x800127f8` (`LoadModel`), `13680`, `14d4c`, `14e50`, `14f40`, `1594c`, `18024`, `18270`, `1a6b0`, `1b2d0`, `1b728`, `1b80c`, `1b918`, `1c588`, `1c67c`, `1c920`, `1cbd4`, `1ce74`, `1d0d0`, `1d110`, `1d148`, `1d180`, `1e460`, `1f228`, `1f4c0`, `1f5e8`, `1fc4c` (`initShortsHandleCompressedDiskReads`) and the gaps `fn_80011468` ... `fn_8001FDD4` |
+| `extab` / `extabindex` | `0x80005740-0x800059D0` / `0x80006E40-0x80007218` | |
+| `.rodata` | `0x800E6600-0x800E6698` | unowned: `identityMtx`, `lbl_800E6630` (`fn_80011640`), `LoadModel`'s two "Character ... Data None" messages |
+| `.data` | `0x800EE800-0x800EEFD0` | unowned: `lbl_800EE800`, `BallModelFiles`, `MinigameCommonFiles`, ..., `lbl_800EEB18`, then 14 jump tables |
+| `.sdata` | `0x803CB790-0x803CB7C8` | unowned |
+| `.sbss` | `0x803CBBF0-0x803CBC40` | unowned (`lbl_803CBBF0` ... `highLevelSimulationFlag`) |
+| `.sdata2` | `0x803CC4B8-0x803CC530` | unowned |
+
+- **The binary names the unit.** The pool holds `"model.c"` (`0x803CC4C8`,
+  read by `LoadModel`'s panic call) between its floats.
+- **One pool, no repeats:** `0, umagic, "model.c", 0.5f, 0.5, 3.0, 0.0, 1, 2,
+  -30, -0.5, 30, 0.125, magic, 180/pi, 1280, -0.175, 0.175, 0.25, -0.25, 512`
+  (float and double zero/half are different literals). `0.0f` alone is read
+  from `fn_800116DC` to `fn_8001F8A4`; `1.0f`, `0.5f` and the three doubles tie
+  `fn_80017814`, `fn_800196D8`, `challengeMapRelated`, `fn_8001B35C` and
+  `challengeMapMaybe` together. `text.c`'s pool ends right before it; the next
+  pool (`fn_8001FE00`, `0x803CC530`) repeats `0.0f` and `1.0f`.
+- **One `.data` run.** It starts at `text.c`'s end with `lbl_800EE800`, which
+  `initShortsHandleCompressedDiskReads` (the last unit, `File_0x8001fc4c`)
+  addresses as the base of its unit's `.data` (its source already defined the
+  objects ahead of its tables for that reason). The file-scope objects
+  (`BallModelFiles` for `fn_800188C0`, `MinigameCommonFiles` for `fn_80019C00`,
+  `lbl_800EEAAC` for `LoadModel` and five others) come first, then the jump
+  tables of `fn_80011468`, `fn_80012B90`, `fn_80017814`, ... `fn_8001E784` and
+  `initShortsHandleCompressedDiskReads` in function order, eight of them
+  starting 4-aligned. The last one ends at `CommonUIFiles_main` (`0x800EEFD0`,
+  next unit).
+- **`.sdata`, `.sbss`, `.rodata`** are contiguous runs read only by functions of
+  this range (`lbl_803CBC18` by `fn_80011570` and `fn_8001E0D8`, the far ends),
+  each between `text.c`'s objects and the next unit's.
+- **Edges.** The unit starts at `fn_80011468`, the first function whose data
+  (its jump table) is in the run. `fn_80011000` ... `fn_80011358` (after
+  `text_init.c`) use only `screenTextArray` and the common `hugeAnimStruct`, so
+  they stay unowned. `fn_8001FDD4` (no data) is included: it is called only by
+  `fn_8001758C` and `fn_80017D28` and sits before the next pool's first user.
+  `.sbss2 0x803CD308-0x803CD30E` (read only by `fn_80011CA8`) is left unowned.
+
+Source notes. The 27 sources were concatenated in address order; their headers
+are kept and included. They declared nine globals with clashing types, above
+all `hugeAnimStruct` (17 different views). The merged file declares each global
+once; a former unit whose view differs gets a typedef and a `#define NAME
+(*(View*)&NAME)` for its stretch, `#undef`'d at its end. Two kinds of change
+were needed to keep codegen: the cast changes MWCC's operand order for indexed
+struct members, so the declared `HugeAnimStruct` carries the fields the
+`Matching` users index directly (`actorTable`, `modelEntries`, `objects`) and
+their element casts move to the loaded value; and a view of an `.sdata` scalar
+through a cast changes addressing, so identical declarations are never viewed.
+`stadiumSetupRelated`'s light types are declared once at the top.
+`initShortsHandleCompressedDiskReads`'s `.data` objects go first in the file
+(before any jump table). Duplicate typedefs were dropped, differing ones renamed
+with the former unit's address, and each former unit's macros are `#undef`'d at
+its end. `getAnimRelatedCoordinates` now takes `VecXYZ*`, the type
+`UnknownHomes_Game.h` gives it. 14 `Matching` units are absorbed; every function
+keeps its score and `LoadModel` rises 76.43% -> 80.22%. Units 941 -> 848.
+
+### Groups not applied
+
+- **`0x8004AE18-0x8004B1B8` and `0x8004C19C-0x8004C5F8`.** Each pair shares a
+  pool (`0x803CC80C-0x803CC818`, `0x803CC840-0x803CC850`), but the region
+  `0x8004AC00-0x8004C9FC` contradicts itself: the pools of `fn_8004AE18`,
+  `fn_8004B284`, `fn_8004BEB0`, `fn_8004C19C` and `fn_8004C5F8` each repeat
+  `0.0f` and the magic double (four TUs by the pool rule), while the `.data` run
+  `0x800FB798-0x800FC0FC` interleaves those same functions' objects
+  (`fn_8004B284` x12, `fn_8004BEB0`, `fn_8004C510`, `fn_8004B208`,
+  `fn_8004ACF4`, `fn_8004AFA8`, `fn_8004AE18`, `stadiumCollisionRelated`'s jump
+  table, `fn_8004B284` again), which only one TU produces. Until that is
+  resolved no boundary here can be trusted, so neither pair became a unit.
+
+Units 970 -> 941 after this batch; `Matching` units 313 -> 310.
+
 ## The options / settings gap in the menus REL (2026-10-21)
 
 `.text` `0x194BC-0x1A4C8` (13 functions, `auto_00_000194BC_text`) sat between

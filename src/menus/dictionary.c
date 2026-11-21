@@ -96,16 +96,16 @@ void fn_2_54BB0(void) {
     w = lbl_2_bss_1A8250;
     tbl = lbl_2_data_1F8F0;
     st = &Static_Stats_Tables;
-    lbl_2_bss_1A8230 = &w[0x162998];
-    lbl_2_bss_1A8234 = w;
-    lbl_2_bss_1A823C = (u8 *)&g_MenuControl;
-    lbl_2_bss_1A8244 = superstarUnlocked;
     lbl_2_bss_1A8248 = &g_Challenge;
     lbl_2_bss_1A824C = w;
+    lbl_2_bss_1A8244 = superstarUnlocked;
+    lbl_2_bss_1A823C = (u8 *)&g_MenuControl;
+    lbl_2_bss_1A8234 = w;
+    lbl_2_bss_1A8230 = &w[0x162998];
     item = currentDrawingItem;
 
-    if (PADB((s8)WD(0x197863), 0xC) == 0xC) {
-        PADH((s8)WD(0x197863), 0x4) |= PADH((s8)WD(0x197863), 0x0);
+    if ((s32)PADB((s8)WB(0x197863), 0xC) == 0xC) {
+        PADH((s8)WB(0x197863), 0x4) |= PADH((s8)WB(0x197863), 0x0);
     }
 
     switch (menuControlVariables->currentState) {

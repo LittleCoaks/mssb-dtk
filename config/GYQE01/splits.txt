@@ -39,40 +39,19 @@ Unknown/File_0x800097a0.c:
 Unknown/File_0x80009e94.c:
 	.text       start:0x80009E94 end:0x8000A0AC
 
-Unknown/File_0x8000a1e8.c:
-	extab       start:0x80005648 end:0x80005650
-	extabindex  start:0x80006CCC end:0x80006CD8
-	.text       start:0x8000A1E8 end:0x8000A3EC
+Unknown/File_0x8000a0ac.c:
+	extab       start:0x80005640 end:0x80005660
+	extabindex  start:0x80006CC0 end:0x80006CF0
+	.text       start:0x8000A0AC end:0x8000B9C8
+	.sdata2     start:0x803CC420 end:0x803CC458
 
 Unknown/File_0x8000ba3c.c:
-	extab       start:0x80005660 end:0x80005668
-	extabindex  start:0x80006CF0 end:0x80006CFC
-	.text       start:0x8000BA3C end:0x8000C194
-
-Unknown/File_0x8000c194.c:
-	extab       start:0x80005668 end:0x80005670
-	extabindex  start:0x80006CFC end:0x80006D08
-	.text       start:0x8000C194 end:0x8000CC4C
-
-Unknown/File_0x8000d164.c:
-	extab       start:0x80005680 end:0x80005688
-	extabindex  start:0x80006D20 end:0x80006D2C
-	.text       start:0x8000D164 end:0x8000D838
-
-Unknown/File_0x8000d838.c:
-	extab       start:0x80005688 end:0x80005690
-	extabindex  start:0x80006D2C end:0x80006D38
-	.text       start:0x8000D838 end:0x8000D8A4
-
-Unknown/File_0x8000e900.c:
-	extab       start:0x800056C0 end:0x800056C8
-	extabindex  start:0x80006D80 end:0x80006D8C
-	.text       start:0x8000E900 end:0x8000EC0C
-
-Unknown/File_0x8000ef1c.c:
-	extab       start:0x800056D0 end:0x800056D8
-	extabindex  start:0x80006D98 end:0x80006DA4
-	.text       start:0x8000EF1C end:0x8000F150
+	extab       start:0x80005660 end:0x800056D8
+	extabindex  start:0x80006CF0 end:0x80006DA4
+	.text       start:0x8000BA3C end:0x8000F150
+	.rodata     start:0x800E65D0 end:0x800E6600
+	.sbss       start:0x803CBBD8 end:0x803CBBDC
+	.sdata2     start:0x803CC458 end:0x803CC490
 
 text/text.c:
 	extab       start:0x800056D8 end:0x80005720
@@ -91,130 +70,15 @@ text/text_draw_conditional.c:
 text/text_init.c:
 	.text       start:0x80010FA0 end:0x80011000
 
-Unknown/File_0x800127f8.c:
-	extab       start:0x80005778 end:0x80005780
-	extabindex  start:0x80006E94 end:0x80006EA0
-	.text       start:0x800127F8 end:0x80012B90
-
-Unknown/File_0x80013680.c:
-	extab       start:0x80005788 end:0x80005790
-	extabindex  start:0x80006EAC end:0x80006EB8
-	.text       start:0x80013680 end:0x80014204
-
-Unknown/File_0x80014d4c.c:
-	extab       start:0x800057B0 end:0x800057B8
-	extabindex  start:0x80006EE8 end:0x80006EF4
-	.text       start:0x80014D4C end:0x80014E50
-
-Unknown/File_0x80014e50.c:
-	extab       start:0x800057B8 end:0x800057C0
-	extabindex  start:0x80006EF4 end:0x80006F00
-	.text       start:0x80014E50 end:0x80014F40
-
-Unknown/File_0x80014f40.c:
-	extab       start:0x800057C0 end:0x800057C8
-	extabindex  start:0x80006F00 end:0x80006F0C
-	.text       start:0x80014F40 end:0x8001500C
-
-Unknown/File_0x8001594c.c:
-	extab       start:0x800057D8 end:0x800057E0
-	extabindex  start:0x80006F24 end:0x80006F30
-	.text       start:0x8001594C end:0x80016344
-
-Unknown/File_0x80018024.c:
-	extab       start:0x80005838 end:0x80005840
-	extabindex  start:0x80006FB4 end:0x80006FC0
-	.text       start:0x80018024 end:0x80018270
-
-Unknown/File_0x80018270.c:
-	extab       start:0x80005840 end:0x80005848
-	extabindex  start:0x80006FC0 end:0x80006FCC
-	.text       start:0x80018270 end:0x800188C0
-
-Unknown/File_0x8001a6b0.c:
-	extab       start:0x800058A0 end:0x800058A8
-	extabindex  start:0x80007050 end:0x8000705C
-	.text       start:0x8001A6B0 end:0x8001AAA4
-
-Unknown/File_0x8001b2d0.c:
-	extab       start:0x800058D0 end:0x800058D8
-	extabindex  start:0x80007098 end:0x800070A4
-	.text       start:0x8001B2D0 end:0x8001B308
-
-Unknown/File_0x8001b728.c:
-	extab       start:0x800058F0 end:0x800058F8
-	extabindex  start:0x800070C8 end:0x800070D4
-	.text       start:0x8001B728 end:0x8001B80C
-
-Unknown/File_0x8001b80c.c:
-	extab       start:0x800058F8 end:0x80005900
-	extabindex  start:0x800070D4 end:0x800070E0
-	.text       start:0x8001B80C end:0x8001B918
-
-Unknown/File_0x8001b918.c:
-	.text       start:0x8001B918 end:0x8001BA44
-
-Unknown/File_0x8001c588.c:
-	extab       start:0x80005918 end:0x80005920
-	extabindex  start:0x80007104 end:0x80007110
-	.text       start:0x8001C588 end:0x8001C67C
-
-Unknown/File_0x8001c67c.c:
-	extab       start:0x80005920 end:0x80005928
-	extabindex  start:0x80007110 end:0x8000711C
-	.text       start:0x8001C67C end:0x8001C920
-
-Unknown/File_0x8001c920.c:
-	extab       start:0x80005928 end:0x80005930
-	extabindex  start:0x8000711C end:0x80007128
-	.text       start:0x8001C920 end:0x8001CA40
-
-Unknown/File_0x8001cbd4.c:
-	extab       start:0x80005940 end:0x80005948
-	extabindex  start:0x80007140 end:0x8000714C
-	.text       start:0x8001CBD4 end:0x8001CCC8
-
-Unknown/File_0x8001ce74.c:
-	extab       start:0x80005950 end:0x80005958
-	extabindex  start:0x80007158 end:0x80007164
-	.text       start:0x8001CE74 end:0x8001D074
-
-Unknown/File_0x8001d0d0.c:
-	extab       start:0x80005958 end:0x80005960
-	extabindex  start:0x80007164 end:0x80007170
-	.text       start:0x8001D0D0 end:0x8001D110
-
-Unknown/File_0x8001d110.c:
-	extab       start:0x80005960 end:0x80005968
-	extabindex  start:0x80007170 end:0x8000717C
-	.text       start:0x8001D110 end:0x8001D148
-
-Unknown/File_0x8001d148.c:
-	extab       start:0x80005968 end:0x80005970
-	extabindex  start:0x8000717C end:0x80007188
-	.text       start:0x8001D148 end:0x8001D180
-
-Unknown/File_0x8001d180.c:
-	.text       start:0x8001D180 end:0x8001D2D4
-
-Unknown/File_0x8001e460.c:
-	.text       start:0x8001E460 end:0x8001E488
-
-Unknown/File_0x8001f228.c:
-	extab       start:0x800059B0 end:0x800059B8
-	extabindex  start:0x800071E8 end:0x800071F4
-	.text       start:0x8001F228 end:0x8001F4C0
-
-Unknown/File_0x8001f4c0.c:
-	.text       start:0x8001F4C0 end:0x8001F5E8
-
-Unknown/File_0x8001f5e8.c:
-	extab       start:0x800059B8 end:0x800059C0
-	extabindex  start:0x800071F4 end:0x80007200
-	.text       start:0x8001F5E8 end:0x8001F8A4
-
-Unknown/File_0x8001fc4c.c:
-	.text       start:0x8001FC4C end:0x8001FDD4
+Unknown/model.c:
+	extab       start:0x80005740 end:0x800059D0
+	extabindex  start:0x80006E40 end:0x80007218
+	.text       start:0x80011468 end:0x8001FE00
+	.rodata     start:0x800E6600 end:0x800E6698
+	.data       start:0x800EE800 end:0x800EEFD0
+	.sdata      start:0x803CB790 end:0x803CB7C8
+	.sbss       start:0x803CBBF0 end:0x803CBC40
+	.sdata2     start:0x803CC4B8 end:0x803CC530
 
 Unknown/File_0x80020048.c:
 	extab       start:0x800059D8 end:0x800059E0
@@ -284,13 +148,13 @@ Unknown/sub.c:
 	.data       start:0x800F76E0 end:0x800F7830
 	.sdata2     start:0x803CC580 end:0x803CC5A8
 
-Unknown/File_0x80025c58.c:
-	extab       start:0x80005BB8 end:0x80005BC0
-	extabindex  start:0x800074F4 end:0x80007500
-	.text       start:0x80025C58 end:0x80025DDC
-
-Unknown/File_0x80025ddc.c:
-	.text       start:0x80025DDC end:0x80026134
+Unknown/File_0x80024d2c.c:
+	extab       start:0x80005BA0 end:0x80005BC0
+	extabindex  start:0x800074D0 end:0x80007500
+	.text       start:0x80024D2C end:0x80026134
+	.sdata      start:0x803CB7F0 end:0x803CB7F8
+	.sbss       start:0x803CBC68 end:0x803CBC70
+	.sdata2     start:0x803CC5A8 end:0x803CC5D8
 
 Unknown/particle_effects.c:
 	extab       start:0x80005BC8 end:0x80005D98
@@ -302,43 +166,25 @@ Unknown/particle_effects.c:
 	.sbss       start:0x803CBC70 end:0x803CBC90
 	.sdata2     start:0x803CC5F0 end:0x803CC6E8
 
-Unknown/File_0x80034cec.c:
-	.text       start:0x80034CEC end:0x80034E20
+Unknown/spani_default.c:
+	extab       start:0x80005D98 end:0x80005E40
+	extabindex  start:0x800077C4 end:0x800078C0
+	.text       start:0x80034BCC end:0x80036C88
+	.rodata     start:0x800E68A8 end:0x800E6910
+	.data       start:0x800F78E0 end:0x800F79A0
+	.bss        start:0x801F8640 end:0x8023DD80
+	.sdata      start:0x803CB810 end:0x803CB818
+	.sbss       start:0x803CBC90 end:0x803CBCA0
+	.sdata2     start:0x803CC6E8 end:0x803CC720
 
-Unknown/File_0x80034e20.c:
-	extab       start:0x80005DA0 end:0x80005DA8
-	extabindex  start:0x800077D0 end:0x800077DC
-	.text       start:0x80034E20 end:0x80034F50
-
-Unknown/File_0x80034f50.c:
-	extab       start:0x80005DA8 end:0x80005DB0
-	extabindex  start:0x800077DC end:0x800077E8
-	.text       start:0x80034F50 end:0x80035168
-
-Unknown/File_0x80035168.c:
-	extab       start:0x80005DB0 end:0x80005DB8
-	extabindex  start:0x800077E8 end:0x800077F4
-	.text       start:0x80035168 end:0x800356B8
-
-Unknown/File_0x80035838.c:
-	extab       start:0x80005DC8 end:0x80005DD0
-	extabindex  start:0x8000780C end:0x80007818
-	.text       start:0x80035838 end:0x80035A00
-
-Unknown/File_0x80035ca4.c:
-	extab       start:0x80005DE0 end:0x80005DE8
-	extabindex  start:0x80007830 end:0x8000783C
-	.text       start:0x80035CA4 end:0x80035DD4
-
-Unknown/File_0x800363d8.c:
-	extab       start:0x80005E08 end:0x80005E10
-	extabindex  start:0x8000786C end:0x80007878
-	.text       start:0x800363D8 end:0x8003649C
-
-Unknown/File_0x8003649c.c:
-	extab       start:0x80005E10 end:0x80005E18
-	extabindex  start:0x80007878 end:0x80007884
-	.text       start:0x8003649C end:0x8003656C
+Unknown/File_0x80037054.c:
+	extab       start:0x80005E48 end:0x80005EE8
+	extabindex  start:0x800078CC end:0x800079BC
+	.text       start:0x80037054 end:0x80039AA8
+	.data       start:0x800F79A0 end:0x800F7A40
+	.sdata      start:0x803CB818 end:0x803CB828
+	.sbss       start:0x803CBCA0 end:0x803CBCA8
+	.sdata2     start:0x803CC720 end:0x803CC7A0
 
 Unknown/File_0x80039aa8.c:
 	.text       start:0x80039AA8 end:0x80039AC0
@@ -353,10 +199,15 @@ Unknown/File_0x8003a688.c:
 	.data       start:0x800F7AC0 end:0x800F7AE0
 	.sdata2     start:0x803CC7D8 end:0x803CC7E8
 
-Unknown/File_0x8003c00c.c:
-	extab       start:0x80005F80 end:0x80005F88
-	extabindex  start:0x80007AA0 end:0x80007AAC
-	.text       start:0x8003C00C end:0x8003E8D8
+Unknown/File_0x8003ae64.c:
+	extab       start:0x80005F60 end:0x80005FB0
+	extabindex  start:0x80007A70 end:0x80007AE8
+	.text       start:0x8003AE64 end:0x80040FE0
+	.rodata     start:0x800E6910 end:0x800E6920
+	.data       start:0x800F7B00 end:0x800FB3F8
+	.bss        start:0x802D4AC0 end:0x802E4B00
+	.sdata      start:0x803CB830 end:0x803CB838
+	.sbss       start:0x803CBCB8 end:0x803CBCC0
 
 Unknown/File_0x8004207c.c:
 	extab       start:0x80005FD8 end:0x80005FE0
@@ -506,31 +357,20 @@ Unknown/File_0x80050fe8.c:
 	extabindex  start:0x80007E0C end:0x80007E18
 	.text       start:0x80050FE8 end:0x8005138C
 
+Unknown/File_0x800521b0.c:
+	extab       start:0x800061E0 end:0x800061F0
+	extabindex  start:0x80007E30 end:0x80007E48
+	.text       start:0x800521B0 end:0x80052634
+	.data       start:0x800FEB08 end:0x800FEB30
+	.sdata2     start:0x803CC860 end:0x803CC870
+
 Unknown/File_0x8005268c.c:
-	.text       start:0x8005268C end:0x80052694
-
-Unknown/File_0x80052694.c:
-	extab       start:0x800061F8 end:0x80006200
-	extabindex  start:0x80007E54 end:0x80007E60
-	.text       start:0x80052694 end:0x80052734
-
-Unknown/File_0x80052734.c:
-	.text       start:0x80052734 end:0x800527C4
-
-Unknown/File_0x800527c4.c:
-	extab       start:0x80006200 end:0x80006208
-	extabindex  start:0x80007E60 end:0x80007E6C
-	.text       start:0x800527C4 end:0x800528AC
-
-Unknown/File_0x80052968.c:
-	extab       start:0x80006210 end:0x80006218
-	extabindex  start:0x80007E78 end:0x80007E84
-	.text       start:0x80052968 end:0x80052D70
-
-Unknown/File_0x80052f98.c:
-	extab       start:0x80006220 end:0x80006228
-	extabindex  start:0x80007E90 end:0x80007E9C
-	.text       start:0x80052F98 end:0x800531D0
+	extab       start:0x800061F8 end:0x80006228
+	extabindex  start:0x80007E54 end:0x80007E9C
+	.text       start:0x8005268C end:0x800531D0
+	.sdata      start:0x803CB880 end:0x803CB888
+	.sbss       start:0x803CBD10 end:0x803CBD18
+	.sdata2     start:0x803CC870 end:0x803CC8D0
 
 Unknown/File_0x80056120.c:
 	extab       start:0x80006270 end:0x80006278
@@ -616,6 +456,12 @@ Unknown/File_0x8006295c.c:
 	.text       start:0x8006295C end:0x80062BE4
 	.rodata     start:0x800E69A8 end:0x800E69B8
 
+Unknown/File_0x80063028.c:
+	extab       start:0x80006418 end:0x80006428
+	extabindex  start:0x80008184 end:0x8000819C
+	.text       start:0x80063028 end:0x80063718
+	.sdata2     start:0x803CC8D8 end:0x803CC8F0
+
 Unknown/File_0x80063958.c:
 	extab       start:0x80006440 end:0x80006448
 	extabindex  start:0x800081C0 end:0x800081CC
@@ -643,6 +489,23 @@ Unknown/File_0x80069a98.c:
 	extab       start:0x80006500 end:0x80006508
 	extabindex  start:0x800082E0 end:0x800082EC
 	.text       start:0x80069A98 end:0x80069AD4
+
+Unknown/File_0x80069b68.c:
+	extab       start:0x80006510 end:0x80006580
+	extabindex  start:0x800082F8 end:0x800083A0
+	.text       start:0x80069B68 end:0x8006C0D0
+	.data       start:0x80109250 end:0x801093E8
+	.sdata      start:0x803CB8D8 end:0x803CB8E0
+	.sbss       start:0x803CBD34 end:0x803CBD38
+	.sdata2     start:0x803CC8F8 end:0x803CC938
+
+Unknown/File_0x8006c100.c:
+	extab       start:0x80006588 end:0x80006598
+	extabindex  start:0x800083AC end:0x800083C4
+	.text       start:0x8006C100 end:0x8006C398
+	.data       start:0x801093E8 end:0x80109420
+	.sdata      start:0x803CB8E0 end:0x803CB8F0
+	.sdata2     start:0x803CC938 end:0x803CC940
 
 challenge/challenge_progress.c:
 	extab       start:0x800065B0 end:0x800065C8

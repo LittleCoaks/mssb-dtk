@@ -47,30 +47,41 @@ extern void removeGraphicsElementFromScene(DrawingSceneStruct *node);
 // The CssSlot array sits at this offset inside the ChallengeState block.
 #define CSS_SLOT_BASE 0x1610
 
-static int findCaptainOrderIndex(void);
+static inline int findCaptainOrderIndex(void);
+
+#define GFX_RECORD(index) ((u8 *)graphicsRelatedArray[index].object)
 
 // Record handles for the menu's graphics scene: node->firstHandle + offset.
-static u8 *gfxRecord(int index) {
+static inline u8 *gfxRecord(int index) {
     return (u8 *)graphicsRelatedArray[index].object;
 }
 
-static void clearRecordFlagLowByte(int index) {
-    u32 *word = (u32 *)(gfxRecord(index) + 0x58);
+static inline void clearRecordFlagLowByte(int index) {
+    u32 *word = (u32 *)(GFX_RECORD(index) + 0x58);
 
     *word &= ~0xFF;
 }
 
-static void setRecordFlagLowByte(int index) {
-    u32 *word = (u32 *)(gfxRecord(index) + 0x58);
+static inline void setRecordFlagLowByte(int index) {
+    u32 *word = (u32 *)(GFX_RECORD(index) + 0x58);
 
     *word = (*word & ~0xFF) | 0xFF;
 }
 
-static void markSelectionActive(void) {
+static inline BOOL cursorLockStateIs(u8 state) {
+    return (gameSetUpStep.stepFlags[1][0] == state) ? TRUE : FALSE;
+}
+
+/* The original tests these flags through a materialised BOOL. */
+static inline BOOL selectionFlagIs(int index, u8 value) {
+    return (lbl_803CBBC4[index] == value) ? TRUE : FALSE;
+}
+
+static inline void markSelectionActive(void) {
     lbl_803CBBC4[3] = TRUE;
 }
 
-static void resetSelectionPhase(void) {
+static inline void resetSelectionPhase(void) {
     lbl_803CBBC4[2] = FALSE;
     lbl_803CBBC4[0] = 0;
 }
@@ -82,7 +93,7 @@ static void resetSelectionPhase(void) {
 
 // Index of the captain-select order entry matching the challenge captain for
 // the current cursor row, or -1 if none does.
-static int findCaptainOrderIndex(void) {
+static inline int findCaptainOrderIndex(void) {
     u8 target = challengeCaptainCharIDArray[superstarUnlocked[0xF4]][menuCursors[4]];
     int k;
 
@@ -101,87 +112,11 @@ static int findCaptainOrderIndex(void) {
 
 
 
-// Phase 1: show the cursor record once the captain order matches.
-static void fn_2_7308C_phase1(DrawingSceneStruct *node) {
-    u8 *flags = lbl_803CBBC4;
-    MenuScene *scene = (MenuScene *)node;
-    int idx;
-
-    if (flags[2] == 0) {
-        *(u32 *)(gfxRecord(scene->firstHandle) + 0x5C) = 0;
-        gfxRecord(scene->firstHandle)[0x68] = 1;
-        *(u32 *)(gfxRecord(scene->firstHandle + 1) + 0x5C) = 0;
-        gfxRecord(scene->firstHandle + 1)[0x68] = 1;
-        idx = findCaptainOrderIndex();
-        *(u32 *)(gfxRecord(scene->firstHandle + 2) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
-        flags[2] = 1;
-        flags[3] = 1;
-    }
-    if (flags[3] == 1) {
-        if (maybeCheckAndResetGrapicsElement(node, 0, 0x19) != FALSE) {
-            flags[3] = 0;
-            flags[2] = 0;
-            flags[0] = 0;
-        }
-    }
-}
-
-// Phases 2 and 0x47: fade both records in, then wait for the two checks.
-static void fn_2_7308C_phase2(DrawingSceneStruct *node) {
-    u8 *flags = lbl_803CBBC4;
-    MenuScene *scene = (MenuScene *)node;
-    BOOL first;
-    BOOL second;
-
-    if (flags[2] == 0) {
-        *(u32 *)(gfxRecord(scene->firstHandle) + 0x5C) = 0x190000;
-        gfxRecord(scene->firstHandle)[0x68] = 4;
-        *(u32 *)(gfxRecord(scene->firstHandle + 1) + 0x5C) = 0x190000;
-        gfxRecord(scene->firstHandle + 1)[0x68] = 4;
-        flags[2] = 1;
-        flags[3] = 1;
-    }
-    if (flags[3] == 1) {
-        first = maybeCheckAndResetGrapicsElement(node, 0, 0) != FALSE;
-        second = maybeCheckAndResetGrapicsElement(node, 1, 0) != FALSE;
-        if (first + second == 2) {
-            flags[0] = 0;
-            flags[3] = 0;
-            flags[2] = 0;
-            flags[4] = 1;
-        }
-    }
-}
-
-// Phase 3: set the captain and cursor-position records, then clear the phase.
-static void fn_2_7308C_phase3(DrawingSceneStruct *node) {
-    u8 *flags = lbl_803CBBC4;
-    MenuScene *scene = (MenuScene *)node;
-    int idx;
-    int k;
-
-    if (flags[2] == 0) {
-        idx = findCaptainOrderIndex();
-        *(u32 *)(gfxRecord(scene->firstHandle + 2) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
-        *(u32 *)(gfxRecord(scene->firstHandle + 3) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
-        for (k = 0; k < 8; k++) {
-            *(u32 *)(gfxRecord(scene->firstHandle + 4 + k) + 0x5C) = ((s8)cursorPositions[3 + k]) << 16;
-        }
-        flags[2] = 1;
-        flags[3] = 1;
-    }
-    if (flags[3] == 1) {
-        flags[3] = 0;
-        flags[2] = 0;
-        flags[0] = 0;
-    }
-}
-
-static UIRecord *rowRecord(MenuScene *scene, int row) {
+static inline UIRecord *rowRecord(MenuScene *scene, int row) {
     return (UIRecord *)gfxRecord(scene->firstHandle + row + 3);
 }
 
-static UIRecord *fixedRecord(MenuScene *scene, int offset) {
+static inline UIRecord *fixedRecord(MenuScene *scene, int offset) {
     return (UIRecord *)(graphicsRelatedArray + scene->firstHandle)[offset].object;
 }
 
@@ -270,7 +205,7 @@ void fn_2_73CBC(DrawingSceneStruct *node) {
     int sum = 0;
     int row;
 
-    if (gameSetUpStep.stepFlags[1][0] != 1) {
+    if (!cursorLockStateIs(1)) {
         return;
     }
     if (Static_Stats_Tables[0x4751] == 0) {
@@ -371,7 +306,6 @@ int fn_2_73B54(int x) {
 // .text:0x00073994 size:0x1C0
 void fn_2_73994(DrawingSceneStruct *node, int idx) {
     MenuScene *scene = (MenuScene *)node;
-    u8 *table = Static_Stats_Tables + 0x34;
     s32 a;
     s32 b;
     u8 v1;
@@ -387,8 +321,8 @@ void fn_2_73994(DrawingSceneStruct *node, int idx) {
         b = *((u8 *)&g_Challenge + 0x441D);
         a = b;
     }
-    v1 = table[(a / 9) * 0x5A0 + (a % 9) * 0xA0];
-    t2 = table[(b / 9) * 0x5A0 + (b % 9) * 0xA0];
+    v1 = Static_Stats_Tables[0x34 + (a / 9) * 0x5A0 + (a % 9) * 0xA0];
+    t2 = Static_Stats_Tables[0x34 + (b / 9) * 0x5A0 + (b % 9) * 0xA0];
     *(u32 *)(gfxRecord(scene->firstHandle + idx + 0x82) + 0x5C) = lbl_2_data_2B3A4[v1] << 16;
     *(u32 *)(gfxRecord(scene->firstHandle + idx + 0x7E) + 0x5C) = lbl_2_data_2B3A4[v1] << 16;
     load_Icon(node, idx + 0x89, 1, 3, lbl_2_data_2B3A4[v1]);
@@ -421,7 +355,7 @@ void fn_2_73758(void) {
 
     addGraphicsElementToScene(node, (const UIRecordDescriptor *)lbl_2_data_2AF4C);
     for (i = 0; i < 8; i++) {
-        *(u32 *)(gfxRecord(scene->firstHandle + 4 + i) + 0x5C) = ((s8)cursorPositions[3 + i]) << 16;
+        *(u32 *)(GFX_RECORD(scene->firstHandle + 4 + i) + 0x5C) = ((s8)cursorPositions[3 + i]) << 16;
     }
     lbl_803CBCD8[5] = 0;
     currentDrawingItem->func = fn_2_7308C;
@@ -430,20 +364,23 @@ void fn_2_73758(void) {
 // .text:0x0007308C size:0x6CC
 void fn_2_7308C(void) {
     DrawingSceneStruct *node = currentDrawingItem;
-    u8 *flags = lbl_803CBBC4;
 
-    switch (flags[0]) {
+    switch (lbl_803CBBC4[0]) {
     case 1:
-        fn_2_7308C_phase1(node);
+        fn_2_72E54(node);
+        fn_2_72DDC(node);
         break;
     case 2:
-        fn_2_7308C_phase2(node);
+        fn_2_728C0(node);
+        fn_2_72814(node);
         break;
     case 3:
-        fn_2_7308C_phase3(node);
+        fn_2_72A88(node);
+        fn_2_72A58();
         break;
     case 0x47:
-        fn_2_7308C_phase2(node);
+        fn_2_72D60(node);
+        fn_2_72CB4(node);
         break;
     }
 
@@ -461,10 +398,12 @@ int fn_2_7302C(void) {
     int bound = (superstarUnlocked[0xF4] != 0) + 5;
     int i;
 
-    for (i = 0; i < bound; i++) {
+    i = 0;
+    while (i < bound) {
         if (target == row[i]) {
             return i;
         }
+        i++;
     }
     return i;
 }
@@ -475,19 +414,18 @@ void fn_2_73028(void) {
 
 // .text:0x00072E54 size:0x1D4
 void fn_2_72E54(void *scene) {
-    u8 *flags = lbl_803CBBC4;
     MenuScene *ms = scene;
     int idx = -1;
     u8 target;
     int k;
 
-    if (flags[2] != 0) {
+    if (!selectionFlagIs(2, 0)) {
         return;
     }
-    *(u32 *)(gfxRecord(ms->firstHandle) + 0x5C) = 0;
-    gfxRecord(ms->firstHandle)[0x68] = 1;
-    *(u32 *)(gfxRecord(ms->firstHandle + 1) + 0x5C) = 0;
-    gfxRecord(ms->firstHandle + 1)[0x68] = 1;
+    *(u32 *)(GFX_RECORD(ms->firstHandle) + 0x5C) = 0;
+    GFX_RECORD(ms->firstHandle)[0x68] = 1;
+    *(u32 *)(GFX_RECORD(ms->firstHandle + 1) + 0x5C) = 0;
+    GFX_RECORD(ms->firstHandle + 1)[0x68] = 1;
     target = challengeCaptainCharIDArray[superstarUnlocked[0xF4]][menuCursors[4]];
     for (k = 0; k < 6; k++) {
         if (captainIDOrderedOnCapSS[k] == target) {
@@ -495,57 +433,52 @@ void fn_2_72E54(void *scene) {
             break;
         }
     }
-    *(u32 *)(gfxRecord(ms->firstHandle + 2) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
+    *(u32 *)(GFX_RECORD(ms->firstHandle + 2) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
     for (k = 0; k < 6; k++) {
         if (captainIDOrderedOnCapSS[k] == mapCaptainCursorPositionToCharID[menuCursors[4]]) {
             break;
         }
     }
-    flags[2] = 1;
+    lbl_803CBBC4[2] = 1;
     markSelectionActive();
 }
 
 // .text:0x00072DDC size:0x78
 void fn_2_72DDC(void *scene) {
-    u8 *flags = lbl_803CBBC4;
-
-    if (flags[3] == 1) {
+    if (selectionFlagIs(3, 1)) {
         BOOL complete = maybeCheckAndResetGrapicsElement(scene, 0, 0x19) != FALSE;
 
         if (complete != TRUE) {
             return;
         }
-        flags[3] = 0;
+        lbl_803CBBC4[3] = 0;
         resetSelectionPhase();
     }
 }
 
 // .text:0x00072D60 size:0x7C
 void fn_2_72D60(void *scene) {
-    u8 *flags = lbl_803CBBC4;
     MenuScene *node = scene;
 
-    if (flags[2] != 0) {
+    if (!selectionFlagIs(2, 0)) {
         return;
     }
     *(u32 *)((u8 *)graphicsRelatedArray[node->firstHandle].object + 0x5C) = 0x190000;
     *((u8 *)graphicsRelatedArray[node->firstHandle].object + 0x68) = 4;
     *(u32 *)((u8 *)graphicsRelatedArray[node->firstHandle + 1].object + 0x5C) = 0x190000;
     *((u8 *)graphicsRelatedArray[node->firstHandle + 1].object + 0x68) = 4;
-    flags[2] = 1;
-    flags[3] = 1;
+    lbl_803CBBC4[2] = 1;
+    lbl_803CBBC4[3] = 1;
 }
 
 // .text:0x00072CB4 size:0xAC
 void fn_2_72CB4(void *scene) {
-    u8 *flags = lbl_803CBBC4;
-
-    if (flags[3] == 1) {
+    if (selectionFlagIs(3, 1)) {
         BOOL first = maybeCheckAndResetGrapicsElement(scene, 0, 0) != FALSE;
         BOOL second = maybeCheckAndResetGrapicsElement(scene, 1, 0) != FALSE;
 
         if (first + second == 2) {
-            flags[3] = 0;
+            lbl_803CBBC4[3] = 0;
             resetSelectionPhase();
             lbl_803CBBC4[4] = TRUE;
         }
@@ -554,13 +487,12 @@ void fn_2_72CB4(void *scene) {
 
 // .text:0x00072A88 size:0x22C
 void fn_2_72A88(void *scene) {
-    u8 *flags = lbl_803CBBC4;
     MenuScene *ms = scene;
     int idx = -1;
     u8 target;
     int k;
 
-    if (flags[2] != 0) {
+    if (!selectionFlagIs(2, 0)) {
         return;
     }
     target = challengeCaptainCharIDArray[superstarUnlocked[0xF4]][menuCursors[4]];
@@ -570,53 +502,47 @@ void fn_2_72A88(void *scene) {
             break;
         }
     }
-    *(u32 *)(gfxRecord(ms->firstHandle + 2) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
-    *(u32 *)(gfxRecord(ms->firstHandle + 3) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
+    *(u32 *)(GFX_RECORD(ms->firstHandle + 2) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
+    *(u32 *)(GFX_RECORD(ms->firstHandle + 3) + 0x5C) = lbl_2_data_2AF08[idx] << 18;
     for (k = 0; k < 8; k++) {
-        *(u32 *)(gfxRecord(ms->firstHandle + 4 + k) + 0x5C) = ((s8)cursorPositions[3 + k]) << 16;
+        *(u32 *)(GFX_RECORD(ms->firstHandle + 4 + k) + 0x5C) = ((s8)cursorPositions[3 + k]) << 16;
     }
-    flags[2] = 1;
+    lbl_803CBBC4[2] = 1;
     markSelectionActive();
 }
 
 // .text:0x00072A58 size:0x30
 void fn_2_72A58(void) {
-    u8 *flags = lbl_803CBBC4;
-
-    if (flags[3] != 1) {
-        return;
+    if (selectionFlagIs(3, 1)) {
+        lbl_803CBBC4[3] = 0;
+        lbl_803CBBC4[2] = 0;
+        lbl_803CBBC4[0] = 0;
     }
-    flags[3] = 0;
-    flags[2] = 0;
-    flags[0] = 0;
 }
 
 // .text:0x000729E0 size:0x78
 void fn_2_729E0(void *scene) {
-    u8 *flags = lbl_803CBBC4;
     MenuScene *node = scene;
 
-    if (flags[2] != 0) {
+    if (!selectionFlagIs(2, 0)) {
         return;
     }
     *(u32 *)((u8 *)graphicsRelatedArray[node->firstHandle].object + 0x5C) = 0x190000;
     *((u8 *)graphicsRelatedArray[node->firstHandle].object + 0x68) = 1;
     *(u32 *)((u8 *)graphicsRelatedArray[node->firstHandle + 1].object + 0x5C) = 0x190000;
     *((u8 *)graphicsRelatedArray[node->firstHandle + 1].object + 0x68) = 1;
-    flags[2] = 1;
-    flags[3] = 1;
+    lbl_803CBBC4[2] = 1;
+    lbl_803CBBC4[3] = 1;
 }
 
 // .text:0x0007293C size:0xA4
 void fn_2_7293C(void *scene) {
-    u8 *flags = lbl_803CBBC4;
-
-    if (flags[3] == 1) {
+    if (selectionFlagIs(3, 1)) {
         BOOL first = maybeCheckAndResetGrapicsElement(scene, 0, 0x19) != FALSE;
         BOOL second = maybeCheckAndResetGrapicsElement(scene, 1, 0x19) != FALSE;
 
         if (first + second == 2) {
-            flags[3] = 0;
+            lbl_803CBBC4[3] = 0;
             resetSelectionPhase();
         }
     }
@@ -624,30 +550,29 @@ void fn_2_7293C(void *scene) {
 
 // .text:0x000728C0 size:0x7C
 void fn_2_728C0(void *scene) {
-    u8 *flags = lbl_803CBBC4;
     MenuScene *node = scene;
 
-    if (flags[2] != 0) {
+    if (!selectionFlagIs(2, 0)) {
         return;
     }
     *(u32 *)((u8 *)graphicsRelatedArray[node->firstHandle].object + 0x5C) = 0x190000;
     *((u8 *)graphicsRelatedArray[node->firstHandle].object + 0x68) = 4;
     *(u32 *)((u8 *)graphicsRelatedArray[node->firstHandle + 1].object + 0x5C) = 0x190000;
     *((u8 *)graphicsRelatedArray[node->firstHandle + 1].object + 0x68) = 4;
-    flags[2] = 1;
-    flags[3] = 1;
+    lbl_803CBBC4[2] = 1;
+    lbl_803CBBC4[3] = 1;
 }
 
 // .text:0x00072814 size:0xAC
 void fn_2_72814(void *scene) {
-    u8 *flags = lbl_803CBBC4;
+    BOOL first;
+    BOOL second;
 
-    if (flags[3] == 1) {
-        BOOL first = maybeCheckAndResetGrapicsElement(scene, 0, 0) != FALSE;
-        BOOL second = maybeCheckAndResetGrapicsElement(scene, 1, 0) != FALSE;
-
+    if (selectionFlagIs(3, 1)) {
+        first = maybeCheckAndResetGrapicsElement(scene, 0, 0) != FALSE;
+        second = maybeCheckAndResetGrapicsElement(scene, 1, 0) != FALSE;
         if (first + second == 2) {
-            flags[3] = 0;
+            lbl_803CBBC4[3] = 0;
             resetSelectionPhase();
             lbl_803CBBC4[4] = TRUE;
         }
@@ -718,17 +643,17 @@ void fn_2_7207C(void) {
     switch (phase) {
     case 0x1E:
         if (gameSetUpStep.stepFlags[5][0] == 0) {
-            *(u32 *)(gfxRecord(scene->firstHandle) + 0x5C) = 0;
-            gfxRecord(scene->firstHandle)[0x68] = 1;
-            gfxRecord(scene->firstHandle + 2)[0x68] = 1;
+            *(u32 *)(GFX_RECORD(scene->firstHandle) + 0x5C) = 0;
+            GFX_RECORD(scene->firstHandle)[0x68] = 1;
+            GFX_RECORD(scene->firstHandle + 2)[0x68] = 1;
             clearRecordFlagLowByte(scene->firstHandle + 3);
             clearRecordFlagLowByte(scene->firstHandle + 4);
             clearRecordFlagLowByte(scene->firstHandle + 5);
             clearRecordFlagLowByte(scene->firstHandle + 6);
-            gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 3)[0x68] = 1;
+            GFX_RECORD(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 3)[0x68] = 1;
             setRecordFlagLowByte(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 3);
-            *(u32 *)(gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7) + 0x5C) = 0;
-            gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7)[0x68] = 1;
+            *(u32 *)(GFX_RECORD(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7) + 0x5C) = 0;
+            GFX_RECORD(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7)[0x68] = 1;
             makeCursorUnmovable(0);
             gameSetUpStep.stepFlags[5][0] = 1;
         }
@@ -744,7 +669,7 @@ void fn_2_7207C(void) {
         break;
     case 0x1F:
         if (gameSetUpStep.stepFlags[5][0] == 0) {
-            gfxRecord(scene->firstHandle)[0x68] = 1;
+            GFX_RECORD(scene->firstHandle)[0x68] = 1;
             makeCursorUnmovable(0);
             gameSetUpStep.stepFlags[5][0] = 1;
         }
@@ -758,16 +683,16 @@ void fn_2_7207C(void) {
     case 0x20:
         if (gameSetUpStep.stepFlags[5][0] == 0) {
             for (i = 0; i < 4; i++) {
-                gfxRecord(scene->firstHandle + i + 3)[0x68] = 0;
-                gfxRecord(scene->firstHandle + i + 7)[0x68] = 0;
-                *(u32 *)(gfxRecord(scene->firstHandle + i + 3) + 0x5C) = 0;
-                *(u32 *)(gfxRecord(scene->firstHandle + i + 7) + 0x5C) = 0;
+                GFX_RECORD(scene->firstHandle + i + 3)[0x68] = 0;
+                GFX_RECORD(scene->firstHandle + i + 7)[0x68] = 0;
+                *(u32 *)(GFX_RECORD(scene->firstHandle + i + 3) + 0x5C) = 0;
+                *(u32 *)(GFX_RECORD(scene->firstHandle + i + 7) + 0x5C) = 0;
                 clearRecordFlagLowByte(scene->firstHandle + i + 3);
             }
-            gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 3)[0x68] = 1;
+            GFX_RECORD(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 3)[0x68] = 1;
             setRecordFlagLowByte(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 3);
-            *(u32 *)(gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7) + 0x5C) = 0;
-            gfxRecord(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7)[0x68] = 1;
+            *(u32 *)(GFX_RECORD(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7) + 0x5C) = 0;
+            GFX_RECORD(scene->firstHandle + lbl_803CB8D0[menuCursors[0x13]] + 7)[0x68] = 1;
             makeCursorUnmovable(0);
             gameSetUpStep.stepFlags[5][0] = 1;
         }
@@ -780,7 +705,7 @@ void fn_2_7207C(void) {
         break;
     case 0x21:
         if (gameSetUpStep.stepFlags[5][0] == 0) {
-            gfxRecord(scene->firstHandle)[0x68] = 1;
+            GFX_RECORD(scene->firstHandle)[0x68] = 1;
             makeCursorUnmovable(0);
             gameSetUpStep.stepFlags[5][0] = 1;
         }

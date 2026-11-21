@@ -3,6 +3,7 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_sceneEffects
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/sound/m_sound.h"
 #include "game/match_setup/match_loading.h"
 #include "Unknown/File_0x80034e20.h"
 #include "static/UnknownHomes_Static.h"
@@ -1246,7 +1247,6 @@ extern void peachDaisyStarPitch_updateEffectTarget(BOOL side);
 extern void pitchingMachinePitching(u8 arg);
 extern BOOL fn_80033928(u8 id);
 extern void* allocParticleEffect(void* func, int a, int b, int c, int d, u8 e);
-extern void callSfx(int sfx);
 extern int rand(void);
 extern u8 fn_3_8D4(VecSrcDst* seg, CollisionStruct* hit);
 extern void fn_8003A550(int idx, Vec* pos, Vec* vel, int flag);
