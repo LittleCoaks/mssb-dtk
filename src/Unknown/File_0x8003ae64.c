@@ -85,12 +85,56 @@ u32 fn_800A6418(u32 size);
 void fn_800A63C8(void);
 u32 fn_80040FE0(void* buffer, s32 size, u32 arg);
 void fn_8003AE64(u32 task);
+u8 fn_8003AE70(s32 which);
+void fn_8003BF54(u8 a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h, u8 i);
+void startMemoryCardCheck(void);
+void fn_8003F2B8(void);
 void fn_8003B5B0(void);
 void fn_80040C14(void);
 void fn_8004053C(void);
 void mcardStartProbe(void);
 void mcardStopProbe(void);
 void mcardCheckSpace(u8 chan, u8 async, s16 blocksNeeded, const char* fileName, u64 serialNo);
+
+void fn_8003AE64(u32 task) {
+    lbl_803CBCB8 = 0;
+}
+
+u8 fn_8003AE70(s32 which) {
+    u8 value = 0;
+
+    switch (which) {
+    case 0:
+        value = lbl_802D4B00[0x95];
+        break;
+    case 1:
+        value = lbl_802D4B00[0x94];
+        break;
+    case 2:
+        value = lbl_802D4B00[0x96];
+        break;
+    }
+    return value;
+}
+
+void fn_8003BF54(u8 a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h, u8 i) {
+    DrawingSceneStruct* item = insertGraphicDrawingFunction(sceneDrawingLogic, 0x8000);
+
+    ((u8*)item)[0x14] = 0;
+    ((u8*)item)[0x15] = a;
+    ((u8*)item)[0x16] = b;
+    ((u8*)item)[0x17] = c;
+    ((u8*)item)[0x18] = d;
+    ((u8*)item)[0x19] = e;
+    ((u8*)item)[0x1A] = f;
+    ((u8*)item)[0x1B] = g;
+    ((u8*)item)[0x1D] = 0;
+    ((u8*)item)[0x20] = h;
+    ((u8*)item)[0x21] = i;
+    lbl_802D4AE0[c] = 0;
+    ((u8*)item)[0x1F] = 2;
+    currentDrawingItem->state = 0;
+}
 
 void sceneDrawingLogic(void) {
     SceneNode* node = (SceneNode*)currentDrawingItem;
@@ -1092,4 +1136,23 @@ void sceneDrawingLogic(void) {
     default:
         break;
     }
+}
+
+void startMemoryCardCheck(void) {
+    DrawingSceneStruct* item = insertGraphicDrawingFunction(fn_8003F2B8, 0x8000);
+
+    ((u8*)item)[0x14] = 0;
+    ((u8*)item)[0x15] = 0;
+    ((u8*)item)[0x16] = 0;
+    ((u8*)item)[0x17] = 0;
+    ((u8*)item)[0x18] = 0;
+    ((u8*)item)[0x1A] = 0;
+    ((u8*)item)[0x1B] = 7;
+    ((u8*)item)[0x1D] = 0;
+    ((u8*)item)[0x21] = 0;
+    currentDrawingItem->state = 0;
+    lbl_802D4AE0[3] = 0;
+    lbl_802D4AE0[2] = 0;
+    lbl_802D4AE0[1] = 0;
+    lbl_802D4AE0[0] = 0;
 }

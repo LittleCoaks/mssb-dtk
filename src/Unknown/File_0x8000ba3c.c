@@ -3,6 +3,8 @@
 #include "Dolphin/stl.h"
 #include "Unknown/sprt.h"
 #include "Unknown/File_0x8000a0ac.h"
+#include "Unknown/File_0x800363d8.h"
+#include <math.h>
 
 /* The UI sprite buffer the handlers fill: updateHUDRelatedUI reads it as a
  * HUDSprite, SetSpriteRect as a SpriteRectBuf, the others as raw bytes. */
@@ -306,6 +308,7 @@ extern f32 lbl_803CC47C;
 extern f32 lbl_803CC480;
 extern f32 lbl_803CC484;
 
+void fn_8000E030(u8* sprite, Mtx a, Mtx b);
 void fn_8000E030(u8* sprite, Mtx a, Mtx b);
 void fn_8000D8A4(u8* sprite, Mtx a, Mtx b);
 void fn_800B117C(u32 flag);
@@ -672,6 +675,178 @@ s32 updateHUDRelatedUI(u32* frame, UILayout* layout, int elementIndex, Mtx mtx, 
     return retVal;
 }
 
+void fn_8000CC4C(UILayout* layout, u8* part, u8* src, u32 offset, u32 size) {
+    u8* rec = part + 4;
+    u8* idx;
+    u8* val;
+    u8* blk;
+    u32 slotWords;
+    u32 word;
+    u32 len;
+    u32 n;
+    s32 i;
+    s32 k;
+
+    for (i = 0; i < *(u16*)part; i++) {
+        switch (*(u16*)rec & 0x7FFF) {
+        case 0:
+            if (*(u16*)(part + 2) < offset + size && *(u16*)(part + 2) - offset == 0) {
+                break;
+            }
+            memcpy(rec + offset, src, size);
+            break;
+        case 1:
+            memcpy(rec + offset, src, size);
+            break;
+        case 2:
+            idx = rec;
+            val = rec + (((*(u16*)(rec + 4) + 1) << 1) & ~3) + 8;
+            for (k = 0; k < *(u16*)(rec + 4); k++) {
+                word = *(u16*)(idx + 8) * 4;
+                if (word >= offset - 4 + size) {
+                    break;
+                }
+                if (word + 4 > offset - 4) {
+                    n = word + 4 - (offset - 4);
+                    if (n < 4) {
+                        if (n > size) {
+                            n = size;
+                        }
+                        memcpy(val + 4 - n, src, n);
+                    } else {
+                        n = offset - 4 + size - word;
+                        if (n < 4) {
+                            memcpy(val, src + size + 4 - n, n);
+                        } else {
+                            memcpy(val, src + word - (offset - 4), 4);
+                        }
+                    }
+                }
+                idx += 2;
+                val += 4;
+            }
+            break;
+        case 3:
+            idx = rec;
+            blk = rec + *(u16*)(rec + 4) * 4 + 8;
+            for (k = 0; k < *(u16*)(rec + 4); k++) {
+                word = *(u16*)(idx + 8);
+                len = *(u16*)(idx + 10);
+                if (word >= offset - 4 + size) {
+                    break;
+                }
+                if (word + len > offset - 4) {
+                    n = offset - 4 - word;
+                    if (n < len) {
+                        n = len - n;
+                        if (n > size) {
+                            n = size;
+                        }
+                        memcpy(blk + (offset - 4 - word), src, n);
+                    } else if (offset - 4 + size < word + len) {
+                        memcpy(blk, src + word - (offset - 4), offset - 4 + size - word);
+                    } else {
+                        memcpy(blk, src + word - (offset - 4), len);
+                    }
+                }
+                blk += len;
+                idx += 4;
+            }
+            break;
+        }
+        rec = skipUIRecord(rec, part, layout->unk0[5]);
+    }
+}
+
+u32 fn_8000CEF0(void* layoutArg, u32 elementIndex, u32 partIndex, int frame, LayoutFrameInfo* outArg) {
+    UILayout* layout = (UILayout*)layoutArg;
+    u8* out = (u8*)outArg;
+    u8* elem = *(u8**)(layout->elementTable + elementIndex * 4 + 8);
+    u8* part;
+    u8* rec;
+    u8* idx;
+    u8* val;
+    u8* base;
+    u32 slotWords;
+    u32 words;
+    u8* cur;
+    s32 remaining;
+    u32 n;
+
+    if (partIndex >= (*(u32*)elem & 0x7FFFFFFF) - 1) {
+        return 0;
+    }
+    part = *(u8**)(elem + (partIndex + 1) * 4 + 8);
+    remaining = *(u16*)part - frame;
+    if (remaining <= 0) {
+        return 0;
+    }
+
+    cur = part + 4;
+    do {
+        rec = cur;
+        words = *(u16*)(part + 2) >> 2;
+        switch (*(u16*)rec & 0x7FFF) {
+        case 0:
+            cur = rec + words * 4;
+            break;
+        case 1:
+            cur = rec + layout->unk0[5] * 4;
+            break;
+        case 2:
+            cur = rec + *(u16*)(rec + 6) * 4;
+            break;
+        case 3:
+            cur = rec + *(u16*)(rec + 6) * 4;
+            break;
+        default:
+            cur = rec;
+            break;
+        }
+    } while (--remaining != 0);
+    rec = cur;
+
+    slotWords = layout->unk0[5];
+    switch (*(u16*)rec & 0x7FFF) {
+    case 0:
+        memset(out, 0, slotWords * 4);
+        memcpy(out, part + 4, *(u16*)(part + 2));
+        break;
+    case 1:
+        memcpy(out, rec, slotWords * 4);
+        break;
+    case 2:
+        memset(out, 0, slotWords * 4);
+        base = out + 4;
+        memcpy(base, part + 8, *(u16*)(part + 2) - 4);
+        memcpy(out, rec, 4);
+        n = *(u16*)(rec + 4);
+        val = rec + *(u16*)(rec + 6) * 4;
+        idx = rec + n * 2;
+        while (n-- != 0) {
+            val -= 4;
+            idx -= 2;
+            *(u32*)(base + *(u16*)(idx + 8) * 4) = *(u32*)val;
+        }
+        break;
+    case 3:
+        memset(out, 0, slotWords * 4);
+        base = out + 4;
+        memcpy(base, part + 8, *(u16*)(part + 2) - 4);
+        memcpy(out, rec, 4);
+        n = *(u16*)(rec + 4);
+        idx = rec + 8;
+        val = rec + n * 4 + 8;
+        while (n-- != 0) {
+            memcpy(base + *(u16*)idx, val, *(u16*)(idx + 2));
+            idx += 4;
+            val += *(u16*)(idx - 2);
+        }
+        break;
+    }
+    return 1;
+}
+
 typedef struct UIKeyEntry {
     /* 0x0 */ u16 key;
     /* 0x2 */ u16 value;
@@ -944,13 +1119,424 @@ static void SetVertexPos(SpriteVertex* vtx, const f32* corner) {
     vtx->pos[2] = corner[2];
 }
 
+void fn_800B12DC(void* vtx, s32 count);
+void DrawNullSprite(void* vtx, s32 count);
+
+void fn_8000D8A4(u8* sprite, Mtx mtx, Mtx blockMtx) {
+    u8* block = (u8*)blockMtx;
+    SpriteVertex verts[516];
+    Vec arrB[257];
+    Vec arrA[257];
+    Vec out;
+    Vec p;
+    f32 v[2];
+    u32 colorA;
+    u32 colorB;
+    f32 zOffset;
+    s32 segments;
+    s32 columns;
+    s32 step;
+    s32 angle;
+    s32 j;
+    s32 k;
+    f32 sn;
+    f32 cs;
+
+    if (sprite[0x29] & 0x80) {
+        if (block[0x36] == 0) {
+            return;
+        }
+    }
+
+    zOffset = *(s16*)(sprite + 0x1A);
+    if (*(f32*)(block + 0x30) > 128.0f) {
+        v[1] = 128.0f;
+        colorB = *(u32*)(block + 0x24);
+        v[0] = *(f32*)(block + 0x30);
+        colorA = *(u32*)(block + 0x20);
+    } else {
+        v[0] = 128.0f;
+        colorA = *(u32*)(block + 0x24);
+        v[1] = *(f32*)(block + 0x30);
+        colorB = *(u32*)(block + 0x20);
+    }
+
+    for (k = 0; k < 2; k++) {
+        p.x = 128.0f + v[k];
+        p.y = 128.0f;
+        p.z = *(s16*)(sprite + 0x18) + zOffset;
+        PSMTXMultVec(mtx, &p, &out);
+        if (k != 0) {
+            arrA[0].x = out.x;
+            arrA[0].y = out.y;
+            arrA[0].z = out.z;
+        } else {
+            arrB[0].x = out.x;
+            arrB[0].y = out.y;
+            arrB[0].z = out.z;
+        }
+    }
+
+    segments = block[0x36];
+    if (segments == 0) {
+        segments = *(u16*)(block + 0x34) - 1;
+    }
+    step = 0x10000 / *(u16*)(block + 0x34);
+    angle = 0;
+    j = 1;
+    do {
+        angle = (s16)(angle - step);
+        sn = sin(angle * 0.0000958738f);
+        cs = cos(angle * 0.0000958738f);
+        for (k = 0; k < 2; k++) {
+            p.x = cs * v[k] + 128.0f;
+            p.y = sn * v[k] + 128.0f;
+            p.z = *(s16*)(sprite + 0x18) + zOffset;
+            PSMTXMultVec(mtx, &p, &out);
+            if (k != 0) {
+                arrA[j].x = out.x;
+                arrA[j].y = out.y;
+                arrA[j].z = out.z;
+            } else {
+                arrB[j].x = out.x;
+                arrB[j].y = out.y;
+                arrB[j].z = out.z;
+            }
+        }
+        j++;
+    } while (--segments != 0);
+
+    if (!(sprite[0x29] & 0x80)) {
+        arrA[*(u16*)(block + 0x34)].x = arrA[0].x;
+        arrB[*(u16*)(block + 0x34)].x = arrB[0].x;
+        arrA[*(u16*)(block + 0x34)].y = arrA[0].y;
+        arrB[*(u16*)(block + 0x34)].y = arrB[0].y;
+        arrA[*(u16*)(block + 0x34)].z = arrA[0].z;
+        arrB[*(u16*)(block + 0x34)].z = arrB[0].z;
+    }
+
+    if (sprite[0x29] & 0x80) {
+        columns = (block[0x36] + 1) * 2;
+    } else {
+        columns = (*(u16*)(block + 0x34) + 1) * 2;
+    }
+    memset(verts, 0, sizeof(verts));
+    for (k = 0; k < (columns + 1) / 2; k++) {
+        verts[k * 2].pos[0] = arrB[k].x;
+        verts[k * 2].pos[1] = arrB[k].y;
+        verts[k * 2].pos[2] = arrB[k].z;
+        verts[k * 2 + 1].pos[0] = arrA[k].x;
+        verts[k * 2 + 1].pos[1] = arrA[k].y;
+        verts[k * 2 + 1].pos[2] = arrA[k].z;
+        verts[k * 2].color = colorA;
+        verts[k * 2 + 1].color = colorB;
+    }
+    DrawNullSprite(verts, columns);
+}
+
+void fn_8000DC9C(UIAnimRecord* rec, void* mtxA, void* blockArg) {
+    u8* block = (u8*)blockArg;
+    SpriteVertex verts[516];
+    Vec arrB[257];
+    Vec arrA[257];
+    Mtx m;
+    Vec out;
+    Vec p;
+    f32 v[2];
+    u32 colorA;
+    u32 colorB;
+    s32 segments;
+    s32 columns;
+    s32 step;
+    s32 angle;
+    s32 j;
+    s32 k;
+    f32 sn;
+    f32 cs;
+
+    if (((u8*)rec)[0x25] & 0x80) {
+        if (block[0x36] == 0) {
+            return;
+        }
+    }
+
+    PSMTXCopy((f32(*)[4])mtxA, m);
+    if (*(f32*)(block + 0x30) > 128.0f) {
+        v[1] = 128.0f;
+        colorB = *(u32*)(block + 0x24);
+        v[0] = *(f32*)(block + 0x30);
+        colorA = *(u32*)(block + 0x20);
+    } else {
+        v[0] = 128.0f;
+        colorA = *(u32*)(block + 0x24);
+        v[1] = *(f32*)(block + 0x30);
+        colorB = *(u32*)(block + 0x20);
+    }
+
+    for (k = 0; k < 2; k++) {
+        p.x = 128.0f + v[k];
+        p.y = 128.0f;
+        p.z = 0.0f;
+        PSMTXMultVec(m, &p, &out);
+        if (k != 0) {
+            arrA[0].x = out.x;
+            arrA[0].y = out.y;
+            arrA[0].z = out.z;
+        } else {
+            arrB[0].x = out.x;
+            arrB[0].y = out.y;
+            arrB[0].z = out.z;
+        }
+    }
+
+    segments = block[0x36];
+    if (segments == 0) {
+        segments = *(u16*)(block + 0x34) - 1;
+    }
+    step = 0x10000 / *(u16*)(block + 0x34);
+    angle = 0;
+    j = 1;
+    do {
+        angle = (s16)(angle - step);
+        sn = sin(angle * 0.0000958738f);
+        cs = cos(angle * 0.0000958738f);
+        for (k = 0; k < 2; k++) {
+            p.x = cs * v[k] + 128.0f;
+            p.y = sn * v[k] + 128.0f;
+            p.z = 0.0f;
+            PSMTXMultVec(m, &p, &out);
+            if (k != 0) {
+                arrA[j].x = out.x;
+                arrA[j].y = out.y;
+                arrA[j].z = out.z;
+            } else {
+                arrB[j].x = out.x;
+                arrB[j].y = out.y;
+                arrB[j].z = out.z;
+            }
+        }
+        j++;
+    } while (--segments != 0);
+
+    if (!(((u8*)rec)[0x25] & 0x80)) {
+        arrA[*(u16*)(block + 0x34)].x = arrA[0].x;
+        arrB[*(u16*)(block + 0x34)].x = arrB[0].x;
+        arrA[*(u16*)(block + 0x34)].y = arrA[0].y;
+        arrB[*(u16*)(block + 0x34)].y = arrB[0].y;
+        arrA[*(u16*)(block + 0x34)].z = arrA[0].z;
+        arrB[*(u16*)(block + 0x34)].z = arrB[0].z;
+    }
+
+    if (((u8*)rec)[0x25] & 0x80) {
+        columns = (block[0x36] + 1) * 2;
+    } else {
+        columns = (*(u16*)(block + 0x34) + 1) * 2;
+    }
+    for (k = 0; k < (columns + 1) / 2; k++) {
+        verts[k * 2].pos[0] = arrB[k].x;
+        verts[k * 2].pos[1] = arrB[k].y;
+        verts[k * 2].pos[2] = arrB[k].z;
+        verts[k * 2 + 1].pos[0] = arrA[k].x;
+        verts[k * 2 + 1].pos[1] = arrA[k].y;
+        verts[k * 2 + 1].pos[2] = arrA[k].z;
+        verts[k * 2].color = colorA;
+        verts[k * 2 + 1].color = colorB;
+    }
+    DrawNullSprite(verts, columns);
+}
+
+void fn_8000E030(u8* rec, Mtx mtx, Mtx blockMtx) {
+    u8* block = (u8*)blockMtx;
+    Vec p;
+    Vec center;
+    SpriteVertex verts[258];
+    s32 segments;
+    s32 count;
+    s32 step;
+    s32 angle;
+    s32 j;
+    f32 sn;
+    f32 cs;
+
+    if (rec[0x29] & 0x80) {
+        if (block[0x36] == 0) {
+            return;
+        }
+    }
+
+    center.x = 128.0f;
+    center.y = 128.0f;
+    center.z = *(s16*)(rec + 0x1A);
+    PSMTXMultVec(mtx, &center, (Vec*)&verts[0]);
+    p.x = 128.0f + center.x;
+    p.y = center.y;
+    verts[0].color = *(u32*)(block + 0x20);
+    p.z = *(s16*)(rec + 0x18) + *(s16*)(rec + 0x1A);
+    PSMTXMultVec(mtx, &p, (Vec*)&verts[1]);
+    verts[1].color = *(u32*)(block + 0x24);
+
+    if (block[0x36] != 0) {
+        segments = block[0x36];
+        count = segments + 2;
+    } else {
+        count = *(u16*)(block + 0x34) + 2;
+        segments = *(u16*)(block + 0x34) - 1;
+    }
+    step = 0x10000 / *(u16*)(block + 0x34);
+    angle = 0;
+    j = 2;
+    do {
+        angle = (s16)(angle - step);
+        sn = sin(angle * 0.0000958738f);
+        cs = cos(angle * 0.0000958738f);
+        p.x = 128.0f * cs + center.x;
+        p.y = 128.0f * sn + center.y;
+        p.z = *(s16*)(rec + 0x1A);
+        PSMTXMultVec(mtx, &p, (Vec*)&verts[j]);
+        verts[j].color = *(u32*)(block + 0x24);
+        j++;
+    } while (--segments != 0);
+
+    if (block[0x36] == 0) {
+        verts[*(u16*)(block + 0x34) + 1].pos[0] = verts[1].pos[0];
+        verts[*(u16*)(block + 0x34) + 1].pos[1] = verts[1].pos[1];
+        verts[*(u16*)(block + 0x34) + 1].pos[2] = verts[1].pos[2];
+        verts[*(u16*)(block + 0x34) + 1].color = *(u32*)(block + 0x24);
+    }
+    fn_800B12DC(verts, count);
+}
+
+void fn_800B13C0(Vec* pts, u32* colors, s32 count);
+
+void fn_8000E2D4(UIAnimRecord* rec, void* mtxArg, void* blockArg) {
+    f32* m = (f32*)mtxArg;
+    u8* block = (u8*)blockArg;
+    Vec pts[257];
+    u32 colors[257];
+    f32 w0;
+    f32 w1;
+    f32 px;
+    f32 py;
+    f32 qx;
+    f32 qy;
+    f32 sn;
+    f32 cs;
+    s32 step;
+    s32 angle;
+    s32 count;
+    s32 n;
+    s32 i;
+    Vec* dst;
+    u32* col;
+
+    if (((u8*)rec)[0x25] & 0x80) {
+        if (block[0x36] == 0) {
+            return;
+        }
+    }
+
+    dst = pts;
+    i = 257;
+    do {
+        dst->x = 0.0f;
+        dst->y = 0.0f;
+        dst->z = 0.0f;
+        dst++;
+    } while (--i != 0);
+
+    colors[0] = *(u32*)(block + 0x20);
+    px = 128 - *(s16*)((u8*)rec + 0x14);
+    py = 128 - *(s16*)((u8*)rec + 0x16);
+    pts[0].x = (s32)(m[0] * px + m[1] * py + m[3] * w0);
+    pts[0].y = (s32)(m[4] * px + m[5] * py + m[7] * w0);
+    pts[0].z = (s32)(m[8] * px + m[9] * py + m[11] * w0);
+    qy = 128.0f + py;
+    qx = 128.0f + px;
+    pts[1].x = (s32)(m[0] * qx + m[1] * qy + m[3] * w1);
+    pts[1].y = (s32)(m[4] * qx + m[5] * qy + m[7] * w1);
+    pts[1].z = (s32)(m[8] * qx + m[9] * qy + m[11] * w1);
+    colors[1] = *(u32*)(block + 0x24);
+    step = 0x10000 / *(u16*)(block + 0x34);
+
+    n = *(u16*)(block + 0x34);
+    if (n != block[0x36]) {
+        n = block[0x36] + 1;
+    }
+    dst = &pts[n];
+    col = &colors[n];
+    angle = 0;
+    count = n;
+    do {
+        angle = (s16)(angle - step);
+        sn = sin(angle * 0.0000958738f);
+        cs = cos(angle * 0.0000958738f);
+        qy = 128.0f * sn + py;
+        qx = 128.0f * cs + px;
+        dst->x = (s32)(m[1] * qy + m[0] * qx + m[3] * w1);
+        dst->y = (s32)(m[5] * qy + m[4] * qx + m[7] * w1);
+        dst->z = (s32)(m[9] * qy + m[8] * qx + m[11] * w1);
+        dst--;
+        *col = *(u32*)(block + 0x24);
+        col--;
+    } while (--count != 0);
+
+    if (*(u16*)(block + 0x34) == block[0x36]) {
+        pts[block[0x36] + 1].x = pts[1].x;
+        pts[block[0x36] + 1].y = pts[1].y;
+        pts[block[0x36] + 1].z = pts[1].z;
+        colors[block[0x36] + 1] = *(u32*)(block + 0x24);
+    }
+    fn_800B13C0(pts, colors, block[0x36] + 2);
+}
+
+void fn_8000E764(f32* out, f32 angle) {
+    out[0] = sin(angle);
+    out[1] = cos(angle);
+}
+
+void fn_8000E7BC(UIAnimRecord* rec, void* mtxA, void* block, u32 flagBits) {
+    f32 quad[16];
+    s32* vec2i = (s32*)block;
+    SpriteRectBuf* buf;
+    u16 flags;
+
+    quad[0] = 0.0f;
+    quad[1] = 0.0f;
+    quad[6] = 1.0f;
+    quad[7] = 1.0f;
+    quad[2] = 1.0f;
+    quad[3] = 0.0f;
+    quad[4] = 0.0f;
+    quad[5] = 1.0f;
+    AddVec2iToQuad(quad, (f32(*)[4])mtxA, vec2i);
+
+    buf = (SpriteRectBuf*)lbl_80366188;
+    buf->unk7e = 0;
+    *(UIAnimRecord**)(buf->unk74 + 4) = rec;
+    buf->verts[0].color = vec2i[8];
+    SetVertexPos(&buf->verts[0], &quad[0]);
+    SetVertexPos(&buf->verts[1], &quad[4]);
+    SetVertexPos(&buf->verts[2], &quad[12]);
+    SetVertexPos(&buf->verts[3], &quad[8]);
+    flags = ((rec->flags >> 4) & 1) | (flagBits | ((rec->kind & 0xF) == 2));
+    buf->flags = flags;
+    if (flags != 0) {
+        buf->verts[1].color = vec2i[11];
+        buf->verts[2].color = vec2i[10];
+        buf->verts[3].color = vec2i[9];
+    } else {
+        buf->verts[1].color = vec2i[8];
+        buf->verts[2].color = vec2i[8];
+        buf->verts[3].color = vec2i[8];
+    }
+}
+
 void SetSpriteRect(u8* sprite, u8* base, Mtx mtx, s32* vec2i, u16 flagBits) {
     f32 quad[16];
     u8* entry;
     u8* rect;
     f32 sizeX;
     f32 sizeY;
-    u8 flags;
     SpriteRectBuf* buf;
 
     entry = base + *(u16*)(sprite + 6) * 0x20;
@@ -971,18 +1557,22 @@ void SetSpriteRect(u8* sprite, u8* base, Mtx mtx, s32* vec2i, u16 flagBits) {
     AddVec2iToQuad(quad, mtx, vec2i);
 
     buf = (SpriteRectBuf*)lbl_80366188;
-    flags = sprite[8];
-    if ((flags & 0x80) && (flags & 0x40)) {
+    buf->unk7e = 0;
+    buf->verts[0].color = vec2i[8];
+    buf->verts[1].color = vec2i[9];
+    buf->verts[2].color = vec2i[10];
+    buf->verts[3].color = vec2i[11];
+    if ((sprite[8] & 0x80) && (sprite[8] & 0x40)) {
         SetVertexPos(&buf->verts[0], &quad[12]);
         SetVertexPos(&buf->verts[1], &quad[4]);
         SetVertexPos(&buf->verts[2], &quad[0]);
         SetVertexPos(&buf->verts[3], &quad[8]);
-    } else if (flags & 0x80) {
+    } else if (sprite[8] & 0x80) {
         SetVertexPos(&buf->verts[0], &quad[4]);
         SetVertexPos(&buf->verts[1], &quad[12]);
         SetVertexPos(&buf->verts[2], &quad[8]);
         SetVertexPos(&buf->verts[3], &quad[0]);
-    } else if (flags & 0x40) {
+    } else if (sprite[8] & 0x40) {
         SetVertexPos(&buf->verts[0], &quad[8]);
         SetVertexPos(&buf->verts[1], &quad[0]);
         SetVertexPos(&buf->verts[2], &quad[4]);
@@ -994,12 +1584,6 @@ void SetSpriteRect(u8* sprite, u8* base, Mtx mtx, s32* vec2i, u16 flagBits) {
         SetVertexPos(&buf->verts[3], &quad[4]);
     }
 
-    buf->unk7e = 0;
-    buf->verts[0].color = vec2i[8];
-    buf->verts[1].color = vec2i[9];
-    buf->verts[2].color = vec2i[10];
-    buf->verts[3].color = vec2i[11];
-
     buf->verts[0].u = 0;
     buf->verts[0].v = 0;
     buf->verts[1].u = 0;
@@ -1010,14 +1594,82 @@ void SetSpriteRect(u8* sprite, u8* base, Mtx mtx, s32* vec2i, u16 flagBits) {
     buf->verts[3].v = 0;
 
     buf->base = base;
-    buf->flags = flagBits | ((flags >> 5) & 1);
+    buf->flags = flagBits | ((sprite[8] >> 5) & 1);
+}
+
+void fn_8000EC0C(UIAnimRecord* rec, TextureHeader* textures, void* mtxA, void* blockArg, u32 flagBits) {
+    u8* base = (u8*)textures;
+    s32* vec2i = (s32*)blockArg;
+    f32 quad[16];
+    u8* entry;
+    u8* rect;
+    f32 sizeX;
+    f32 sizeY;
+    SpriteRectBuf* buf;
+
+    entry = base + *(u16*)((u8*)rec + 2) * 0x20;
+    rect = base + *(u16*)(entry + 0x20) * 0x20 + 4;
+    lbl_803CBBD8 = (u32)rect;
+
+    quad[0] = 0.0f;
+    quad[1] = 0.0f;
+    sizeX = 0.0f + (f32)*(u16*)(rect + 0xA);
+    quad[3] = 0.0f;
+    quad[4] = 0.0f;
+    quad[2] = sizeX;
+    quad[6] = sizeX;
+    sizeY = 0.0f + (f32)*(u16*)(rect + 8);
+    quad[5] = sizeY;
+    quad[7] = sizeY;
+
+    AddVec2iToQuad(quad, (f32(*)[4])mtxA, vec2i);
+
+    buf = (SpriteRectBuf*)lbl_80366188;
+    buf->unk7e = 0;
+    *(UIAnimRecord**)(buf->unk74 + 4) = rec;
+    buf->verts[0].color = vec2i[8];
+    buf->verts[1].color = vec2i[9];
+    buf->verts[2].color = vec2i[10];
+    buf->verts[3].color = vec2i[11];
+    if ((rec->flags & 0x80) && (rec->flags & 0x40)) {
+        SetVertexPos(&buf->verts[0], &quad[12]);
+        SetVertexPos(&buf->verts[1], &quad[4]);
+        SetVertexPos(&buf->verts[2], &quad[0]);
+        SetVertexPos(&buf->verts[3], &quad[8]);
+    } else if (rec->flags & 0x80) {
+        SetVertexPos(&buf->verts[0], &quad[4]);
+        SetVertexPos(&buf->verts[1], &quad[12]);
+        SetVertexPos(&buf->verts[2], &quad[8]);
+        SetVertexPos(&buf->verts[3], &quad[0]);
+    } else if (rec->flags & 0x40) {
+        SetVertexPos(&buf->verts[0], &quad[8]);
+        SetVertexPos(&buf->verts[1], &quad[0]);
+        SetVertexPos(&buf->verts[2], &quad[4]);
+        SetVertexPos(&buf->verts[3], &quad[12]);
+    } else {
+        SetVertexPos(&buf->verts[0], &quad[0]);
+        SetVertexPos(&buf->verts[1], &quad[8]);
+        SetVertexPos(&buf->verts[2], &quad[12]);
+        SetVertexPos(&buf->verts[3], &quad[4]);
+    }
+
+    buf->verts[0].u = 0;
+    buf->verts[0].v = 0;
+    buf->verts[1].u = 0;
+    buf->verts[1].v = 1;
+    buf->verts[2].u = 1;
+    buf->verts[2].v = 1;
+    buf->verts[3].u = 1;
+    buf->verts[3].v = 0;
+
+    buf->base = base;
+    buf->flags = flagBits | ((rec->flags >> 4) & 1);
 }
 
 void AddVec2iToQuad(f32* quad, Mtx mtx, s32* vec2i) {
     Mtx m;
     f32 pts[4][4];
 
-    PSMTXCopy(mtx, m);
     pts[0][0] = quad[0] + (f32)vec2i[0];
     pts[0][1] = quad[1] + (f32)vec2i[1];
     pts[0][2] = 1.0f;
@@ -1031,6 +1683,7 @@ void AddVec2iToQuad(f32* quad, Mtx mtx, s32* vec2i) {
     pts[3][1] = quad[7] + (f32)vec2i[7];
     pts[3][2] = 1.0f;
 
+    PSMTXCopy(mtx, m);
     PSMTXMultVec(m, (Vec*)pts[0], (Vec*)pts[0]);
     PSMTXMultVec(m, (Vec*)pts[1], (Vec*)pts[1]);
     PSMTXMultVec(m, (Vec*)pts[2], (Vec*)pts[2]);

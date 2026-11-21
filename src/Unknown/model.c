@@ -1899,6 +1899,21 @@ static inline void loadStadiumLights(u8 stadium) {
     }
 }
 
+void fn_8001CA40(u8 stadium) {
+    g_d_GameSettings._54 = stadium;
+    loadStadiumLights(stadium);
+    setLightDirection(&lbl_80367318[0]);
+}
+
+void fn_8001CB10(u8 (*lights)[10], int count) {
+    int i;
+
+    for (i = 0; i < count; i++) {
+        characterLightingRelated(lights[i], &lbl_80367318[i]);
+    }
+    setLightDirection(&lbl_80367318[0]);
+}
+
 void initStadiumLighting(void) {
     int stadium;
 
@@ -2471,5 +2486,433 @@ void initShortsHandleCompressedDiskReads(ShortsTableOwner* owner) {
 
     if (pairs != NULL) {
         swapShortPairs(owner, pairs);
+    }
+}
+
+/* Small accessors over the animation/model state block, addressed by raw offset. */
+#define HA(off)       (((u8*)&hugeAnimStruct) + (off))
+#define HA_OBJ(index) (*(u8**)HA(0x2C50 + (index) * 4))
+
+extern u32 lbl_803CBC18;
+BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h);
+
+u32 fn_80011570(void) {
+    return lbl_803CBC18;
+}
+
+static inline void clearObjectField5C(s8 index) {
+    u8* obj;
+
+    if (index < 0 || index >= 13) {
+        return;
+    }
+    obj = HA_OBJ(index);
+    if (obj == NULL) {
+        return;
+    }
+    *(u32*)(obj + 0x5C) = 0;
+}
+
+void fn_80011578(void) {
+    s8 i;
+
+    for (i = 0; i < 13; i++) {
+        clearObjectField5C(i);
+    }
+}
+
+void fn_800115C8(s8 index) {
+    clearObjectField5C(index);
+}
+
+void fn_80011604(s8 index, u32 value) {
+    u8* obj;
+
+    if (index < 0 || index >= 13) {
+        return;
+    }
+    obj = HA_OBJ(index);
+    if (obj == NULL) {
+        return;
+    }
+    *(u32*)(obj + 0x5C) = value;
+}
+
+void fn_80011B64(int index) {
+    u8** slot = (u8**)HA(0x2C50 + index * 4);
+    u8* part;
+
+    if (*slot == NULL) {
+        return;
+    }
+    part = *(u8**)(*slot + 0x2C);
+    if (part != NULL) {
+        part[0x61] = -1;
+        part[0x5C] = -2;
+        *(u8**)(*slot + 0x2C) = NULL;
+    }
+    part = *(u8**)(*slot + 0x30);
+    if (part == NULL) {
+        return;
+    }
+    part[0xD1] = part[0xD0];
+    part[0xD0] = -1;
+    part[0x5C] = -2;
+    part[0xC0] = -2;
+    *(u8**)(*slot + 0x30) = NULL;
+}
+
+void fn_80014990(int index, void* file, u32 value) {
+    u8* obj;
+    u8* effect;
+
+    if (index < 0 || index >= 13) {
+        return;
+    }
+    obj = HA_OBJ(index);
+    if (obj == NULL) {
+        return;
+    }
+    effect = lbl_80118220 + index * 0x64;
+    *(u8**)(obj + 0x2C) = effect;
+    effect[0x60] = obj[0x252];
+    effect[0x61] = obj[0x254];
+    *(u32*)(effect + 4) = value;
+    *(void**)(effect + 0x30) = file;
+    actRelated(file, effect + 4);
+}
+
+void fn_800177B4(void) {
+    DrawingSceneStruct* item = currentDrawingItem;
+
+    if (fn_8001758C((u8*)item + 0x14, ((u8*)item)[0x1C], ((u8*)item)[0x16], ((u8*)item)[0x19], ((u8*)item)[0x1A],
+                    ((u8*)item)[0x1B], ((u8*)item)[0x15], ((u8*)item)[0x1D])) {
+        *HA(0x2D77) = 2;
+        removeCurrentDrawingItem();
+    }
+}
+
+void fn_800189B8(void) {
+    fn_800ACFB0(*(void**)HA(0x2C88));
+}
+
+void fn_80018B38(void) {
+    fn_800ACFB0(*(void**)HA(0x2C88));
+    *(s16*)HA(0x2D68) = -1;
+}
+
+void fn_8001AAA4(void) {
+    DrawingSceneStruct* item = insertGraphicDrawingFunction(challengeMapRelated, 0);
+
+    ((u8*)item)[0x14] = 0;
+    item->currentDrawingItem->state = 0;
+    *HA(0x3082) = 0;
+    lbl_803CBBF0 = 0;
+}
+
+void fn_8001AAF0(void) {
+    fn_8003AC90();
+}
+
+void fn_8001B200(void) {
+    *(u32*)HA(0x308C) = 0;
+}
+
+void fn_8001B214(void (*func)(void)) {
+    *(void (**)(void))HA(0x308C) = func;
+}
+
+void fn_8001B308(int index, int attach) {
+    u8* obj = HA_OBJ(index);
+    u8* node;
+
+    if (obj == NULL) {
+        return;
+    }
+    node = (u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34;
+    if (attach != 0) {
+        *(u8**)(node + 0x68) = obj + 0x72;
+    } else {
+        *(u8**)(node + 0x68) = NULL;
+    }
+}
+
+void fn_8001C528(void) {
+    u8* p = HA(0);
+    s32 i;
+
+    for (i = 0; i < 13; i++) {
+        *(s16*)(p + 0xC64) = -1;
+        *(s16*)(p + 0xC66) = -1;
+        *(s16*)(p + 0xC68) = -1;
+        *(s16*)(p + 0xC6A) = -1;
+        *(s16*)(p + 0xC6C) = 0;
+        *(s16*)(p + 0xC6E) = 0;
+        p[0xE62] = 1;
+        p[0xE63] = 0;
+        p[0xE66] = 0;
+        p[0xE6C] = 0;
+        p[0xE6D] = 0;
+        p[0xE6E] = 0;
+        p[0xE6F] = 0;
+        p[0xE73] = 0;
+        p += 0x27C;
+    }
+}
+
+void fn_8001D074(int index, int enable) {
+    u8* obj = HA_OBJ(index);
+    u8* node;
+
+    if (obj == NULL) {
+        return;
+    }
+    node = *(u8**)((u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34);
+    if (enable != 0) {
+        node[0x98] |= 4;
+    } else {
+        node[0x98] &= ~4;
+    }
+}
+
+void fn_8001FDD4(u8* obj) {
+    if (*(void**)(obj + 0x70) != NULL) {
+        setLITLightPtr(*(void**)(obj + 0x70));
+    }
+}
+
+extern Mtx identityMtx;
+extern Mtx lbl_800E6630;
+extern f32 lbl_803CC4B8;
+extern u8 destAnimStructs[0x204C];
+void fn_8001BE50(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
+void fn_80017814(void* record);
+void fn_800B2D5C(void* ptr);
+
+typedef struct MtxCopy {
+    Mtx m;
+} MtxCopy;
+
+void fn_80011640(void* a, void* b) {
+    MtxCopy tmp = *(MtxCopy*)lbl_800E6630;
+
+    PSMTXConcat(tmp.m, (f32(*)[4])a, (f32(*)[4])b);
+}
+
+void fn_800116DC(StadiumModel* a, Mtx m, u16 index) {
+    MtxCopy tmp = *(MtxCopy*)identityMtx;
+    Mtx local;
+    f32(*dst)[4];
+
+    PSMTXConcat(tmp.m, m, local);
+    local[0][3] = lbl_803CC4B8;
+    local[1][3] = lbl_803CC4B8;
+    local[2][3] = lbl_803CC4B8;
+    PSMTXInverse(local, local);
+    dst = *(f32(**)[4])(*(u8**)(*(u8**)(*(u8**)a + 0x18) + index * 4) + 0xEC);
+    local[0][3] = dst[0][3];
+    local[1][3] = dst[1][3];
+    local[2][3] = dst[2][3];
+    PSMTXCopy(local, dst);
+}
+
+void fn_800117CC(Mtx a, Mtx m, Mtx out) {
+    MtxCopy tmp = *(MtxCopy*)identityMtx;
+    Mtx local;
+
+    PSMTXConcat(tmp.m, m, local);
+    local[0][3] = lbl_803CC4B8;
+    local[1][3] = lbl_803CC4B8;
+    local[2][3] = lbl_803CC4B8;
+    PSMTXInverse(local, local);
+    local[0][3] = a[0][3];
+    local[1][3] = a[1][3];
+    local[2][3] = a[2][3];
+    PSMTXCopy(local, out);
+}
+
+f32 (*fn_800118AC(Mtx a, Mtx out))[4] {
+    MtxCopy tmp = *(MtxCopy*)identityMtx;
+
+    PSMTXConcat(tmp.m, a, out);
+    out[0][3] = lbl_803CC4B8;
+    out[1][3] = lbl_803CC4B8;
+    out[2][3] = lbl_803CC4B8;
+    PSMTXInverse(out, out);
+    return out;
+}
+
+void fn_80011BE4(int index) {
+    u8** slot = (u8**)HA(0x2C50 + index * 4);
+    u8* part;
+    s32 i;
+
+    if (*slot != NULL) {
+        part = *(u8**)(*slot + 0x2C);
+        if (part != NULL) {
+            part[0x61] = -1;
+            part[0x5C] = -2;
+            *(u8**)(*slot + 0x2C) = NULL;
+        }
+        part = *(u8**)(*slot + 0x30);
+        if (part != NULL) {
+            part[0xD1] = part[0xD0];
+            part[0xD0] = -1;
+            part[0x5C] = -2;
+            part[0xC0] = -2;
+            *(u8**)(*slot + 0x30) = NULL;
+        }
+        (*slot)[0x25C] = 0;
+    }
+    *slot = NULL;
+    for (i = 0; i < 13; i++) {
+        if ((s8)HA(0)[0x2D6A + i] == index) {
+            HA(0)[0x2D6A + i] = -1;
+        }
+    }
+}
+
+void fn_8001B224(void) {
+    s32 i;
+    u8* obj;
+
+    memcpy(HA(0xC04), destAnimStructs, 0x204C);
+    for (i = 0; i < 13; i++) {
+        obj = HA_OBJ(i);
+        if (obj != NULL) {
+            if (obj[0x25D] != 0 || i <= 8) {
+                fn_8001BE50(i, *(s16*)(obj + 0x62), obj[0x25F], obj[0x262], *(s16*)(obj + 0x6A) + 1, obj[0x265], 0);
+            }
+        }
+    }
+}
+
+void fn_80017D28(u8* obj) {
+    s32 slot = (s8)obj[0x255] + 4;
+    u8* rec = HA(0) + slot * 0x27C;
+    u8* p;
+
+    rec[0xE56] = obj[0x252];
+    p = rec + 0xC04;
+    p[0x254] = obj[0x254];
+    p[0x255] = slot;
+    p[0x25C] = 1;
+    p[0x25D] = 0;
+    *(u32*)(p + 0x30) = *(u32*)(obj + 0x30);
+    p[0x25A] = obj[0x25A];
+    p[0x25B] = obj[0x25B];
+    *(u32*)(p + 8) = *(u32*)(obj + 0xC);
+    fn_80017814(p);
+}
+
+void fn_8001F16C(void) {
+    u8* node;
+    u8* obj;
+    s32 i;
+    u8* actors;
+
+    if (*HA(0x307A) != 0 && *HA(0x307A) != 3) {
+        actors = (u8*)hugeAnimStruct.actorTable;
+        for (i = 0; i < *(u16*)actors; i++) {
+            obj = HA_OBJ(i);
+            if (obj != NULL) {
+                node = (u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34;
+                if (*(void**)node != NULL && node[0x6C] != 0) {
+                    fn_800B2D5C(*(void**)node);
+                }
+            }
+        }
+    }
+}
+
+void fn_8001196C(void) {
+    s32 idx;
+    s32 i;
+    u8** slot;
+    u8* part;
+
+    for (idx = 0; idx < 9; idx++) {
+        slot = (u8**)HA(0x2C50 + idx * 4);
+        if (*slot != NULL && *(u8**)(*slot + 0x2C) != NULL && (s8)(*slot)[0x254] == idx) {
+            part = *(u8**)(*slot + 0x2C);
+            part[0x61] = -1;
+            part[0x5C] = -2;
+            *(u8**)(*slot + 0x2C) = NULL;
+        }
+        if (*slot != NULL && *(u8**)(*slot + 0x30) != NULL && (s8)(*slot)[0x254] == idx) {
+            part = *(u8**)(*slot + 0x30);
+            part[0xD1] = part[0xD0];
+            part[0xD0] = -1;
+            part[0x5C] = -2;
+            part[0xC0] = -2;
+            *(u8**)(*slot + 0x30) = NULL;
+        }
+        (*slot)[0x25C] = 0;
+        *slot = NULL;
+        for (i = 0; i < 13; i++) {
+            if ((s8)HA(0)[0x2D6A + i] == idx) {
+                HA(0)[0x2D6A + i] = -1;
+            }
+        }
+    }
+}
+
+void fn_80011A60(void) {
+    s32 n;
+    s32 idx;
+    s32 i;
+    u8** slot;
+    u8* part;
+
+    for (n = 0; n < 4; n++) {
+        idx = n + 9;
+        slot = (u8**)HA(0x2C50 + idx * 4);
+        if (*slot != NULL && *(u8**)(*slot + 0x2C) != NULL && (s8)(*slot)[0x254] == idx) {
+            part = *(u8**)(*slot + 0x2C);
+            part[0x61] = -1;
+            part[0x5C] = -2;
+            *(u8**)(*slot + 0x2C) = NULL;
+        }
+        if (*slot != NULL && *(u8**)(*slot + 0x30) != NULL && (s8)(*slot)[0x254] == idx) {
+            part = *(u8**)(*slot + 0x30);
+            part[0xD1] = part[0xD0];
+            part[0xD0] = -1;
+            part[0x5C] = -2;
+            part[0xC0] = -2;
+            *(u8**)(*slot + 0x30) = NULL;
+        }
+        if (*slot != NULL) {
+            (*slot)[0x25C] = 0;
+            *slot = NULL;
+        }
+        for (i = 0; i < 13; i++) {
+            if ((s8)HA(0)[0x2D6A + i] == idx) {
+                HA(0)[0x2D6A + i] = -1;
+            }
+        }
+    }
+}
+
+void fn_800188C0(void) {
+    DrawingSceneStruct* item = currentDrawingItem;
+
+    switch (((u8*)item)[0x14]) {
+    case 0:
+        if (g_d_GameSettings.GameModeSelected == 6) {
+            *(void**)HA(0x2C84) = ARAMTransfer(&BallModelFiles[1], 0, 0, 0);
+        } else {
+            *(void**)HA(0x2C84) = ARAMTransfer(BallModelFiles, 0, 0, 0);
+        }
+        ((u8*)item)[0x14]++;
+        break;
+    case 1:
+        if (lbl_803C6CF8.cancel.bytes[1] == 1) {
+            ((u8*)item)[0x14]++;
+        }
+        break;
+    case 2:
+        *HA(0x307B) = 0;
+        removeCurrentDrawingItem();
+        break;
     }
 }
