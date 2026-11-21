@@ -482,17 +482,17 @@ BOOL challengeTransitionRelated(BOOL arg0) {
 void fn_8004D990(u8 arg0, BOOL arg1, u8 arg2) {
     s32 i;
 
-    if (arg1 == 0) {
+    if (arg1 != 0) {
         for (i = 0; i < 4; i++) {
             CHAR_SELECT_BYTE(0x78 + i) = 0;
             charSelectStruct.cursorPos[i] = -1;
-            CHAR_SELECT_BYTE(0x7F + i) = -2;
+            CHAR_SELECT_BYTE(0x7F + i) = -1;
         }
     } else {
         for (i = 0; i < 4; i++) {
             CHAR_SELECT_BYTE(0x78 + i) = 0;
             charSelectStruct.cursorPos[i] = -1;
-            CHAR_SELECT_BYTE(0x7F + i) = -1;
+            CHAR_SELECT_BYTE(0x7F + i) = -2;
         }
     }
 
@@ -739,7 +739,12 @@ void add_or_RemoveCharToATeam(int team, int charID, BOOL add) {
 }
 
 
+#define CSS_CAPTAIN_ICON_TABLE (data + 0x1B74)
+#define CSS_CAPTAIN_NAV_TABLE  (data + 0x1B80)
+#define CSS_VARIANT_TABLE      (data + 0x1EDC)
+
 int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHeldInput, u16 newInput, u16 processedInput) {
+    u8 *data = lbl_800FCA60;
     s32 slotClaim[12];
     s32 freeSlots;
     s32 i;
@@ -750,16 +755,8 @@ int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHel
     s32 other;
     s32 rnd;
     s32 n;
-    s8 *timer;
-    s16 *cursorPos;
-    s16 *selected;
-    u8 *bytes;
 
-    bytes = (u8 *)&charSelectStruct;
-    cursorPos = charSelectStruct.cursorPos;
-    selected = (s16 *)charSelectStruct.unk20;
-
-    bytes[0x78 + captainIdx] = 3;
+    CHAR_SELECT_BYTE(0x78 + captainIdx) = 3;
 
     freeSlots = 12;
     for (i = 0; i < 12; i++) {
@@ -769,7 +766,7 @@ int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHel
             freeSlots--;
         } else {
             for (k = 0; k < 4; k++) {
-                if (k != captainIdx && cursorPos[k] == i && bytes[0x78 + k] != 0) {
+                if (k != captainIdx && charSelectStruct.cursorPos[k] == i && CHAR_SELECT_BYTE(0x78 + k) != 0) {
                     slotClaim[i] = k + 1;
                     freeSlots--;
                     break;
@@ -778,25 +775,24 @@ int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHel
         }
     }
 
-    timer = (s8 *)&bytes[0x7F + captainIdx];
-    if (*timer >= 0) {
-        (*timer)--;
-        if (*timer & 1) {
+    if ((s8)CHAR_SELECT_BYTE(0x7F + captainIdx) >= 0) {
+        CHAR_SELECT_BYTE(0x7F + captainIdx)--;
+        if (CHAR_SELECT_BYTE(0x7F + captainIdx) & 1) {
             rnd = rand() % freeSlots;
             for (i = 0; i < 12; i++) {
                 if (slotClaim[i] < 0) {
                     if (rnd == 0) {
-                        cursorPos[captainIdx] = i;
+                        charSelectStruct.cursorPos[captainIdx] = i;
                         break;
                     }
                     rnd--;
                 }
             }
         }
-    } else if ((newInput & 0x20) && *timer == -1) {
-        *timer = 0x1E;
+    } else if ((newInput & 0x20) && (s8)CHAR_SELECT_BYTE(0x7F + captainIdx) == -1) {
+        CHAR_SELECT_BYTE(0x7F + captainIdx) = 0x1E;
     } else if (processedInput & 2) {
-        cur = cursorPos[captainIdx];
+        cur = charSelectStruct.cursorPos[captainIdx];
         base = (cur / 6) * 6;
         idx = cur % 6 + 1;
         if (idx >= 6) {
@@ -808,10 +804,10 @@ int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHel
                 idx = 0;
             }
         }
-        cursorPos[captainIdx] = base + idx;
+        charSelectStruct.cursorPos[captainIdx] = base + idx;
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
     } else if (processedInput & 1) {
-        cur = cursorPos[captainIdx];
+        cur = charSelectStruct.cursorPos[captainIdx];
         base = (cur / 6) * 6;
         idx = cur % 6 - 1;
         if (idx < 0) {
@@ -823,49 +819,50 @@ int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHel
                 idx = 5;
             }
         }
-        cursorPos[captainIdx] = base + idx;
+        charSelectStruct.cursorPos[captainIdx] = base + idx;
         sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
     } else if (processedInput & 4) {
-        cur = cursorPos[captainIdx];
+        cur = charSelectStruct.cursorPos[captainIdx];
         other = ((cur / 6 + 1) % 2) * 6;
         for (k = 0; k < 12; k++) {
-            if (slotClaim[other + mapCaptainCursorPositionToCharID[0xC + (cur % 6) * 6 + k]] < 0) {
+            if (slotClaim[other + (CSS_CAPTAIN_NAV_TABLE + (cur % 6) * 6)[k]] < 0) {
                 break;
             }
         }
         if (k < 12) {
-            cursorPos[captainIdx] = other + mapCaptainCursorPositionToCharID[0xC + (cur % 6) * 6 + k];
+            charSelectStruct.cursorPos[captainIdx] = other + (CSS_CAPTAIN_NAV_TABLE + (cur % 6) * 6)[k];
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
         }
     } else if (processedInput & 8) {
-        cur = cursorPos[captainIdx];
-        other = (cur / 6 - 1) * 6;
+        cur = charSelectStruct.cursorPos[captainIdx];
+        other = cur / 6 - 1;
         if (other < 0) {
-            other = 6;
+            other = 1;
         }
+        other *= 6;
         for (k = 0; k < 12; k++) {
-            if (slotClaim[other + mapCaptainCursorPositionToCharID[0xC + (cur % 6) * 6 + k]] < 0) {
+            if (slotClaim[other + (CSS_CAPTAIN_NAV_TABLE + (cur % 6) * 6)[k]] < 0) {
                 break;
             }
         }
         if (k < 12) {
-            cursorPos[captainIdx] = other + mapCaptainCursorPositionToCharID[0xC + (cur % 6) * 6 + k];
+            charSelectStruct.cursorPos[captainIdx] = other + (CSS_CAPTAIN_NAV_TABLE + (cur % 6) * 6)[k];
             sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
         }
     }
 
-    selected[captainIdx] = mapCaptainCursorPositionToCharID[cursorPos[captainIdx]];
+    CHAR_SELECT_HALF(0x20 + captainIdx * 2) = CSS_CAPTAIN_ICON_TABLE[charSelectStruct.cursorPos[captainIdx]];
 
     if (newInput & 0x40) {
         for (i = 0; i < 9; i++) {
-            if (selected[captainIdx] == variantCharIDs[i * 5]) {
-                bytes[0x83 + i] += 1;
-                if (bytes[0x83 + i] < 5) {
-                    if (variantCharIDs[i * 5 + bytes[0x83 + i]] == 0xFF) {
-                        bytes[0x83 + i] = 0;
+            if (CHAR_SELECT_HALF(0x20 + captainIdx * 2) == CSS_VARIANT_TABLE[i * 5]) {
+                CHAR_SELECT_BYTE(0x83 + i) += 1;
+                if (CHAR_SELECT_BYTE(0x83 + i) < 5) {
+                    if (CSS_VARIANT_TABLE[i * 5 + CHAR_SELECT_BYTE(0x83 + i)] == 0xFF) {
+                        CHAR_SELECT_BYTE(0x83 + i) = 0;
                     }
                 } else {
-                    bytes[0x83 + i] = 0;
+                    CHAR_SELECT_BYTE(0x83 + i) = 0;
                 }
                 sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, SND_STUDIO_DEFAULT);
             }
@@ -873,12 +870,12 @@ int captainSelect_processCursorMovement_getCharID(int captainIdx, u16 currentHel
     }
 
     for (i = 0; i < 9; i++) {
-        if (selected[captainIdx] == variantCharIDs[i * 5]) {
-            selected[captainIdx] = variantCharIDs[i * 5 + bytes[0x83 + i]];
+        if (CHAR_SELECT_HALF(0x20 + captainIdx * 2) == CSS_VARIANT_TABLE[i * 5]) {
+            CHAR_SELECT_HALF(0x20 + captainIdx * 2) = CSS_VARIANT_TABLE[i * 5 + CHAR_SELECT_BYTE(0x83 + i)];
         }
     }
 
-    return selected[captainIdx];
+    return CHAR_SELECT_HALF(0x20 + captainIdx * 2);
 }
 
 BOOL relatedToTransitions(s32 arg) {
@@ -1416,6 +1413,8 @@ void addOrRemoveCharacterToTeam(int team, int charID, BOOL add) {
 #define CSS_S8(off) (((s8 *)&charSelectStruct)[off])
 #define CSS_S16(off) (*(s16 *)&CSS_U8(off))
 
+#define CSS_ICON_TABLE (lbl_800FCA60 + 0x1424)
+
 #define CSS_CURSOR_SFX() sndFXStartEx(0x1B7, lbl_800EFBA4[0], 0x3F, 0)
 
 /* 12 x 12 neighbour table, indexed [column][k] */
@@ -1442,10 +1441,13 @@ s32 charGrid_moveCursor(s32 port, s32 unused, s32 flags2, s32 flags3, s32 mode) 
     unclaimed = CHAR_SELECT_GRID_SLOTS;
     for (i = 0; i < CHAR_SELECT_GRID_SLOTS; i++) {
         slotState[i] = -1;
-        if (CSS_S8(0x7F + port) >= 0 && (CSS_U8(0x4C + i) != 0 || CSS_S8(0x28 + i) >= 0)) {
+        if ((s8)CSS_U8(0x4C + i) != 0 && CSS_S8(0x7F + port) >= 0) {
             slotState[i] = 0;
             unclaimed--;
-        } else if (characterIconsOnCSS[i] == 0xFF) {
+        } else if (charSelectStruct.slotTeam[i] >= 0 && CSS_S8(0x7F + port) >= 0) {
+            slotState[i] = 0;
+            unclaimed--;
+        } else if (CSS_ICON_TABLE[i] == 0xFF) {
             slotState[i] = 5;
             unclaimed--;
         } else if (mode != 1) {
@@ -1550,7 +1552,7 @@ s32 charGrid_moveCursor(s32 port, s32 unused, s32 flags2, s32 flags3, s32 mode) 
         return -1;
     }
 
-    CSS_S16(0x20 + port * 2) = characterIconsOnCSS[cur];
+    CSS_S16(0x20 + port * 2) = CSS_ICON_TABLE[cur];
 
     if (flags2 & 0x40) {
         for (j = 0; j < 9; j++) {
