@@ -5,6 +5,7 @@
 #include "game/challenge/star_mission_data.h"
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/camera/camera.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/character_stats.h"
 #include "game/math/game_math.h"

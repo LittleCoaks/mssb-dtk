@@ -3,6 +3,7 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_star_hit_sprites
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/camera/camera.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/batting/charge_effects.h"
 #include "game/math/game_math.h"

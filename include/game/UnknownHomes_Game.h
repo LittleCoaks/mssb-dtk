@@ -475,17 +475,11 @@ typedef struct _InMemPitcherType {
     /*0x176*/ u8 unused_pitcherIsFielder; // unsure
 } InMemPitcherType;                       // size: 0x178
 
-extern InMemPitcherType g_Pitcher;
-extern InMemBallType g_Ball;
-extern InMemBatterType g_Batter;
-
-extern VecXYZ initialBoxPosition; // boxPosition at the start of every at-bat, before clamping
 extern f32 charSizeMultipliers[NUM_CHOOSABLE_CHARACTERS][2];
 
 #define FRAME_COUNT_HIT_WINDOW 15
 
 // 0 is slap, 1 is charge
-extern s16 hittableFrameInd[2][FRAME_COUNT_HIT_WINDOW];
 /*
 = {
     { // slap
@@ -508,7 +502,6 @@ typedef struct _BatNearFarReach {
     f32 near, far;
 } BatNearFarReach;
 
-extern BatNearFarReach batContactRange[2];
 /*
 = {
     // full-length bat
@@ -533,7 +526,6 @@ typedef struct _HitFloats {
     /*0x2C*/ f32 moonshotMult;
 } HitFloats;
 
-extern HitFloats g_hitFloats;
 /*
  = {
     0.05f,  // minStarHitVelo
@@ -570,7 +562,6 @@ typedef struct _HitShorts {
     /*0x1E*/ s16 moonshotGamePause;
 } HitShorts;
 
-extern HitShorts g_hitShorts;
 /*
 = {
     180, // frameChargeDownEnds
@@ -783,9 +774,6 @@ extern PracticeStruct g_Practice;
 
 #define ACTIVE_TUTORIAL() (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE && g_Practice.instructionNumber >= 0)
 
-extern u8 buntPower[5][2];
-
-extern VecXYZ s_ballCurveData[2];
 /*
  =
 {
@@ -1005,8 +993,6 @@ typedef struct _GameControlsStruct {
     /*0x157*/ u8 _157;
 } GameControlsStruct; // size: 0x158
 
-extern GameControlsStruct g_GameLogic;
-
 #include "game/challenge/challenge_state.h"
 #include "game/character_stats.h"   // StatTable, ChemistryTable, CharacterStats
 
@@ -1026,7 +1012,6 @@ typedef struct _UnkSimulationRelatedStruct {
 extern UnkSimulationRelatedStruct unkSimulationRelatedStruct;
 
 extern f32 vecDotProduct(VecXYZ* a, VecXYZ* b);
-
 
 typedef struct _SomeStarDashStruct {
     /*0x000*/ s16 _0[2];
@@ -2072,11 +2057,7 @@ typedef struct _BatterReachStruct {
     /*0x020*/ f32 TrimmedBat;
 } BatterReachStruct; // size: 0x24
 
-extern BatterReachStruct BatterHitbox[54];
-
 extern u32 minigame_checkIfAIInputIs_Algorithmic_Or_ControllerBased(s8);
-
-extern u8 swingSoundFrame[2][4];
 
 extern struct SoundCrowdEffects {
     /* 0x00 */ u32 _00;
@@ -2199,20 +2180,9 @@ typedef struct {
     /* 0xB8 */ u8 toyFieldCpuWanderPhase[4];     // 0 pick, 1 moving, 2 reached target
 } AIStruct; // size 0xBC
 
-extern AIStruct g_AiLogic;
-
-extern s16 CaptainStarSwingBattingVerticalAngleRanges[12][5][2];
-extern s16 NonCaptainStarSwingBattingVerticalAngleRanges[3][5][2];
-extern s16 HitVertTrajRanges[2][5][5][2];
-extern s16 bB_launchAngles[2][3];
-extern s16 lbl_3_data_54F8[2][2];
 typedef struct {
     u8  bottom, low, mid, high, top;
 } trajZones;
-
-extern trajZones bODTrajProbabilities[5];
-extern trajZones ToyFieldBattingVerticalAngleRanges[3][2][2][5];
-extern trajZones BattingVerticalAngleRangeProbabilities[3][2][2][5];
 
 typedef struct {
     u32 _0[4];
@@ -2334,9 +2304,6 @@ typedef struct {
     /* 0x28AA */ u8 _28AA[0x28B0 - 0x28AA]; // not yet labelled; g_Camera's common .bss slot is 0x28B0
 } inMemCamera; // size: 0x28B0
 
-extern inMemCamera *g_pCamera;
-extern inMemCamera g_Camera;
-
 typedef struct {
     /* 0x00 */ int strikes;
     /* 0x04 */ int balls;
@@ -2349,8 +2316,6 @@ typedef struct {
     /* 0x20 */ u8 GameControls_StrikeBallBitVector;
     /* 0x21 */ u8 stateRelated;
 } inMemBallsStrikesOuts; // size: 0x24
-
-extern inMemBallsStrikesOuts g_BallsStrikesOuts;
 
 typedef struct {
     /* 0x0000 */ VecXZ landingSpotLocation;
@@ -2382,7 +2347,6 @@ typedef struct {
 } g_Stats_s; // size: 0x4634
 
 // 0x8088a7e4
-extern g_Stats_s g_Stats;
 
 typedef struct {
     /*0x00*/ s16 stickAngleWhenPressingA;
@@ -2534,13 +2498,6 @@ typedef struct {
     /* 0x0004 */ u8 _0004[0x240 - 0x4];   // not yet labelled
 } lbl_3_common_bss_DE94_s; // size: 0x240 (0x2AF4 in the symbol map: mwld's common-size inflation)
 
-extern lbl_3_common_bss_DE94_s unkStructPtr;
-
-extern trajOptions_s hitTrajOptions[]; 
-extern s16 toyFieldHitVertTraj[2][5][5][2];
-extern s16 bODHitVertTraj[5][5][2];
-extern s16 HitVertTrajRanges[2][5][5][2];
-
 extern BOOL getAnimRelatedCoordinates(int, int, VecXYZ*);
 extern void setCharacterAnimations(int, int);
 extern u32 playSoundEffect(int);
@@ -2549,7 +2506,6 @@ extern int RandomIndexFromWeights(u8* weights, int count);
 extern void camera_switchScene(int);
 extern void camera_replay(void);
 extern BOOL checkFieldingStat(int, int, E(int, FIELDING_ABILITY));
-
 
 /* ==========================================================================
  *  Objects the symbol table names but nothing here typed until now.
@@ -2593,6 +2549,10 @@ typedef struct _GameScoresControlsStruct {
     /*0x0C7*/ u8 mercyThreshold;
 } GameScoresControlsStruct; // size: 0xC8
 
-extern GameScoresControlsStruct g_Scores;
+// Owner headers of globals and functions declared here before; included last so
+// they can use this header's types.
+#include "game/replay/replay_inputs.h"
+#include "game/data_only/gameplay_tables.h"
+#include "game/match_setup/character_constants.h"
 
 #endif // !__UNKNOWN_HOMES_H_
