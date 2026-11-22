@@ -19,7 +19,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001DD58 | matched | 100 |
 | fn_800189E4 | pending | 91.88 |
 | fn_8001B35C | pending | 83.65 |
-| fn_80019A60 | pending | 72.40 |
+| fn_80019A60 | pending | 91.69 |
+| fn_8001A25C | pending | 91.69 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -67,3 +68,6 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   task child's state), then loads the 4 stadium lights for inputParams[g_d_GameSettings._54] (no StadiumID/minigame derivation), normalises light 0's direction,
   applies ambient, allocates/initialises the 4 LIT lights and attaches them to every prop entry via fn_800BD548 -> 72.40% (size exact)
   next: the first light loop in the asm steps source (+0xA) and dest (+0x10) pointers separately; try pointer-walking or a different inline split. Not ground.
+- [S2] fn_8001A25C (416 bytes) drafted: twin of fn_80019A60 registering fn_80019C00 as the drawing task instead of fn_800196D8 -> 91.69%.
+  Correction: fn_80019A60 never normalises light 0 / calls updateVectorInArray (that was stadiumSetupRelated only); removing it took fn_80019A60 72.40 -> 91.69%.
+  next (both): first light loop pointer stepping (+0xA src / +0x10 dst) and prop-entry loop shape; likely one shared inline in the original.

@@ -1997,10 +1997,48 @@ void stadiumSetupRelated(void) {
 
 extern void fn_800196D8(void);
 
+extern void fn_80019C00(void);
+
+void fn_8001A25C(void) {
+    DrawingSceneStruct* task;
+    s32 i;
+    GXColor color;
+
+    task = insertGraphicDrawingFunction(fn_80019C00, 0);
+    *(u8*)&task->unk_14 = 0;
+    task->currentDrawingItem->state = 0;
+
+    for (i = 0; i < 4; i++) {
+        characterLightingRelated(inputParams[g_d_GameSettings._54].lights[i], &lbl_80367318[i]);
+    }
+
+    fn_800BD2DC();
+
+    if (inputParams[g_d_GameSettings._54].ambient.a != 0) {
+        adjustLightingParams(1, inputParams[g_d_GameSettings._54].ambient);
+    }
+
+    for (i = 0; i < 4; i++) {
+        LITAlloc(&hugeAnimStruct.lights[i]);
+        LITInitAttn(hugeAnimStruct.lights[i], lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
+                    lbl_803CC4B8, lbl_803CC4B8);
+        LITInitPos(hugeAnimStruct.lights[i], lbl_80367318[i].pos.x, lbl_80367318[i].pos.y,
+                   lbl_80367318[i].pos.z);
+        color = lbl_80367318[i].color;
+        LITInitColor(hugeAnimStruct.lights[i], &color);
+    }
+
+    if (hugeAnimStruct.propEntries != NULL) {
+        for (i = 0; i < *(u16*)hugeAnimStruct.propEntries; i++) {
+            fn_800BD548((u8*)hugeAnimStruct.propEntries + i * 0x90 + 0x34, 4, hugeAnimStruct.lights[0],
+                        hugeAnimStruct.lights[1], hugeAnimStruct.lights[2], hugeAnimStruct.lights[3]);
+        }
+    }
+}
+
 void fn_80019A60(void) {
     DrawingSceneStruct* task;
     s32 i;
-    Vec dir;
     GXColor color;
 
     task = insertGraphicDrawingFunction(fn_800196D8, 0);
@@ -2011,11 +2049,6 @@ void fn_80019A60(void) {
         characterLightingRelated(inputParams[g_d_GameSettings._54].lights[i], &lbl_80367318[i]);
     }
 
-    dir.x = lbl_80367318[0].pos.x;
-    dir.y = lbl_80367318[0].pos.y;
-    dir.z = lbl_80367318[0].pos.z;
-    PSVECNormalize(&dir, &dir);
-    updateVectorInArray(0, dir);
     fn_800BD2DC();
 
     if (inputParams[g_d_GameSettings._54].ambient.a != 0) {
