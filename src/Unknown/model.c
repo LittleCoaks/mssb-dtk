@@ -2605,8 +2605,8 @@ typedef struct ModelOffsetObject {
     /* 0x000 */ u8 _000[0x34];
     /* 0x034 */ Vec pos;
     /* 0x040 */ u8 _040[0x162 - 0x40];
-    /* 0x162 */ u16 partBones[1];
-    /* 0x164 */ u8 _164[0x255 - 0x164];
+    /* 0x162 */ u16 partBones[5];
+    /* 0x16C */ u8 _16C[0x255 - 0x16C];
     /* 0x255 */ s8 slot;
     /* 0x256 */ u8 _256[0x268 - 0x256];
     /* 0x268 */ u8 offsetApplied;
@@ -2617,6 +2617,42 @@ static inline u16 getRootBone(ModelOffsetObject* obj) {
         return obj->partBones[0];
     }
     return 0xFFFF;
+}
+
+static inline u16 getEndBone(ModelOffsetObject* obj) {
+    if (obj != NULL) {
+        return obj->partBones[4];
+    }
+    return 0xFFFF;
+}
+
+void fn_8001B5EC(int index, int mode) {
+    ModelOffsetObject* obj = hugeAnimStruct.objects[index];
+    u16 boneEnd;
+    u16 boneRoot;
+    u8* node;
+    Vec offset;
+    s32 slot;
+
+    if (obj == NULL) {
+        return;
+    }
+    slot = obj->slot;
+    if (mode == 0) {
+        boneEnd = getEndBone(obj);
+        boneRoot = getRootBone(obj);
+        node = (u8*)hugeAnimStruct.actorTable + (u16)slot * 0x90;
+        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
+        *(u16*)(node + 0x98) = boneRoot;
+        *(u16*)(node + 0x9A) = boneEnd;
+    } else {
+        boneEnd = getRootBone(obj);
+        boneRoot = getRootBone(obj);
+        node = (u8*)hugeAnimStruct.actorTable + (u16)slot * 0x90;
+        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
+        *(u16*)(node + 0x98) = boneRoot;
+        *(u16*)(node + 0x9A) = boneEnd;
+    }
 }
 
 void fn_8001B4D8(int index, int apply) {
