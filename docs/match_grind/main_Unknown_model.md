@@ -19,6 +19,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001DD58 | matched | 100 |
 | fn_800189E4 | pending | 91.88 |
 | fn_8001B35C | pending | 83.65 |
+| fn_80019A60 | pending | 72.40 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -62,3 +63,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   then counts 0.5-wide steps: diff in [-30,0) -> positive count starting at 1; diff in [0.5,30) -> negative count; else 0. Returns 0 for a missing object
   -> 83.65% (size exact)
   next: float branch layout (the asm tests with cror/bne pairs and has a dead obj==NULL branch from a double-inlined null check); return type may be s16 (callers declare s16).
+- [S2] fn_80019A60 (416 bytes) drafted from stadiumSetupRelated's body: registers fn_800196D8 as a drawing task (clears task+0x14 byte and the
+  task child's state), then loads the 4 stadium lights for inputParams[g_d_GameSettings._54] (no StadiumID/minigame derivation), normalises light 0's direction,
+  applies ambient, allocates/initialises the 4 LIT lights and attaches them to every prop entry via fn_800BD548 -> 72.40% (size exact)
+  next: the first light loop in the asm steps source (+0xA) and dest (+0x10) pointers separately; try pointer-walking or a different inline split. Not ground.
