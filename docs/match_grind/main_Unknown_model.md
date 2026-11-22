@@ -18,6 +18,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80011578 | pending | 66.10 |
 | fn_8001DD58 | matched | 100 |
 | fn_800189E4 | pending | 91.88 |
+| fn_8001B35C | pending | 83.65 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -57,3 +58,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   allocates 4x that from heap 0x20, and carves four buffers (+size each) into hugeAnimStruct 0x2C88/0x2D10/0x2D24/0x2D38 and 0x2CFC; clears four record fields (+0x24 of records 0..3)
   -> 91.88% (size exact)
   next: the original loop is a 6x unroll of 9 records with a spare counter (r5 += 8); try a u8/s8 loop variable or nested 6x9 loop. Not ground.
+- [S2] fn_8001B35C (380 bytes) drafted: height-step counter. mode 0/1/2 selects part bone 3/2/1 (else 1); transforms that bone, diff = bone.y - obj.y,
+  then counts 0.5-wide steps: diff in [-30,0) -> positive count starting at 1; diff in [0.5,30) -> negative count; else 0. Returns 0 for a missing object
+  -> 83.65% (size exact)
+  next: float branch layout (the asm tests with cror/bne pairs and has a dead obj==NULL branch from a double-inlined null check); return type may be s16 (callers declare s16).

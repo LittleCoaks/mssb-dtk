@@ -2779,6 +2779,60 @@ void fn_800189E4(void) {
     HA_U32(0x139C) = 0;
 }
 
+s32 fn_8001B35C(int index, int mode) {
+    ModelOffsetObject* obj = hugeAnimStruct.objects[index];
+    s32 steps = 0;
+    s32 part = 1;
+    f32 diff;
+    f32 limit;
+    u16 bone;
+    Vec v;
+
+    if (obj == NULL) {
+        return 0;
+    }
+    switch (mode) {
+    case 0:
+        part = 3;
+        break;
+    case 1:
+        part = 2;
+        break;
+    case 2:
+        part = 1;
+        break;
+    }
+    if (obj != NULL) {
+        bone = obj->partBones[part];
+    } else {
+        bone = 0xFFFF;
+    }
+    if (bone == 0xFFFF) {
+        diff = 0.0f;
+    } else {
+        maybeTransformVectorByAnimationMatrix(*(void**)((u8*)hugeAnimStruct.actorTable + obj->slot * 0x90 + 0x34), bone, &v);
+        diff = v.y + obj->pos.y;
+    }
+    diff = diff - obj->pos.y;
+    if (diff < 0.0f) {
+        if (diff >= -30.0f) {
+            limit = -0.5f;
+            steps = 1;
+            while (!(diff > limit)) {
+                limit -= 0.5f;
+                steps++;
+            }
+        }
+    } else if (diff >= 0.5f && diff < 30.0f) {
+        limit = 0.5f;
+        while (!(diff < limit)) {
+            limit += 0.5f;
+            steps--;
+        }
+    }
+    return steps;
+}
+
 void fn_80011578(void) {
     s8 i;
 
