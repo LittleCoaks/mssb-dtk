@@ -1,19 +1,34 @@
-# main/Unknown/File_0x80069b68  [S1] (title / boot-sequence scenes) -- PARTIAL
+# main/Unknown/File_0x80069b68  [S1] (title / boot-sequence scenes)
 
-Baseline: empty source, 0%. After [S1]: 4 of 14 functions drafted, all four at 100% (.text 5.5%). Link ok.
-Not drafted (still link from asm): fn_80069BDC (1464), fn_8006A194 (876), fn_8006A500 (804), fn_8006A824 (1024),
-fn_8006AC24 (840), fn_8006AF9C (660), fn_8006B230 (1080), fn_8006B78C (980), fn_8006BB60 (672), fn_8006BE00 (648).
+Baseline (rep_c22): empty source, 0%. After [S1] session 2: .text 89.09%, ALL 14 functions drafted, every size equal to the target.
 
 | function | status | pct |
 |---|---|---|
 | fn_80069B68, fn_8006AF6C, fn_8006B668, fn_8006C088 | matched | 100 |
-| the ten functions listed above | pending (not drafted) | 0 |
+| fn_8006AC24 | pending | 98.95 |
+| fn_8006A824 | pending | 97.35 |
+| fn_8006B230 | pending | 94.66 |
+| fn_8006BE00 | pending | 93.25 |
+| fn_8006A194 | pending | 88.04 |
+| fn_80069BDC | pending | 85.53 |
+| fn_8006AF9C | pending | 84.27 |
+| fn_8006BB60 | pending | 81.38 |
+| fn_8006A500 | pending | 81.47 |
+| fn_8006B78C | pending | 78.32 |
 
-readability pass: pending for the four matched (enum-shaped: scene ids in changeScene(3,0), item state values 0/4/5/6 of fn_8006B668).
+next (all): register allocation / store order; the GX draw routines (69BDC/A194/A500/A824) differ in how the colour byte is
+converted once vs per vertex (target converts the alpha float with fctiwz per vertex). fn_8006B78C / fn_8006BB60 use a shared
+"fade record" macro whose field-store order (target stores +8, +0xC, +0x10, +0x18, +0, +4) is only approximated.
+
+readability pass: done where evidence exists (fn_80069B68/AF6C/B668/C088 keep raw item offsets: the scene node here is a
+DrawingSceneStruct with task-private fields at +0x14..+0x3C that no struct names yet). Enum-shaped, left alone: the state
+machine values in item+0x34, changeScene(1/3, ...) scene ids, diskReadRelated id 0x16, boot-sequence step numbers.
 
 ## Findings
-- fn_80069B68 loads the title-screen textures (diskReadRelated desc, 0x16), spawns fn_80069B08 + the lbl_80109378 element list.
-- fn_8006B668 is the title scene state machine (item+0x34 state: 0 start fn_8006B230 + changeScene(3,0); 5 -> fn_8006AF9C;
-  4/6 -> fn_8006AF6C when item+0x3B is set). fn_8006AF9C (BootSequenceFiles) uses ~10 unprototyped helpers (fn_800AD*/fn_800ADB04...,
-  _OSAllocFromHeap) so was not drafted.
-- fn_8006C088(widescreen) selects lbl_8010928C / lbl_80109250 as the VI render mode and reconfigures VI.
+- Title/boot flow: fn_8006BE00 (loads logo textures into ARAM, picks fn_8006BB60 / fn_8006B78C / fn_8006B668 by
+  lbl_80366158[0x29]), fn_8006BB60 + fn_8006B78C are the logo fade sequences (they fill a 0x20-byte fade record at item->0x18 +
+  drawStadiumRelated*0x20 and hand it to fn_800A7D4C, which draws it with fn_8006AC24), fn_8006B668/fn_8006B230 the title
+  screen with fn_8006AF6C/AF9C the intro-movie player (BootSequenceFiles, movie decoder fn_800AD*).
+- fn_8006AC24(record) dispatches on record[8]: 0 -> fn_80069BDC (two cross-fading textures), 1 -> A824, 2 -> A500 (centred
+  texture), 3 -> A194 (fixed quad), 4 -> a black full-screen fade quad. GX state is set with literal enum values.
+- fn_8006AF9C case 3 deliberately falls into case 4 (the target does): only the START button (0x1000) skips to case 5.
