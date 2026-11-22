@@ -2601,6 +2601,55 @@ void fn_800126EC(ModelSlotBlock* block, void* texPalette, u8* partIndex) {
     actRelated(block->loaded[partIndex[2]], &block->_04);
 }
 
+typedef struct ModelOffsetObject {
+    /* 0x000 */ u8 _000[0x34];
+    /* 0x034 */ Vec pos;
+    /* 0x040 */ u8 _040[0x162 - 0x40];
+    /* 0x162 */ u16 partBones[1];
+    /* 0x164 */ u8 _164[0x255 - 0x164];
+    /* 0x255 */ s8 slot;
+    /* 0x256 */ u8 _256[0x268 - 0x256];
+    /* 0x268 */ u8 offsetApplied;
+} ModelOffsetObject;
+
+static inline u16 getRootBone(ModelOffsetObject* obj) {
+    if (obj != NULL) {
+        return obj->partBones[0];
+    }
+    return 0xFFFF;
+}
+
+void fn_8001B4D8(int index, int apply) {
+    ModelOffsetObject* obj = hugeAnimStruct.objects[index];
+    u16 bone;
+    u16 bone2;
+    u8* node;
+    u8* actors;
+    Vec offset;
+    Vec moved;
+    s32 slot;
+
+    if (obj == NULL) {
+        return;
+    }
+    slot = obj->slot;
+    if (apply == 0 || obj->offsetApplied != 0) {
+        return;
+    }
+    bone = getRootBone(obj);
+    bone2 = getRootBone(obj);
+    actors = (u8*)hugeAnimStruct.actorTable;
+    node = actors + (u16)slot * 0x90;
+    maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
+    *(u16*)(node + 0x98) = bone2;
+    *(u16*)(node + 0x9A) = bone;
+    moved = offset;
+    obj->pos.x = obj->pos.x + moved.x;
+    obj->pos.y = obj->pos.y + moved.y;
+    obj->pos.z = obj->pos.z + moved.z;
+    obj->offsetApplied = 1;
+}
+
 void fn_80011578(void) {
     s8 i;
 

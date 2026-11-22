@@ -18,6 +18,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80011578 | pending | 66.10 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
+| fn_8001B4D8 | pending | 74.81 |
 
 ## Findings
 - fn_80011578 loops s8 i over 13 object slots calling the bounds-checked `clearObjectField5C` (same inline as fn_800115C8); loop form differs.
@@ -37,3 +38,6 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   next: register/schedule; not ground.
 - [S2] fn_80011468: CHAR_ID mapping confirmed (jump table based at CHAR_ID_YOSHI); processCharacterStateBasedOnGameMode now comes from
   Unknown/File_0x8004b7f4.h. fn_8004B6EC, updateSpecialBatAttach and fn_8005240C have no owning header, so local externs remain.
+- [S2] fn_8001B4D8 (276 bytes) drafted: for object index with apply set and obj+0x268 clear, transforms the actor's root offset vector, records the root bone
+  in actor node +0x98/+0x9A, adds the vector to obj position (+0x34..) and sets obj+0x268 -> 74.81% (size exact)
+  next: inline getRootBone double null-check and Vec copy ordering likely differ; not ground.
