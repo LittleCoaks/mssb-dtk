@@ -3108,6 +3108,100 @@ BOOL fn_80017340(int slot) {
     return FALSE;
 }
 
+extern void fn_800B2BA8(Actor* actor, u16 bone, Actor* src, u16 srcBone);
+extern void fn_800B2C08(Actor* actor, u16 value);
+extern void fn_800B2B54(UnkB2B4C* obj, u16 index, u8 value);
+extern void fn_800638B4(void* obj, void* entry);
+extern void fn_80063010(void* obj, void* entry);
+extern void fn_8004B7B4(void* obj, void* entry);
+extern void fn_800637BC(void* obj, void* entry);
+extern void fn_800637D4(void* obj, void* entry);
+extern void fn_80052634(void* obj, void* entry);
+extern void fn_80062ED4(void* obj, void* entry);
+extern void initSpecialHandBones(void* obj, void* entry);
+
+#define MODEL_BONE_FLAGGED(actor, bone) \
+    (*(u8*)(((u8**)*(u8**)((u8*)(actor) + 0x18))[bone] + 0x136))
+
+void fn_80017DBC(ModelOffsetObject* obj, int slot) {
+    ActorObjectEntry* entry = &hugeAnimStruct.actorTable->entries[slot];
+    u16 bone;
+
+    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)((u8*)obj + 0x188));
+    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)((u8*)obj + 0x194));
+    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)((u8*)obj + 0x1AA));
+    if (*(u16*)((u8*)obj + 0x168) != 0xFFFF) {
+        fn_800B2B54(*(UnkB2B4C**)obj, *(u16*)((u8*)obj + 0x168), 13);
+    }
+    bone = *(u16*)((u8*)obj + 0x168);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+    }
+    bone = *(u16*)((u8*)obj + 0x166);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+    }
+    bone = *(u16*)((u8*)obj + 0x164);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+    }
+    bone = *(u16*)((u8*)obj + 0x1AA);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+    }
+    bone = *(u16*)((u8*)obj + 0x1BE);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+    }
+    fn_800B2C08(entry->actor, *(u16*)((u8*)obj + 0x16A));
+
+    switch ((s8)*((u8*)obj + 0x252)) {
+    case CHAR_ID_DK:
+        fn_800638B4(obj, entry);
+        break;
+    case CHAR_ID_MAGIKOOPA_BLUE:
+    case CHAR_ID_MAGIKOOPA_RED:
+    case CHAR_ID_MAGIKOOPA_GREEN:
+    case CHAR_ID_MAGIKOOPA_YELLOW:
+        fn_80063010(obj, entry);
+        break;
+    case CHAR_ID_BOWSERJR:
+        fn_8004B7B4(obj, entry);
+        break;
+    case CHAR_ID_PARATROOPA_RED:
+    case CHAR_ID_PARATROOPA_GREEN:
+        fn_800637BC(obj, entry);
+        break;
+    case CHAR_ID_PETEY:
+        entry->actor->unk98 = 1;
+        initSpecialHandBones(obj, entry);
+        break;
+    case CHAR_ID_PARAGOOMBA:
+        fn_800637D4(obj, entry);
+        initSpecialHandBones(obj, entry);
+        break;
+    case CHAR_ID_MONTY:
+    case CHAR_ID_GOOMBA:
+        initSpecialHandBones(obj, entry);
+        break;
+    case CHAR_ID_BOO:
+    case CHAR_ID_KINGBOO:
+        fn_80052634(obj, entry);
+        break;
+    case CHAR_ID_SHYGUY_RED:
+    case CHAR_ID_SHYGUY_BLUE:
+    case CHAR_ID_SHYGUY_YELLOW:
+    case CHAR_ID_SHYGUY_GREEN:
+    case CHAR_ID_SHYGUY_BLACK:
+        fn_80062ED4(obj, entry);
+        break;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 

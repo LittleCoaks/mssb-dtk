@@ -26,6 +26,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001DB74 | pending | 87.81 |
 | fn_8001758C | pending | 80.09 |
 | fn_80017340 | pending | 81.76 |
+| fn_80017DBC | pending | 90.70 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -101,3 +102,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   cache slots are freed (-1), the first free one takes the record's charId, an ARAMTransfer of the character's anim file (+0xB in practice mode, else +3) is started
   and the flag set (returns FALSE). When the flag is set it calls ANIMGet(record+0x14) once lbl_803C6CF8[0x715]==1 -> 81.76%
   next: the asm's inner loop does not hoist the invariant objects[9+i] load (left in the inner loop); the first-free search is the unrolled 4-step compare chain.
+- [S2] fn_80017DBC (616 bytes target, 608 ours) drafted: model-setup tail for one object (obj, slot): inserts three DS list objects (+0x188/+0x194/+0x1AA), sets up bones
+  (+0x168 gets fn_800B2B54(...,13); +0x168/+0x166/+0x164/+0x1BE also get fn_800B2BA8 plus bone[0x136]=1; +0x1AA only fn_800B2BA8), fn_800B2C08(actor, +0x16A), then a
+  charId switch (jump table at 0x800EED00 read directly: DK, MAGIKOOPAx4, BOWSERJR, PARATROOPAx2, PETEY, PARAGOOMBA, MONTY/GOOMBA, BOO/KINGBOO, SHYGUYx5) dispatching
+  to the per-character setup functions -> 90.70%
+  next: 8 bytes short; the per-bone guard blocks probably come from an inline helper (same fn_800B2BA8 + flag pattern x4).
