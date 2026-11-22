@@ -2749,6 +2749,36 @@ void fn_8001DD58(Actor* actor, int group, MtxPtr camera, u8 numLights, ...) {
     }
 }
 
+#define HA_U32(off) (*(u32*)HA(off))
+
+void fn_800189E4(void) {
+    u32 maxSize = 0;
+    u32 size;
+    u8* base;
+    s32 i;
+
+    for (i = 0; i < 54; i++) {
+        u32 v = *(u32*)((u8*)lbl_803CB790 + i * 0x130 + 0xF4) & 0x0FFFFFFF;
+
+        if (maxSize < v) {
+            maxSize = v;
+        }
+    }
+
+    size = (maxSize + 0x1F) & ~0x1F;
+    HA_U32(0x2CA4) = size;
+    base = _OSAllocFromHeap(0x20, size * 4);
+    HA_U32(0x2D10) = (u32)base + size;
+    HA_U32(0x2D24) = (u32)base + size * 2;
+    HA_U32(0x2C88) = (u32)base;
+    HA_U32(0x2CFC) = (u32)base;
+    HA_U32(0xC28) = 0;
+    HA_U32(0xEA4) = 0;
+    HA_U32(0x1120) = 0;
+    HA_U32(0x2D38) = (u32)base + size * 3;
+    HA_U32(0x139C) = 0;
+}
+
 void fn_80011578(void) {
     s8 i;
 

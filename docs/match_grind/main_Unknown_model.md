@@ -17,6 +17,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001D074 | pending | 91.30 |
 | fn_80011578 | pending | 66.10 |
 | fn_8001DD58 | matched | 100 |
+| fn_800189E4 | pending | 91.88 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -52,3 +53,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   next: the two near-identical branches are written out in full; the original probably shares an inline.
 - [S2] fn_8001DD58 (332 bytes) drafted -> 100.00% (matched). Variadic variant of ACTRender (src/C3/actor/act.c) without the fn_800B2D5C call, gated on
   actor->unk98 bit (group*3) instead of mask 9. readability pass: done (group index kept as int, no enum evidence).
+- [S2] fn_800189E4 (340 bytes) drafted: takes the max of (lbl_803CB790 record +0xF4 & 0x0FFFFFFF) over the 54 character records (stride 0x130), rounds up to 32,
+  allocates 4x that from heap 0x20, and carves four buffers (+size each) into hugeAnimStruct 0x2C88/0x2D10/0x2D24/0x2D38 and 0x2CFC; clears four record fields (+0x24 of records 0..3)
+  -> 91.88% (size exact)
+  next: the original loop is a 6x unroll of 9 records with a spare counter (r5 += 8); try a u8/s8 loop variable or nested 6x9 loop. Not ground.
