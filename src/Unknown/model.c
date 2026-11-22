@@ -53,6 +53,7 @@
 #include "game/minigame/minigame_models.h"
 #include "Unknown/File_0x8001fc4c.h"
 #include "game/match_setup/match_loading.h"
+#include "Unknown/File_0x8004b7f4.h"
 
 typedef struct _StadiumLightInput {
     Vec pos;
@@ -2525,7 +2526,6 @@ typedef struct ModelStateObject {
 extern void fn_8004B6EC(void* obj);
 extern void updateSpecialBatAttach(void* obj);
 extern void fn_8005240C(void* obj);
-extern void processCharacterStateBasedOnGameMode(void* actor);
 
 #define MODEL_ENTRY_ACTOR_FLAG(entry) (*(u8*)(*(u8**)(entry) + 0x99))
 
@@ -2546,7 +2546,7 @@ void fn_80011468(void) {
             break;
         case CHAR_ID_GOOMBA:
         case CHAR_ID_PARAGOOMBA:
-            processCharacterStateBasedOnGameMode(obj);
+            processCharacterStateBasedOnGameMode((CharacterStateActor*)obj);
             break;
         case CHAR_ID_PETEY:
             MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
@@ -2578,6 +2578,27 @@ void fn_80011468(void) {
             break;
         }
     }
+}
+
+void fn_800126EC(ModelSlotBlock* block, void* texPalette, u8* partIndex) {
+    void** loaded = block->loaded;
+    void* layout = loaded[partIndex[0]];
+    void* geo = loaded[partIndex[1]];
+    u8* partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+
+    LoadActorLayout(layout);
+    convertGeometryAndSknHeader(geo, NULL);
+    haveActLayoutPointToGeoHeader(layout, geo);
+    UpdateTexturePalettePointers(geo, texPalette);
+    fn_800238E0(hugeAnimStruct.modelEntries, block->slot, block->slot, layout);
+
+    if (block->loaded[2] != NULL) {
+        adjustInternalPointers(block->loaded[partIndex[2]]);
+        ACTActorRelated(block->loaded[partIndex[2]], partSlot);
+    }
+
+    block->_04 = block->loaded[partIndex[3]];
+    actRelated(block->loaded[partIndex[2]], &block->_04);
 }
 
 void fn_80011578(void) {

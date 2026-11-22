@@ -17,6 +17,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001D074 | pending | 91.30 |
 | fn_80011578 | pending | 66.10 |
 | fn_80011468 | pending | 85.15 |
+| fn_800126EC | pending | 84.18 |
 
 ## Findings
 - fn_80011578 loops s8 i over 13 object slots calling the bounds-checked `clearObjectField5C` (same inline as fn_800115C8); loop form differs.
@@ -31,3 +32,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 - [S2] fn_80011468 (264 bytes, jump table) drafted: loops 13 object slots, switch on charId (CHAR_ID_*) sets/clears the actor entry
   flag at actor+0x99 or calls fn_8004B6EC / updateSpecialBatAttach / fn_8005240C / processCharacterStateBasedOnGameMode -> 85.15% (size exact)
   next: logic believed right; remaining diff is likely register/scheduling in the switch prologue; not ground.
+- [S2] fn_800126EC (268 bytes) drafted: finishes loading one model slot block (block, texPalette, partIndex[4]): relocated parts, actor layout/geo header
+  fixups, palette pointers, fn_800238E0, optional ACT parts, then block->_04 -> 84.18% (size exact). It is the body LoadModel inlines in part.
+  next: register/schedule; not ground.
+- [S2] fn_80011468: CHAR_ID mapping confirmed (jump table based at CHAR_ID_YOSHI); processCharacterStateBasedOnGameMode now comes from
+  Unknown/File_0x8004b7f4.h. fn_8004B6EC, updateSpecialBatAttach and fn_8005240C have no owning header, so local externs remain.
