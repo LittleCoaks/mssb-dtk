@@ -18,6 +18,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80011578 | pending | 66.10 |
 | fn_8001DD58 | matched | 100 |
 | fn_8001DEA4 | matched | 100 |
+| fn_8001AF98 | matched | 100 |
 | fn_800189E4 | pending | 91.88 |
 | fn_8001B35C | pending | 83.65 |
 | fn_80019A60 | pending | 91.69 |
@@ -107,3 +108,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   charId switch (jump table at 0x800EED00 read directly: DK, MAGIKOOPAx4, BOWSERJR, PARATROOPAx2, PETEY, PARAGOOMBA, MONTY/GOOMBA, BOO/KINGBOO, SHYGUYx5) dispatching
   to the per-character setup functions -> 90.70%
   next: 8 bytes short; the per-bone guard blocks probably come from an inline helper (same fn_800B2BA8 + flag pattern x4).
+- [S2] fn_8001AF98 (616 bytes, ours 616) drafted -> 100% in the report. Shadow-pass renderer: bails (DrawShadows(FALSE)) unless huge+0x3087 is set and fn_8003A538()==0;
+  saves projection/viewport/scissor, picks the light direction (toy-field mode: normalised eye-target with inverted/scaled y -> updateVectorInArray; else fn_800BD1E8(NULL)),
+  builds a ShadowCamera from camera 0, runs fn_800BE09C / fn_800BF058(fn_8001AB10) / fn_800BDFE0, the optional huge+0x308C hook and fn_8003A4C8 or fn_800BDEA0, then runs and clears
+  lbl_803CBBF4 and restores GX state. Needed #include "Unknown/File_0x80052734.h" (returnFloatFromModeIndex was implicitly int); fn_8001DB74 unchanged at 87.81%.
+  Quirk: the zero test must be written `mag = PSVECMag(&v); if (!(mag == lbl_803CC4B8))` to get the target's fcmpu operand order. readability pass: done (GAME_TYPE_TOY_FIELD, TRUE/FALSE).

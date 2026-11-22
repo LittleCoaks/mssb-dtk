@@ -55,6 +55,7 @@
 #include "Unknown/File_0x8001fc4c.h"
 #include "game/match_setup/match_loading.h"
 #include "Unknown/File_0x8004b7f4.h"
+#include "Unknown/File_0x80052734.h"
 
 typedef struct _StadiumLightInput {
     Vec pos;
@@ -3200,6 +3201,77 @@ void fn_80017DBC(ModelOffsetObject* obj, int slot) {
         fn_80062ED4(obj, entry);
         break;
     }
+}
+
+extern f32 lbl_803CC4F4;
+extern void (*lbl_803CBBF4)(void);
+extern void fn_8003A4C8(void);
+
+void fn_8001AF98(void) {
+    BOOL isToyField = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD;
+    ShadowCamera cam;
+    f32 projection[7];
+    f32 viewport[6];
+    Vec toEye;
+    Vec dir;
+    u32 scissorLeft;
+    u32 scissorTop;
+    u32 scissorWidth;
+    u32 scissorHeight;
+    camera_803c639c_s* view;
+    f32 mag;
+
+    if (*HA(0x3087) != 0 && fn_8003A538() == 0) {
+        DrawShadows(*HA(0x3086));
+    } else {
+        DrawShadows(FALSE);
+        return;
+    }
+
+    GXGetProjectionv(projection);
+    GXGetViewportv(viewport);
+    GXGetScissor(&scissorLeft, &scissorTop, &scissorWidth, &scissorHeight);
+    fn_800BEC00(isToyField);
+    if (isToyField) {
+        view = returnFloatFromModeIndex(returnsCurrentMode());
+        PSVECSubtract(&view->eye, &view->target, &toEye);
+        toEye.y = lbl_803CC4F4 * -toEye.y;
+        mag = PSVECMag(&toEye);
+        if (!(mag == lbl_803CC4B8)) {
+            PSVECNormalize(&toEye, &toEye);
+            dir = toEye;
+            updateVectorInArray(0, dir);
+        }
+    } else {
+        fn_800BD1E8(NULL);
+    }
+
+    if (GetDrawShadows()) {
+        ((Vec*)&cam)[0] = returnFloatFromModeIndex(0)->eye;
+        ((Vec*)&cam)[2] = returnFloatFromModeIndex(0)->target;
+        ((Vec*)&cam)[1] = returnFloatFromModeIndex(0)->Up;
+        PSMTXCopy(returnFloatFromModeIndex(0)->view, cam.viewMtx);
+        fn_800BE09C((u32)hugeAnimStruct.actorTable, &cam);
+        fn_800BF058(fn_8001AB10);
+        fn_800BDFE0((u8*)hugeAnimStruct.actorTable);
+        if (*(void (**)(void))HA(0x308C) != NULL) {
+            (*(void (**)(void))HA(0x308C))();
+        }
+        if (isToyField) {
+            fn_8003A4C8();
+        } else {
+            fn_800BDEA0();
+        }
+    }
+
+    if (lbl_803CBBF4 != NULL) {
+        lbl_803CBBF4();
+        lbl_803CBBF4 = NULL;
+    }
+    GXSetScissor(scissorLeft, scissorTop, scissorWidth, scissorHeight);
+    GXSetViewport(viewport[0], viewport[1], viewport[2], viewport[3], viewport[4], viewport[5]);
+    GXSetProjectionv(projection);
+    GXInvalidateTexAll();
 }
 
 void fn_80011578(void) {
