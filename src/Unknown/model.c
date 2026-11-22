@@ -3082,6 +3082,58 @@ void fn_80014990(int index, void* file, u32 value) {
     actRelated(file, effect + 4);
 }
 
+extern void fn_80017814(u8* record, s32 slot, s32 mode, void (*callback)(u8*));
+extern void fn_8001FDD4(u8* obj);
+
+BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h) {
+    u8* state = a;
+    u8* rec = HA(MODEL_RECORD_BASE + b * MODEL_RECORD_SIZE);
+    s32 fileIndex;
+
+    switch (*state) {
+    case 0:
+        if (((u8*)&lbl_803C6CF8)[0x715] != 1) {
+            return FALSE;
+        }
+        rec[0x25C] = 1;
+        rec[0x256] = d;
+        rec[0x257] = e;
+        rec[0x254] = g;
+        rec[0x252] = c;
+        rec[0x258] = f;
+        rec[0x259] = h;
+        rec[0x25A] = ((u8*)&inMemRoster[d][e])[0x26];
+        rec[0x25B] = ((u8*)&inMemRoster[d][e])[0x27];
+        rec[0x278] = (g == 9);
+        fileIndex = (s8)rec[0x252] * 0x13;
+        if (h == 0) {
+            fileIndex += 1;
+        }
+        if (rec[0x278] != 0 && h == 1 && *(s16*)HA(0x2D5C) == c) {
+            memcpy(*(void**)(rec + 8), *(void**)HA(0x2D54), *(u32*)HA(0x2D58));
+            break;
+        }
+        if (g >= 10 && g <= 12 && h == 0 && *(s16*)HA(0x2D44) == c) {
+            memcpy(*(void**)(rec + 8), *(void**)HA(0x2D3C), *(u32*)HA(0x2D40));
+            break;
+        }
+        if (h == 0 || fn_8002204C((s8)rec[0x252], *(s32*)(rec + 8)) == NULL) {
+            ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 8), 0, 0);
+        }
+        *state = 1;
+        return FALSE;
+    case 1:
+        if (lbl_803716B8[0x1E8] != 0 || ((u8*)&lbl_803C6CF8)[0x715] != 1) {
+            return FALSE;
+        }
+        break;
+    default:
+        return FALSE;
+    }
+    fn_80017814(rec, (s8)rec[0x255], g, fn_8001FDD4);
+    return TRUE;
+}
+
 void fn_800177B4(void) {
     DrawingSceneStruct* item = currentDrawingItem;
 
@@ -3186,7 +3238,6 @@ extern Mtx lbl_800E6630;
 extern f32 lbl_803CC4B8;
 extern u8 destAnimStructs[0x204C];
 void fn_8001BE50(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
-void fn_80017814(void* record);
 void fn_800B2D5C(void* ptr);
 
 typedef struct MtxCopy {
@@ -3302,7 +3353,7 @@ void fn_80017D28(u8* obj) {
     p[0x25A] = obj[0x25A];
     p[0x25B] = obj[0x25B];
     *(u32*)(p + 8) = *(u32*)(obj + 0xC);
-    fn_80017814(p);
+    ((void (*)(void*))fn_80017814)(p);
 }
 
 void fn_8001F16C(void) {

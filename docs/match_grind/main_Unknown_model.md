@@ -23,6 +23,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001A25C | pending | 91.69 |
 | fn_8001CCC8 | pending | 84.25 |
 | fn_8001DB74 | pending | 87.81 |
+| fn_8001758C | pending | 80.09 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -84,3 +85,9 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   applies pending animation/frame/speed/bone param, Set_FUN_800b2b6c, optional fn_800BDA24, then for every scissor/view mode builds camera*translate(obj pos)
   and stores the result of fn_800B3C04 into the 2-bit field (mode*3) of actor->unk98 (or forces 1 when HA(0x307A)==5); finally clears the pending flags -> 87.81%
   next: the loop recomputes (u16)mode into r24/r25 around returnScissorMode(); try s32/u16 loop var variants and the entry pointer arithmetic.
+- [S2] fn_8001758C (552 bytes) drafted: two-state loader for a model record (huge+0xC04+b*0x27C). State 0: record the request (charId c, team d, roster e, mode g, h),
+  then either memcpy a cached buffer (huge+0x2D54 / 0x2D3C blocks) or start an ARAMTransfer (skipping it when fn_8002204C finds the file loaded), state -> 1.
+  State 1 (or a cache hit): once lbl_803716B8[0x1E8]==0 and lbl_803C6CF8[0x715]==1, runs fn_80017814(record, slot, mode, fn_8001FDD4) and returns TRUE -> 80.09%
+  next: switch layout / goto-style joins; mode flag stored via (g==9) cntlzw idiom.
+- [S2] fn_80017814's real signature is (u8* record, s32 slot, s32 mode, void (*callback)(u8*)); the old one-arg prototype was removed. fn_80017D28 still calls it with
+  one argument via a cast (the original leaves r4-r6 as set up earlier; passing real arguments dropped fn_80017D28 from 88.1% to 64.05%). Opus: fix when drafting fn_80017814.
