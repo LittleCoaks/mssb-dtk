@@ -19,6 +19,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
+| fn_80016F7C | pending | 89.54 |
 
 ## Findings
 - fn_80011578 loops s8 i over 13 object slots calling the bounds-checked `clearObjectField5C` (same inline as fn_800115C8); loop form differs.
@@ -41,3 +42,6 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 - [S2] fn_8001B4D8 (276 bytes) drafted: for object index with apply set and obj+0x268 clear, transforms the actor's root offset vector, records the root bone
   in actor node +0x98/+0x9A, adds the vector to obj position (+0x34..) and sets obj+0x268 -> 74.81% (size exact)
   next: inline getRootBone double null-check and Vec copy ordering likely differ; not ground.
+- [S2] fn_80016F7C (284 bytes) drafted: resumable loop over the 4 object records at huge+0xC04 (stride 0x27C) via fn_80016B60 (counter byte +0x2D88,
+  init flag +0x2D8E); in GAME_TYPE_TOY_FIELD it copies record words 4..10 into record i+4. Returns FALSE as soon as fn_80016B60 does -> 89.54% (size exact)
+  next: loop/inline shape; the +0x2D88 reloads are volatile-like in the asm.

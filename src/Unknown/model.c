@@ -2650,6 +2650,41 @@ void fn_8001B4D8(int index, int apply) {
     obj->offsetApplied = 1;
 }
 
+extern BOOL fn_80016B60(void* record);
+
+#define MODEL_RECORD_BASE 0xC04
+#define MODEL_RECORD_SIZE 0x27C
+#define MODEL_RECORD(index) (HA(MODEL_RECORD_BASE + (index) * MODEL_RECORD_SIZE))
+
+BOOL fn_80016F7C(void) {
+    if (*HA(0x2D8E) == 0) {
+        *HA(0x2D8E) = 1;
+        *HA(0x2D8D) = 0;
+        *HA(0x2D88) = 0;
+    }
+    do {
+        s8 cur = *HA(0x2D88);
+
+        if (!fn_80016B60(MODEL_RECORD(cur))) {
+            return FALSE;
+        }
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            u32* src = (u32*)MODEL_RECORD((s8)*HA(0x2D88));
+            u32* dst = (u32*)MODEL_RECORD((s8)*HA(0x2D88) + 4);
+
+            dst[4] = src[4];
+            dst[5] = src[5];
+            dst[6] = src[6];
+            dst[7] = src[7];
+            dst[8] = src[8];
+            dst[9] = src[9];
+            dst[10] = src[10];
+        }
+        (*HA(0x2D88))++;
+    } while ((s8)*HA(0x2D88) < 4);
+    return TRUE;
+}
+
 void fn_80011578(void) {
     s8 i;
 
