@@ -3370,6 +3370,76 @@ void fn_80018B74(void) {
     *(s16*)HA(0x2D68) = -1;
 }
 
+extern void fn_800177B4(void);
+
+BOOL fn_80017098(int team, int idx, int c, int d, int e, int f) {
+    u8* roster = (u8*)&inMemRoster[team][idx];
+    DrawingSceneStruct* task;
+    s32 i;
+    s32 slot;
+
+    if (f >= 0) {
+        task = insertGraphicDrawingFunction(fn_800177B4, 0);
+        slot = d;
+    } else {
+        for (i = 0; i < 13; i++) {
+            u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
+            BOOL same = FALSE;
+
+            if ((s8)rec[0x252] == *(s16*)(roster + 0x24) && rec[0x25A] == roster[0x26] && rec[0x25B] == roster[0x27] &&
+                (s8)rec[0x257] == (s8)idx) {
+                same = TRUE;
+            }
+            if (rec[0x256] == team && same && rec[0x258] == c && rec[0x259] == e) {
+                s32 j;
+
+                *HA(0x2D77) = 0;
+                *HA(0x2D6A + i) = d;
+                *HA(0x2D79) = i;
+                rec[0x254] = d;
+                for (j = 0; j < 13; j++) {
+                    if (HA_OBJ(j) == rec) {
+                        HA_OBJ(j) = NULL;
+                        break;
+                    }
+                }
+                HA_OBJ(d) = rec;
+                return TRUE;
+            }
+        }
+        task = insertGraphicDrawingFunction(fn_800177B4, 0);
+        if (d >= 9) {
+            for (slot = 9; slot < 13; slot++) {
+                if ((s8)*HA(0x2D6A + slot) < 0) {
+                    break;
+                }
+            }
+        } else {
+            for (slot = 0; slot < 13; slot++) {
+                if ((s8)*HA(0x2D6A + slot) < 0) {
+                    break;
+                }
+            }
+        }
+    }
+    *((u8*)task + 0x14) = 0;
+    *((u8*)task + 0x1C) = slot;
+    *((u8*)task + 0x19) = team;
+    *((u8*)task + 0x1A) = idx;
+    *((u8*)task + 0x1B) = c;
+    *((u8*)task + 0x15) = d;
+    *((u8*)task + 0x1D) = e;
+    if (f < 0) {
+        *((u8*)task + 0x16) = *(s16*)(roster + 0x24);
+    } else {
+        *((u8*)task + 0x16) = f;
+    }
+    *HA(0x2D6A + slot) = d;
+    *HA(0x2D77) = 1;
+    *HA(0x2D79) = slot;
+    return FALSE;
+}
+
 void fn_80011578(void) {
     s8 i;
 

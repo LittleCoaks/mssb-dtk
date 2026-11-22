@@ -29,6 +29,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80017340 | pending | 81.76 |
 | fn_80017DBC | pending | 90.70 |
 | fn_80018B74 | pending | 87.89 |
+| fn_80017098 | pending | 78.84 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -119,3 +120,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   huge+0x2C90..0x2CA4 and the total at +0x2D60, allocates it, then carves 4 sets of five buffers (stride 0x14 at +0x2CEC; the D buffer is shared from set 0) while zeroing six fields of
   each of the 4 object records, and sets huge s16 +0x2D68 = -1 -> 87.89%
   next: 28 bytes short; the asm unrolls the carve loop 2x with a k==0 compare, and the max scan keeps `mode` compares inside the loop; try an s32 mode / manual unroll.
+- [S2] fn_80017098 (680 bytes target, 648 ours) drafted: request a character model load for (team, idx) into object slot d. With f >= 0 it just queues the loader task (fn_800177B4)
+  for slot d. Otherwise it first looks for an already-loaded matching record among the 13 (charId/roster bytes, team, c, e): on a hit it re-registers it into object slot d
+  (clearing its old object-table entry) and returns TRUE. On a miss it queues the loader task, picks the first free slot (<0 in huge+0x2D6A..; 9-12 only when d >= 9, else 0-12) and fills the
+  task bytes (+0x14..+0x1D), marks the slot busy and returns FALSE -> 78.84%
+  next: 32 bytes short; the match test (flag then combined test) and the two free-slot searches (the d >= 9 one is unrolled in the asm) probably differ in shape; task writes may go through a struct.
