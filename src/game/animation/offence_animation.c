@@ -4,6 +4,7 @@
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
+#include "HugeAnimStruct.h"
 
 typedef struct OffenceAnimObject {
     u8 _000[0x34];
@@ -21,16 +22,7 @@ typedef struct OffenceAnimObject {
     u8 firstRunner;
 } OffenceAnimObject;
 
-typedef struct OffenceAnimView {
-    u8 _0000[0x2C50];
-    OffenceAnimObject* objects[13];
-    u8 _2C84[0x2D77 - 0x2C84];
-    u8 hideRunners;
-    u8 _2D78[0x2D90 - 0x2D78];
-    u8* animRelatedObj;
-} OffenceAnimView;
-
-extern OffenceAnimView hugeAnimStruct;
+#define ANIM_OBJ(i) ((OffenceAnimObject*)hugeAnimStruct.objects[i])
 extern u8 animRelated[0x124];
 extern u8 lbl_3_data_6EF0[8];
 extern u8* lbl_3_common_bss_1323C;
@@ -49,9 +41,9 @@ void animateOffence(void) {
     InMemRunnerType* runner;
     E(u8, GAME_STATUS) status;
 
-    if (hugeAnimStruct.hideRunners != FALSE) {
+    if (HUGE_ANIM_HIDE_RUNNERS != FALSE) {
         for (i = 0; i < 4; i++) {
-            obj = hugeAnimStruct.objects[i + 9];
+            obj = ANIM_OBJ(i + 9);
             if (obj != NULL) {
                 obj->displayState = FALSE;
             }
@@ -66,7 +58,7 @@ void animateOffence(void) {
         status != GAME_STATUS_LIVE_BALL && status != GAME_STATUS_TRANSITION &&
         status != GAME_STATUS_STAR_CHANCE_VS) {
         for (i = 0; i < 4; i++) {
-            obj = hugeAnimStruct.objects[i + 9];
+            obj = ANIM_OBJ(i + 9);
             if (obj != NULL) {
                 obj->displayState = FALSE;
             }
@@ -81,7 +73,7 @@ void animateOffence(void) {
 
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PRACTICE_PITCHING) {
         for (i = 0; i < 4; i++) {
-            obj = hugeAnimStruct.objects[i + 9];
+            obj = ANIM_OBJ(i + 9);
             if (obj != NULL) {
                 obj->displayState = FALSE;
             }
@@ -92,7 +84,7 @@ void animateOffence(void) {
     }
 
     for (i = 0; i < 4; i++) {
-        OffenceAnimObject* runnerObj = hugeAnimStruct.objects[i + 9];
+        OffenceAnimObject* runnerObj = ANIM_OBJ(i + 9);
         runner = &g_Runners[i];
         if (runnerObj == NULL) {
             continue;
@@ -154,7 +146,7 @@ void resetAnimationFlags2(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
-        OffenceAnimObject* obj = hugeAnimStruct.objects[i + 9];
+        OffenceAnimObject* obj = ANIM_OBJ(i + 9);
         if (obj != NULL) {
             obj->displayState = FALSE;
         }
@@ -165,7 +157,7 @@ void resetAnimationFlags2(void) {
 
 // .text:0x0006C42C size:0x28
 void fn_3_6C42C(void) {
-    hugeAnimStruct.animRelatedObj[0xC6] = FALSE;
+    ((u8*)hugeAnimStruct.starAnimRelated)[0xC6] = FALSE;
     *(s16*)&animRelated[0x90] = -1;
 }
 
@@ -175,5 +167,5 @@ void emptyFunction(void) {
 
 // .text:0x0006C410 size:0x18
 void resetAnimRelatedPointer(void) {
-    hugeAnimStruct.animRelatedObj[0xC6] = FALSE;
+    ((u8*)hugeAnimStruct.starAnimRelated)[0xC6] = FALSE;
 }

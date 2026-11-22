@@ -4,6 +4,7 @@
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "Dolphin/mtx.h"
+#include "HugeAnimStruct.h"
 
 // One 0x50-byte particle emitter slot.
 typedef struct _FireEmitterSlot {
@@ -40,10 +41,7 @@ typedef struct _FireAnimActor {
 } FireAnimActor;
 
 extern FireSharedBlock lbl_3_common_bss_35154;
-extern struct {
-    /*0x0000*/ u8 _0000[0x2C50];
-    /*0x2C50*/ FireAnimActor* actors[(0x3154 - 0x2C50) / 4];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((FireAnimActor*)hugeAnimStruct.objects[i])
 extern struct {
     u8 _00[0x28];
     u8 _28;
@@ -279,7 +277,7 @@ void fn_3_CB538(int mode) {
 
 // .text:0x000CB3AC size:0x18C mapped:0x8070A440
 void animatePitchersHandOnFire(void) {
-    FireAnimActor* actor = hugeAnimStruct.actors[0];
+    FireAnimActor* actor = ANIM_OBJ(0);
     FireEmitterSlot* slot0;
     FireEmitterSlot* slot2;
     FireEmitterSlot* slot1;

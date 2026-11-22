@@ -12,6 +12,7 @@
 #include "Unknown/File_0x80052734.h"
 #include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bda94.h"
+#include "HugeAnimStruct.h"
 
 // One effect slot of the shared effects block (lbl_3_common_bss_35154), 0x5C bytes each.
 typedef struct _ActorFxSlot {
@@ -128,10 +129,7 @@ static u16 lbl_3_data_2891E = 9;
 static u16 lbl_3_data_28920 = 9;
 static u16 lbl_3_data_28922 = 9;
 
-extern struct {
-    /*0x0000*/ u8 _0000[0x2C50];
-    /*0x2C50*/ ActorTransformActor* actors[(0x3154 - 0x2C50) / 4];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((ActorTransformActor*)hugeAnimStruct.objects[i])
 extern u8 drawStadiumRelated;
 extern struct {
     u8 _00[0x28];
@@ -168,7 +166,7 @@ void fn_3_1690C0(void) {
 void displayChem_antiChemGraphics(int fielder, BOOL anti) {
     ActorTransformNode* node;
 
-    if (hugeAnimStruct.actors[fielder] != NULL) {
+    if (ANIM_OBJ(fielder) != NULL) {
         node = (ActorTransformNode*)insertGraphicDrawingFunction(fn_3_168DFC, (u16)(currentDrawingItem->priority + 1));
         node->slot = fielder;
         node->frame = 0;
@@ -198,7 +196,7 @@ void fn_3_168DFC(void) {
         removeCurrentDrawingItem();
     } else {
         lbl_3_data_28908[node->slot] = TRUE;
-        actor = hugeAnimStruct.actors[node->slot];
+        actor = ANIM_OBJ(node->slot);
         entry = &lbl_3_data_286C8[node->slot][drawStadiumRelated];
         entry->draw = mUpdateActorTransformAndAnimation;
         entry->frame = node->frame;
@@ -319,7 +317,7 @@ void fn_3_168704(void) {
         removeCurrentDrawingItem();
     } else {
         lbl_3_data_28908[node->slot] = TRUE;
-        actor = hugeAnimStruct.actors[node->slot];
+        actor = ANIM_OBJ(node->slot);
         entry = &lbl_3_data_286C8[node->slot][drawStadiumRelated];
         entry->draw = fn_3_168414;
         entry->frame = node->frame;

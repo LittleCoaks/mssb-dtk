@@ -25,6 +25,7 @@
 #include "musyx/musyx.h"
 #include "Unknown/File_0x8001c920.h"
 #include "Unknown/sub.h"
+#include "HugeAnimStruct.h"
 
 /* minigamePlayerSelectedOrder is -1 when no player is selected. This file
  * reads it through a signed-byte lvalue; a plain (s8) cast of the u8 field
@@ -72,7 +73,6 @@ extern s16 lbl_3_data_8080[];
 extern s16 lbl_3_common_bss_32220[8];
 extern int runnerStealing_TransitionToLiveViewIndicator(void);
 extern void SetGameStatus(int status);
-extern u8 hugeAnimStruct[0x3154];
 extern void practice_startPitchAfter90Frames(void);
 extern void lastPlayStats(void);
 extern void scoutFlag_checkMissionSuccess(void);
@@ -390,13 +390,13 @@ void waitingForPitch(void) {
         g_Pitcher.currentStateFrameCounter = 0;
         return;
     }
-    if (hugeAnimStruct[0x2D46] != 0) {
+    if (hugeAnimStruct.loadSlots[0].state != 0) {
         return;
     }
-    if (hugeAnimStruct[0x2D52] != 0) {
+    if (hugeAnimStruct.loadSlots[1].state != 0) {
         return;
     }
-    if (hugeAnimStruct[0x2D5E] != 0) {
+    if (hugeAnimStruct.loadSlots[2].state != 0) {
         return;
     }
     if (!g_d_GameSettings.exhibitionMatchInd && animRelated[0xB3] != 0) {

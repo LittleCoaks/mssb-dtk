@@ -13,12 +13,8 @@
 #include "game/camera/camera_script.h"
 #include "game/stadium/stadium_framework.h"
 #include "static/UnknownHomes_Static.h"
+#include "HugeAnimStruct.h"
 
-extern struct {
-    u8 _000[0x4];
-    void* stadiumFile;
-    u8 _008[0x3154 - 0x8];
-} hugeAnimStruct;
 
 extern struct {
     u8 _000[0x1CC];
@@ -44,7 +40,7 @@ void manageLoadingState(void) {
                 &StadiumFiles[g_d_GameSettings.StadiumID * 3 + g_d_GameSettings.miniGameStadiumIndicator],
                 0, 3, (s32)lbl_803716B8._1CC);
             *(void**)&node->unk_14 = file;
-            hugeAnimStruct.stadiumFile = file;
+            hugeAnimStruct.stadiumFileHeader = file;
             OSReport("Sta %d-%d aram:%x -> mem:%x\n", g_d_GameSettings.StadiumID,
                      g_d_GameSettings.miniGameStadiumIndicator, lbl_803716B8._1CC, *(void**)&node->unk_14);
         } else {
@@ -52,7 +48,7 @@ void manageLoadingState(void) {
                 &StadiumFiles[g_d_GameSettings.StadiumID * 3 + g_d_GameSettings.miniGameStadiumIndicator],
                 0, 0, 0);
             *(void**)&node->unk_14 = file;
-            hugeAnimStruct.stadiumFile = file;
+            hugeAnimStruct.stadiumFileHeader = file;
         }
         node->state = 1;
         break;
@@ -118,14 +114,14 @@ void manageStadiumLoading(void) {
     switch (node->state) {
     case 0:
         initStadiumLighting();
-        hugeAnimStruct.stadiumFile = ARAMTransfer(
+        hugeAnimStruct.stadiumFileHeader = ARAMTransfer(
             &StadiumFiles[g_d_GameSettings.StadiumID * 3 + g_d_GameSettings.miniGameStadiumIndicator],
             0, 0, 0);
         node->state++;
         break;
     case 1:
         if (lbl_803C6CF8.cancel.bytes[1] == TRUE) {
-            updateStadiumFileHeaders(hugeAnimStruct.stadiumFile);
+            updateStadiumFileHeaders(hugeAnimStruct.stadiumFileHeader);
             node->state++;
         }
         break;

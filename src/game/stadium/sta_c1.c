@@ -40,6 +40,7 @@
 #include "Unknown/sub.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
+#include "HugeAnimStruct.h"
 
 typedef struct _CastleMaterialFlags {
     /*0x00*/ u8 _00[4];
@@ -224,7 +225,6 @@ extern u8 lbl_3_data_84B8[0x3C];
 // Same DOL global other stadium files see as `extern u8 hugeAnimStruct[0x3154]`
 // (raw byte view; the struct's real layout is only partly known -- see
 // stadium_framework.c's own richer partial-struct view of the same symbol).
-extern u8 hugeAnimStruct[0x3154];
 // stadium_framework.c's own partial view of the same 14-row light-input
 // table and 4-entry light-input array used by characterLightingRelated.
 extern u8 inputParams[14][0x2C];
@@ -727,7 +727,7 @@ void fn_3_C24A0(void) {
     if (currentDrawingItem->state == 0) {
         removeCurrentDrawingItem();
         characterLightingRelated(&inputParams[g_d_GameSettings._54], lbl_80367318);
-        h = *(CastleAnimSubStruct**)(hugeAnimStruct + 4);
+        h = (CastleAnimSubStruct*)hugeAnimStruct.stadiumFileHeader;
         if (h != NULL) {
             *(u16*)((u8*)h + h->_14 + 0x60) = 2;
         }
@@ -738,7 +738,7 @@ void fn_3_C24A0(void) {
             brightness = 0x80;
         }
         characterLightingRelated(lbl_3_data_177F8, lbl_80367318);
-        h = *(CastleAnimSubStruct**)(hugeAnimStruct + 4);
+        h = (CastleAnimSubStruct*)hugeAnimStruct.stadiumFileHeader;
         if (h != NULL) {
             *(u16*)((u8*)h + h->_14 + 0x60) = 3;
         }
@@ -1720,8 +1720,8 @@ void flameControl(CastleFireObj* fire) {
     case FLAME_IDLE:
         if (fire->launchTimer == 0) {
             for (i = 6; i < 9; i++) {
-                if ((f32)sqrt(pow((*(CastleAnimActor**)(hugeAnimStruct + i * 4 + 0x2C50))->pos.x - fire->pos.x, 2.0) +
-                              pow((*(CastleAnimActor**)(hugeAnimStruct + i * 4 + 0x2C50))->pos.z - fire->pos.z, 2.0)) < 5.0) {
+                if ((f32)sqrt(pow(((CastleAnimActor*)hugeAnimStruct.objects[i])->pos.x - fire->pos.x, 2.0) +
+                              pow(((CastleAnimActor*)hugeAnimStruct.objects[i])->pos.z - fire->pos.z, 2.0)) < 5.0) {
                     fire->pos.x = BowserStadFireSpawners[fire->id].x;
                     fire->pos.y = BowserStadFireSpawners[fire->id].y;
                     fire->pos.z = BowserStadFireSpawners[fire->id].z;
@@ -2254,7 +2254,7 @@ void loadBowserCastle(void** files) {
     }
     animCount = fireCount + 5;
     stadiumObjectCollision.propCount = animCount;
-    animTable = (u8**)(hugeAnimStruct + 0x6C);
+    animTable = (u8**)&hugeAnimStruct.actorTables[3];
     *animTable = ActorObjectInitTable(animCount);
     animateBallRelated(*animTable, 0, 0, files[ids[1]], 0, 0);
     animateBallRelated(*animTable, 1, 1, files[ids[2]], 0, 0);

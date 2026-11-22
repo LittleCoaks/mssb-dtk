@@ -16,6 +16,7 @@
 #include "game/ball/foul_detection.h"
 #include "game/sound/m_sound.h"
 #include "game/match_setup/pause_menu.h"
+#include "HugeAnimStruct.h"
 
 void fielderControl_classifyControlStickDirection(void);
 
@@ -37,7 +38,6 @@ extern f32 selectionKeepFielderLandingSpotDist;
 extern s16 fielderSelectionConsts[10];
 extern s16 wallBounceAIConsts_ByAILevel[3][5];
 extern s16 barrelCollisionHitboxes[54];
-extern u8 hugeAnimStruct[0x3154];
 extern f32 jumpArray[2][4];
 extern u8 BobbleArray[2][4][6];
 extern f32 lbl_3_data_5FC4[12];
@@ -2515,11 +2515,11 @@ void setStandingOnBaseVariables(int fielderIndex) {
 int updateFielderPositionAndVelocityForSpecialActions(int fielderIndex) {
     InMemFielder* fielder = &g_Fielders[fielderIndex];
     s8 idx;
-    void* animPtr = *(void**)(hugeAnimStruct + 0x2c74);
+    void* animPtr = hugeAnimStruct.objects[9];
 
     if (g_d_GameSettings.minigamesEnabled) {
         idx = (s8)g_Minigame.minigameControlStruct[1].aIStrength[fielderIndex];
-        animPtr = *(void**)(hugeAnimStruct + 0x2c50 + idx * 4);
+        animPtr = hugeAnimStruct.objects[idx];
     }
 
     if (fielder->autoMovementFunctionIndex == AUTO_MOVEMENT_STOP_BETWEEN_INSTRUCTIONS && animPtr != NULL) {
@@ -9202,9 +9202,9 @@ void moveFielder_CheckForAndSetJump(int fielderIndex) {
                 if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation,
                                        FIELDING_ABILITY_BALL_DASH)) {
                     velo = velo * ballDashEffect_1_5;
-                    ((u8*)((void**)(hugeAnimStruct + 0x2c50))[minigameIdx])[0x27A] = 1;
+                    ((u8*)hugeAnimStruct.objects[minigameIdx])[0x27A] = 1;
                     if (fielder->framesSinceStartedMoving == 1) {
-                        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[minigameIdx], 0xb);
+                        fieldingRelatedAnimations(hugeAnimStruct.objects[minigameIdx], 0xb);
                     }
                 }
             }
@@ -9312,9 +9312,9 @@ void setFielderVelocity_someSituation(int fielderIndex) {
         if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation,
                               FIELDING_ABILITY_BALL_DASH)) {
             fielder->currentVelocity = fielder->currentVelocity * ballDashEffect_1_5;
-            ((u8*)((void**)(hugeAnimStruct + 0x2c50))[idx])[0x27A] = 1;
+            ((u8*)hugeAnimStruct.objects[idx])[0x27A] = 1;
             if (fielder->framesSinceStartedMoving == 1) {
-                fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 11);
+                fieldingRelatedAnimations(hugeAnimStruct.objects[idx], 11);
             }
         }
     }
@@ -11208,7 +11208,7 @@ void decideHowToTrackFoulBall(int fielderIndex) {
                         f32 angle = ATAN2F(g_Ball.AtBat_Contact_BallPos.z - fielder->pos.z,
                                             g_Ball.AtBat_Contact_BallPos.x - fielder->pos.x);
                         int diff = fielderControlStick_continuousAngleHistory[0] - radToShortAngle(angle);
-                        diff = (diff ^ (diff >> 31)) - (diff >> 31);
+                        diff = __abs(diff);
                         if (diff > 0x80) {
                             fielder->fielderVeloAdjustmentCode = 8;
                         }
@@ -13071,7 +13071,7 @@ void startFielderJump(int fielderIndex) {
     fielder->jumpCountUp = 0;
 
     if (hasSuperJump != 0) {
-        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 6);
+        fieldingRelatedAnimations(hugeAnimStruct.objects[idx], 6);
     }
 }
 
@@ -13995,7 +13995,7 @@ void checkForCatchBallAction(int fielderIndex) {
     if (!checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation, FIELDING_ABILITY_MAGICAL_CATCH)) {
         return;
     }
-    fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 7);
+    fieldingRelatedAnimations(hugeAnimStruct.objects[idx], 7);
     playSoundEffect(SFX_FIELDING_ABILITY);
 }
 
@@ -14652,7 +14652,7 @@ int checkForAndSetFielderWallActionsOrDives(int fielderIndex) {
         if (fielder->wallActionAbility == 2) {
             if (wallJumpInitialization(fielderIndex) != 0) {
                 g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
-                fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 1);
+                fieldingRelatedAnimations(hugeAnimStruct.objects[idx], 1);
                 return 1;
             }
         } else if (fielder->wallActionAbility == 1) {
@@ -14663,7 +14663,7 @@ int checkForAndSetFielderWallActionsOrDives(int fielderIndex) {
         } else if (fielder->wallActionAbility == 3) {
             if (clamberInitialization(fielderIndex) != 0) {
                 g_FieldingLogic.jumpDiveStruct->aPressed_decidingWhatActionToTake = 0;
-                fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 2);
+                fieldingRelatedAnimations(hugeAnimStruct.objects[idx], 2);
                 return 1;
             }
         }
@@ -14916,14 +14916,14 @@ diveAtFrame:
     fielder->actionDirectionRadians = game_atan2(dx, dz);
 
     if (slidingCatchLevel != 0) {
-        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 3);
+        fieldingRelatedAnimations(hugeAnimStruct.objects[animIndex], 3);
         playSoundEffect(SFX_FIELDING_ABILITY);
     } else if (hasTongueCatch) {
-        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
+        fieldingRelatedAnimations(hugeAnimStruct.objects[animIndex], 8);
         playSoundEffect(SFX_FIELDING_ABILITY);
     } else if (hasSuction) {
         fielder->suctionCatchInd = 1;
-        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[animIndex], 8);
+        fieldingRelatedAnimations(hugeAnimStruct.objects[animIndex], 8);
         playSoundEffect(SFX_FIELDING_ABILITY);
     }
 
@@ -15747,7 +15747,7 @@ void calculateBobble(int fielderIndex) {
 
     if (checkFieldingStat(g_GameLogic.teamFielding, fielder->rosterLocation,
                            FIELDING_ABILITY_SUPER_CATCH)) {
-        fieldingRelatedAnimations(((void**)(hugeAnimStruct + 0x2c50))[idx], 10);
+        fieldingRelatedAnimations(hugeAnimStruct.objects[idx], 10);
         playSoundEffect(SFX_FIELDING_ABILITY);
         return;
     }

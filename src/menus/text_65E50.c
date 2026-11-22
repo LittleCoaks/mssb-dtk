@@ -1,5 +1,6 @@
 #include "menus/text_65E50.h"
 #include "text/text.h"
+#include "HugeAnimStruct.h"
 
 // Local prototypes for symbols owned by other units.
 s16 fn_2_53BC8(void *arg0);
@@ -9,7 +10,6 @@ void load_Icon(void *scene, s32 handle, u32 part, u32 element, s32 frame);
 extern u8 *lbl_2_bss_1A8240;
 extern u8 *lbl_2_bss_1A8248;
 extern u8 *lbl_2_bss_1A824C;
-extern u8 hugeAnimStruct[];
 extern u8 lbl_800E869C[];
 extern u8 lbl_80354768[];
 extern s16 lbl_2_data_2E80[];
@@ -247,7 +247,7 @@ void fn_2_68260(u8 *obj) {
     dy = row[0] * 2 - row[1] * 2;
 
     if (*(s32 *)(obj + 0x80) == 0) {
-        huge = hugeAnimStruct + 0xC04;
+        huge = hugeAnimStruct.pool[0];
         if (huge != NULL) {
             v = *(s16 *)(huge + 0x68);
             if (v == dx || v == dy) {

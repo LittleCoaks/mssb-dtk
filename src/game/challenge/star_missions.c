@@ -7,6 +7,7 @@
 #include "Dolphin/rand.h"
 #include "game/minigame/minigame_models.h"
 #include "header_rep_data.h"
+#include "HugeAnimStruct.h"
 
 
 
@@ -16,13 +17,7 @@ typedef struct AnimEntry {
     /*0x27*/ u8 _27;
 } AnimEntry; // size: 0x28
 
-extern struct {
-    /*0x0000*/ u8 _0000[0x2D94];
-    /*0x2D94*/ AnimEntry* entries;
-    /*0x2D98*/ u8 _2D98[0x3078 - 0x2D98];
-    /*0x3078*/ u16 entryCount;
-    /*0x307A*/ u8 _307A[0x3154 - 0x307A];
-} hugeAnimStruct;
+#define ANIM_ENTRIES ((AnimEntry*)hugeAnimStruct.actorEntries)
 
 extern u8 animRelated[0x124];
 
@@ -47,11 +42,11 @@ static inline void fillRosterCharIDs(s16* ids) {
 // .text:0x001663AC size:0x9C mapped:0x807A5440
 void practice_postGraphicsUpdate(void) {
     if (g_GameLogic.secondaryGameMode == 0xA || g_GameLogic.secondaryGameMode == 0x12) {
-        if (hugeAnimStruct.entryCount != 0) {
+        if (hugeAnimStruct.actorCount != 0) {
             AnimEntry* entry;
             int i;
-            for (i = 0; i < hugeAnimStruct.entryCount; i++) {
-                entry = &hugeAnimStruct.entries[i];
+            for (i = 0; i < hugeAnimStruct.actorCount; i++) {
+                entry = &ANIM_ENTRIES[i];
                 if (entry != NULL) {
                     entry->_26 = 0;
                 }

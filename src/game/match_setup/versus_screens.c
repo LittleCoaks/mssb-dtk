@@ -22,6 +22,7 @@
 #include "stl/math.h"
 #include "stl/string.h"
 #include "stl/stdlib.h"
+#include "HugeAnimStruct.h"
 
 #define VS_SITUATION_COUNT 33
 #define VS_SCREEN_ENTRY_COUNT 13
@@ -327,10 +328,7 @@ typedef struct VsAnimObject {
     /*0x6A*/ s16 _6A;
 } VsAnimObject;
 
-extern struct {
-    /*0x0000*/ u8 _0000[0x2C50];
-    /*0x2C50*/ VsAnimObject *objects[VS_SCREEN_ENTRY_COUNT];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((VsAnimObject*)hugeAnimStruct.objects[i])
 
 typedef struct VsFadeItem {
     /*0x00*/ u8 _00[0x1E];
@@ -429,7 +427,7 @@ void fn_3_24708(void) {
     for (i = 0; i < VS_SCREEN_ENTRY_COUNT; i++) {
         f32 dist;
 
-        obj = hugeAnimStruct.objects[i];
+        obj = ANIM_OBJ(i);
 
         if (obj == NULL) {
             continue;
@@ -567,8 +565,8 @@ void postReplayBatterCelebration(void) {
         break;
     }
 
-    if (hugeAnimStruct.objects[9]->_62 == 0x3A) {
-        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID].requirementRow][2]) {
+    if (ANIM_OBJ(9)->_62 == 0x3A) {
+        if (ANIM_OBJ(9)->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID].requirementRow][2]) {
             playCharacterSound(g_Batter.charID, 0);
         }
     }
@@ -628,8 +626,8 @@ void homeRunEnd(void) {
         break;
     }
 
-    if (hugeAnimStruct.objects[9]->_62 == 0x3C) {
-        if (hugeAnimStruct.objects[9]->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID].requirementRow][0]) {
+    if (ANIM_OBJ(9)->_62 == 0x3C) {
+        if (ANIM_OBJ(9)->_6A == lbl_3_data_7F7C[characterStaticIndexes[g_Batter.charID].requirementRow][0]) {
             playCharacterSound(g_Batter.charID, 0);
         }
     }
@@ -1014,10 +1012,10 @@ void resetSomethingRelatedToVersus(void) {
 
 // .text:0x0002281C size:0x34 mapped:0x806618B0
 BOOL fn_3_2281C(int index) {
-    if (hugeAnimStruct.objects[index] == NULL) {
+    if (ANIM_OBJ(index) == NULL) {
         return TRUE;
     }
-    return hugeAnimStruct.objects[index]->_68 == 0;
+    return ANIM_OBJ(index)->_68 == 0;
 }
 
 // .text:0x0002273C size:0xE0 mapped:0x806617D0
@@ -1026,10 +1024,10 @@ BOOL fn_3_2273C(void) {
 
     for (i = 0; i < 9; i++) {
         if (g_Fielders[i].rosterLocSkippingCap == 0) {
-            if (hugeAnimStruct.objects[i] == NULL) {
+            if (ANIM_OBJ(i) == NULL) {
                 return TRUE;
             }
-            if (hugeAnimStruct.objects[i]->_68 == 0) {
+            if (ANIM_OBJ(i)->_68 == 0) {
                 return TRUE;
             }
         }

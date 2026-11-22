@@ -9,6 +9,7 @@
 #include "Dolphin/vec.h"
 #include "Dolphin/mtx.h"
 #include <string.h>
+#include "HugeAnimStruct.h"
 
 extern u8 menuNumber[0x28];
 extern u8 *lbl_2_bss_1A8234;
@@ -87,7 +88,6 @@ extern u8 *lbl_2_bss_1A8240;
 extern u8 *lbl_2_bss_340140;
 extern u8 *lbl_2_bss_3401BC;
 extern u8 lbl_2_bss_3401C0[];
-extern u8 hugeAnimStruct[];
 extern u8 superstarUnlocked[];
 extern u8 lbl_8037169C[];
 extern u8 screenTextArray[];
@@ -223,7 +223,7 @@ void recordsScreen(void) {
     lbl_2_bss_1A8248 = (u8 *)&g_Challenge;
     lbl_2_bss_1A8240 = lbl_803616CC;
     lbl_2_bss_1A824C = w;
-    lbl_2_bss_340140 = hugeAnimStruct;
+    lbl_2_bss_340140 = HUGE_ANIM_BYTES;
     lbl_2_bss_3401BC = lbl_2_bss_3401C0;
 
     switch (menuControlVariables->currentState) {
@@ -1610,7 +1610,7 @@ void fn_2_5A224(void) {
         if (item->state == 1) WCH(0x32) = 18;
         break;
     }
-    if (hugeAnimStruct[0x307A] == 2) {
+    if (hugeAnimStruct._307A == 2) {
         fn_2_68E68();
         fn_2_47FF8();
         fn_2_47CFC();

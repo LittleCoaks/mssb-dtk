@@ -9,11 +9,22 @@ When asked to match a source file, pick the agent from the file's state:
 - **A checkpoint exists with `pending` functions** → `match` (Opus second
   pass: grind the near-misses).
 
-The checkpoint is `build/.match_grind/<objdiff-unit-name-with-slashes-as-underscores>.md`,
+The checkpoint is `docs/match_grind/<objdiff-unit-name-with-slashes-as-underscores>.md`,
 e.g. unit `game/game/batting/charge_effects` →
 `game_game_batting_charge_effects.md`. Both agents do their own edits,
 builds and diffs; there are no worker agents. Never run both on the same
 file at once.
+
+Checkpoints are tracked in git so the record of what has already been tried
+survives between sessions, machines and clones. Commit a file's checkpoint
+together with the source changes it describes, and keep it once the file
+reaches 100% (mark it `Status: complete`) rather than deleting it. Only
+throwaway artifacts -- source backups, diff JSON, trial scripts -- belong in
+the gitignored `build/.match_grind/`.
+
+`docs/match_grind/<unit>.sweep.md` is the machine-written companion: the log of
+variants `tools/match_sweep.py` has already built for that unit. It is not a
+checkpoint and does not change which agent a file goes to.
 
 ## After a function reaches 100%
 

@@ -41,6 +41,7 @@
 #include "C3/actor/act.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
+#include "HugeAnimStruct.h"
 
 /* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
  * __fabs intrinsic, which allocates registers differently. The functions that use
@@ -50,7 +51,6 @@ static inline f64 fabsInline(f64 x) {
 }
 
 extern u16 stadiumHazardSoundIDs[16];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
 
@@ -180,7 +180,7 @@ static inline void dkPlayHazardSfx(int sfx) {
 
 // .text:0x000F6FDC size:0x1468 mapped:0x80736070
 void loadDKJungle(void** files) {
-    u8** animTable = (u8**)(hugeAnimStruct + 0x6C);
+    u8** animTable = (u8**)&hugeAnimStruct.actorTables[3];
     DKJungleBarrelLauncher* launcherCfg;
     DKJungleBarrelLauncher* barrelCfg;
     DKJungleKlaptrapData* klapCfg;
@@ -902,9 +902,6 @@ int fn_3_F5EFC(const u32* a, const u32* b) {
 }
 
 // .text:0x000F5E78 size:0x84 mapped:0x80734F0C
-static const char noReturnValueString[] =
-    "//OZ \x96\xDF\x82\xE8\x92\x6C\x82\xCC\x96\xB3\x82\xA2\x95\x94\x95\xAA\x82\xC9\x97\x88\x82\xDC\x82\xB5\x82\xBD\x81\x42\n";
-
 int fn_3_F5E78(u8 id) {
     StadiumDrawOrder* p = stadiumObjectCollision.objectScratch + stadiumObjectCollision.objectCount;
     u32 i;
@@ -914,7 +911,7 @@ int fn_3_F5E78(u8 id) {
             return i - 1;
         }
     }
-    OSPanic("sta_c5.c", 0x637, noReturnValueString);
+    OSPanic("sta_c5.c", 0x637, "//OZ \x96\xDF\x82\xE8\x92\x6C\x82\xAA\x82\xA0\x82\xE8\x82\xDC\x82\xB9\x82\xF1\n");
     return 0;
 }
 
@@ -1178,6 +1175,7 @@ void dkJungleBarrelCannonCutsceneUpdate(StadiumObject* o) {
     DKJungleCannon* cannon = (DKJungleCannon*)o;
     Vec v;
     Vec forward = {0.0f, 0.0f, -1.0f};
+    Vec up = {0.0f, 1.0f, 0.0f};
     f32 angle;
 
     v.x = lbl_3_bss_AEEC - cannon->pos.x;
@@ -1310,7 +1308,7 @@ void fn_3_F3BB0(DKJungleBarrel* obj) {
     fn_3_F3AE0(obj);
     obj->_C1 = 0;
     obj->hasShadow = 1;
-    obj->actor = (DKJungleActor*)(*(u8**)(hugeAnimStruct + 0x6C) + (lbl_3_bss_B219 + obj->index) * 0x90 + 0x34);
+    obj->actor = (DKJungleActor*)(((u8*)hugeAnimStruct.actorTables[3]) + (lbl_3_bss_B219 + obj->index) * 0x90 + 0x34);
     obj->_C4 = 0;
     obj->_99 = 1;
 }
@@ -1764,7 +1762,7 @@ void handleDKJungleBarrel(DKJungleBarrel* barrel) {
 void fn_3_F18A4(DKJungleBarrel* obj) {
     DKJungleActor* actor;
 
-    obj->actor = actor = (DKJungleActor*)(*(u8**)(hugeAnimStruct + 0x6C) + lbl_3_bss_B218 * 0x90 + 0x34);
+    obj->actor = actor = (DKJungleActor*)(((u8*)hugeAnimStruct.actorTables[3]) + lbl_3_bss_B218 * 0x90 + 0x34);
     actor->animFrame = 0.0f;
     actor->_59 = 1;
     setActorAnimFrame(actor->list, actor->animFrame);
@@ -1792,7 +1790,7 @@ void fn_3_F1750(DKJungleBarrel* obj) {
         CTRLSetRotation((Control*)obj, 0.0f, angle, 0.0f);
         obj->_C1 = 0;
         obj->hasShadow = 1;
-        obj->actor = (DKJungleActor*)(*(u8**)(hugeAnimStruct + 0x6C) + (lbl_3_bss_B219 + obj->index) * 0x90 + 0x34);
+        obj->actor = (DKJungleActor*)(((u8*)hugeAnimStruct.actorTables[3]) + (lbl_3_bss_B219 + obj->index) * 0x90 + 0x34);
         obj->_C4 = 0;
         obj->_99 = 1;
     } else {
@@ -2007,7 +2005,7 @@ void dkKlaptrapChaseUpdate(StadiumObject* o) {
     Vec dir;
     Vec axisX = {1.0f, 0.0f, 0.0f};
     InMemFielder* fielder = &g_Fielders[obj->_C1];
-    DKJungleCarrier* carrier = *(DKJungleCarrier**)(hugeAnimStruct + obj->_C1 * 4 + 0x2C50);
+    DKJungleCarrier* carrier = (DKJungleCarrier*)hugeAnimStruct.objects[obj->_C1];
     DKJungleKlaptrapTuning* tune = (DKJungleKlaptrapTuning*)&barrelRollSfxEmitterId;
     u8* base = (u8*)&lbl_3_bss_AEE0;
     f32 deg;
@@ -2099,9 +2097,9 @@ void fn_3_EFB54(DKJungleKlaptrap* obj) {
     Vec axis;
     Vec side;
     Vec flat;
-    Vec axisX = {1.0f, 0.0f, 0.0f};
     Vec p;
     Vec offset = {0.0f, 0.0f, 0.0f};
+    Vec axisX = {1.0f, 0.0f, 0.0f};
     DKJungleCarrier* carrier;
     f32 ang;
     f32 h;
@@ -2109,11 +2107,11 @@ void fn_3_EFB54(DKJungleKlaptrap* obj) {
     s8 sel;
     int i;
 
-    carrier = (DKJungleCarrier*)*(void**)(hugeAnimStruct + obj->_C1 * 4 + 0x2C50);
+    carrier = (DKJungleCarrier*)hugeAnimStruct.objects[obj->_C1];
     if (carrier != NULL) {
         if (carrier->ownerId != obj->_C3) {
             for (i = 0; i < 9; i++) {
-                carrier = (DKJungleCarrier*)*(void**)(hugeAnimStruct + i * 4 + 0x2C50);
+                carrier = (DKJungleCarrier*)hugeAnimStruct.objects[i];
                 if (carrier != NULL && obj->_C3 == carrier->ownerId) {
                     obj->_C1 = carrier->animIdx;
                     break;
@@ -2323,7 +2321,6 @@ u8 isPosOutsideKlaptrapZone(Vec pos, u8 zone) {
 
 // .text:0x000EF408 size:0x154 mapped:0x8072E49C
 void jungleStadiumObjectRelated(DKJungleKlaptrap* obj) {
-    DKJungleKlaptrapData* data = &jungleKlaptrapData[obj->index];
     Vec toTarget;
     Vec heading;
     Vec cross;
@@ -2332,7 +2329,7 @@ void jungleStadiumObjectRelated(DKJungleKlaptrap* obj) {
 
     toTarget.x = jungleKlaptrapData[obj->index].pos.x - obj->pos.x;
     toTarget.y = 0.0f;
-    toTarget.z = data->pos.z - obj->pos.z;
+    toTarget.z = jungleKlaptrapData[obj->index].pos.z - obj->pos.z;
     PSVECNormalize(&toTarget, &toTarget);
     rad = -(0.017453292f * obj->rotY);
     heading.x = (f32)cos(rad);
@@ -2433,9 +2430,9 @@ void fn_3_EEFA4(void) {
 
 // .text:0x000EEF24 size:0x80 mapped:0x8072DFB8
 void fn_3_EEF24(void) {
-    if (hugeAnimStruct[0x3088] == 0) {
+    if (hugeAnimStruct._3088 == 0) {
         removeCurrentDrawingItem();
-    } else if (hugeAnimStruct[0x307E] != 0) {
+    } else if (hugeAnimStruct._307E != 0) {
         fn_800BDA24((void*)lbl_3_bss_B55C);
         fn_3_EE388();
         fn_3_EEB94();
@@ -2568,7 +2565,7 @@ void fn_3_EE96C(Vec* pos) {
     }
     PSMTXCopy(cam->view, mtx);
     tilt = down.y * mtx[1][1];
-    scale = 0.2f / clamped;
+    scale = 0.19999999f / clamped;
     ind = &bss->indMtx[0][0];
     ind[0] = scale;
     ind[4] = scale * (f32)(1.0 - fabs(0.5f * tilt));
@@ -2687,11 +2684,11 @@ void fn_3_EE388(void) {
         lbl_3_data_1BA6D = 1;
     }
     if (lbl_3_data_1BA6E != 0) {
-        step = 0.0005 * (2.0 * ((f64)((f32)rand() / 32767.0f) - 0.5));
+        step = 0.0005f * (2.0 * ((f64)((f32)rand() / 32767.0f) - 0.5));
         lbl_3_data_1BA6E = 0;
         lbl_3_bss_AF08 = step;
         lbl_3_bss_AF04 = 0.0f;
-        lbl_3_bss_AF00 = 2.5e-05 * (fabs(step) / step);
+        lbl_3_bss_AF00 = 2.5e-05f * (fabs(step) / step);
     }
     {
         f64 absPhase;

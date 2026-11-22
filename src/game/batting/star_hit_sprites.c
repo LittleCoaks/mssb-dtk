@@ -8,6 +8,7 @@
 #include "game/batting/charge_effects.h"
 #include "game/math/game_math.h"
 #include "game/pitching/perfect_pitch_gfx.h"
+#include "HugeAnimStruct.h"
 
 // A star-hit marker sprite owned by the hugeAnimStruct overlay entry.
 typedef struct _StarHitMarker {
@@ -48,13 +49,9 @@ typedef struct _StarSpriteTable {
     /*0x34*/ StarSprite sprites[1];
 } StarSpriteTable;
 
-extern struct {
-    /*0x0000*/ u8 _0000[0x64];
-    /*0x0064*/ StarSpriteTable* spriteTable;
-    /*0x0068*/ u8 _0068[0x2C50 - 0x68];
-    /*0x2C50*/ StarHitActor* actors[(0x2D90 - 0x2C50) / 4];
-    /*0x2D90*/ StarHitOverlay* overlay;
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((StarHitActor*)hugeAnimStruct.objects[i])
+#define STAR_HIT_OVERLAY ((StarHitOverlay*)hugeAnimStruct.starAnimRelated)
+#define STAR_SPRITE_TABLE ((StarSpriteTable*)hugeAnimStruct.actorTables[1])
 
 // Phase flags of the star-hit / charge sprite effects.
 typedef struct _StarHitState {
@@ -335,18 +332,18 @@ void fn_3_6A300(void) {
     if (animRelated.markersActive == FALSE) {
         return;
     }
-    actor = hugeAnimStruct.actors[9];
+    actor = ANIM_OBJ(9);
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-        actor = hugeAnimStruct.actors[(s8)g_Minigame.rosterID];
+        actor = ANIM_OBJ((s8)g_Minigame.rosterID);
     }
     if (actor->charId == CHAR_ID_DRYBONES_GRAY) {
-        marker = &hugeAnimStruct.overlay->markers[0];
+        marker = &STAR_HIT_OVERLAY->markers[0];
     } else if (actor->charId == CHAR_ID_DRYBONES_GREEN) {
-        marker = &hugeAnimStruct.overlay->markers[1];
+        marker = &STAR_HIT_OVERLAY->markers[1];
     } else if (actor->charId == CHAR_ID_DRYBONES_RED) {
-        marker = &hugeAnimStruct.overlay->markers[2];
+        marker = &STAR_HIT_OVERLAY->markers[2];
     } else {
-        marker = &hugeAnimStruct.overlay->markers[3];
+        marker = &STAR_HIT_OVERLAY->markers[3];
     }
     marker->active = TRUE;
     marker->pos.x = actor->pos.x;
@@ -361,7 +358,7 @@ void fn_3_6A300(void) {
 void fn_3_6A2A4(s8 index) {
     StarSprite* sprite;
 
-    sprite = &hugeAnimStruct.spriteTable->sprites[index - 0x1F];
+    sprite = &STAR_SPRITE_TABLE->sprites[index - 0x1F];
     animRelated.markersActive = TRUE;
     sprite->mode = 2;
     sprite->scaleB = 0.0f;

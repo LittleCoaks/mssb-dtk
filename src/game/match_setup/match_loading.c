@@ -11,6 +11,7 @@
 #include "Unknown/File_0x80035838.h"
 #include "Unknown/dvdsys.h"
 #include "game/stadium/stadium_draw.h"
+#include "HugeAnimStruct.h"
 
 typedef struct {
     /* 0x000 */ u8 _000[0xC];
@@ -20,13 +21,7 @@ typedef struct {
     /* 0x253 */ u8 _253[0x29];
 } HugeAnimPlayer; // size: 0x27C
 
-extern struct {
-    u8 _0000[0xC04];
-    HugeAnimPlayer players[4];
-    u8 _15F4[0x2D7D - 0x15F4];
-    u8 _2D7D;
-    u8 _2D7E[0x3154 - 0x2D7E];
-} hugeAnimStruct;
+#define ANIM_PLAYER(i) ((HugeAnimPlayer*)hugeAnimStruct.pool[i])
 
 extern struct {
     u8 _00[4];
@@ -296,12 +291,12 @@ void fn_3_59F40(void) {
         break;
     case 5:
         stadiumSetupRelated();
-        hugeAnimStruct._2D7D = 0;
+        HUGE_ANIM_FLAG(0x2D7D) = 0;
         fn_8001A25C();
         g_UnkSimulation_31AC0.step++;
         break;
     case 6:
-        if (hugeAnimStruct._2D7D != 0) {
+        if (HUGE_ANIM_FLAG(0x2D7D) != 0) {
             g_UnkSimulation_31AC0.step++;
         }
         break;
@@ -442,12 +437,12 @@ void fn_3_59C2C(void) {
         stadiumSetupRelated();
         practice_loadCharacterData();
         fn_8001A3FC(2);
-        hugeAnimStruct._2D7D = 0;
+        HUGE_ANIM_FLAG(0x2D7D) = 0;
         fn_80019A60();
         g_UnkSimulation_31AC0.step++;
         break;
     case 13:
-        if (hugeAnimStruct._2D7D != 0) {
+        if (HUGE_ANIM_FLAG(0x2D7D) != 0) {
             g_UnkSimulation_31AC0.step++;
         }
         break;
@@ -495,7 +490,7 @@ void loadToyFieldCharacterFiles(void) {
 
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
         for (i = 0; i < 4; i++) {
-            HugeAnimPlayer* player = &hugeAnimStruct.players[i];
+            HugeAnimPlayer* player = ANIM_PLAYER(i);
             fn_80022CB4(&CharacterFiles[player->charID * 0x13 + 1], (u32)player->_00C, 0, 0, (void (*)())fn_3_59AC0, player);
         }
     }

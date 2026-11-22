@@ -11,8 +11,8 @@
 #define REP_HEADER_DATA_FN getRepHeaderData_guidedPractice
 #include "header_rep_data.h"
 #include "game/match_setup/pause_menu.h"
+#include "HugeAnimStruct.h"
 
-extern u8 hugeAnimStruct[0x3154];
 extern u8 lbl_8037169C[0x1C];
 extern u8 lbl_80366158[0x30];
 extern u8 lbl_800EFBA4[0x10];
@@ -617,7 +617,7 @@ void practiceLogicRelatedPause(void) {
             g_Practice.loadingGuidedPractice = 0;
             pauseControl._1D9 = 2;
             g_Practice.pauseMenuActive = 0;
-            hugeAnimStruct[0x307D] = 0;
+            hugeAnimStruct._307D = 0;
             if (pauseControl.state == 0xB) {
                 g_Practice.practiceState = PRACTICE_STATE_0;
                 g_Practice.practiceLevel++;
@@ -640,8 +640,8 @@ void practiceLogicRelatedPause(void) {
             g_Practice.loadingGuidedPractice = 0;
             pauseControl._1D9 = 2;
             g_Practice.pauseMenuActive = 0;
-            hugeAnimStruct[0x307D] = 0;
-            hugeAnimStruct[0x307E] = 0;
+            hugeAnimStruct._307D = 0;
+            hugeAnimStruct._307E = 0;
             practiceMenu_setScreen(0);
             g_Practice.returnToPracticeMenuState = 1;
             g_GameLogic.secondaryGameMode = SECONDARY_GAME_MODE_PRACTICE_MENU;
@@ -735,10 +735,10 @@ void practiceMenuLogic(void) {
 BOOL practice_checkForPause(void) {
     InputStruct* input = &g_Controls[g_Practice.homeAway];
 
-    if (hugeAnimStruct[0x2D46] != 0) {
+    if (hugeAnimStruct.loadSlots[0].state != 0) {
         return FALSE;
     }
-    if (hugeAnimStruct[0x2D52] != 0) {
+    if (hugeAnimStruct.loadSlots[1].state != 0) {
         return FALSE;
     }
     if (g_Practice.frames_sincePracticeCompleted != 0 || g_Practice.guidedPracticeCompletionRelated != 0) {
@@ -838,8 +838,8 @@ void practicePauseRelated(void) {
         }
         pauseControl._1D9 = 2;
         g_Practice.pauseMenuActive = 0;
-        hugeAnimStruct[0x307D] = 0;
-        hugeAnimStruct[0x307E] = 0;
+        hugeAnimStruct._307D = 0;
+        hugeAnimStruct._307E = 0;
         if (pauseControl.state == 9) {
             practiceMenu_setScreen(6);
         } else {
@@ -870,7 +870,7 @@ void practicePauseRelated(void) {
     case 11:
         g_Practice.pauseMenuActive = 0;
         pauseControl._1D9 = 2;
-        hugeAnimStruct[0x307D] = 0;
+        hugeAnimStruct._307D = 0;
         g_Practice.practiceLevel++;
         g_Practice.practiceState = PRACTICE_STATE_0;
         g_Practice.tutorialState = TUTORIAL_STATE_0;

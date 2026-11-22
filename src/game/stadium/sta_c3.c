@@ -27,6 +27,7 @@ extern void fn_800BDF70(StadiumModel *model);
 #include "Unknown/File_0x800acf14.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
+#include "HugeAnimStruct.h"
 
 // One entry per piranha-plant slot (11 slots, 10 usable; `usedFlag == 2` ends the list).
 typedef struct _YoshiPlantPlacement {
@@ -142,7 +143,6 @@ static YoshiPlantPlacement parkPlantData[11] = {
     { 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0, 0, 0.0f, 0.0f },
 };
 static u8 enumObjTypeInFile_ARRAY_807ca604[0x14] = { 1, 3, 4, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0 };
-extern u8 hugeAnimStruct[0x3154];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
 extern u8 lbl_3_data_84B8[0x3C];
@@ -991,7 +991,7 @@ void loadYoshiPark(void** files) {
     }
     plantCount = i;
     animCount = plantCount + 1;
-    animTable = (u8**)(hugeAnimStruct + 0x6C);
+    animTable = (u8**)&hugeAnimStruct.actorTables[3];
     *animTable = ActorObjectInitTable(animCount);
     stadiumObjectCollision.propCount = animCount;
     idx = 0;

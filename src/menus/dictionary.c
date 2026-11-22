@@ -10,6 +10,7 @@
 #include "musyx/musyx.h"
 #include "Dolphin/gx.h"
 #include <string.h>
+#include "HugeAnimStruct.h"
 
 extern u8 *lbl_2_bss_1A8230;
 extern u8 *lbl_2_bss_1A8234;
@@ -29,7 +30,6 @@ extern u8 audioFileDescriptors[0x39C];
 
 /* HugeAnimStruct isn't typed in a shared header; only the one byte we need
  * is accessed here. */
-extern u8 hugeAnimStruct[0x3154];
 
 extern void fn_8000F4B8(int arg0, int arg1, int arg2, int arg3);
 extern void fn_2_54474(void);
@@ -328,7 +328,7 @@ void fn_2_54BB0(void) {
 
     case 17:
         if (lbl_8037169C[0x13] != 0) {
-            hugeAnimStruct[0x307A] = 0;
+            hugeAnimStruct._307A = 0;
             WA(0x162992) = 1;
             lbl_2_bss_1A8230[0x32A86] = 1;
             menuControlVariables->currentState = 0x12;
@@ -364,7 +364,7 @@ void fn_2_54BB0(void) {
         break;
     }
 
-    if (hugeAnimStruct[0x307A] == 2) {
+    if (hugeAnimStruct._307A == 2) {
         if (lbl_2_bss_1A8248->_44F2 != 4) {
             fn_2_68E68();
         }

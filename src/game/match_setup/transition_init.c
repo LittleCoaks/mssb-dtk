@@ -4,6 +4,7 @@
 #include "header_rep_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
+#include "HugeAnimStruct.h"
 
 #define TRANSITION_OBJECT_COUNT 13
 
@@ -19,17 +20,6 @@ typedef struct TransitionObject {
     /*0x25D*/ u8 _25D;
 } TransitionObject;
 
-typedef struct TransitionAnimView {
-    /*0x0000*/ u8 _0000[0x2C50];
-    /*0x2C50*/ TransitionObject* objects[TRANSITION_OBJECT_COUNT];
-    /*0x2C84*/ u8 _2C84[0x2D68 - 0x2C84];
-    /*0x2D68*/ s16 _2D68;
-    /*0x2D6A*/ u8 _2D6A[0x307A - 0x2D6A];
-    /*0x307A*/ u8 _307A;
-    /*0x307B*/ u8 _307B[3];
-    /*0x307E*/ u8 _307E;
-} TransitionAnimView;
-
 typedef struct TransitionScreenState {
     /*0x000*/ u8 _000[0x240];
     /*0x240*/ s16 _240[TRANSITION_OBJECT_COUNT];
@@ -40,7 +30,7 @@ typedef struct TransitionScreenState {
     /*0x26E*/ u8 _26E[TRANSITION_OBJECT_COUNT];
 } TransitionScreenState;
 
-extern TransitionAnimView hugeAnimStruct;
+#define ANIM_OBJ(i) ((TransitionObject*)hugeAnimStruct.objects[i])
 extern TransitionScreenState* lbl_3_common_bss_1323C;
 extern u8 animRelated[0x124];
 extern f32 charSelectFielderPositions[3];
@@ -151,12 +141,12 @@ void fn_3_6C000(void) {
 
     hugeAnimStruct._2D68 = -1;
     for (i = 0; i < TRANSITION_OBJECT_COUNT; i++) {
-        if (hugeAnimStruct.objects[i] != NULL) {
-            hugeAnimStruct.objects[i]->_25D = 0;
+        if (ANIM_OBJ(i) != NULL) {
+            ANIM_OBJ(i)->_25D = 0;
         }
     }
     if (g_Practice.practiceState != PRACTICE_STATE_6 && g_Practice.practiceState > PRACTICE_STATE_1) {
-        obj = hugeAnimStruct.objects[9];
+        obj = ANIM_OBJ(9);
         if (obj != NULL && g_Minigame.charLoadPending[0] == 0 && (s8)g_Minigame.selectSlots[0].loadedCharID >= 0 && (s8)g_Minigame.selectSlots[0].charReadyInd != 0 &&
             (s8)g_Minigame.selectSlotState[0] >= 0) {
             obj->_25D = 1;
@@ -184,7 +174,7 @@ void syncAnimObjectsToFieldersAndRunners(void) {
         if (lbl_3_common_bss_1323C->_240[i] < 0) {
             continue;
         }
-        obj = hugeAnimStruct.objects[i];
+        obj = ANIM_OBJ(i);
         if (obj == NULL) {
             continue;
         }

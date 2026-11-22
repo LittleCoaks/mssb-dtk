@@ -20,9 +20,9 @@
 #include "game/match_setup/roster_init.h"
 #include "game/practice/player_control_transition.h"
 #include "Unknown/File_0x800204cc.h"
+#include "HugeAnimStruct.h"
 
 extern u8 animRelated[0x124];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 lbl_80354768[];
 #define PRACTICE_PROGRESS_FLAGS ((u8 (*)[4])(&lbl_80354768[0xCF4E]))
 extern BOOL practice_loadAllGraphics(int teamFielding);
@@ -157,10 +157,10 @@ void pitchingPracticeRelated(void) {
         }
         g_GameLogic.currentBatterPerTeam[0] = 1;
         g_GameLogic.currentBatterPerTeam[1] = 1;
-        hugeAnimStruct[0x307D] = 1;
+        hugeAnimStruct._307D = 1;
         animRelated[0x9C] = 0;
-        hugeAnimStruct[0x2D77] = 0;
-        hugeAnimStruct[0x2D7B] = 0;
+        HUGE_ANIM_FLAG(0x2D77) = 0;
+        HUGE_ANIM_FLAG(0x2D7B) = 0;
         g_Practice.characterLoadStarted = FALSE;
         if (g_Practice.practiceType_2 == PRACTICE_TYPE_FREEPLAY) {
             updatePracticeTransitionState(PRACTICE_STATE_1);

@@ -21,6 +21,7 @@
 #include "game/ball/collision_primitives.h"
 #include "game/stadium/stadium_framework.h"
 #include "game/match_setup/pause_menu.h"
+#include "HugeAnimStruct.h"
 
 extern void setScissorAndProjection(int);
 extern void SetDisplayStateTexture(void* texture, int arg1, int arg2);
@@ -97,12 +98,8 @@ typedef struct BallModel {
     /*0x27*/ u8 _27;
 } BallModel; // size 0x28
 
-// This unit's view of hugeAnimStruct.
-extern struct {
-    /*0x0000*/ u8 _0000[0x2D90];
-    /*0x2D90*/ BallModel* ballModels;
-    /*0x2D94*/ BallModel* bombModels;
-} hugeAnimStruct;
+#define BALL_MODELS ((BallModel*)hugeAnimStruct.starAnimRelated)
+#define BOMB_MODELS ((BallModel*)hugeAnimStruct.actorEntries)
 
 void fn_3_67C34(void* arg);
 s32 fn_3_67EF0(TrailPointList* list, s32 capacity, Vec* positions, u32* colors, u32 color, f32 width,
@@ -174,11 +171,11 @@ static inline void stopBallTrail(void) {
 
 // .text:0x0006A25C size:0x48
 void resetAnimationRelatedPointers(void) {
-    if (hugeAnimStruct.ballModels != NULL) {
-        hugeAnimStruct.ballModels[17].visible = FALSE;
-        hugeAnimStruct.ballModels[18].visible = FALSE;
-        hugeAnimStruct.ballModels[19].visible = FALSE;
-        hugeAnimStruct.ballModels[20].visible = FALSE;
+    if (BALL_MODELS != NULL) {
+        BALL_MODELS[17].visible = FALSE;
+        BALL_MODELS[18].visible = FALSE;
+        BALL_MODELS[19].visible = FALSE;
+        BALL_MODELS[20].visible = FALSE;
     }
     animRelated[0xD4] = 0;
 }
@@ -233,20 +230,20 @@ void ballAnimations(void) {
     Vec avg;
 
     garlicModel = NULL;
-    hugeAnimStruct.ballModels[0].visible = FALSE;
-    hugeAnimStruct.ballModels[7].visible = FALSE;
-    hugeAnimStruct.ballModels[8].visible = FALSE;
-    hugeAnimStruct.ballModels[9].visible = FALSE;
-    hugeAnimStruct.ballModels[10].visible = FALSE;
-    hugeAnimStruct.ballModels[11].visible = FALSE;
-    hugeAnimStruct.ballModels[12].visible = FALSE;
-    hugeAnimStruct.ballModels[13].visible = FALSE;
-    hugeAnimStruct.ballModels[14].visible = FALSE;
-    hugeAnimStruct.ballModels[15].visible = FALSE;
-    hugeAnimStruct.ballModels[16].visible = FALSE;
-    hugeAnimStruct.ballModels[1].visible = FALSE;
-    hugeAnimStruct.ballModels[2].visible = FALSE;
-    hugeAnimStruct.ballModels[3].visible = FALSE;
+    BALL_MODELS[0].visible = FALSE;
+    BALL_MODELS[7].visible = FALSE;
+    BALL_MODELS[8].visible = FALSE;
+    BALL_MODELS[9].visible = FALSE;
+    BALL_MODELS[10].visible = FALSE;
+    BALL_MODELS[11].visible = FALSE;
+    BALL_MODELS[12].visible = FALSE;
+    BALL_MODELS[13].visible = FALSE;
+    BALL_MODELS[14].visible = FALSE;
+    BALL_MODELS[15].visible = FALSE;
+    BALL_MODELS[16].visible = FALSE;
+    BALL_MODELS[1].visible = FALSE;
+    BALL_MODELS[2].visible = FALSE;
+    BALL_MODELS[3].visible = FALSE;
     animRelated[0xCB] = CAPTAIN_STAR_TYPE_NONE;
     if (g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_CHAINCHOMP_SPRINT ||
         g_GameLogic.secondaryGameMode == SECONDARY_GAME_MODE_PIRANHA_PANIC ||
@@ -295,15 +292,15 @@ void ballAnimations(void) {
         animRelated[0xCB] = CAPTAIN_STAR_TYPE_BIRDO;
     }
 
-    model = &hugeAnimStruct.ballModels[starBallOffsets[animRelated[0xCB]]];
+    model = &BALL_MODELS[starBallOffsets[animRelated[0xCB]]];
     if (g_Minigame.GameMode_MiniGame == MINI_GAME_ID_BOBOMB_DERBY) {
         if (g_Minigame.bOD_KingBombInd) {
-            model = &hugeAnimStruct.bombModels[1];
+            model = &BOMB_MODELS[1];
         } else {
-            model = &hugeAnimStruct.bombModels[0];
+            model = &BOMB_MODELS[0];
         }
-        hugeAnimStruct.bombModels[0].visible = FALSE;
-        hugeAnimStruct.bombModels[1].visible = FALSE;
+        BOMB_MODELS[0].visible = FALSE;
+        BOMB_MODELS[1].visible = FALSE;
     }
     ballSpinSetting();
     model->pos.x = g_Ball.AtBat_Contact_BallPos.x;
@@ -319,7 +316,7 @@ void ballAnimations(void) {
             index = isWaluigi + 15;
         }
         garlicIndex = index;
-        garlicModel = &hugeAnimStruct.ballModels[index];
+        garlicModel = &BALL_MODELS[index];
         garlicModel->pos.x = g_Ball.warioStarHitCoords[2].x;
         garlicModel->pos.y = -g_Ball.warioStarHitCoords[2].y;
         garlicModel->pos.z = g_Ball.warioStarHitCoords[2].z;
@@ -438,7 +435,7 @@ void ballAnimations(void) {
 
 // .text:0x000695F8 size:0x1D4 mapped:0x806A868C
 void ballAnimationSubFun1(BOOL visible) {
-    BallModel* models = hugeAnimStruct.ballModels;
+    BallModel* models = BALL_MODELS;
     s32 type;
 
     models[1].visible = FALSE;
@@ -488,8 +485,8 @@ void ballAnimationSubFun2(void) {
     f32 height;
     f32 rot;
 
-    hugeAnimStruct.ballModels[2].visible = FALSE;
-    hugeAnimStruct.ballModels[3].visible = FALSE;
+    BALL_MODELS[2].visible = FALSE;
+    BALL_MODELS[3].visible = FALSE;
     if (g_Stats.replayInd) {
         return;
     }
@@ -538,7 +535,7 @@ void ballAnimationSubFun2(void) {
     } else {
         index = 2;
     }
-    model = &hugeAnimStruct.ballModels[index];
+    model = &BALL_MODELS[index];
     model->visible = TRUE;
     ray.src.x = g_Ball.physicsSubstruct.ballLandingSpotOrHeldSpot.x;
     ray.src.y = -1.0f;
@@ -572,9 +569,9 @@ void ballAnimationSubFun3(void) {
     BallModel* model;
 
     if (g_Batter.trimmedBat == 1) {
-        model = &hugeAnimStruct.ballModels[6];
+        model = &BALL_MODELS[6];
     } else {
-        model = &hugeAnimStruct.ballModels[5];
+        model = &BALL_MODELS[5];
     }
     model->visible = FALSE;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
@@ -616,18 +613,18 @@ void fn_3_6916C(void) {
 
 // .text:0x000690FC size:0x70 mapped:0x806A8190
 void clearAnimationRelatedPointers(void) {
-    hugeAnimStruct.ballModels[0].visible = FALSE;
-    hugeAnimStruct.ballModels[1].visible = FALSE;
-    hugeAnimStruct.ballModels[2].visible = FALSE;
-    hugeAnimStruct.ballModels[3].visible = FALSE;
-    hugeAnimStruct.ballModels[5].visible = FALSE;
-    hugeAnimStruct.ballModels[6].visible = FALSE;
-    hugeAnimStruct.ballModels[7].visible = FALSE;
-    hugeAnimStruct.ballModels[8].visible = FALSE;
-    hugeAnimStruct.ballModels[9].visible = FALSE;
-    hugeAnimStruct.ballModels[10].visible = FALSE;
-    hugeAnimStruct.ballModels[12].visible = FALSE;
-    hugeAnimStruct.ballModels[13].visible = FALSE;
+    BALL_MODELS[0].visible = FALSE;
+    BALL_MODELS[1].visible = FALSE;
+    BALL_MODELS[2].visible = FALSE;
+    BALL_MODELS[3].visible = FALSE;
+    BALL_MODELS[5].visible = FALSE;
+    BALL_MODELS[6].visible = FALSE;
+    BALL_MODELS[7].visible = FALSE;
+    BALL_MODELS[8].visible = FALSE;
+    BALL_MODELS[9].visible = FALSE;
+    BALL_MODELS[10].visible = FALSE;
+    BALL_MODELS[12].visible = FALSE;
+    BALL_MODELS[13].visible = FALSE;
 }
 
 // .text:0x00068BB4 size:0x548 mapped:0x806A7C48

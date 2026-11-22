@@ -20,6 +20,7 @@
 #include "menus/captain_select/captain_select.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "menus/css_work.h"
+#include "HugeAnimStruct.h"
 
 extern CapSelectState capSelectState;
 extern u8 lbl_2_bss_100B4;
@@ -42,7 +43,6 @@ extern u8 menuNumber[0x28];
 extern u8 cardCheck[0x5C];
 extern u8 lbl_803CBCD8[0x8];
 extern u8 lbl_803CBD24[0xC];
-extern u8 hugeAnimStruct[0x3154];
 DebugMenuText lbl_2_data_15C8 = {
     { "BAT FIRST", "BAT LAST" },
     "FL",
@@ -228,7 +228,7 @@ void captainSelectScreen_manager(void) {
             } else {
                 Static_Stats_Tables._48AF[0] = 1;
                 setPortOfEachPlayer();
-                if ((s8)hugeAnimStruct[0xE56] != Static_Stats_Tables.captainSelectedID[0]) {
+                if ((s8)hugeAnimStruct.pool[0][0x252] != Static_Stats_Tables.captainSelectedID[0]) {
                     capSelectState.modelLoadRequested[0] = 1;
                 }
                 fn_2_11EA8();

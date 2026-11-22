@@ -9,6 +9,7 @@
 #include "Unknown/File_0x8001b2d0.h"
 #include "Unknown/File_0x800204cc.h"
 #include "Dolphin/stl.h"
+#include "HugeAnimStruct.h"
 
 extern void SetGameStatus(int status);
 extern BOOL checkForButtonPressToSkip(int a, int b);
@@ -29,12 +30,6 @@ typedef struct {
     u8 _00[0x68];
     s16 _68;
 } ReplayCameraTarget;
-
-typedef struct {
-    u8 _0000[0x2C74];
-    ReplayCameraTarget* _2C74;
-} ReplayAnimView;
-extern ReplayAnimView hugeAnimStruct;
 
 #define STATS_AT(off) ((void*)((u8*)&g_Stats + (off)))
 
@@ -190,8 +185,8 @@ void initializeReplayState(void) {
     g_Stats.replayPort[1] = g_GameLogic.teams[1];
     fn_3_7D2E0();
     copyAnimationStructures();
-    if (hugeAnimStruct._2C74 != NULL) {
-        g_Stats._0034 = hugeAnimStruct._2C74->_68;
+    if (((ReplayCameraTarget*)hugeAnimStruct.objects[9]) != NULL) {
+        g_Stats._0034 = ((ReplayCameraTarget*)hugeAnimStruct.objects[9])->_68;
     }
     updateStadiumObjCollision();
     resetSomeStruct();

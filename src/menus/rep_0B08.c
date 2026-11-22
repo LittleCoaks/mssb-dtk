@@ -6,6 +6,7 @@
 #include "stl/math.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "C3/light/light.h"
+#include "HugeAnimStruct.h"
 
 // One of the character slots stored back to back at lbl_2_bss_1A8248 + 0x1610
 // (stride 0xD8); the same layout as CssSlot, with every accessed field spelled out.
@@ -128,7 +129,6 @@ typedef struct {
 extern u8 *lbl_2_bss_1A8248;
 extern Rep0B08Anim *lbl_2_bss_1A824C;
 extern u8 inputParams[0x268];
-extern u8 hugeAnimStruct[];
 extern u8 lbl_2_data_2EA4[];
 extern u8 lbl_2_data_3150[];
 extern u8 lbl_2_data_3C84[];
@@ -206,7 +206,7 @@ static inline void rep0B08CheckAnimCue(Rep0B08Slot *obj) {
     s32 a = base - lbl_2_data_2E80[kind][2] * 2;
     s32 b = base - lbl_2_data_2E80[kind][1] * 2;
     if (obj->index == 0) {
-        u8 *hp = hugeAnimStruct + 0xC04;
+        u8 *hp = hugeAnimStruct.pool[0];
         if (hp != NULL && (*(s16 *)(hp + 0x68) == a || *(s16 *)(hp + 0x68) == b)) {
             if (kind == 5) {
                 fn_80062890(1);
@@ -2230,7 +2230,7 @@ void fn_2_68E68(void) {
     s32 i;
     for (i = 0; i < ANIM->unk197746; i++) {
         Rep0B08Slot *slot = REP_SLOT(i);
-        u8 *dst = hugeAnimStruct + i * 0x27C + 0xC04;
+        u8 *dst = hugeAnimStruct.pool[i];
         memcpy(dst + 0x34, slot, 12);
         *(f32 *)(dst + 0x44) = slot->unk4C;
         dst[0x25D] = slot->unkC0;

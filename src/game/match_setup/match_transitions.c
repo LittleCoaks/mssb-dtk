@@ -3,9 +3,9 @@
 #include "game/challenge/star_mission_data.h"
 #include "game/UnknownHomes_Game.h"
 #include "static/UnknownHomes_Static.h"
+#include "HugeAnimStruct.h"
 
 extern u8 animRelated[0x124];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 constantList[0x1C];
 extern BOOL practice_loadAllGraphics(int team);
 extern void fn_8001196C(void);
@@ -25,12 +25,12 @@ BOOL championshipScreenGraphics(void) {
         fn_8001196C();
     }
     animRelated[0x9B] = 1;
-    hugeAnimStruct[0x2D77] = 0;
-    hugeAnimStruct[0x2D7B] = 0;
-    hugeAnimStruct[0x2D7C] = 0;
+    HUGE_ANIM_FLAG(0x2D77) = 0;
+    HUGE_ANIM_FLAG(0x2D7B) = 0;
+    HUGE_ANIM_FLAG(0x2D7C) = 0;
 
     if (g_GameLogic.gameStatus == 9) {
-        hugeAnimStruct[0x2D7C] = 1;
+        HUGE_ANIM_FLAG(0x2D7C) = 1;
         for (team = 0; team < 2; team++) {
             for (slot = 0; slot < 9; slot++) {
                 u8* entry = (u8*)&inMemRoster[team][slot];
@@ -52,20 +52,20 @@ BOOL loadRunnerActors(void) {
     int cur;
 
     if (animRelated[0x9A] == 0) {
-        hugeAnimStruct[0x2D7A] = 0;
-        hugeAnimStruct[0x2D77] = 0;
+        HUGE_ANIM_FLAG(0x2D7A) = 0;
+        HUGE_ANIM_FLAG(0x2D77) = 0;
         animRelated[0x9A] = 1;
     }
 
     do {
-        int runner = 3 - hugeAnimStruct[0x2D7A];
+        int runner = 3 - HUGE_ANIM_FLAG(0x2D7A);
         if ((s16)g_Runners[runner].rosterID >= 0) {
             if (fn_8001500C(g_GameLogic.teamBatting, runner + 9) == 0) {
                 return FALSE;
             }
         }
-        hugeAnimStruct[0x2D7A]++;
-    } while ((u8)hugeAnimStruct[0x2D7A] < 4);
+        HUGE_ANIM_FLAG(0x2D7A)++;
+    } while ((u8)HUGE_ANIM_FLAG(0x2D7A) < 4);
 
     mode = g_d_GameSettings.GameModeSelected;
 
@@ -126,7 +126,7 @@ void matchTransitionFunction2(void) {
     }
 
     {
-        void** slots = (void**)&hugeAnimStruct[0x2C50];
+        void** slots = hugeAnimStruct.objects;
 
         for (i = 9; i < 13; i++) {
             if (!(g_d_GameSettings.GameModeSelected == 2 && g_GameLogic.secondaryGameMode == 0xF && i == 9)) {
@@ -166,7 +166,7 @@ void animateShadows_nonBall(void) {
     }
 
     for (i = 0; i < 13; i++) {
-        obj = ((u8**)hugeAnimStruct)[0x2C50 / 4 + i];
+        obj = (u8*)hugeAnimStruct.objects[i];
         if (obj == NULL) {
             continue;
         }
@@ -210,7 +210,7 @@ void animateShadows_nonBall(void) {
 BOOL loadMVPMaybe(void) {
     switch (animRelated[0x9A]) {
     case 0:
-        hugeAnimStruct[0x2D77] = 0;
+        HUGE_ANIM_FLAG(0x2D77) = 0;
         sound_crowd_EffectsStruct._2C = 0;
         animRelated[0x9A] = 1;
         break;
@@ -231,7 +231,7 @@ BOOL fn_3_6B4C8(void) {
 
     if (animRelated[0x9A] == 0) {
         fn_80011A60();
-        hugeAnimStruct[0x2D77] = 0;
+        HUGE_ANIM_FLAG(0x2D77) = 0;
         animRelated[0x9A] = 1;
     }
 
@@ -239,10 +239,10 @@ BOOL fn_3_6B4C8(void) {
     value = *(s32*)((u8*)&Static_Stats_Tables + team * 4 + 0x46E0);
     if (fn_80016344(value, 12, 1, ((u8*)&Static_Stats_Tables)[team + 0x4709]) != 0) {
         for (i = 0; i < 9; i++) {
-            u8* obj = ((u8**)&hugeAnimStruct[0x2C50])[i];
+            u8* obj = (u8*)hugeAnimStruct.objects[i];
             if ((s8)obj[0x252] == *(s32*)((u8*)&Static_Stats_Tables + g_d_GameSettings.humanTeamNumber * 4 + 0x46E0)) {
-                *(u8**)&hugeAnimStruct[0x2C50 + i * 4] = &hugeAnimStruct[0x29D4];
-                *(s32*)&hugeAnimStruct[0x2C80] = 0;
+                hugeAnimStruct.objects[i] = hugeAnimStruct.pool[12];
+                hugeAnimStruct.objects[12] = NULL;
                 break;
             }
         }

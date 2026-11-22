@@ -28,6 +28,7 @@
 #include "Dolphin/stl.h"
 #include "stl/stdlib.h"
 #include "stl/math.h"
+#include "HugeAnimStruct.h"
 #undef g_Minigame
 
 typedef union _MGMinigame {
@@ -45,7 +46,6 @@ extern MGMinigame g_Minigame;
 #define SD_STAR_SPARK_INDEX 4
 
 extern u8 animRelated[0x124];
-extern u8 hugeAnimStruct[0x3154];
 extern f32 bB_barrelConsts[6];
 extern u8 lbl_80366158[0x30];
 extern u8 lbl_3_common_bss_35154[];
@@ -2146,7 +2146,7 @@ void barrelBatter_placeExplosionFlash(MGParticle* p) {
 
 // .text:0x14D2C0 size:0x58
 void barrelBatter_attachExplosionToBone(MGParticle* p) {
-    MGActorList* list = *(MGActorList**)(*(u8**)&hugeAnimStruct[0x68] + (p->_45 + 0x10) * 0x90 + 0x34);
+    MGActorList* list = *(MGActorList**)((u8*)hugeAnimStruct.actorTables[2] + (p->_45 + 0x10) * 0x90 + 0x34);
     MGActor* actor = list->actors[p->_46];
 
     p->origin.x = actor->mtx[0][3];
@@ -2896,7 +2896,7 @@ void minigameWinnerStars_initEffect(MGStarEffect* effect) {
 
 // .text:0x148FD0 size:0x370
 void minigameWinnerStars_resetParticle(MGStarEffect* effect, MGParticle* p) {
-    f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
+    f32* actor = (f32*)hugeAnimStruct.objects[effect->index];
     u8 lo = minigameWinnerStars_params[6];
     s32 base = minigameWinnerStars_params[6];
     u8 range;
@@ -2939,7 +2939,7 @@ void minigameWinnerStars_getLaunchVelocity(MGParticle* p, f32 degrees) {
 // .text:0x14841C size:0xAD4
 int minigameWinnerStars_update(MGStarEffect* effect) {
     MGParticle* p = effect->particles;
-    f32* actor = ((f32**)(hugeAnimStruct + 0x2C50))[effect->index];
+    f32* actor = ((f32**)hugeAnimStruct.objects)[effect->index];
 
     minigameWinnerStars_beginDraw();
     do {
@@ -2990,7 +2990,7 @@ E(u8, BOOL) minigameWinnerStars_rollTurn(void) {
 void minigameWinnerStars_setupMtx(MGStarEffect* effect, MGParticle* p) {
     f32 halfW = p->sizeX / 2.0f;
     f32 halfH = p->sizeY / 2.0f;
-    f32* actor = *(f32**)(hugeAnimStruct + 0x2C50 + effect->index * 4);
+    f32* actor = (f32*)hugeAnimStruct.objects[effect->index];
     f32* v = minigameWinnerStars_quadVerts;
     Mtx mtx;
     Vec pos;

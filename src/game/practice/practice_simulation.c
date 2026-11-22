@@ -18,8 +18,8 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "Unknown/File_0x80062a94.h"
 #include "text/text.h"
+#include "HugeAnimStruct.h"
 
-extern u8 hugeAnimStruct[];
 typedef struct PracticeProgressView {
     /* 0x0000 */ u8 _00[0xCF4E];
     /* 0xCF4E */ u8 levelCompleted[4][4];
@@ -52,7 +52,6 @@ extern BOOL fn_3_90C14(int arg);
 extern void* ARAMTransfer(void* file, s32 arg1, s32 arg2, s32 arg3);
 extern void SetGameStatus(int status);
 
-#define ANIM_BYTE(offset) (hugeAnimStruct[(offset)])
 #define ANIM_HALF(offset) (*(s16*)&animRelated[(offset)])
 #define CHAR_STATIC_TRACKER_IDX(charID) characterStaticIndexes[(charID) * 6 + 1]
 #define CHAR_STATIC_ROW(charID) characterStaticIndexes[(charID) * 6 + 2]
@@ -128,7 +127,7 @@ static inline void practiceResetForMenu(void) {
     int col;
     insertGraphicDrawingFunction(possiblyTransitionBlackScreen, 2);
     insertGraphicDrawingFunction(drawStadium, 4);
-    *(volatile u8*)&ANIM_BYTE(0x307E) = FALSE;
+    *(volatile u8*)&hugeAnimStruct._307E = FALSE;
     practice->practiceType = PRACTICE_TYPE_PITCHING;
     practice->baserunningActiveRunners[0] = FALSE;
     practice->baserunningActiveRunners[1] = FALSE;
@@ -195,9 +194,9 @@ void loadPracticeScreen(void) {
         break;
     default:
         g_Practice.menuGraphicsLoaded = FALSE;
-        ANIM_BYTE(0x2D77) = FALSE;
-        ANIM_BYTE(0x2D7B) = FALSE;
-        ANIM_BYTE(0x2D7C) = FALSE;
+        HUGE_ANIM_FLAG(0x2D77) = FALSE;
+        HUGE_ANIM_FLAG(0x2D7B) = FALSE;
+        HUGE_ANIM_FLAG(0x2D7C) = FALSE;
         practice_loadAllGraphics(g_GameLogic.teamFielding);
         g_Practice.lakituTextIndex = -1;
         g_Practice.returnToPracticeMenuState = 1;
@@ -273,7 +272,7 @@ void practiceLoadingRelatedMaybe(void) {
     int col;
     insertGraphicDrawingFunction(possiblyTransitionBlackScreen, 2);
     insertGraphicDrawingFunction(drawStadium, 4);
-    ANIM_BYTE(0x307E) = FALSE;
+    hugeAnimStruct._307E = FALSE;
     g_Practice.practiceType = PRACTICE_TYPE_PITCHING;
     g_Practice.baserunningActiveRunners[0] = FALSE;
     g_Practice.baserunningActiveRunners[1] = FALSE;
@@ -423,8 +422,8 @@ void practiceRelatedReset(void) {
     g_GameLogic.freeFieldingPracticeInd = FALSE;
     g_Practice.instructionNumber = -1;
     g_Practice.transitioningIndicator = FALSE;
-    ANIM_BYTE(0x307E) = TRUE;
-    ANIM_BYTE(0x307A) = TRUE;
+    hugeAnimStruct._307E = TRUE;
+    hugeAnimStruct._307A = TRUE;
     fn_3_6AEC0();
     fn_3_8F1C8();
     resetInMemFielders();

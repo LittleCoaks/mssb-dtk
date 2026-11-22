@@ -36,6 +36,7 @@
 #include "game/stadium/sta_c6.h"
 #include "game/stadium/sta_c2.h"
 #include "Unknown/File_0x80034e20.h"
+#include "HugeAnimStruct.h"
 
 typedef struct _StadiumBounds {
     Vec min;
@@ -275,15 +276,7 @@ typedef struct _StadiumLightInput {
     GXColor color;
 } StadiumLightInput;
 
-extern struct {
-    /*0x0000*/ u8 _00[8];
-    /*0x0008*/ void* stadiumFile;
-    /*0x000C*/ u8 _0C[0x60];
-    /*0x006C*/ StadiumPropEntry* propEntries;
-    /*0x0070*/ u8 _70[0x3088 - 0x70];
-    /*0x3088*/ u8 objectsInitialized;
-    /*0x3089*/ u8 _3089[0x3154 - 0x3089];
-} hugeAnimStruct;
+#define STADIUM_PROP_ENTRIES ((StadiumPropEntry*)hugeAnimStruct.actorTables[3])
 typedef struct _StadiumLightParams {
     u8 lights[4][10];
     GXColor ambient;
@@ -328,7 +321,7 @@ void loadStadiumLighting(int stadiumType, void* stadiumData) {
         stadiumObjectCollision.objectScratch = _OSAllocFromHeap(4, stadiumObjectCollision.objectCount << 3);
         fn_8001B214(fn_3_B8298);
         stadiumObjectCollision.rngConfig = rand();
-        hugeAnimStruct.objectsInitialized = 1;
+        hugeAnimStruct._3088 = 1;
         lbl_3_bss_1901 = 0;
     }
 }
@@ -398,25 +391,25 @@ BOOL loadStadiumObjects(int stadiumId) {
     if (lbl_803C6CF8[0x715] == 1) {
         switch (stadiumId) {
         case STADIUM_ID_MARIO_STADIUM:
-            hugeAnimStruct.stadiumFile = ARAMTransfer(StadiumPropFiles[STADIUM_ID_MARIO_STADIUM], 0, 0, 0);
+            hugeAnimStruct.stadiumObjectLoading = ARAMTransfer(StadiumPropFiles[STADIUM_ID_MARIO_STADIUM], 0, 0, 0);
             break;
         case STADIUM_ID_BOWSERS_CASTLE:
-            hugeAnimStruct.stadiumFile = ARAMTransfer(StadiumPropFiles[STADIUM_ID_BOWSERS_CASTLE], 0, 0, 0);
+            hugeAnimStruct.stadiumObjectLoading = ARAMTransfer(StadiumPropFiles[STADIUM_ID_BOWSERS_CASTLE], 0, 0, 0);
             break;
         case STADIUM_ID_WARIO_PALACE:
-            hugeAnimStruct.stadiumFile = ARAMTransfer(StadiumPropFiles[STADIUM_ID_WARIO_PALACE], 0, 0, 0);
+            hugeAnimStruct.stadiumObjectLoading = ARAMTransfer(StadiumPropFiles[STADIUM_ID_WARIO_PALACE], 0, 0, 0);
             break;
         case STADIUM_ID_YOHSI_PARK:
-            hugeAnimStruct.stadiumFile = ARAMTransfer(StadiumPropFiles[STADIUM_ID_YOHSI_PARK], 0, 0, 0);
+            hugeAnimStruct.stadiumObjectLoading = ARAMTransfer(StadiumPropFiles[STADIUM_ID_YOHSI_PARK], 0, 0, 0);
             break;
         case STADIUM_ID_PEACH_GARDEN:
-            hugeAnimStruct.stadiumFile = ARAMTransfer(StadiumPropFiles[STADIUM_ID_PEACH_GARDEN], 0, 0, 0);
+            hugeAnimStruct.stadiumObjectLoading = ARAMTransfer(StadiumPropFiles[STADIUM_ID_PEACH_GARDEN], 0, 0, 0);
             break;
         case STADIUM_ID_DK_JUNGLE:
-            hugeAnimStruct.stadiumFile = ARAMTransfer(StadiumPropFiles[STADIUM_ID_DK_JUNGLE], 0, 0, 0);
+            hugeAnimStruct.stadiumObjectLoading = ARAMTransfer(StadiumPropFiles[STADIUM_ID_DK_JUNGLE], 0, 0, 0);
             break;
         case STADIUM_ID_TOY_FIELD:
-            hugeAnimStruct.stadiumFile = ARAMTransfer(StadiumPropFiles[STADIUM_ID_TOY_FIELD], 0, 0, 0);
+            hugeAnimStruct.stadiumObjectLoading = ARAMTransfer(StadiumPropFiles[STADIUM_ID_TOY_FIELD], 0, 0, 0);
             break;
         default:
             return -1;
@@ -432,7 +425,7 @@ BOOL loadStadiumObjects(int stadiumId) {
 void calledWhileMatchIsLoading(void) {
     if (lbl_803C6CF8[0x715] == 1) {
         stadiumObjectCollision.objectsLoaded = 0;
-        loadStadiumLighting(g_d_GameSettings.StadiumID, hugeAnimStruct.stadiumFile);
+        loadStadiumLighting(g_d_GameSettings.StadiumID, hugeAnimStruct.stadiumObjectLoading);
         removeCurrentDrawingItem();
     }
 }
@@ -522,12 +515,12 @@ void cleanupMinigameResources(void) {
         if (stadiumObjectCollision.objects != NULL) {
             fn_800ACFB0(stadiumObjectCollision.objects);
         }
-        if (hugeAnimStruct.propEntries != NULL) {
+        if (STADIUM_PROP_ENTRIES != NULL) {
             for (n = stadiumObjectCollision.propCount; n != 0; n--) {
-                fn_800B4278(hugeAnimStruct.propEntries[n - 1].handle);
+                fn_800B4278(STADIUM_PROP_ENTRIES[n - 1].handle);
             }
-            fn_800ACFB0(hugeAnimStruct.propEntries);
-            hugeAnimStruct.propEntries = NULL;
+            fn_800ACFB0(STADIUM_PROP_ENTRIES);
+            STADIUM_PROP_ENTRIES = NULL;
         }
         if (stadiumObjectCollision._34 != NULL) {
             fn_800ACFB0(stadiumObjectCollision._34);
@@ -540,7 +533,7 @@ void cleanupMinigameResources(void) {
         if (stadiumObjectCollision.stadiumData != NULL) {
             fn_800ACFB0(stadiumObjectCollision.stadiumData);
         }
-        hugeAnimStruct.objectsInitialized = 0;
+        hugeAnimStruct._3088 = 0;
         fn_3_C1964();
         fn_3_16E328();
         fn_800528B4();
@@ -802,7 +795,7 @@ void loadStadiumObjectVisuals(Mtx view, int flag, u32 pass) {
     ambient = inputParams[g_d_GameSettings._54].ambient;
     restore = ambient;
     input = lbl_80367318;
-    if (hugeAnimStruct.objectsInitialized) {
+    if (hugeAnimStruct._3088) {
         GXSetCullMode(GX_CULL_BACK);
         GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
         for (i = 0; i < 4; i++) {

@@ -13,6 +13,7 @@
 #include "Unknown/File_0x800625a4.h"
 #include "menus/text_0323C.h"
 #include "menus/css_work.h"
+#include "HugeAnimStruct.h"
 
 #define DPAD_MASK (INPUT_BUTTON_LEFT | INPUT_BUTTON_RIGHT | INPUT_BUTTON_DOWN | INPUT_BUTTON_UP)
 
@@ -30,15 +31,6 @@ void fn_2_1A88(void);
 void *fn_8001CB10(void *arg0, int arg1);
 void fn_8001CCC8(void *arg0);
 
-typedef struct {
-    /* 0x0000 */ u8 _pad0[0xAC];
-    /* 0x00AC */ void *_AC[4];
-    /* 0x00BC */ u8 _pad1[0x2C50 - 0xBC];
-    /* 0x2C50 */ void *_2C50[4];
-    /* 0x2C60 */ u8 _pad2[0x3154 - 0x2C60];
-} HugeAnimStruct; // size: 0x3154
-
-extern HugeAnimStruct hugeAnimStruct;
 extern u8 lbl_2_bss_10164[0x48];
 
 typedef struct {
@@ -181,7 +173,7 @@ void fn_2_166CC(void) {
 void fn_2_16664(void) {
     int i;
     for (i = 0; i < 4; i++) {
-        LITXForm(hugeAnimStruct._AC[i], &lbl_2_bss_10164[0x14]);
+        LITXForm(hugeAnimStruct.lights[i], &lbl_2_bss_10164[0x14]);
     }
 }
 
@@ -536,7 +528,7 @@ void captainSelect_APress(int idx) {
         return;
     }
 
-    if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && *((u8 *)hugeAnimStruct._2C50[c] + 0x25D) == 0 && c != 0) {
+    if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && *((u8 *)hugeAnimStruct.objects[c] + 0x25D) == 0 && c != 0) {
         return;
     }
 

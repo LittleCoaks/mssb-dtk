@@ -12,13 +12,13 @@
 #include "game/animation/animation_dispatch.h"
 #include "game/pitching/pitcher_stamina.h"
 #include "Unknown/File_0x800204cc.h"
+#include "HugeAnimStruct.h"
 
 extern u8 lbl_80354768[];
 #define PRACTICE_PROGRESS_FLAGS ((u8 (*)[4])(&lbl_80354768[0xCF4E]))
 extern u8 baserunningPractice_activeRunners[16];
 extern void *practice_instructions_baserunningPtrs[4];
 extern u8 animRelated[0x124];
-extern u8 hugeAnimStruct[0x3154];
 extern u8 highLevelSimulationFlag[4];
 extern void practiceLogicRelatedPause(void);
 extern int loadGuidedPractice(void);
@@ -37,7 +37,7 @@ void baseRunningPracticeControl(void) {
         case PRACTICE_STATE_0:
             g_GameLogic.currentBatterPerTeam[0] = 1;
             g_GameLogic.currentBatterPerTeam[1] = 1;
-            hugeAnimStruct[0x307D] = 0;
+            hugeAnimStruct._307D = 0;
             g_Practice.baserunningActiveRunners[0] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4];
             g_Practice.baserunningActiveRunners[1] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4 + 1];
             g_Practice.baserunningActiveRunners[2] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4 + 2];
@@ -106,7 +106,7 @@ void practiceRel(void) {
     case PRACTICE_STATE_0:
         g_GameLogic.currentBatterPerTeam[0] = 1;
         g_GameLogic.currentBatterPerTeam[1] = 1;
-        hugeAnimStruct[0x307D] = 0;
+        hugeAnimStruct._307D = 0;
         for (i = 0; i < ARRAY_COUNT(g_Practice.baserunningActiveRunners); i++) {
             g_Practice.baserunningActiveRunners[i] = baserunningPractice_activeRunners[g_Practice.practiceLevel * 4 + i];
         }

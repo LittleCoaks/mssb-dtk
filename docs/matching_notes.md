@@ -2,16 +2,16 @@
 
 Durable, cross-file findings promoted out of individual `match` grind
 sessions. The per-file checkpoint at
-`build/.match_grind/<unit>.md` is gitignored scratch — it holds a session's
-raw hypothesis log and is deleted once that file hits 100%. Anything in it
-that's likely to recur in *other* files gets promoted here instead, so it
-survives the prune and is visible to the next person (or agent) who runs into
-the same shape of problem.
+`docs/match_grind/<unit>.md` is tracked in git — it holds that file's raw
+hypothesis log and is kept (marked `Status: complete`) once the file hits
+100%. Anything in it that's likely to recur in *other* files gets promoted
+here as well, so the next person (or agent) who runs into the same shape of
+problem finds it without reading every per-file log.
 
 Add a new entry whenever a grind session finds something reusable. Keep
 entries short: what the pattern looks like, what it means, and where it was
 first seen. This is not a log of every attempt — that's what the per-file
-checkpoint is for while it's still alive.
+checkpoint is for.
 
 ## MWCC codegen signatures
 
@@ -273,7 +273,7 @@ First run through in full on `game/game/batting/batter`'s `lbl_3_bss_34`
 (target reports 0xC bytes at `.bss:0x34`, `scope:local`; our source only had
 a 4-byte non-static `int`) — all four checks came back negative, so the
 inflation-bug theory was dropped. See
-`build/.match_grind/game_game_batting_batter.md` (Session 8) for the full
+`docs/match_grind/game_game_batting_batter.md` (Session 8) for the full
 trace; the true content of the extra 8 bytes remains an open, honestly-
 documented gap (no code anywhere in the game touches them, per
 `tools/ghidra_query.py data <addr>`), not something this checklist can
@@ -4013,7 +4013,7 @@ units reached 100%.
 
 Second pass on `src/menus/text_110B0.c` (.text 95.12 -> 98.77, 2 -> 5 of 7 functions at 100%)
 and `src/menus/main_menu.c` (.text 91.42 -> 99.43, .data 100; 7 -> 12 of 15). Neither unit is at 100%, so
-neither is flipped. Checkpoints: `build/.match_grind/menus_menus_{text_110B0,main_menu}.md`.
+neither is flipped. Checkpoints: `docs/match_grind/menus_menus_{text_110B0,main_menu}.md`.
 
 - **`sym+0x8@ha` in the target means dtk merged several small `.sbss` objects into one symbol.**
   Every menu-REL reference to `lbl_803CBCD0` (0x18) was `+0x8` or `+0x10`, and the DOL reads
@@ -4064,7 +4064,7 @@ neither is flipped. Checkpoints: `build/.match_grind/menus_menus_{text_110B0,mai
 
 Second pass on `src/menus/captain_select/captain_select.c` (.text 96.23 -> 98.77, .data now owned
 and 100%; 9 -> 12 of 17 functions at 100%). Not flipped: four functions are still short. Checkpoint:
-`build/.match_grind/menus_menus_captain_select_captain_select.md`.
+`docs/match_grind/menus_menus_captain_select_captain_select.md`.
 
 - **A pooled `base + 0x418` into another symbol means the unit owns that `.data`.** fn_2_16460 read
   three camera vectors as `lbl_2_data_19E8 + 0x418/0x424/0x430` (first field folded, the others
@@ -4141,7 +4141,7 @@ Next serial pass: start with `fn_2_802EC`, `fn_2_7FAFC`, `fn_2_805DC`, and
 `captainSelectUnloadCSSLoadRelated` (97–99%). Their zero-step test commonly emits
 a direct compare where the target materializes the predicate with CLZ; an inline
 BOOL predicate and an explicit u8 boolean cast did not help. The existing detailed
-checkpoint is `build/.match_grind/menus_menus_text_7E380.md`.
+checkpoint is `docs/match_grind/menus_menus_text_7E380.md`.
 
 The inlined first-match roster-slot search is also called with its result ignored
 in `fn_2_7F714`; MWCC preserves the target's otherwise dead comparisons. Avoid
@@ -4208,7 +4208,7 @@ Best continuation targets are `fn_2_805DC` (99.93%, one register choice),
 `fn_2_7EF68` (99.4%, intermediate handle register), and
 `captainSelectUnloadCSSLoadRelated` (99.16%, commuted add operands). Detailed
 tried/reverted variants and current source backups are recorded in
-`build/.match_grind/menus_menus_text_7E380.md`.
+`docs/match_grind/menus_menus_text_7E380.md`.
 
 Final verification: full `ninja` build, fresh all-fourteen-function comparison,
 and `git diff --check` passed; no emulator testing. Baseline and final audit files
@@ -4276,7 +4276,7 @@ Baseline/final evidence: `build/_menus_parallel7E380_baseline.json` and
 `build/_menus_parallel7E380_final.json`; full build log:
 `build/_menus_parallel7E380_full_build.log`. Complete per-worker hypothesis logs,
 remaining differences and status table are in
-`build/.match_grind/menus_menus_text_7E380.md`.
+`docs/match_grind/menus_menus_text_7E380.md`.
 
 Next leads: cssRemoveCharacter1/2 for the largest residual gaps, or cssReady,
 fn_2_7EF68, and cssUnready for near matches. Preserve the now-correct loop

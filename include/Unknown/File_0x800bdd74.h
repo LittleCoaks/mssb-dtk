@@ -30,7 +30,7 @@ struct ActorObjectEntry {
 }; // size: 0x90
 
 /* Allocated by ActorObjectInitTable with `count` entries. */
-typedef struct {
+typedef struct ActorObjectTable {
     /* 0x00 */ u16 count;
     /* 0x04 */ Mtx mtx;
     /* 0x34 */ ActorObjectEntry entries[1];

@@ -15,12 +15,9 @@
 #include "Dolphin/gx.h"
 #include "Dolphin/rand.h"
 #include "game/match_setup/pause_menu.h"
+#include "HugeAnimStruct.h"
 
-// This file's own local view of hugeAnimStruct (extern, defined elsewhere):
-// only the object-pointer array at +0x2C50 is touched here. Per-TU local
-// views of this same global already exist elsewhere (AnimView in
-// animation_dispatch.c, the anonymous struct in actor_transform.c); this is
-// another one, not a shared type.
+// The fields this file uses of an animation object in hugeAnimStruct.
 typedef struct MinigameAnimObj {
     u8 _00[0x34];
     f32 _34;
@@ -55,28 +52,8 @@ typedef struct MinigameModelRec {
     u8 _27;
 } MinigameModelRec;
 
-typedef struct MinigameHugeAnimView {
-    u8 _0000[0x2294];
-    f32 _2294;
-    f32 _2298;
-    f32 _229C;
-    u8 _22A0[4];
-    f32 _22A4;
-    u8 _22A8[0x24BD - 0x22A8];
-    u8 _24BD;
-    u8 _24BE[0x2C50 - 0x24BE];
-    MinigameAnimObj *objects[13];
-    u8 _2C84[0x2D68 - 0x2C84];
-    s16 _2D68;
-    u8 _2D6A[0x2D94 - 0x2D6A];
-    MinigameModelRec *models;
-    u8 _2D98[0x307A - 0x2D98];
-    u8 _307A;
-    u8 _307B[0x3087 - 0x307B];
-    u8 _3087;
-} MinigameHugeAnimView;
-
-extern MinigameHugeAnimView hugeAnimStruct;
+#define ANIM_OBJ(i) ((MinigameAnimObj*)hugeAnimStruct.objects[i])
+#define ANIM_MODELS ((MinigameModelRec*)hugeAnimStruct.actorEntries)
 
 // This file's own local view of g_UnkAnimation_31EAC (AnimSlot[9] in
 // animation_dispatch.c); only fields _28 and _42 are touched here.
@@ -172,8 +149,8 @@ void graphicsFunction_minigames(void) {
 
     if (hugeAnimStruct._307A == 0) {
         for (i = 0; i < 4; i++) {
-            if (hugeAnimStruct.objects[i] != NULL) {
-                hugeAnimStruct.objects[i]->_25D = 0;
+            if (ANIM_OBJ(i) != NULL) {
+                ANIM_OBJ(i)->_25D = 0;
             }
         }
         resetAnimationRelatedPointers();
@@ -226,8 +203,8 @@ void updateMinigameFielderAnimations(void) {
         status != GAME_STATUS_TRANSITION_MINIGAME_TO_BATTING &&
         !(g_Minigame.GameMode_MiniGame == MINI_GAME_ID_WALLBALL && status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY)) {
         for (i = 0; i < 4; i++) {
-            if (hugeAnimStruct.objects[i] != NULL) {
-                hugeAnimStruct.objects[i]->_25D = 0;
+            if (ANIM_OBJ(i) != NULL) {
+                ANIM_OBJ(i)->_25D = 0;
             }
         }
         resetAnimationRelatedPointers();
@@ -236,8 +213,8 @@ void updateMinigameFielderAnimations(void) {
     }
 
     for (i = 0; i < 4; i++) {
-        if (hugeAnimStruct.objects[i] != NULL) {
-            hugeAnimStruct.objects[i]->_25D = 0;
+        if (ANIM_OBJ(i) != NULL) {
+            ANIM_OBJ(i)->_25D = 0;
         }
     }
 
@@ -258,7 +235,7 @@ void updateMinigameFielderAnimations(void) {
         }
 
         if ((curStatus = g_GameLogic.gameStatus) == GAME_STATUS_INNING_TRANSITION) {
-            MinigameAnimObj *idleObj = hugeAnimStruct.objects[ctrlByte];
+            MinigameAnimObj *idleObj = ANIM_OBJ(ctrlByte);
 
             if (idleObj != NULL) {
                 idleObj->_25D = 0;
@@ -274,7 +251,7 @@ void updateMinigameFielderAnimations(void) {
             }
             fielderSlot = (s8)fielderIdx;
 
-            obj = hugeAnimStruct.objects[ctrlByte];
+            obj = ANIM_OBJ(ctrlByte);
             if (obj == NULL) {
                 continue;
             }
@@ -337,7 +314,7 @@ void updateMinigameFielderAnimations(void) {
                 }
             }
 
-            runnerObj = hugeAnimStruct.objects[ctrlByte];
+            runnerObj = ANIM_OBJ(ctrlByte);
             if (runnerObj == NULL) {
                 continue;
             }
@@ -397,10 +374,10 @@ void fn_3_E1370(int mode) {
 
     for (i = 0; i < 4; i++) {
         if (mode == 3) {
-            obj = hugeAnimStruct.objects[i];
+            obj = ANIM_OBJ(i);
 
             if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-                obj = hugeAnimStruct.objects[9];
+                obj = ANIM_OBJ(9);
                 if (i >= 1) {
                     return;
                 }
@@ -418,8 +395,8 @@ void hideMinigameFielders(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
-        if (hugeAnimStruct.objects[i] != NULL) {
-            hugeAnimStruct.objects[i]->_25D = 0;
+        if (ANIM_OBJ(i) != NULL) {
+            ANIM_OBJ(i)->_25D = 0;
         }
     }
     resetAnimationRelatedPointers();
@@ -433,7 +410,7 @@ void charSelectPlaceFielders(void) {
     hugeAnimStruct._2D68 = -1;
 
     for (i = 0; i < 4; i++) {
-        MinigameAnimObj *obj = hugeAnimStruct.objects[i];
+        MinigameAnimObj *obj = ANIM_OBJ(i);
         s8 loadedChar;
         s8 charReady;
         s8 slotState;
@@ -504,8 +481,8 @@ void minigameUpdateResultsScene(void) {
 
     if (g_GameLogic.gameStatus == GAME_STATUS_TRANSITION_MINIGAME_POSTGAME || showWinners) {
         for (i = 0; i < 4; i++) {
-            if (hugeAnimStruct.objects[i] != NULL) {
-                hugeAnimStruct.objects[i]->_25D = 0;
+            if (ANIM_OBJ(i) != NULL) {
+                ANIM_OBJ(i)->_25D = 0;
             }
         }
         return;
@@ -643,28 +620,28 @@ void minigameUpdateResultsScene(void) {
 
     if (g_d_GameSettings.minigamesEnabled == 0) {
         int idx;
-        MinigameHugeAnimView *h = &hugeAnimStruct;
+        HugeAnimStruct *h = &hugeAnimStruct;
 
         for (idx = 0; idx < 6; idx++) {
             if (g_d_GameSettings.StadiumID == mapping_minigame_Stadium[idx]) {
                 break;
             }
         }
-        h->_24BD = 1;
+        ((MinigameAnimObj*)h->pool[9])->_25D = 1;
         rotate2DByAngle(resultsFielderMinigameOffsets[idx][3], resultsFielderMinigameOffsets[idx][0], resultsFielderMinigameOffsets[idx][2], &v.x, &v.z);
         v.y = resultsFielderMinigameOffsets[idx][1];
-        h->_2294 = v.x + resultsFielderOffsets[0][0][0];
-        h->_2298 = v.y + resultsFielderOffsets[0][0][1];
-        h->_229C = v.z + resultsFielderOffsets[0][0][2];
-        h->_2298 = -h->_2298;
-        h->_22A4 = resultsFielderMinigameOffsets[idx][3];
+        ((MinigameAnimObj*)h->pool[9])->_34 = v.x + resultsFielderOffsets[0][0][0];
+        ((MinigameAnimObj*)h->pool[9])->_38 = v.y + resultsFielderOffsets[0][0][1];
+        ((MinigameAnimObj*)h->pool[9])->_3C = v.z + resultsFielderOffsets[0][0][2];
+        ((MinigameAnimObj*)h->pool[9])->_38 = -((MinigameAnimObj*)h->pool[9])->_38;
+        ((MinigameAnimObj*)h->pool[9])->_44 = resultsFielderMinigameOffsets[idx][3];
         return;
     }
 
     k = 0;
     participants = g_Minigame.miniGameNumberOfParticipants;
     for (i = 0; i < 4; i++) {
-        MinigameAnimObj *obj = hugeAnimStruct.objects[i];
+        MinigameAnimObj *obj = ANIM_OBJ(i);
 
         if (obj == NULL) {
             continue;
@@ -724,7 +701,7 @@ void toyFieldSetCoinScaleAndSpin(void) {
     int i;
 
     for (i = 0; i < 30; i++) {
-        rec = &hugeAnimStruct.models[i];
+        rec = &ANIM_MODELS[i];
 
         applyUniformScaleToObject(lbl_3_data_18D98[0], i);
         rec->_14 = shortAngleToRad_Capped((s16)(rand() % SANG_MAX_ANGLE));
@@ -737,7 +714,7 @@ void toyFieldUpdateCoinModels(void) {
     int i;
 
     for (i = 0; i < 30; i++) {
-        rec = &hugeAnimStruct.models[i];
+        rec = &ANIM_MODELS[i];
 
         if (g_Minigame.coinState[i] == 0) {
             rec->_26 = FALSE;

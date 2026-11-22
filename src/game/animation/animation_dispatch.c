@@ -8,6 +8,7 @@
 #include "game/stats/stat_lookups.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_animationDispatch
 #include "header_rep_data.h"
+#include "HugeAnimStruct.h"
 
 // Declared here instead of through game_math.h: callers in this file re-extend
 // each s16 result, which is what an int-returning declaration produces.
@@ -67,16 +68,6 @@ typedef struct AnimTrackBlock {
     /*0x00*/ u8 _00[0x38];
     /*0x38*/ AnimTrack tracks[4];
 } AnimTrackBlock;
-
-typedef struct AnimView {
-    /*0x0000*/ u8 _0000[0x60];
-    /*0x0060*/ AnimTrackBlock* trackBlock;
-    /*0x0064*/ u8 _0064[0xC04 - 0x64];
-    /*0x0C04*/ AnimObject pool[13];
-    /*0x2C50*/ AnimObject* objects[13];
-    /*0x2C84*/ u8 _2C84[0x307D - 0x2C84];
-    /*0x307D*/ u8 _307D;
-} AnimView;
 
 typedef struct PlayTracking {
     /*0x00*/ s16 _00;
@@ -150,7 +141,9 @@ typedef struct RunnerAnimSlot {
     /*0x1E*/ u8 _1E[0x20 - 0x1E];
 } RunnerAnimSlot;
 
-extern AnimView hugeAnimStruct;
+#define ANIM_OBJ(i) ((AnimObject*)hugeAnimStruct.objects[i])
+#define ANIM_POOL(i) ((AnimObject*)hugeAnimStruct.pool[i])
+#define ANIM_TRACK_BLOCK ((AnimTrackBlock*)hugeAnimStruct.actorTables[0])
 extern RunnerAnimSlot lbl_3_common_bss_321A0[4];
 extern s16 lbl_3_data_7870[][3];
 extern AnimSlot g_UnkAnimation_31EAC[9];
@@ -301,7 +294,7 @@ void resetAndRunAnimations(int arg) {
                 continue;
             }
         }
-        obj = hugeAnimStruct.objects[slotIdx];
+        obj = ANIM_OBJ(slotIdx);
         slot->_38 = 0;
         slot->_3A = 0;
         slot->_42 = 0;
@@ -362,7 +355,7 @@ void unsure_updateAnimations(void) {
     }
 
     for (i = 0; i < 13; i++) {
-        hugeAnimStruct.pool[i]._274 = 0;
+        ANIM_POOL(i)->_274 = 0;
     }
 
     if (g_d_GameSettings.minigamesEnabled) {
@@ -375,10 +368,10 @@ void unsure_updateAnimations(void) {
     }
 
     for (i = 0; i < 13; i++) {
-        obj = hugeAnimStruct.objects[i];
-        if (hugeAnimStruct.objects[i] != NULL && hugeAnimStruct.objects[i]->_25D != 0) {
+        obj = ANIM_OBJ(i);
+        if (ANIM_OBJ(i) != NULL && ANIM_OBJ(i)->_25D != 0) {
             f32 time = 1.0f;
-            int bone = (hugeAnimStruct.objects[i] != NULL) ? hugeAnimStruct.objects[i]->boneIndex : 0xFFFF;
+            int bone = (ANIM_OBJ(i) != NULL) ? ANIM_OBJ(i)->boneIndex : 0xFFFF;
 
             if (bone != 0xFFFF) {
                 time = getActorBoneAnimTime(*getAnimObjectActor(obj), bone);
@@ -388,9 +381,9 @@ void unsure_updateAnimations(void) {
     }
 
     if (g_Stats.replayInd != 0 && g_Stats.playFrameCounter == 1) {
-        if (hugeAnimStruct.objects[9] != NULL && g_Stats._0034 != 0) {
-            hugeAnimStruct.objects[9]->framesLeft = g_Stats._0034 - 1;
-            hugeAnimStruct.objects[9]->_70 = g_Stats._0034 - 1;
+        if (ANIM_OBJ(9) != NULL && g_Stats._0034 != 0) {
+            ANIM_OBJ(9)->framesLeft = g_Stats._0034 - 1;
+            ANIM_OBJ(9)->_70 = g_Stats._0034 - 1;
         }
     }
 
@@ -400,7 +393,7 @@ void unsure_updateAnimations(void) {
         VEC_COPY(&slot->prevPos, &slot->pos);
         fielder->_020A = 0;
         idx = i;
-        obj = hugeAnimStruct.objects[i];
+        obj = ANIM_OBJ(i);
         if (g_d_GameSettings.minigamesEnabled) {
             for (j = 0; j < 4; j++) {
                 if ((s8)g_Minigame.minigameFielderIndex[j] == i) {
@@ -411,7 +404,7 @@ void unsure_updateAnimations(void) {
                 continue;
             }
             idx = g_Minigame.playerSlots.characterIndex[j];
-            obj = hugeAnimStruct.objects[j];
+            obj = ANIM_OBJ(j);
         }
 
         if (slot->_50 != 0) {
@@ -479,11 +472,11 @@ void unsure_updateAnimations(void) {
     }
 
     if (g_FieldingLogic.pitcher_inPitchingState != 0) {
-        pitcherObj = hugeAnimStruct.objects[0];
+        pitcherObj = ANIM_OBJ(0);
         idx = 0;
         if (g_d_GameSettings.minigamesEnabled) {
             idx = MINIGAME_SELECTED_SLOT();
-            pitcherObj = hugeAnimStruct.objects[idx];
+            pitcherObj = ANIM_OBJ(idx);
         }
         getAnimRelatedCoordinates(idx, 4, &g_UnkAnimation_31EAC[0].target);
         g_Pitcher.pitcherCoord.x = g_UnkAnimation_31EAC[0].target.x;
@@ -502,9 +495,9 @@ void unsure_updateAnimations(void) {
     }
 
     if (hugeAnimStruct._307D == 0) {
-        batterObj = hugeAnimStruct.objects[9];
+        batterObj = ANIM_OBJ(9);
         if (g_d_GameSettings.minigamesEnabled) {
-            batterObj = &hugeAnimStruct.pool[((s8*)&g_Minigame)[0x18CC + (s8)g_Minigame.rosterID]];
+            batterObj = ANIM_POOL(((s8*)&g_Minigame)[0x18CC + (s8)g_Minigame.rosterID]);
         }
 
         if (lbl_3_common_bss_32220._08 == 0) {
@@ -668,10 +661,10 @@ void minigameIdleAnimations(void) {
         int idx = i;
 
         flag = 0;
-        obj = hugeAnimStruct.objects[i];
+        obj = ANIM_OBJ(i);
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
             idx = 9;
-            obj = hugeAnimStruct.objects[9];
+            obj = ANIM_OBJ(9);
         }
         if (obj != NULL) {
             if (g_Minigame.selectSlots[i].loadedHandedness == 0 || g_Minigame.selectSlots[i].loadedHandedness == 2) {
@@ -891,7 +884,7 @@ void pitcherAnimation(void) {
         idx = g_Minigame.playerSlots.characterIndex[MINIGAME_SELECTED_ORDER];
     }
 
-    obj = hugeAnimStruct.objects[idx];
+    obj = ANIM_OBJ(idx);
     if (obj != NULL) {
         if (obj->animId == 0x44 && obj->_6A == 1) {
             playCharacterSound(obj->_252, 4);
@@ -1132,7 +1125,7 @@ void batterAnimations(void) {
         idx = g_Minigame.playerSlots.characterIndex[g_Minigame.rosterID];
     }
 
-    obj = hugeAnimStruct.objects[idx];
+    obj = ANIM_OBJ(idx);
     if (obj == NULL) {
         return;
     }
@@ -1481,14 +1474,14 @@ void runnerAnimation_general(int runnerIdx) {
     InMemRunnerType* runner = &g_Runners[runnerIdx];
     RunnerAnimSlot* slot = &lbl_3_common_bss_321A0[runnerIdx];
     int idx = runnerIdx + 9;
-    AnimObject* obj = hugeAnimStruct.objects[idx];
+    AnimObject* obj = ANIM_OBJ(idx);
     s16 animId;
     BOOL flag;
     u8 cls;
 
     if (g_d_GameSettings.minigamesEnabled) {
         idx = g_Minigame.playerSlots.runnerPlayerIndex[runnerIdx];
-        obj = hugeAnimStruct.objects[idx];
+        obj = ANIM_OBJ(idx);
     }
     if (obj != NULL) {
         animId = obj->animId;
@@ -1696,7 +1689,7 @@ void updateFielderAnimHints(int fielderIdx) {
 void latchCatchAnimation(int fielderIdx) {
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
     InMemFielder* fielder = &g_Fielders[fielderIdx];
-    AnimObject* obj = hugeAnimStruct.objects[fielderIdx];
+    AnimObject* obj = ANIM_OBJ(fielderIdx);
 
     if (slot->_4C == 0) {
         slot->_4C = fielder->catchAnimation;
@@ -1844,7 +1837,7 @@ void fielderAnimations_setAnimation(int fielderIdx) {
         }
     }
 
-    obj = hugeAnimStruct.objects[idx];
+    obj = ANIM_OBJ(idx);
     if (obj == NULL) {
         return;
     }
@@ -2128,7 +2121,7 @@ BOOL animationsForFielding(int fielderIdx) {
         }
     }
 
-    obj = hugeAnimStruct.objects[idx];
+    obj = ANIM_OBJ(idx);
     if (slot->_43 != 0) {
         return FALSE;
     }
@@ -2300,7 +2293,7 @@ BOOL fielderThrowingAnimations(int fielderIdx) {
         }
     }
 
-    obj = hugeAnimStruct.objects[idx];
+    obj = ANIM_OBJ(idx);
     if (obj == NULL) {
         return FALSE;
     }
@@ -2405,7 +2398,7 @@ BOOL fielderThrowWindupDone(int fielderIdx) {
         }
     }
 
-    obj = hugeAnimStruct.objects[idx];
+    obj = ANIM_OBJ(idx);
     if (obj == NULL) {
         return FALSE;
     }
@@ -2437,7 +2430,7 @@ BOOL fielderBodyCheckAnimation(int fielderIdx) {
         }
     }
 
-    obj = hugeAnimStruct.objects[idx];
+    obj = ANIM_OBJ(idx);
     state = slot->state;
     animId = obj->animId;
     if (state != 9 && g_Ball.fielderWBallIndex != fielderIdx) {
@@ -2490,7 +2483,7 @@ BOOL fielderBodyCheckAnimation(int fielderIdx) {
 BOOL minigameFielderAnimCheck(int fielderIdx) {
     AnimSlot* slot = &g_UnkAnimation_31EAC[fielderIdx];
     int idx = MINIGAME_SLOT_OF(fielderIdx);
-    AnimObject* obj = hugeAnimStruct.objects[idx];
+    AnimObject* obj = ANIM_OBJ(idx);
     s16 animId = obj->animId;
     s16 swingFrames = g_Minigame.pP_swingFrames[idx];
 
@@ -2572,7 +2565,7 @@ void updateFielderState(int fielderIdx, int reset) {
         }
     }
 
-    obj = hugeAnimStruct.objects[idx];
+    obj = ANIM_OBJ(idx);
     if (obj == NULL) {
         return;
     }
@@ -2610,7 +2603,7 @@ void resetAnimTracks(void) {
     int i;
 
     for (i = 0; i < 4; i++) {
-        AnimTrack* track = &hugeAnimStruct.trackBlock->tracks[i];
+        AnimTrack* track = &ANIM_TRACK_BLOCK->tracks[i];
 
         track->_00 = 0;
         track->_0A = 0;

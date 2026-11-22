@@ -35,6 +35,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
+#include "HugeAnimStruct.h"
 
 typedef struct _PalaceMaterialFlags {
     /*0x00*/ u8 _00[0x74];
@@ -87,7 +88,6 @@ typedef struct _PalaceAnimObject {
     /*0x34*/ Vec pos;
 } PalaceAnimObject;
 
-extern u8 hugeAnimStruct[0x3154];
 extern u8 lbl_80366158[0x30];
 extern u16 stadiumHazardSoundIDs[16];
 extern u8 stadiumHazardSoundFxRelated[0xB4];
@@ -365,8 +365,8 @@ void loadWarioPalace(void** files) {
     }
     propCount += sunCount;
     stadiumObjectCollision.propCount = propCount;
-    *(u8**)(hugeAnimStruct + 0x6C) = ActorObjectInitTable(propCount);
-    animTable = (u8**)(hugeAnimStruct + 0x6C);
+    ((u8*)hugeAnimStruct.actorTables[3]) = ActorObjectInitTable(propCount);
+    animTable = (u8**)&hugeAnimStruct.actorTables[3];
 
     idx = 0;
     for (i = 0; i < chompCount; i++) {
@@ -1462,7 +1462,7 @@ void chompState0(PalaceChompObj* obj) {
         }
         p = sel;
         for (i = 0; i < 4; i++) {
-            a = *(PalaceAnimObject**)(hugeAnimStruct + p[i] * 4 + 0x2C50);
+            a = (PalaceAnimObject*)hugeAnimStruct.objects[p[i]];
             if (a != 0) {
                 PSVECSubtract(&obj->pos, &a->pos, &d);
                 if (PSVECMag(&d) <= 12.5f) {
@@ -1793,7 +1793,7 @@ Vec* fn_3_D2684(StadiumObject* obj) {
     }
     p = sel;
     for (i = 0; i < 4; i++) {
-        a = *(PalaceAnimObject**)(hugeAnimStruct + p[i] * 4 + 0x2C50);
+        a = (PalaceAnimObject*)hugeAnimStruct.objects[p[i]];
         if (a != 0) {
             PSVECSubtract(&obj->pos, &a->pos, &d);
             if (PSVECMag(&d) <= 12.5f) {
@@ -3232,8 +3232,8 @@ void palaceMinigameObjectLoading(void** files, u32* ids) {
     }
     propCount = sandCount + 5;
     stadiumObjectCollision.propCount = propCount;
-    *(u8**)(hugeAnimStruct + 0x6C) = ActorObjectInitTable(propCount);
-    animTable = (u8**)(hugeAnimStruct + 0x6C);
+    ((u8*)hugeAnimStruct.actorTables[3]) = ActorObjectInitTable(propCount);
+    animTable = (u8**)&hugeAnimStruct.actorTables[3];
 
     animateBallRelated(*animTable, 0, 0, files[ids[1]], 0, 0);
     idx = 1;

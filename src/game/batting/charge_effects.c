@@ -18,6 +18,7 @@
 #include "Unknown/File_0x80052734.h"
 #include "C3/actor/actorAnim.h"
 #include "Unknown/File_0x800bda94.h"
+#include "HugeAnimStruct.h"
 
 typedef void (*ChargeTevCallback)(void* model, GXTevStageID* stage, GXTexCoordID* coord, GXTexMapID* map, s8* nStages, s8* nCoords);
 
@@ -119,12 +120,7 @@ typedef struct _ChargeSharedEffectsBlock {
 } ChargeSharedEffectsBlock;
 
 extern ChargeSharedEffectsBlock lbl_3_common_bss_35154;
-// This unit's view of hugeAnimStruct (0x3154 bytes); the actor table's real
-// length is unknown, so it is sized to run to the end of the block.
-extern struct {
-    /*0x0000*/ u8 _0000[0x2C50];
-    /*0x2C50*/ ChargeAnimActor* actors[(0x3154 - 0x2C50) / 4];
-} hugeAnimStruct;
+#define ANIM_OBJ(i) ((ChargeAnimActor*)hugeAnimStruct.objects[i])
 extern u8 drawStadiumRelated;
 extern struct {
     u8 _00[0x28];
@@ -199,7 +195,7 @@ int fn_3_C1930(int actorIndex) {
 
 // .text:0x000C1770 size:0x1C0 mapped:0x80700804
 void maybeConfigureChargeEffectGraphics(int actorIndex) {
-    ChargeAnimActor* actor = hugeAnimStruct.actors[actorIndex];
+    ChargeAnimActor* actor = ANIM_OBJ(actorIndex);
     int slot;
 
     if (actor == NULL) {
@@ -230,7 +226,7 @@ void applyChargeAnimationEffect(int actorIndex, f32 charge, f32 release, BOOL fu
     if (lbl_80366158._28 != 0) {
         return;
     }
-    actor = hugeAnimStruct.actors[actorIndex];
+    actor = ANIM_OBJ(actorIndex);
     if (actor == NULL) {
         return;
     }
@@ -274,7 +270,7 @@ void fn_3_C11CC(int actorIndex, BOOL immediate) {
         return;
     }
     if (immediate) {
-        actor = hugeAnimStruct.actors[actorIndex];
+        actor = ANIM_OBJ(actorIndex);
         if (actor != NULL) {
             actor->tevCallback = NULL;
         }
@@ -291,7 +287,7 @@ void fn_3_C11CC(int actorIndex, BOOL immediate) {
 // .text:0x000C1004 size:0x1C8 mapped:0x80700098
 void fn_3_C1004(void) {
     ChargeFadeNode* node = (ChargeFadeNode*)currentDrawingItem;
-    ChargeAnimActor* actor = hugeAnimStruct.actors[node->actorIndex];
+    ChargeAnimActor* actor = ANIM_OBJ(node->actorIndex);
     int slot = findChargeSlot(node->actorIndex);
 
     if (slot < 0) {
@@ -388,7 +384,7 @@ void fn_3_C0C4C(int slot) {
 // .text:0x000C0AD8 size:0x174 mapped:0x806FFB6C
 void fn_3_C0AD8(void) {
     ChargeGlowNode* node = (ChargeGlowNode*)currentDrawingItem;
-    ChargeAnimActor* actor = hugeAnimStruct.actors[node->actorIndex];
+    ChargeAnimActor* actor = ANIM_OBJ(node->actorIndex);
 
     if (node->stop == FALSE && actor != NULL) {
         fn_800A7D4C(0, &chargeGlowEntries[node->slot][drawStadiumRelated]);

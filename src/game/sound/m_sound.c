@@ -14,6 +14,7 @@
 #include "Unknown/File_0x80062a94.h"
 #include "Unknown/File_0x800a8cbc.h"
 #include "game/match_setup/pause_menu.h"
+#include "HugeAnimStruct.h"
 
 extern void processSoundReplayQueue(void);
 
@@ -69,7 +70,6 @@ typedef struct SoundEffectMix {
     u8 reverb;
 } SoundEffectMix;
 
-extern u8 hugeAnimStruct[];
 extern u8 animRelated[0x124];
 extern u8 lbl_3_common_bss_134C4[0x284];
 bool32 sndSeqLoop(s32 unk, bool32 b);
@@ -1240,10 +1240,10 @@ common:
     if (status == GAME_STATUS_TRANSITION_PREPARE_NEXT_PLAY || status == GAME_STATUS_DEFAULT) {
         return;
     }
-    if (hugeAnimStruct[0x2D46] != 0) {
+    if (hugeAnimStruct.loadSlots[0].state != 0) {
         return;
     }
-    if (hugeAnimStruct[0x2D52] != 0) {
+    if (hugeAnimStruct.loadSlots[1].state != 0) {
         return;
     }
 
@@ -1562,11 +1562,11 @@ void handleGameSound(void) {
         }
 
         if (g_Ball.pitchHangtimeCounter > 0 && g_Pitcher.framesUntilUnhittable < 30 &&
-            hugeAnimStruct[0x307D] == 0) {
-            actor = *(u8**)(hugeAnimStruct + 0x2C74);
+            hugeAnimStruct._307D == 0) {
+            actor = ((u8*)hugeAnimStruct.objects[9]);
             if (g_d_GameSettings.minigamesEnabled) {
                 actorIndex = g_Minigame.minigameControlStruct[0].characterIndex[g_Minigame.rosterID];
-                actor = hugeAnimStruct + 0xC04 + actorIndex * 0x27C;
+                actor = hugeAnimStruct.pool[actorIndex];
             }
             if (actor != NULL && *(s16*)(actor + 0x62) == 0x60 && *(s16*)(actor + 0x6A) == 5) {
                 playCharacterSound(g_Batter.charID, 3);
@@ -1574,7 +1574,7 @@ void handleGameSound(void) {
         }
     }
 
-    if (hugeAnimStruct[0x307D] == 0) {
+    if (hugeAnimStruct._307D == 0) {
         if (sound_crowd_EffectsStruct._2B != 0 && g_Ball.framesSinceHit == 2) {
             sound_crowd_EffectsStruct._2B = 0;
             sndFXKeyOff(lbl_3_bss_177C);

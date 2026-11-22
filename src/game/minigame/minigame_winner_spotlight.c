@@ -14,6 +14,7 @@
 #include "static/UnknownHomes_Static.h"
 #include <stdarg.h>
 #include <string.h>
+#include "HugeAnimStruct.h"
 
 // The minigame results spotlight: the screen dims to dimAlpha over fadeFrames,
 // then up to four light beams come down on the winners' actors (sized by
@@ -72,7 +73,6 @@ typedef struct {
 } SpotlightState;
 
 #define sState (*(SpotlightState*)lbl_3_common_bss_35154)
-extern u8 hugeAnimStruct[];
 extern u8 drawStadiumRelated;
 extern void fn_800A7D4C(s32, void*);
 
@@ -308,11 +308,6 @@ typedef struct {
     s8 charID;
 } SpotlightActor;
 
-typedef struct {
-    u8 _0000[0x2C50];
-    SpotlightActor* actors[4];
-} SpotlightAnimView;
-
 static inline SpotlightOverlay* getOverlay(void) {
     return &sOverlays[drawStadiumRelated];
 }
@@ -348,7 +343,7 @@ void minigameWinnerSpotlight_queue(int count, ...) {
         int used = 0;
         SpotlightBeam* beam = getOverlay()->beams;
         for (i = 0; i < 4; i++) {
-            SpotlightActor* actor = ((SpotlightAnimView*)hugeAnimStruct)->actors[i];
+            SpotlightActor* actor = (SpotlightActor*)hugeAnimStruct.objects[i];
             if (actor != 0) {
                 SpotlightBeamOffset* coords;
                 switch (counts[i]) {

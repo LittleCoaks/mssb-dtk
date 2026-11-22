@@ -22,6 +22,7 @@
 #include "game/sound/m_sound.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
+#include "HugeAnimStruct.h"
 
 // A display-list colour attribute: `formatBits >> 4` is the GXCompType colour format.
 typedef struct _ToyColorAttr {
@@ -148,7 +149,7 @@ typedef struct _ToyFieldObj {
 } ToyFieldObj;
 
 #define TOY_STATE_HOME 8
-#define TOY_ANIM_TABLE (*(u8**)(hugeAnimStruct + 0x6C))
+#define TOY_ANIM_TABLE (((u8*)hugeAnimStruct.actorTables[3]))
 #define TOY_PROP_SLOT 16
 #define TOY_PROP_COUNT 7
 
@@ -159,7 +160,6 @@ typedef struct _ToyAnimSlot {
     /*0xA4*/ u8 _A4[0x90 - 0x34 - sizeof(ACTActor)];
 } ToyAnimSlot;
 
-extern u8 hugeAnimStruct[0x3154];
 
 extern void fn_800BDA24(void* arg);
 extern void fn_800BD478(void* actor, void* file);

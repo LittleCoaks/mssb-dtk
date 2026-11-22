@@ -38,7 +38,7 @@ prompted building the `match` agent in the first place. 9 sessions across
 several distinct techniques (source restructuring, compiler flags/version,
 pragmas, function ordering) all confirmed-exhausted; see
 `docs/matching_notes.md` for the reusable findings and
-`build/.match_grind/game_game_batting_batter.md` (gitignored, local) for
+`docs/match_grind/game_game_batting_batter.md` for
 the full trace.
 
 ## Tier 2 — small quick-wins with real context
@@ -107,10 +107,10 @@ good fit here, and is what motivated the file-scoped, checkpointed match
 agents (`.claude/agents/match-sonnet.md` for the first pass,
 `.claude/agents/match.md` for the Opus second pass) instead of one-shot
 per-function passes. Progress/hypothesis log for this file lives at
-`build/.match_grind/game_game_batting_batter.md` once a grind has started —
-gitignored local scratch, pruned once the file hits 100%. Durable
-cross-file findings get promoted out of it into
-[matching_notes.md](matching_notes.md) instead.
+`docs/match_grind/game_game_batting_batter.md` once a grind has started —
+tracked in git and kept once the file hits 100%. Durable
+cross-file findings also get promoted out of it into
+[matching_notes.md](matching_notes.md).
 
 A first grind pass exhausted the register-rotation block (8 hypotheses,
 none improved it — likely a genuine CodeWarrior allocator quirk, not

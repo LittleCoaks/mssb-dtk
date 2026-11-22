@@ -18,6 +18,7 @@
 #include "Unknown/File_0x800b0a14.h"
 #define REP_HEADER_DATA_FN getRepHeaderData_cameraScript
 #include "header_rep_data.h"
+#include "HugeAnimStruct.h"
 
 /* MSL declares fabs as an inline function; stl/math.h maps it straight onto the
  * __fabs intrinsic, which allocates registers differently. */
@@ -39,11 +40,6 @@ typedef struct CamActor {
     /* 0x253 */ u8 _253[4];
     /* 0x257 */ s8 _257;
 } CamActor;
-
-typedef struct CamHugeAnim {
-    /* 0x0000 */ u8 _0000[0x2C50];
-    /* 0x2C50 */ CamActor* objects[13];
-} CamHugeAnim;
 
 // One tracked point on the overlay camera markers (0x2C bytes).
 typedef struct CamMarker {
@@ -91,7 +87,7 @@ typedef struct CamDrawItem {
 } CamDrawItem;
 
 extern CamAux* lbl_3_common_bss_1323C;
-extern CamHugeAnim hugeAnimStruct;
+#define ANIM_OBJ(i) ((CamActor*)hugeAnimStruct.objects[i])
 extern u8 animRelated[0x124];
 extern u8 lbl_80366158[0x30];
 extern SceneChangeState lbl_8037169C;
@@ -1533,7 +1529,7 @@ void fn_3_106270(VecXYZ* out) {
     if (sel < 9 && sel >= 0) {
         memcpy(out, &g_Fielders[sel].pos, sizeof(VecXYZ));
         if (g_Fielders[sel].rosterLocation != -1) {
-            if (hugeAnimStruct.objects[sel] != NULL) {
+            if (ANIM_OBJ(sel) != NULL) {
                 if (stats->replayInd != 0 && stats->replayReason == 7) {
                     memset(out, 0, sizeof(VecXYZ));
                     getAnimRelatedCoordinates(sel, 4, out);
@@ -1583,7 +1579,7 @@ void fn_3_106270(VecXYZ* out) {
         InMemRunnerType* r = &g_Runners[sel - 9];
         memcpy(out, &r->position, sizeof(VecXYZ));
         if (r->rosterID != -1) {
-            if (hugeAnimStruct.objects[sel] != NULL) {
+            if (ANIM_OBJ(sel) != NULL) {
                 if (CTX->_0938 == -1) {
                     CTX->_0938 = lbl_3_data_3B4C[r->charID];
                     CTX->_0950 = 0;
@@ -1629,7 +1625,7 @@ void fn_3_106270(VecXYZ* out) {
 
 // .text:0x0010617C size:0xF4 mapped:0x80745210
 BOOL fn_3_10617C(int idx, int bone, Vec* out) {
-    CamActor* actor = hugeAnimStruct.objects[idx];
+    CamActor* actor = ANIM_OBJ(idx);
     Vec tmp;
     if (actor == NULL) {
         return FALSE;
@@ -2260,10 +2256,10 @@ void fn_3_104740(void) {
 
 // .text:0x001045A8 size:0x198 mapped:0x8074363C
 void fn_3_1045A8(void) {
-    f32 pitch;
-    f32 yaw;
-    f32 cy;
     f32 sp;
+    f32 cy;
+    f32 yaw;
+    f32 pitch;
     f32 reach;
     f32 sy;
     f32 rx;
@@ -2834,7 +2830,7 @@ static inline int findCaptainActorSlot(GameControlsStruct* gl, GameInitVariables
     int found = 0;
 
     for (i = 0; i < 9; i++) {
-        if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] == hugeAnimStruct.objects[i]->_257) {
+        if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] == ANIM_OBJ(i)->_257) {
             found = i;
         }
     }
@@ -2846,8 +2842,8 @@ static inline int findCaptainCharId(GameControlsStruct* gl, GameInitVariables* g
     int found = 0;
 
     for (i = 0; i < 9; i++) {
-        if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] == hugeAnimStruct.objects[i]->_257) {
-            found = hugeAnimStruct.objects[i]->_252;
+        if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] == ANIM_OBJ(i)->_257) {
+            found = ANIM_OBJ(i)->_252;
         }
     }
     return found;
@@ -3247,7 +3243,7 @@ BOOL fn_3_FDB30(void) {
             lbl_3_common_bss_1323C->_27F = 2;
             entry = &lbl_3_data_1F18C[ctx->_0000[1]];
             idx = entry->actorIdx;
-            actor = hugeAnimStruct.objects[idx];
+            actor = ANIM_OBJ(idx);
             lbl_3_common_bss_1323C->markers[idx]._28 = 0;
             lbl_3_common_bss_1323C->markers[idx]._29 = 1;
             lbl_3_common_bss_1323C->markers[idx]._14 = lbl_3_data_1F1F0[actor->_252];
@@ -3263,7 +3259,7 @@ BOOL fn_3_FDB30(void) {
             lbl_3_common_bss_1323C->_27F = 3;
             entry = &lbl_3_data_1F18C[ctx->_0000[1]];
             idx = entry->actorIdx;
-            actor = hugeAnimStruct.objects[idx];
+            actor = ANIM_OBJ(idx);
             if (actor != NULL) {
                 lbl_3_common_bss_1323C->markers[idx]._28 = 0;
                 lbl_3_common_bss_1323C->markers[idx]._29 = 1;
@@ -3479,7 +3475,7 @@ BOOL fn_3_FDB30(void) {
         case 69:
             fn_3_100038();
             idx = ctx->_0000[1];
-            if (hugeAnimStruct.objects[idx] == NULL) {
+            if (ANIM_OBJ(idx) == NULL) {
                 ctx->_0000 += 2;
                 continue;
             }
@@ -3498,7 +3494,7 @@ BOOL fn_3_FDB30(void) {
             continue;
         case 72:
             if (gl->Team_CaptainRosterLoc[gs->humanTeamNumber] ==
-                hugeAnimStruct.objects[lbl_3_data_1E434[ctx->_0000[1]].slot]->_257) {
+                ANIM_OBJ(lbl_3_data_1E434[ctx->_0000[1]].slot)->_257) {
                 fn_3_24ADC(ctx->_0000[1], 0);
                 ctx->_0000 += 3;
             } else {
@@ -3683,7 +3679,7 @@ void manageDrawingItemState(void) {
         break;
     case 1: {
         u16 i = item->_1E;
-        CamActor* obj = hugeAnimStruct.objects[i];
+        CamActor* obj = ANIM_OBJ(i);
         InMemFielder* fielder = &g_Fielders[i];
         if (fielder->rosterLocSkippingCap == 0) {
             if (i < 9) {
