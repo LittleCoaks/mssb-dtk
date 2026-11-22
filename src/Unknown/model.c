@@ -2953,6 +2953,66 @@ s32 fn_8001B35C(int index, int mode) {
     return steps;
 }
 
+extern void fn_800BDA24(void* entry);
+
+void fn_8001DB74(ActorObjectTable* table) {
+    u16 i;
+    u16 mode;
+
+    for (i = 0; i < table->count; i++) {
+        u8* obj = HA_OBJ(i);
+        ActorObjectEntry* entry;
+
+        if (obj == NULL) {
+            continue;
+        }
+        if (obj[0x25D] == 0) {
+            continue;
+        }
+        entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
+        if (entry->actor == NULL) {
+            continue;
+        }
+        if (entry->animPending != 0) {
+            ACTSetAnimation(entry->actor, entry->anim, NULL, entry->seqNum, lbl_803CC4B8, entry->blendTime);
+        }
+        if (entry->framePending != 0) {
+            setActorAnimFrame(entry->actor, entry->frame);
+        }
+        if (entry->speedPending != 0) {
+            ACTSetSpeed(entry->actor, entry->speed);
+        }
+        if (entry->boneParam & 2) {
+            updateBoneParam(entry->actor, entry->boneParam & 1);
+        }
+        Set_FUN_800b2b6c((UnkB2B4C*)entry->actor, entry->unk68);
+        if (entry->applyControl != 0) {
+            fn_800BDA24(entry);
+        }
+        for (mode = 0; mode < returnScissorMode(); mode++) {
+            s32 shift = mode * 3;
+            u8 keep = ~(3 << shift);
+            u8* camera = (u8*)returnFloatFromModeIndex(mode) + 0x40;
+
+            if (*HA(0x307A) == 5) {
+                entry->actor->unk98 = 1;
+            } else {
+                Mtx trans;
+                Actor* actor;
+
+                PSMTXTrans(trans, *(f32*)(obj + 0x34), *(f32*)(obj + 0x38), *(f32*)(obj + 0x3C));
+                PSMTXConcat((MtxPtr)camera, trans, trans);
+                actor = entry->actor;
+                actor->unk98 = (actor->unk98 & keep) | ((u8)fn_800B3C04(mode, (StadiumModelNode*)actor, trans) << shift);
+            }
+        }
+        entry->animPending = 0;
+        entry->framePending = 0;
+        entry->speedPending = 0;
+        entry->boneParam &= 1;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 

@@ -22,6 +22,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80019A60 | pending | 91.69 |
 | fn_8001A25C | pending | 91.69 |
 | fn_8001CCC8 | pending | 84.25 |
+| fn_8001DB74 | pending | 87.81 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -79,3 +80,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   fn_80011468 268/264, fn_800126EC 268/268 ok, fn_8001B4D8 296/276, fn_80016F7C 276/284, fn_8001B5EC 292/316, fn_800189E4 348/340,
   fn_8001B35C 376/380, fn_8001DD58 332/332 ok, fn_80019A60 404/416, fn_8001A25C 404/416, stadiumSetupRelated 508/512 (pre-existing).
   Per-function % can be read as logic-correct only where the instruction streams line up; mismatched sizes mean missing/extra instructions.
+- [S2] fn_8001DB74 (484 bytes target, 480 ours) drafted: per-frame flush of pending actor-entry state for each object in an ActorObjectTable-sized list:
+  applies pending animation/frame/speed/bone param, Set_FUN_800b2b6c, optional fn_800BDA24, then for every scissor/view mode builds camera*translate(obj pos)
+  and stores the result of fn_800B3C04 into the 2-bit field (mode*3) of actor->unk98 (or forces 1 when HA(0x307A)==5); finally clears the pending flags -> 87.81%
+  next: the loop recomputes (u16)mode into r24/r25 around returnScissorMode(); try s32/u16 loop var variants and the entry pointer arithmetic.
