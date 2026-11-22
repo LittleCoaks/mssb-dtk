@@ -3274,6 +3274,102 @@ void fn_8001AF98(void) {
     GXInvalidateTexAll();
 }
 
+#define CHAR_RECORD_FIELD(i, off) (*(u32*)((u8*)lbl_803CB790 + (i) * 0x130 + (off)) & 0x0FFFFFFF)
+#define ROUND_UP_32(v) (((v) + 0x1F) & ~0x1F)
+
+void fn_80018B74(void) {
+    u32 maxA = 0;
+    u32 maxB = 0;
+    u32 maxC = 0;
+    u32 maxD = 0;
+    u32 maxE = 0;
+    u32 sizeA;
+    u32 sizeB;
+    u32 sizeC;
+    u32 sizeD;
+    u32 sizeE;
+    u8 mode = g_d_GameSettings.GameModeSelected;
+    s32 i;
+    u32 v;
+    u32 cursor;
+
+    for (i = 0; i < 54; i++) {
+        if (mode == GAME_TYPE_MINIGAMES) {
+            v = CHAR_RECORD_FIELD(i, 0xD4);
+        } else {
+            v = CHAR_RECORD_FIELD(i, 0x44);
+        }
+        if (maxA < v) {
+            maxA = v;
+        }
+        if (mode == GAME_TYPE_TOY_FIELD) {
+            v = CHAR_RECORD_FIELD(i, 0xE4);
+        } else {
+            v = CHAR_RECORD_FIELD(i, 0xC4);
+        }
+        if (maxB < v) {
+            maxB = v;
+        }
+        v = CHAR_RECORD_FIELD(i, 0x124);
+        if (maxC < v) {
+            maxC = v;
+        }
+        if (mode == GAME_TYPE_MINIGAMES) {
+            v = CHAR_RECORD_FIELD(i, 0x94);
+        } else {
+            v = CHAR_RECORD_FIELD(i, 0x24);
+        }
+        if (maxD < v) {
+            maxD = v;
+        }
+        v = CHAR_RECORD_FIELD(i, 0x104);
+        if (maxE < v) {
+            maxE = v;
+        }
+    }
+
+    sizeB = ROUND_UP_32(maxB);
+    sizeC = ROUND_UP_32(maxC);
+    sizeE = ROUND_UP_32(maxE);
+    sizeA = ROUND_UP_32(maxA);
+    sizeD = ROUND_UP_32(maxD);
+    HA_U32(0x2C98) = sizeA;
+    HA_U32(0x2C94) = sizeB;
+    HA_U32(0x2C9C) = sizeC;
+    HA_U32(0x2C90) = sizeD;
+    HA_U32(0x2CA4) = sizeE;
+    HA_U32(0x2D60) = sizeD + (sizeA + sizeB + sizeC + sizeE) * 4;
+    cursor = (u32)_OSAllocFromHeap(0x20, HA_U32(0x2D60));
+    HA_U32(0x2C88) = cursor;
+
+    for (i = 0; i < 4; i++) {
+        u8* set = HA(i * 0x14);
+        u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
+
+        *(u32*)(set + 0x2CEC) = cursor;
+        cursor += sizeA;
+        *(u32*)(set + 0x2CF0) = cursor;
+        cursor += sizeB;
+        *(u32*)(set + 0x2CF4) = cursor;
+        cursor += sizeC;
+        if (i == 0) {
+            *(u32*)(set + 0x2CF8) = cursor;
+            cursor += sizeD;
+        } else {
+            *(u32*)(set + 0x2CF8) = HA_U32(0x2CF8);
+        }
+        *(u32*)(set + 0x2CFC) = cursor;
+        cursor += sizeE;
+        *(u32*)(rec + 0x10) = 0;
+        *(u32*)(rec + 0x1C) = 0;
+        *(u32*)(rec + 0x20) = 0;
+        *(u32*)(rec + 0x14) = 0;
+        *(u32*)(rec + 0x18) = 0;
+        *(u32*)(rec + 0x24) = 0;
+    }
+    *(s16*)HA(0x2D68) = -1;
+}
+
 void fn_80011578(void) {
     s8 i;
 

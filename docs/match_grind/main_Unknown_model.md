@@ -28,6 +28,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001758C | pending | 80.09 |
 | fn_80017340 | pending | 81.76 |
 | fn_80017DBC | pending | 90.70 |
+| fn_80018B74 | pending | 87.89 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -113,3 +114,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   builds a ShadowCamera from camera 0, runs fn_800BE09C / fn_800BF058(fn_8001AB10) / fn_800BDFE0, the optional huge+0x308C hook and fn_8003A4C8 or fn_800BDEA0, then runs and clears
   lbl_803CBBF4 and restores GX state. Needed #include "Unknown/File_0x80052734.h" (returnFloatFromModeIndex was implicitly int); fn_8001DB74 unchanged at 87.81%.
   Quirk: the zero test must be written `mag = PSVECMag(&v); if (!(mag == lbl_803CC4B8))` to get the target's fcmpu operand order. readability pass: done (GAME_TYPE_TOY_FIELD, TRUE/FALSE).
+- [S2] fn_80018B74 (632 bytes target, 604 ours) drafted: sibling of fn_800189E4 for the character-record buffer pool. Scans the 54 records (stride 0x130) for five maxima
+  (fields +0x44/+0xD4 by minigame mode, +0xC4/+0xE4 by toy-field mode, +0x124, +0x24/+0x94 by minigame mode, +0x104; all & 0x0FFFFFFF), rounds each to 32, stores the sizes at
+  huge+0x2C90..0x2CA4 and the total at +0x2D60, allocates it, then carves 4 sets of five buffers (stride 0x14 at +0x2CEC; the D buffer is shared from set 0) while zeroing six fields of
+  each of the 4 object records, and sets huge s16 +0x2D68 = -1 -> 87.89%
+  next: 28 bytes short; the asm unrolls the carve loop 2x with a k==0 compare, and the max scan keeps `mode` compares inside the loop; try an s32 mode / manual unroll.
