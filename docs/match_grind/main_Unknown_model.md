@@ -21,6 +21,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001B35C | pending | 83.65 |
 | fn_80019A60 | pending | 91.69 |
 | fn_8001A25C | pending | 91.69 |
+| fn_8001CCC8 | pending | 84.25 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -71,3 +72,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 - [S2] fn_8001A25C (416 bytes) drafted: twin of fn_80019A60 registering fn_80019C00 as the drawing task instead of fn_800196D8 -> 91.69%.
   Correction: fn_80019A60 never normalises light 0 / calls updateVectorInArray (that was stadiumSetupRelated only); removing it took fn_80019A60 72.40 -> 91.69%.
   next (both): first light loop pointer stepping (+0xA src / +0x10 dst) and prop-entry loop shape; likely one shared inline in the original.
+- [S2] fn_8001CCC8 (428 bytes) drafted: stadiumSetupRelated without the prop-entry loop (sets _3085 = 4, derives the stadium, loads/normalises lights,
+  ambient, 4 LIT lights) -> 84.25%. Ours is 416 bytes vs target 428.
+  next: asm reloads g_d_GameSettings / lbl_80367318 addresses separately (no CSE); likely a separate inline for the stadium derivation / light load.
+- [S2] SIZE CHECK (ours vs target, via objdiff diff right/left symbol sizes) -- earlier "size exact" claims were wrong for several:
+  fn_80011468 268/264, fn_800126EC 268/268 ok, fn_8001B4D8 296/276, fn_80016F7C 276/284, fn_8001B5EC 292/316, fn_800189E4 348/340,
+  fn_8001B35C 376/380, fn_8001DD58 332/332 ok, fn_80019A60 404/416, fn_8001A25C 404/416, stadiumSetupRelated 508/512 (pre-existing).
+  Per-function % can be read as logic-correct only where the instruction streams line up; mismatched sizes mean missing/extra instructions.

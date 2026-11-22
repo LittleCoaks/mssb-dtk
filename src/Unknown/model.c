@@ -1995,6 +1995,48 @@ void stadiumSetupRelated(void) {
     }
 }
 
+void fn_8001CCC8(void) {
+    StadiumLightParams* params;
+    s32 stadium;
+    s32 i;
+    Vec dir;
+    GXColor color;
+
+    hugeAnimStruct._3085 = 4;
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
+        stadium = g_d_GameSettings.StadiumID + 7;
+    } else {
+        stadium = g_d_GameSettings.StadiumID;
+    }
+    params = &inputParams[(u8)stadium];
+    g_d_GameSettings._54 = stadium;
+
+    for (i = 0; i < 4; i++) {
+        characterLightingRelated(params->lights[i], &lbl_80367318[i]);
+    }
+
+    dir.x = lbl_80367318[0].pos.x;
+    dir.y = lbl_80367318[0].pos.y;
+    dir.z = lbl_80367318[0].pos.z;
+    PSVECNormalize(&dir, &dir);
+    updateVectorInArray(0, dir);
+    fn_800BD2DC();
+
+    if (inputParams[g_d_GameSettings._54].ambient.a != 0) {
+        adjustLightingParams(1, inputParams[g_d_GameSettings._54].ambient);
+    }
+
+    for (i = 0; i < 4; i++) {
+        LITAlloc(&hugeAnimStruct.lights[i]);
+        LITInitAttn(hugeAnimStruct.lights[i], lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
+                    lbl_803CC4B8, lbl_803CC4B8);
+        LITInitPos(hugeAnimStruct.lights[i], lbl_80367318[i].pos.x, lbl_80367318[i].pos.y,
+                   lbl_80367318[i].pos.z);
+        color = lbl_80367318[i].color;
+        LITInitColor(hugeAnimStruct.lights[i], &color);
+    }
+}
+
 extern void fn_800196D8(void);
 
 extern void fn_80019C00(void);
