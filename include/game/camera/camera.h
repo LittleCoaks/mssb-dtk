@@ -82,3 +82,13 @@ void fn_3_1CCC8(void);
 void cameraControl(void);
 
 #endif // !__GAME_CAMERA_CAMERA_H_
+
+// Camera state defined in camera.c. Its types live in game/UnknownHomes_Game.h,
+// which includes this header at its end; this block is outside the include
+// guard so it is declared whichever of the two headers comes first.
+#if defined(__UNKNOWN_HOMES_GAME_H_) && !defined(__GAME_CAMERA_CAMERA_GLOBALS_)
+#define __GAME_CAMERA_CAMERA_GLOBALS_
+extern inMemCamera *g_pCamera;
+extern inMemCamera g_Camera;
+extern lbl_3_common_bss_DE94_s unkStructPtr;
+#endif

@@ -423,9 +423,8 @@ void fn_2_89F70(void) {
 
 // .text:0x0008975C size:0x814 mapped:0x806C87F0
 void fn_2_8975C(void) {
-    u8 *lbl = lbl_2_bss_33FBCC;
     DrawingSceneStruct *node = currentDrawingItem;
-    s32 n = 0;
+    s32 n;
     s32 i;
     s32 k;
     s32 count = 0;
@@ -433,7 +432,7 @@ void fn_2_8975C(void) {
     s32 ret1;
     s32 ret2;
 
-    switch (lbl[0x05]) {
+    switch (lbl_2_bss_33FBCC[0x05]) {
     case 0:
         n = 2;
         break;
@@ -446,12 +445,12 @@ void fn_2_8975C(void) {
         break;
     }
 
-    switch (lbl[0x22]) {
+    switch (lbl_2_bss_33FBCC[0x22]) {
     case 0x51:
 
-        if (lbl[0x20] == 0) {
+        if (lbl_2_bss_33FBCC[0x20] == 0) {
             REC_OBJ(1)->playMode = UI_PLAY_FORWARD;
-            switch (lbl[0x05]) {
+            switch (lbl_2_bss_33FBCC[0x05]) {
             case 0:
                 load_Icon(node, 3, 1, 0xCF, 0x13);
                 load_Icon(node, 4, 1, 0xCF, 0x18);
@@ -479,10 +478,10 @@ void fn_2_8975C(void) {
             for (k = 0; k < n; k++) {
                 REC_OBJ(k + 3)->playMode = UI_PLAY_FORWARD;
             }
-            lbl[0x20] = 1;
-            lbl[0x21] = 1;
+            lbl_2_bss_33FBCC[0x20] = 1;
+            lbl_2_bss_33FBCC[0x21] = 1;
         }
-        if (lbl[0x21] != 0) {
+        if (lbl_2_bss_33FBCC[0x21] != 0) {
             count = 0;
             total = 0;
             for (k = 0; k < n; k++) {
@@ -495,56 +494,56 @@ void fn_2_8975C(void) {
                 }
             }
             if (count == total) {
-                lbl[0x20] = 0;
-                lbl[0x21] = 0;
-                lbl[0x22] = 0;
+                lbl_2_bss_33FBCC[0x20] = 0;
+                lbl_2_bss_33FBCC[0x21] = 0;
+                lbl_2_bss_33FBCC[0x22] = 0;
             }
         }
         break;
     case 0x52:
 
-        if (lbl[0x20] == 0) {
+        if (lbl_2_bss_33FBCC[0x20] == 0) {
             REC_OBJ(0)->playMode = UI_PLAY_BACKWARD;
             REC_OBJ(1)->playMode = UI_PLAY_BACKWARD;
             for (k = 0; k < n; k++) {
                 REC_OBJ(k + 3)->frame = 0x30000;
                 REC_OBJ(k + 3)->playMode = UI_PLAY_BACKWARD;
             }
-            lbl[0x20] = 1;
-            lbl[0x21] = 1;
+            lbl_2_bss_33FBCC[0x20] = 1;
+            lbl_2_bss_33FBCC[0x21] = 1;
         }
-        if (lbl[0x21] != 0) {
-            if (maybeCheckAndResetGrapicsElement((MenuScene *)node, 1, 0) != FALSE) {
-                lbl[0x20] = 0;
-                lbl[0x21] = 0;
-                lbl[0x22] = 0;
+        if (lbl_2_bss_33FBCC[0x21] != 0) {
+            if (isEqual(maybeCheckAndResetGrapicsElement((MenuScene *)node, 1, 0) != 0, TRUE)) {
+                lbl_2_bss_33FBCC[0x20] = 0;
+                lbl_2_bss_33FBCC[0x21] = 0;
+                lbl_2_bss_33FBCC[0x22] = 0;
             }
         }
         break;
     case 0x53:
 
-        if (lbl[0x20] == 0) {
+        if (lbl_2_bss_33FBCC[0x20] == 0) {
             ret1 = fn_2_895F8(0);
             ret2 = fn_2_895F8(1);
             REC_OBJ(ret1 + 3)->frame = 0x80000;
             REC_OBJ(ret1 + 3)->playMode = UI_PLAY_STOP;
             REC_OBJ(ret2 + 3)->frame = 0x30000;
             REC_OBJ(ret2 + 3)->playMode = UI_PLAY_STOP;
-            lbl[0x20] = 1;
-            lbl[0x21] = 1;
+            lbl_2_bss_33FBCC[0x20] = 1;
+            lbl_2_bss_33FBCC[0x21] = 1;
         }
-        if (lbl[0x21] != 0) {
+        if (lbl_2_bss_33FBCC[0x21] != 0) {
             fn_2_895F8(0);
             fn_2_895F8(1);
-            lbl[0x20] = 0;
-            lbl[0x21] = 0;
-            lbl[0x22] = 0;
+            lbl_2_bss_33FBCC[0x20] = 0;
+            lbl_2_bss_33FBCC[0x21] = 0;
+            lbl_2_bss_33FBCC[0x22] = 0;
         }
         break;
     }
 
-    if (lbl[0x0E] != 0 && lbl[0x21] == 0) {
-        lbl[0x0E] = 0;
+    if (lbl_2_bss_33FBCC[0x0E] != 0 && lbl_2_bss_33FBCC[0x21] == 0) {
+        lbl_2_bss_33FBCC[0x0E] = 0;
         removeGraphicsElementFromScene(node);
         removeCurrentDrawingItem();
     }

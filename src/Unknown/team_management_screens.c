@@ -10,7 +10,7 @@
 #include "Unknown/sub.h"
 #include "musyx/musyx.h"
 
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern void makeCursorUnmovable(s32 port);
 extern void makeCursorMovable(s32 port);
 extern void updateCharacterSelectProcessCode(s32 port, u8 process);
@@ -51,11 +51,11 @@ static inline void countElementDone_80042D68(MenuScene* scene, s32 handle, s32 f
 }
 
 static inline BOOL isAnimStepStart(u8 step) {
-    return step == TEAM_MANAGEMENT_ANIM_STEP_START ? TRUE : FALSE;
+    return step == SET_UP_STEP_START ? TRUE : FALSE;
 }
 
 static inline BOOL isAnimStepPlaying(u8 step) {
-    return step == TEAM_MANAGEMENT_ANIM_STEP_PLAYING ? TRUE : FALSE;
+    return step == SET_UP_STEP_PLAYING ? TRUE : FALSE;
 }
 
 void fn_80059458(MenuScene* scene, u8 port, u32 inputMask) {
@@ -602,7 +602,7 @@ void teamManagementGraphics_battingOrderScreen(MenuScene* scene) {
 }
 
 void fn_8005B760(MenuScene* scene, s32 port) {
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         s8 selection = g_TeamManagement.teamManagement_cursorPos[port];
 
         if (selection != 0) {
@@ -643,7 +643,7 @@ void fn_8005B760(MenuScene* scene, s32 port) {
         }
 
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -783,7 +783,7 @@ void teamManagementGraphics_battingOrderInfo(MenuScene* scene) {
 }
 
 void fn_8005C5C4(MenuScene* scene, s32 port) {
-    if (!isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (!isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         return;
     }
 
@@ -818,7 +818,7 @@ void fn_8005C5C4(MenuScene* scene, s32 port) {
     TEAM_MANAGEMENT_RECORD_C(scene, 0x12, port)->frame = 0x00140000;
     TEAM_MANAGEMENT_RECORD_C(scene, 0x12, port)->playMode = UI_PLAY_FORWARD;
     makeCursorUnmovable(port);
-    gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+    gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
 }
 
 void fn_8005C830(MenuScene* scene, s32 port, s32 selection) {
@@ -884,7 +884,7 @@ void fn_8005CCE4(MenuScene* scene, s32 port) {
     s8 swapPosition;
     s32 player;
 
-    if (!isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (!isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         return;
     }
     selection = g_TeamManagement.teamManagement_cursorPos[port] - 1;
@@ -1035,8 +1035,8 @@ void fn_8005CCE4(MenuScene* scene, s32 port) {
         g_TeamManagement.teamManagement_cursorPos[port] = lineupOrderChangeRelated((u8)port, lineUpInfoStruct[port][swapSelection][2]);
     }
     g_TeamManagement.charSelectedToBeSwappedCharID[port] = (u8)CHAR_ID_NONE;
-    gameSetUpStep[0x5D + port] = 0;
-    gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+    gameSetUpStep.currentCharacterSelectProcess[port] = 0;
+    gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
 }
 
 
@@ -1049,7 +1049,7 @@ void fn_8005DE14(MenuScene* scene, s32 port) {
     s8 swapPosition;
     s32 i;
 
-    if (!isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (!isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         return;
     }
     selection = g_TeamManagement.teamManagement_cursorPos[port] - 1;
@@ -1159,7 +1159,7 @@ void fn_8005DE14(MenuScene* scene, s32 port) {
         }
     }
     makeCursorUnmovable(port);
-    gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+    gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
 }
 
 void fn_8005E9D8(MenuScene* scene, s32 port) {
@@ -1168,12 +1168,12 @@ void fn_8005E9D8(MenuScene* scene, s32 port) {
 
     if (currentSelection != previousSelection) {
         fn_8005DE14(scene, port);
-        if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+        if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     } else if (g_TeamManagement.charSelectedToBeSwapped[port] != 0) {
-        if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+        if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
             u8 selection = g_TeamManagement.charSelectedToBeSwappedCharID[port];
             u8 mode = g_TeamManagement.rosterView[port];
             s8 position = lineUpInfoStruct[port][selection][2];
@@ -1194,8 +1194,8 @@ void fn_8005E9D8(MenuScene* scene, s32 port) {
                 TEAM_MANAGEMENT_RECORD_C(scene, 0x1A, position)->frame = 0;
                 TEAM_MANAGEMENT_RECORD_C(scene, 0x1A, position)->playMode = UI_PLAY_FORWARD;
             }
-            gameSetUpStep[0x5D + port] = 0;
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.currentCharacterSelectProcess[port] = 0;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     } else if (g_TeamManagement.charSelectedToBeSwapped[port] == 0) {
         fn_8005CCE4(scene, port);
@@ -1205,7 +1205,7 @@ void fn_8005E9D8(MenuScene* scene, s32 port) {
 void fn_8005EC88(MenuScene* scene, s32 port) {
     s32 i;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         s8 selection = g_TeamManagement.teamManagement_cursorPos[port];
 
         if (selection != 0) {
@@ -1243,7 +1243,7 @@ void fn_8005EC88(MenuScene* scene, s32 port) {
         TEAM_MANAGEMENT_RECORD_C(scene, 0x18, port)->frame = 0x000A0000;
         TEAM_MANAGEMENT_RECORD_C(scene, 0x18, port)->playMode = UI_PLAY_BACKWARD;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -1254,7 +1254,7 @@ void fn_8005F068(MenuScene* scene, s32 port) {
     s8 swapPosition;
     s32 i;
 
-    if (!isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (!isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         return;
     }
 
@@ -1337,11 +1337,11 @@ void fn_8005F068(MenuScene* scene, s32 port) {
     }
 
     makeCursorUnmovable(port);
-    gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+    gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
 }
 
 void fn_8005F734(MenuScene* scene, s32 port) {
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         TEAM_MANAGEMENT_RECORD(scene, port)->elementIndex = 0x49;
         TEAM_MANAGEMENT_RECORD(scene, port)->frame = 0x00320000;
         TEAM_MANAGEMENT_RECORD(scene, port)->playMode = UI_PLAY_BACKWARD;
@@ -1372,14 +1372,14 @@ void fn_8005F734(MenuScene* scene, s32 port) {
         }
 
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
 }
 
 void fn_8005F9D0(MenuScene* scene, s32 port) {
     s32 completeCount;
     s32 requiredCount;
-    u8* steps = &gameSetUpStep[0x37];
+    u8* steps = &gameSetUpStep.stepFlags[9][0];
 
     if (!isAnimStepPlaying(steps[port])) {
         return;
@@ -1420,19 +1420,19 @@ void fn_8005F9D0(MenuScene* scene, s32 port) {
         g_TeamManagement.entryAnimDone[0] = FALSE;
         makeCursorMovable(0);
         makeCursorMovable(1);
-        gameSetUpStep[0x37] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
-        gameSetUpStep[0x38] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+        gameSetUpStep.stepFlags[9][0] = SET_UP_STEP_DONE;
+        gameSetUpStep.stepFlags[9][1] = SET_UP_STEP_DONE;
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_TM_SHOW_SCOUT_FLAGS);
         }
     } else {
         makeCursorMovable(port);
-        steps[port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+        steps[port] = SET_UP_STEP_DONE;
     }
 }
 
 void fn_8005FCA0(MenuScene* scene, s32 port) {
-    if (!isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (!isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         return;
     }
 
@@ -1492,7 +1492,7 @@ void fn_8005FCA0(MenuScene* scene, s32 port) {
     }
 
     makeCursorUnmovable(port);
-    gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+    gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
 }
 
 static inline void teamManagementLoad(MenuScene* scene, s32 port) {
@@ -1504,7 +1504,7 @@ static inline void teamManagementLoadAlt(MenuScene* scene, s32 port) {
     s32 completeCount;
     s32 requiredCount;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         TEAM_MANAGEMENT_RECORD(scene, 0)->frame = 0;
         TEAM_MANAGEMENT_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
         if (g_TeamManagement.teamMenuType[port] != TEAM_MENU_TYPE_BATTER_SWAP) {
@@ -1515,9 +1515,9 @@ static inline void teamManagementLoadAlt(MenuScene* scene, s32 port) {
         TEAM_MANAGEMENT_RECORD(scene, 0xE)->frame = 0;
         TEAM_MANAGEMENT_RECORD(scene, 0xE)->playMode = UI_PLAY_FORWARD;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         countElementDone(scene, 0, 0x14, &completeCount, &requiredCount);
@@ -1526,7 +1526,7 @@ static inline void teamManagementLoadAlt(MenuScene* scene, s32 port) {
         }
         if (completeCount == requiredCount) {
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -1535,7 +1535,7 @@ static inline void teamManagementStep39(MenuScene* scene, s32 port) {
     s32 completeCount;
     s32 requiredCount;
 
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         countElementDone(scene, port + 0x14, 0xA, &completeCount, &requiredCount);
@@ -1556,12 +1556,12 @@ static inline void teamManagementStep39(MenuScene* scene, s32 port) {
                     g_TeamManagement.entryAnimDone[0] = FALSE;
                     makeCursorMovable(0);
                     makeCursorMovable(1);
-                    gameSetUpStep[0x37] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
-                    gameSetUpStep[0x38] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+                    gameSetUpStep.stepFlags[9][0] = SET_UP_STEP_DONE;
+                    gameSetUpStep.stepFlags[9][1] = SET_UP_STEP_DONE;
                 }
             } else {
                 makeCursorMovable(port);
-                gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+                gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
             }
         }
     }
@@ -1571,7 +1571,7 @@ static inline void teamManagementReturnToCss(MenuScene* scene, s32 port) {
     s32 completeCount;
     s32 requiredCount;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
             if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME && port != 0) {
                 TEAM_MANAGEMENT_RECORD(scene, port)->frame = 0x001E0000;
@@ -1585,9 +1585,9 @@ static inline void teamManagementReturnToCss(MenuScene* scene, s32 port) {
             TEAM_MANAGEMENT_RECORD(scene, port)->playMode = UI_PLAY_BACKWARD;
         }
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         if (g_d_GameSettings.GameModeSelected != GAME_TYPE_CHALLENGE) {
@@ -1601,7 +1601,7 @@ static inline void teamManagementReturnToCss(MenuScene* scene, s32 port) {
         }
         if (completeCount == requiredCount) {
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -1611,7 +1611,7 @@ static inline void teamManagementChangeRosterView(MenuScene* scene, s32 port) {
     s32 requiredCount;
 
     fn_8005F068(scene, port);
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         switch (g_TeamManagement.rosterView[port]) {
@@ -1628,24 +1628,24 @@ static inline void teamManagementChangeRosterView(MenuScene* scene, s32 port) {
         }
         if (completeCount == requiredCount) {
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     }
 }
 
 static inline void teamManagementCursorEnterRoster(MenuScene* scene, s32 port) {
     fn_8005EC88(scene, port);
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         makeCursorMovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
     }
 }
 
 static inline void teamManagementCursorEnterRosterAlt(MenuScene* scene, s32 port) {
     fn_8005B760(scene, port);
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         makeCursorMovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
     }
 }
 
@@ -1654,7 +1654,7 @@ static inline void teamManagementCursorToConfirm(MenuScene* scene, s32 port) {
     s8 position;
     s32 player;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         if ((s8)g_TeamManagement.teamManagement_cursorPos[port] == 0) {
             previousSelection = g_TeamManagement.teamManagement_prevCursorPos[port] - 1;
             position = lineUpInfoStruct[port][previousSelection][2];
@@ -1680,11 +1680,11 @@ static inline void teamManagementCursorToConfirm(MenuScene* scene, s32 port) {
         TEAM_MANAGEMENT_RECORD_C(scene, 0x18, port)->frame = 0;
         TEAM_MANAGEMENT_RECORD_C(scene, 0x18, port)->playMode = UI_PLAY_FORWARD;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         makeCursorMovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
     }
 }
 
@@ -1693,7 +1693,7 @@ static inline void teamManagementCursorToConfirmAlt(MenuScene* scene, s32 port) 
     s8 position;
     s32 player;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         switch (g_TeamManagement.rosterView[port]) {
         case ROSTER_VIEW_BATTING_ORDER:
             previousSelection = g_TeamManagement.teamManagement_prevCursorPos[port] - 1;
@@ -1719,11 +1719,11 @@ static inline void teamManagementCursorToConfirmAlt(MenuScene* scene, s32 port) 
         TEAM_MANAGEMENT_RECORD(scene, 0xE)->frame = 0;
         TEAM_MANAGEMENT_RECORD(scene, 0xE)->playMode = UI_PLAY_FORWARD;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         makeCursorMovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
     }
 }
 
@@ -1731,7 +1731,7 @@ static inline void teamManagement1PToCpuTeam(MenuScene* scene, s32 port) {
     s32 completeCount;
     s32 requiredCount;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         TEAM_MANAGEMENT_RECORD(scene, 0)->frame = 0x00140000;
         TEAM_MANAGEMENT_RECORD(scene, 0)->playMode = UI_PLAY_FORWARD;
         TEAM_MANAGEMENT_RECORD(scene, 1)->frame = 0x001E0000;
@@ -1745,9 +1745,9 @@ static inline void teamManagement1PToCpuTeam(MenuScene* scene, s32 port) {
         TEAM_MANAGEMENT_RECORD(scene, 0x13)->frame = 0x00140000;
         TEAM_MANAGEMENT_RECORD(scene, 0x13)->playMode = UI_PLAY_BACKWARD;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         countElementDone(scene, 0, 0x1E, &completeCount, &requiredCount);
@@ -1756,7 +1756,7 @@ static inline void teamManagement1PToCpuTeam(MenuScene* scene, s32 port) {
         countElementDone(scene, 0x13, 0xA, &completeCount, &requiredCount);
         if (completeCount == requiredCount) {
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -1765,7 +1765,7 @@ static inline void teamManagement1PToOwnTeam(MenuScene* scene, s32 port) {
     s32 completeCount;
     s32 requiredCount;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         TEAM_MANAGEMENT_RECORD(scene, 0)->frame = 0x001E0000;
         TEAM_MANAGEMENT_RECORD(scene, 0)->playMode = UI_PLAY_BACKWARD;
         TEAM_MANAGEMENT_RECORD(scene, 1)->frame = 0x00140000;
@@ -1779,9 +1779,9 @@ static inline void teamManagement1PToOwnTeam(MenuScene* scene, s32 port) {
         TEAM_MANAGEMENT_RECORD(scene, 0x13)->frame = 0x000A0000;
         TEAM_MANAGEMENT_RECORD(scene, 0x13)->playMode = UI_PLAY_FORWARD;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         countElementDone(scene, 0, 0x14, &completeCount, &requiredCount);
@@ -1790,7 +1790,7 @@ static inline void teamManagement1PToOwnTeam(MenuScene* scene, s32 port) {
         countElementDone(scene, 0x13, 0x14, &completeCount, &requiredCount);
         if (completeCount == requiredCount) {
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -1799,7 +1799,7 @@ static inline void teamManagementWaitForOtherTeam(MenuScene* scene, s32 port) {
     s32 completeCount;
     s32 requiredCount;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         TEAM_MANAGEMENT_RECORD(scene, port)->frame = 0x00140000;
         TEAM_MANAGEMENT_RECORD(scene, port)->playMode = UI_PLAY_FORWARD;
         TEAM_MANAGEMENT_RECORD_C(scene, 0x18, port)->frame = 0x000A0000;
@@ -1807,9 +1807,9 @@ static inline void teamManagementWaitForOtherTeam(MenuScene* scene, s32 port) {
         TEAM_MANAGEMENT_RECORD_C(scene, 0x12, port)->frame = 0x000A0000;
         TEAM_MANAGEMENT_RECORD_C(scene, 0x12, port)->playMode = UI_PLAY_FORWARD;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         countElementDone_80042D68(scene, port, 0x1E, &completeCount, &requiredCount);
@@ -1817,7 +1817,7 @@ static inline void teamManagementWaitForOtherTeam(MenuScene* scene, s32 port) {
         if (completeCount == requiredCount) {
             g_TeamManagement.waitingForOtherTeam[port] = FALSE;
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -1826,7 +1826,7 @@ static inline void teamManagementCancelConfirm(MenuScene* scene, s32 port) {
     s32 completeCount;
     s32 requiredCount;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         TEAM_MANAGEMENT_RECORD(scene, port)->frame = 0x001E0000;
         TEAM_MANAGEMENT_RECORD(scene, port)->playMode = UI_PLAY_BACKWARD;
         TEAM_MANAGEMENT_RECORD_C(scene, 0x18, port)->frame = 0;
@@ -1834,16 +1834,16 @@ static inline void teamManagementCancelConfirm(MenuScene* scene, s32 port) {
         TEAM_MANAGEMENT_RECORD_C(scene, 0x12, port)->frame = 0x00140000;
         TEAM_MANAGEMENT_RECORD_C(scene, 0x12, port)->playMode = UI_PLAY_BACKWARD;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         countElementDone(scene, port, 0x14, &completeCount, &requiredCount);
         countElementDone(scene, port + 0x12, 0xA, &completeCount, &requiredCount);
         if (completeCount == requiredCount) {
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -1853,7 +1853,7 @@ static inline void teamManagementExit(MenuScene* scene, s32 port) {
     s32 requiredCount;
 
     fn_8005C5C4(scene, port);
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         completeCount = 0;
         requiredCount = 0;
         if (g_d_GameSettings._06 != 2) {
@@ -1874,7 +1874,7 @@ static inline void teamManagementExit(MenuScene* scene, s32 port) {
         }
         if (completeCount == requiredCount) {
             makeCursorMovable(port);
-            gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+            gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -1885,7 +1885,7 @@ static inline void teamManagementCancelSwap(MenuScene* scene, s32 port) {
     s8 position;
     s8 swapPosition;
 
-    if (isAnimStepStart(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][port])) {
         selection = g_TeamManagement.teamManagement_cursorPos[port] - 1;
         previousSelection = g_TeamManagement.charSelectedToBeSwappedCharID[port];
         if (g_TeamManagement.rosterView[port] == ROSTER_VIEW_BATTING_ORDER) {
@@ -1912,11 +1912,11 @@ static inline void teamManagementCancelSwap(MenuScene* scene, s32 port) {
         }
         g_TeamManagement.charSelectedToBeSwappedCharID[port] = (u8)CHAR_ID_NONE;
         makeCursorUnmovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37 + port])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][port])) {
         makeCursorMovable(port);
-        gameSetUpStep[0x37 + port] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+        gameSetUpStep.stepFlags[9][port] = SET_UP_STEP_DONE;
     }
 }
 
@@ -1928,7 +1928,7 @@ static inline void teamManagementShowScoutFlags(MenuScene* scene) {
 
     playedFlag = FALSE;
 
-    if (isAnimStepStart(gameSetUpStep[0x37])) {
+    if (isAnimStepStart(gameSetUpStep.stepFlags[9][0])) {
         for (player = 0; player < 9; player++) {
             flags = (s8)g_Challenge.characters[inMemRoster[1][player].stats.CharID].scoutFlagsAchieved;
             for (flag = 0; flag < flags; flag++) {
@@ -1944,11 +1944,11 @@ static inline void teamManagementShowScoutFlags(MenuScene* scene) {
             }
         }
         makeCursorUnmovable(0);
-        gameSetUpStep[0x37] = TEAM_MANAGEMENT_ANIM_STEP_PLAYING;
+        gameSetUpStep.stepFlags[9][0] = SET_UP_STEP_PLAYING;
     }
-    if (isAnimStepPlaying(gameSetUpStep[0x37])) {
+    if (isAnimStepPlaying(gameSetUpStep.stepFlags[9][0])) {
         makeCursorMovable(0);
-        gameSetUpStep[0x37] = TEAM_MANAGEMENT_ANIM_STEP_DONE;
+        gameSetUpStep.stepFlags[9][0] = SET_UP_STEP_DONE;
     }
 }
 
@@ -1959,9 +1959,9 @@ void teamManagementGraphics_steadyState(void) {
     s32 player;
 
     for (index = 0; index < 2; index++) {
-        port = gameSetUpStep[0x59 + index];
+        port = gameSetUpStep.portCaptainSlot[index];
 
-        switch (gameSetUpStep[0x5D + index]) {
+        switch (gameSetUpStep.currentCharacterSelectProcess[index]) {
         case CHAR_SELECT_PROCESS_TM_LOAD:
             if (g_d_GameSettings._06 != 2) {
                 teamManagementLoad(scene, port);
@@ -2032,7 +2032,7 @@ void teamManagementGraphics_steadyState(void) {
         case 0x46:
             TEAM_MANAGEMENT_RECORD(scene, 0x1D2)->flags |= UI_FLAG_VISIBLE;
             TEAM_MANAGEMENT_RECORD(scene, 0x1D2)->playMode = UI_PLAY_FORWARD;
-            gameSetUpStep[0x5D] = 0;
+            gameSetUpStep.currentCharacterSelectProcess[0] = 0;
             break;
         }
         battingOrderProcessInputs(scene, port);

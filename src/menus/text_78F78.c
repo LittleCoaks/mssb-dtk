@@ -10,13 +10,12 @@
 #include "Unknown/File_0x80034e20.h"
 #include "Unknown/File_0x80062674.h"
 #include "Unknown/orderchange.h"
+#include "menus/css_work.h"
 
-extern u8 gameSetUpStep[];
-extern u8 lbl_2_bss_F468[];
+extern GameSetUpStep gameSetUpStep;
+extern CssWork cssWork;
 extern Text00110Ctl *menuControlVariables;
 
-/* Per-team state word in lbl_2_bss_F468 (indexed by team). */
-#define TEAM_STATE(team) (((s32 *)lbl_2_bss_F468)[(team)])
 
 /* Record for scene handle k: graphicsRelatedArray[scene->firstHandle + k]. */
 #define SCENE_RECORD(scene, k) ((UIRecord *)graphicsRelatedArray[(scene)->firstHandle + (k)].object)
@@ -56,11 +55,11 @@ static inline s32 rosterHandle(s32 index, s32 position, s32 offset) {
 }
 
 static inline BOOL isStepClear(u8 step) {
-    return step == 0 ? TRUE : FALSE;
+    return step == SET_UP_STEP_START ? TRUE : FALSE;
 }
 
 static inline BOOL isStepActive(u8 step) {
-    return step == 1 ? TRUE : FALSE;
+    return step == SET_UP_STEP_PLAYING ? TRUE : FALSE;
 }
 
 static inline BOOL resetChemistryStars(MenuScene *scene, s32 index) {
@@ -86,7 +85,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
     E(s32, CHAR_ID) captain;
     BOOL cpuPlayer;
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         SCENE_RECORD(scene, 0x6)->playMode = UI_PLAY_FORWARD;
         SCENE_RECORD(scene, 0x8)->playMode = UI_PLAY_FORWARD;
         SCENE_RECORD(scene, 0x1C)->flags |= UI_FLAG_VISIBLE;
@@ -132,7 +131,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 s32 position = cursorPositions.roster.positionSwapMapping[index][i];
 
                 if (g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME &&
-                    lbl_2_bss_F468[index + 0x37] == 0 && index == 1) {
+                    cssWork.rosterComplete[index] == 0 && index == 1) {
                     if (i == (s8)captainPosition) {
                         rosterRecord(scene, index, i, 0x46)->elementIndex =
                             (s8)(Static_Stats_Tables.playerNumberByPort[0] == 0) + 0x11;
@@ -159,7 +158,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 }
                 if (cursorPositions.roster.rosterCharID[index][i] != CHAR_ID_NONE) {
                     rosterRecord(scene, index, (s8)position, 0x34)->flags |= UI_FLAG_VISIBLE;
-                    if (i == TEAM_STATE(index)) {
+                    if (i == cssWork.lineupCursor[index]) {
                         rosterRecord(scene, index, (s8)position, 0x34)->frame = 10 << 16;
                         rosterRecord(scene, index, (s8)position, 0x34)->playMode = UI_PLAY_STOP;
                         rosterRecord(scene, index, (s8)position, 0x22)->flags |= UI_FLAG_VISIBLE;
@@ -226,7 +225,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                     rosterRecord(scene, index, (s8)position, 0x46)->elementIndex =
                         Static_Stats_Tables.playerNumberByPort[index] + 0x11;
                 }
-                if (i == TEAM_STATE(index)) {
+                if (i == cssWork.lineupCursor[index]) {
                     rosterRecord(scene, index, (s8)position, 0x46)->flags |= UI_FLAG_VISIBLE;
                     rosterRecord(scene, index, (s8)position, 0x46)->playMode = UI_PLAY_FORWARD;
                 } else {
@@ -235,7 +234,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 }
                 if (cursorPositions.roster.rosterCharID[index][i] != CHAR_ID_NONE) {
                     rosterRecord(scene, index, (s8)position, 0x34)->flags |= UI_FLAG_VISIBLE;
-                    if (i == TEAM_STATE(index)) {
+                    if (i == cssWork.lineupCursor[index]) {
                         rosterRecord(scene, index, (s8)position, 0x34)->frame = 10 << 16;
                         rosterRecord(scene, index, (s8)position, 0x34)->playMode = UI_PLAY_STOP;
                     } else {
@@ -274,7 +273,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
                 channelRecord(scene, index, 0x91)->playMode = UI_PLAY_STOP;
             }
         }
-        if (lbl_2_bss_F468[0x3F] != 0 && lbl_2_bss_F468[0x37] != 0 &&
+        if (cssWork.challengeRosterLocked != 0 && cssWork.rosterComplete[0] != 0 &&
             g_d_GameSettings.GameModeSelected == GAME_TYPE_CHALLENGE) {
             if (index == 0) {
                 channelRecord(scene, index, 0x93)->frame = 0;
@@ -286,7 +285,7 @@ void fn_2_7AE3C(MenuScene *scene, s32 index) {
             }
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -295,7 +294,7 @@ void fn_2_7AC64(MenuScene *scene, s32 index) {
     s32 ready;
     s32 expected;
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         ready = maybeCheckAndResetGrapicsElement(scene, index, 20) != FALSE;
         ready += maybeCheckAndResetGrapicsElement(scene, index + 2, 20) != FALSE;
         ready += maybeCheckAndResetGrapicsElement(scene, index + 0x1C, 10) != FALSE;
@@ -310,9 +309,9 @@ void fn_2_7AC64(MenuScene *scene, s32 index) {
             makeCursorMovable(index);
             if (menuControlVariables->previousScreen == 0xB && index == 0 &&
                 g_d_GameSettings.p2_CPU_match_code == P2_CPU_CODE_1_PLAYER_GAME) {
-                updateCharacterSelectProcessCode(0, 0x11);
+                updateCharacterSelectProcessCode(0, CHAR_SELECT_PROCESS_CSS_READY);
             } else {
-                gameSetUpStep[index + 0xD] = 2;
+                gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
             }
         }
     }
@@ -320,7 +319,7 @@ void fn_2_7AC64(MenuScene *scene, s32 index) {
 
 // .text:0x0007A9D8 size:0x28C mapped:0x806B9A6C
 void fn_2_7A9D8(MenuScene *scene, s32 index) {
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         SCENE_RECORD(scene, index)->frame = 20 << 16;
         SCENE_RECORD(scene, index + 2)->frame = 20 << 16;
         SCENE_RECORD(scene, index)->playMode = UI_PLAY_BACKWARD;
@@ -343,7 +342,7 @@ void fn_2_7A9D8(MenuScene *scene, s32 index) {
         SCENE_RECORD(scene, index + 0xC)->flags &= ~UI_FLAG_VISIBLE;
         SCENE_RECORD(scene, index + 0x12)->flags &= ~UI_FLAG_VISIBLE;
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
@@ -351,7 +350,7 @@ void fn_2_7A9D8(MenuScene *scene, s32 index) {
 void fn_2_7A748(MenuScene *scene, s32 index) {
     s32 ready;
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         ready = maybeCheckAndResetGrapicsElement(scene, index, 0) != FALSE;
         ready += maybeCheckAndResetGrapicsElement(scene, index + 2, 0) != FALSE;
         ready += maybeCheckAndResetGrapicsElement(scene, index + 0x85, 0) != FALSE;
@@ -373,7 +372,7 @@ void fn_2_7A748(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, 0x81)->flags |= UI_FLAG_VISIBLE;
             SCENE_RECORD(scene, 0xF)->playMode = UI_PLAY_STOP;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -381,7 +380,7 @@ void fn_2_7A748(MenuScene *scene, s32 index) {
 // .text:0x0007A5B8 size:0x190 mapped:0x806B964C
 void fn_2_7A5B8(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         SCENE_RECORD(scene, index)->frame = 0x140000;
         SCENE_RECORD(scene, index + 2)->frame = 0x140000;
         SCENE_RECORD(scene, index)->playMode = UI_PLAY_FORWARD;
@@ -396,14 +395,14 @@ void fn_2_7A5B8(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x93)->flags &= ~UI_FLAG_VISIBLE;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
 // .text:0x0007A460 size:0x158 mapped:0x806B94F4
 void fn_2_7A460(MenuScene *scene, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         s32 done = 0;
 
         done += maybeCheckAndResetGrapicsElement(scene, index, 0x28) != FALSE;
@@ -415,7 +414,7 @@ void fn_2_7A460(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0xC)->flags &= ~UI_FLAG_VISIBLE;
             SCENE_RECORD(scene, index + 0x12)->flags &= ~UI_FLAG_VISIBLE;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -423,8 +422,8 @@ void fn_2_7A460(MenuScene *scene, s32 index) {
 // .text:0x0007A194 size:0x2CC mapped:0x806B9228
 void fn_2_7A194(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
-        s32 want = TEAM_STATE(index + 2);
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
+        s32 want = cssWork.lineupCursorPrev[index];
         s32 slot;
 
         slot = findRosterSlot(index, want);
@@ -445,15 +444,15 @@ void fn_2_7A194(MenuScene *scene, s32 index) {
             }
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
 // .text:0x00079FAC size:0x1E8 mapped:0x806B9040
 void fn_2_79FAC(MenuScene *scene, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
-        s32 want = TEAM_STATE(index + 2);
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
+        s32 want = cssWork.lineupCursorPrev[index];
         s32 slot;
         s32 placed = 0;
         s32 done = 0;
@@ -466,7 +465,7 @@ void fn_2_79FAC(MenuScene *scene, s32 index) {
         }
         if (done == placed) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -474,9 +473,9 @@ void fn_2_79FAC(MenuScene *scene, s32 index) {
 // .text:0x00079CF8 size:0x2B4 mapped:0x806B8D8C
 void fn_2_79CF8(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
-        s32 want = (s8)TEAM_STATE(index);
-        s32 copy = TEAM_STATE(index + 2);
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
+        s32 want = (s8)cssWork.lineupCursor[index];
+        s32 copy = cssWork.lineupCursorPrev[index];
         s32 slot;
 
         slot = findRosterSlot(index, want);
@@ -494,15 +493,15 @@ void fn_2_79CF8(MenuScene *scene, s32 index) {
             rosterRecord(scene, index, want, 0x34)->playMode = UI_PLAY_BACKWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
 // .text:0x00079B24 size:0x1D4 mapped:0x806B8BB8
 void fn_2_79B24(MenuScene *scene, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
-        s32 want = (s8)TEAM_STATE(index);
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
+        s32 want = (s8)cssWork.lineupCursor[index];
         s32 slot;
         s32 placed = 0;
         s32 done = 0;
@@ -514,7 +513,7 @@ void fn_2_79B24(MenuScene *scene, s32 index) {
         }
         if (done == placed) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -522,7 +521,7 @@ void fn_2_79B24(MenuScene *scene, s32 index) {
 // .text:0x00079930 size:0x1F4 mapped:0x806B89C4
 void randomTeamMemberSelection(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         s32 i;
 
         for (i = 0; i < PLAYERS_PER_TEAM; i++) {
@@ -535,7 +534,7 @@ void randomTeamMemberSelection(MenuScene *scene, s32 index) {
             rosterRecord(scene, index, swap, 0x58)->frame = ch << 16;
         }
         teamSelectionSetChemStars(scene, index);
-        if (TEAM_STATE(index) == 9) {
+        if (cssWork.lineupCursor[index] == CSS_LINEUP_CURSOR_DONE) {
             SCENE_RECORD(scene, index + 0x93)->frame = 0;
             SCENE_RECORD(scene, index + 0x93)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
@@ -544,14 +543,14 @@ void randomTeamMemberSelection(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_BACKWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
 }
 
 // .text:0x00079764 size:0x1CC mapped:0x806B87F8
 void fn_2_79764(MenuScene *scene, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         s32 hits = 0;
         s32 total = 0;
         s32 i;
@@ -572,7 +571,7 @@ void fn_2_79764(MenuScene *scene, s32 index) {
             }
         }
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = 2;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
     }
 }
 
@@ -580,7 +579,7 @@ void fn_2_79764(MenuScene *scene, s32 index) {
 void fn_2_79688(MenuScene *scene, s32 index) {
     int i;
 
-    if (gameSetUpStep[index + 0xD] != 0) {
+    if (gameSetUpStep.stepFlags[2][index] != SET_UP_STEP_START) {
         return;
     }
     for (i = 0; i < (s32)PLAYERS_PER_TEAM; i++) {
@@ -596,48 +595,48 @@ void fn_2_79688(MenuScene *scene, s32 index) {
 // .text:0x00079634 size:0x54 mapped:0x806B86C8
 void fn_2_79634(void *unused, s32 index) {
 
-    if (isStepActive(gameSetUpStep[index + 0xD])) {
+    if (isStepActive(gameSetUpStep.stepFlags[2][index])) {
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = 2;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
     }
 }
 
 // .text:0x00079394 size:0x2A0 mapped:0x806B8428
 void cssAction_0x18(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
-        if (TEAM_STATE(index) == 9) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
+        if (cssWork.lineupCursor[index] == CSS_LINEUP_CURSOR_DONE) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_FORWARD;
             SCENE_RECORD(scene, index + 0x91)->frame = 0xA0000;
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_BACKWARD;
-        } else if (TEAM_STATE(index) == 0xA) {
+        } else if (cssWork.lineupCursor[index] == CSS_LINEUP_CURSOR_RANDOM) {
             SCENE_RECORD(scene, index + 0x95)->frame = 0xA0000;
             SCENE_RECORD(scene, index + 0x95)->playMode = UI_PLAY_BACKWARD;
             SCENE_RECORD(scene, index + 0x91)->frame = 0;
             SCENE_RECORD(scene, index + 0x91)->playMode = UI_PLAY_FORWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == 1) {
-        s32 teamState = TEAM_STATE(index);
+    if (gameSetUpStep.stepFlags[2][index] == SET_UP_STEP_PLAYING) {
+        s32 cursor = cssWork.lineupCursor[index];
         s32 ready = 0;
         s32 target = 0;
 
-        if (teamState == 9) {
+        if (cursor == 9) {
             target = 2;
             ready = ((SCENE_RECORD(scene, index + 0x95)->frame >> 16) >= 10) +
                     ((SCENE_RECORD(scene, index + 0x91)->frame >> 16) == 0);
-        } else if (teamState == 0xA) {
+        } else if (cursor == 0xA) {
             target = 2;
             ready = ((SCENE_RECORD(scene, index + 0x91)->frame >> 16) >= 10) +
                     ((SCENE_RECORD(scene, index + 0x95)->frame >> 16) == 0);
         }
         if (ready == target) {
-            TEAM_STATE(index + 2) = teamState;
+            cssWork.lineupCursorPrev[index] = cursor;
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
         }
     }
 }
@@ -645,8 +644,8 @@ void cssAction_0x18(MenuScene *scene, s32 index) {
 // .text:0x0007912C size:0x268 mapped:0x806B81C0
 void cssAction_0x19(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
-        if (gameSetUpStep[0] == 2) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
+        if (gameSetUpStep.screen == 2) {
             s32 j;
 
             for (j = 1; j <= 8; j++) {
@@ -660,9 +659,9 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
             teamSelectionSetChemStars(scene, index);
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == 1) {
+    if (gameSetUpStep.stepFlags[2][index] == SET_UP_STEP_PLAYING) {
         s32 attempted = 0;
         s32 succeeded = 0;
         s32 j;
@@ -676,7 +675,7 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
                 succeeded += maybeCheckAndResetGrapicsElement(scene, rosterHandle(index, j, 0x34), 0) != FALSE;
             }
         }
-        if (gameSetUpStep[0] == 2) {
+        if (gameSetUpStep.screen == 2) {
             s32 k;
             s32 limit = Static_Stats_Tables.startingChemStars[index];
             s32 attempted2 = 0;
@@ -692,10 +691,10 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
         }
         if (succeeded == attempted) {
             makeCursorMovable(index);
-            gameSetUpStep[index + 0xD] = 2;
-            if (lbl_2_bss_F468[index + 0x43] != 0) {
-                starHitSetting_Unused_maybe(index);
-                lbl_2_bss_F468[index + 0x43] = 0;
+            gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
+            if (cssWork.randomFillAfterClear[index] != 0) {
+                cssRandomFillRoster(index);
+                cssWork.randomFillAfterClear[index] = 0;
             }
         }
     }
@@ -704,7 +703,7 @@ void cssAction_0x19(MenuScene *scene, s32 index) {
 // .text:0x00078F78 size:0x1B4 mapped:0x806B800C
 void cssAction_0x1a(MenuScene *scene, s32 index) {
 
-    if (isStepClear(gameSetUpStep[index + 0xD])) {
+    if (isStepClear(gameSetUpStep.stepFlags[2][index])) {
         SCENE_RECORD(scene, index + 0xA)->flags |= UI_FLAG_VISIBLE;
         SCENE_RECORD(scene, index + 0xA)->playMode = UI_PLAY_FORWARD;
         SCENE_RECORD(scene, index + 0x1E)->playMode = UI_PLAY_FORWARD;
@@ -719,10 +718,10 @@ void cssAction_0x1a(MenuScene *scene, s32 index) {
             SCENE_RECORD(scene, index + 0x8F)->playMode = UI_PLAY_FORWARD;
         }
         makeCursorUnmovable(index);
-        gameSetUpStep[index + 0xD] = 1;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_PLAYING;
     }
-    if (gameSetUpStep[index + 0xD] == 1) {
+    if (gameSetUpStep.stepFlags[2][index] == SET_UP_STEP_PLAYING) {
         makeCursorMovable(index);
-        gameSetUpStep[index + 0xD] = 2;
+        gameSetUpStep.stepFlags[2][index] = SET_UP_STEP_DONE;
     }
 }

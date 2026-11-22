@@ -12,15 +12,17 @@
 #include "Unknown/mb_subfunc.h"
 #include "PowerPC_EABI_Support/Runtime/__mem.h"
 #include "Unknown/File_0x80034cec.h"
+#include "menus/css_work.h"
+#include "Unknown/game_set_up_step.h"
 
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern int menuCursors[0x16];
 extern int mainMenuCursorShown;
 extern u8 Static_Stats_Tables[];
 extern u8 lbl_8037169C[];
 extern u8 superstarUnlocked[];
 extern u8 cursorPositions[];
-extern u8 lbl_2_bss_F468[];
+extern CssWork cssWork;
 extern Text00110Ctl *menuControlVariables;
 extern u8 challengeCaptainCharIDArray[];
 extern u8 lbl_2_data_2B3A4[];
@@ -34,20 +36,30 @@ void load_Icon(void *scene, int handle, u32 part, u32 element, int frame);
 s32 fn_80036214(MenuScene *scene, s32 arg1, s32 arg2, s32 size);
 s32 fn_2_8794(s32 arg0, s32 arg1);
 
-static TextGraphicsObject *gfxObject(MenuScene *scene, s32 index) {
+#define CHAR_STATS(c) (((CharacterStats (*)[9])Static_Stats_Tables)[(c) / 9][(c) % 9])
+
+static inline BOOL cursorLockStateIs(u8 state) {
+    return (gameSetUpStep.stepFlags[1][0] == state) ? TRUE : FALSE;
+}
+
+static inline TextGraphicsObject *gfxObject(MenuScene *scene, s32 index) {
     return graphicsRelatedArray[scene->firstHandle + index].object;
 }
 
 
-static TextGraphicsObject *gfxNodeObject(DrawingSceneStruct *node, s32 index) {
+static inline TextGraphicsObject *gfxObject2(MenuScene *scene, s32 base, s32 index) {
+    return graphicsRelatedArray[scene->firstHandle + base + index].object;
+}
+
+static inline TextGraphicsObject *gfxNodeObject(DrawingSceneStruct *node, s32 index) {
     return graphicsRelatedArray[*(u16 *)((u8 *)node + 0x14) + index].object;
 }
 
-static void gfxNodeSetU32(DrawingSceneStruct *node, s32 index, u32 value) {
+static inline void gfxNodeSetU32(DrawingSceneStruct *node, s32 index, u32 value) {
     *(u32 *)((u8 *)gfxNodeObject(node, index) + 0x5C) = value;
 }
 
-static void gfxNodeSetU8(DrawingSceneStruct *node, s32 index, u8 value) {
+static inline void gfxNodeSetU8(DrawingSceneStruct *node, s32 index, u8 value) {
     *(u8 *)((u8 *)gfxNodeObject(node, index) + 0x68) = value;
 }
 
@@ -101,38 +113,30 @@ void fn_2_7664C(void) {
 
 // .text:0x0007630C size:0x340 mapped:0x806B53A0
 void fn_2_7630C(MenuScene *scene, u8 arg) {
-    u8 slot = 0;
     u8 team;
     u8 cursorChar;
     u8 posChar;
-    s32 cursorDiv;
-    s32 cursorMod;
-    s32 posDiv;
-    s32 posMod;
-    u8 iconP;
-    u8 iconQ;
+    u8 statA;
+    u8 statB;
 
-    if (g_d_GameSettings[0x10] != 0) {
-        slot = arg;
+    if (g_d_GameSettings[0x10] == 0) {
+        team = gameSetUpStep.portCaptainSlot[0];
+    } else {
+        team = gameSetUpStep.portCaptainSlot[arg];
     }
-    team = gameSetUpStep[0x59 + slot];
     cursorChar = mapCaptainCursorPositionToCharID[menuCursors[4 + team]];
     posChar = mapCaptainCursorPositionToCharID[cursorPositions[team]];
-    cursorDiv = cursorChar / 9;
-    cursorMod = cursorChar % 9;
-    posDiv = posChar / 9;
-    posMod = posChar % 9;
-    iconP = lbl_2_data_2B3A4[Static_Stats_Tables[0x34 + cursorDiv * 1440 + cursorMod * 160]];
-    iconQ = lbl_2_data_2B3A4[Static_Stats_Tables[0x34 + posDiv * 1440 + posMod * 160]];
+    statA = Static_Stats_Tables[0x34 + (cursorChar / 9) * 1440 + (cursorChar % 9) * 160];
+    statB = Static_Stats_Tables[0x34 + (posChar / 9) * 1440 + (posChar % 9) * 160];
 
-    *(u32 *)((u8 *)gfxObject(scene, team + 0x82) + 0x5C) = (u32)iconP << 16;
+    *(u32 *)((u8 *)gfxObject(scene, team + 0x82) + 0x5C) = lbl_2_data_2B3A4[statA] << 16;
     *(u32 *)((u8 *)gfxObject(scene, team + 0x85) + 0x5C) = 0xA0000;
     *(u32 *)((u8 *)gfxObject(scene, team + 0x87) + 0x5C) = 0xA0000;
     *(u8 *)((u8 *)gfxObject(scene, team + 0x85) + 0x68) = 0;
     *(u8 *)((u8 *)gfxObject(scene, team + 0x87) + 0x68) = 0;
-    load_Icon(scene, team + 0x89, 1, 3, iconP);
-    load_Icon(scene, team + 0x8B, 1, 3, iconQ);
-    *(u32 *)((u8 *)gfxObject(scene, team + 0x7E) + 0x5C) = (u32)iconP << 16;
+    load_Icon(scene, team + 0x89, 1, 3, lbl_2_data_2B3A4[statA]);
+    load_Icon(scene, team + 0x8B, 1, 3, lbl_2_data_2B3A4[statB]);
+    *(u32 *)((u8 *)gfxObject(scene, team + 0x7E) + 0x5C) = lbl_2_data_2B3A4[statA] << 16;
     gfxObject(scene, team + 0x1A)->flags |= 2;
     *(u8 *)((u8 *)gfxObject(scene, team + 0x1A) + 0x68) = 1;
     *(u32 *)((u8 *)gfxObject(scene, team + 0x80) + 0x5C) = 0;
@@ -142,7 +146,7 @@ void fn_2_7630C(MenuScene *scene, u8 arg) {
     *(u32 *)((u8 *)gfxObject(scene, team + 0x7C) + 0x5C) = 0;
     *(u8 *)((u8 *)gfxObject(scene, team + 0x80) + 0x68) = 1;
     *(u8 *)((u8 *)gfxObject(scene, team + 0x89) + 0x68) = 1;
-    *(u8 *)((u8 *)gfxObject(scene, team + 0x8B) + 0x68) = iconP;
+    *(u8 *)((u8 *)gfxObject(scene, team + 0x8B) + 0x68) = 4;
     *(u8 *)((u8 *)gfxObject(scene, team + 0x78) + 0x68) = 1;
     *(u8 *)((u8 *)gfxObject(scene, team + 0x7C) + 0x68) = 1;
 }
@@ -152,17 +156,13 @@ void fn_2_760CC(MenuScene *scene) {
     s32 superstar = superstarUnlocked[0xF4];
     u8 a = challengeCaptainCharIDArray[superstar * 6 + menuCursors[4]];
     u8 b = challengeCaptainCharIDArray[superstar * 6 + cursorPositions[0]];
-    s32 aDiv = a / 9;
-    s32 aMod = a % 9;
-    s32 bDiv = b / 9;
-    s32 bMod = b % 9;
-    u8 iconP = lbl_2_data_2B3A4[Static_Stats_Tables[0x34 + aDiv * 1440 + aMod * 160]];
-    u8 iconQ = lbl_2_data_2B3A4[Static_Stats_Tables[0x34 + bDiv * 1440 + bMod * 160]];
+    u8 statA = Static_Stats_Tables[0x34 + (a / 9) * 1440 + (a % 9) * 160];
+    u8 statB = Static_Stats_Tables[0x34 + (b / 9) * 1440 + (b % 9) * 160];
 
-    *(u32 *)((u8 *)gfxObject(scene, 0x82) + 0x5C) = (u32)iconP << 16;
-    load_Icon(scene, 0x89, 1, 3, iconP);
-    load_Icon(scene, 0x8B, 1, 3, iconQ);
-    *(u32 *)((u8 *)gfxObject(scene, 0x7E) + 0x5C) = (u32)iconP << 16;
+    *(u32 *)((u8 *)gfxObject(scene, 0x82) + 0x5C) = lbl_2_data_2B3A4[statA] << 16;
+    load_Icon(scene, 0x89, 1, 3, lbl_2_data_2B3A4[statA]);
+    load_Icon(scene, 0x8B, 1, 3, lbl_2_data_2B3A4[statB]);
+    *(u32 *)((u8 *)gfxObject(scene, 0x7E) + 0x5C) = lbl_2_data_2B3A4[statA] << 16;
     *(u32 *)((u8 *)gfxObject(scene, 0x80) + 0x5C) = 0;
     *(u32 *)((u8 *)gfxObject(scene, 0x89) + 0x5C) = 0;
     *(u32 *)((u8 *)gfxObject(scene, 0x8B) + 0x5C) = 0xA0000;
@@ -190,49 +190,48 @@ void fn_2_76098(void) {
 // .text:0x00075BE4 size:0x4B4 mapped:0x806B4C78
 void teamSelectionSetChemStars(MenuScene *scene, s32 team) {
     u8 *picks = &cursorPositions[team * 9];
-    u32 *teamWord = (u32 *)(Static_Stats_Tables + team * 4 + 0x46E0);
+    s32 *captainID = (s32 *)(Static_Stats_Tables + team * 4 + 0x46E0);
     s32 sum = 0;
     s32 count = 0;
+    s32 average = 0;
     s32 stars = 0;
+    s32 base;
     s32 i;
 
     for (i = 0; i < 9; i++) {
         u8 value = picks[0x26];
 
-        if (value != 0 && (s32)(s8)picks[2] != (s32)*teamWord) {
+        if (value != 0 && (s8)picks[2] != *captainID) {
             sum += value;
             count++;
         }
         picks++;
     }
     if (count != 0) {
-        s32 average = sum / count;
-        if (average >= 70) {
-            stars = 5;
-        } else if (average <= 69 && average >= 55) {
-            stars = 4;
-        } else if (average <= 54 && average >= 35) {
-            stars = 3;
-        } else if (average <= 34 && average >= 15) {
-            stars = 2;
-        } else if (average <= 14 && average > 0) {
-            stars = 1;
-        }
+        average = sum / count;
     }
-    Static_Stats_Tables[0x470F + team] = (u8)stars;
+    if (average >= 70) {
+        stars = 5;
+    } else if (average <= 69 && average >= 55) {
+        stars = 4;
+    } else if (average <= 54 && average >= 35) {
+        stars = 3;
+    } else if (average <= 34 && average >= 15) {
+        stars = 2;
+    } else if (average <= 14 && average > 0) {
+        stars = 1;
+    }
+    Static_Stats_Tables[0x470F + team] = stars;
 
+    base = team * 5;
     for (i = 0; i < 5; i++) {
-        u8 *obj = (u8 *)gfxObject(scene, team * 5 + 0x6E + i);
-
-        if ((*(u32 *)(obj + 0x5C) >> 16) == 0x1E) {
-            obj[0x68] = 1;
+        if ((*(u32 *)((u8 *)graphicsRelatedArray[scene->firstHandle + i + base + 0x6E].object + 0x5C) >> 16) == 0x1E) {
+            *((u8 *)graphicsRelatedArray[scene->firstHandle + i + base + 0x6E].object + 0x68) = 1;
         }
     }
     for (i = 0; i < stars; i++) {
-        u8 *obj = (u8 *)gfxObject(scene, team * 5 + 0x6E + i);
-
-        *(u32 *)(obj + 0x5C) = 0;
-        obj[0x68] = 1;
+        *(u32 *)((u8 *)graphicsRelatedArray[scene->firstHandle + i + base + 0x6E].object + 0x5C) = 0;
+        *((u8 *)graphicsRelatedArray[scene->firstHandle + i + base + 0x6E].object + 0x68) = 1;
     }
 }
 
@@ -246,7 +245,7 @@ E(u8, BOOL) fn_2_75B58(MenuScene *scene, s32 team) {
 
     for (i = 0; i < count; i++) {
         total++;
-        hits += maybeCheckAndResetGrapicsElement(scene, base + i + 0x6E, 0x1E) != FALSE;
+        hits += maybeCheckAndResetGrapicsElement(scene, i + base + 0x6E, 0x1E) != FALSE;
     }
     return (total - hits) == 0;
 }
@@ -262,7 +261,7 @@ void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
     u8 running;
     u8 fielding;
 
-    if (menuControlVariables->currentScreen == 9 || gameSetUpStep[port + 0x5D] == 11) {
+    if (menuControlVariables->currentScreen == 9 || gameSetUpStep.currentCharacterSelectProcess[port] == 11) {
         if (g_d_GameSettings[7] != GAME_TYPE_CHALLENGE) {
             character = mapCaptainCursorPositionToCharID[menuCursors[port + 4]];
         } else {
@@ -280,8 +279,8 @@ void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
         return;
     }
 
-    selected = ((s32 *)lbl_2_bss_F468)[port];
-    if (lbl_2_bss_F468[port + 0x41] != 0) {
+    selected = cssWork.lineupCursor[port];
+    if (cssWork.onCharacterGrid[port] != 0) {
         gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
         character = menuCursors[port + 8];
     } else if (selected == 9 || selected == 10) {
@@ -319,7 +318,7 @@ void gfx_cssCharStatBars_and_sthgElse(MenuScene *scene, s32 port) {
         ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = (s8)variant << 16;
     } else {
         gfxObject(scene, port + 0xB2)->flags &= ~UI_FLAG_VISIBLE;
-        if (((s32 *)lbl_2_bss_F468)[port] != 9 && ((s32 *)lbl_2_bss_F468)[port] != 10) {
+        if (cssWork.lineupCursor[port] != CSS_LINEUP_CURSOR_DONE && cssWork.lineupCursor[port] != CSS_LINEUP_CURSOR_RANDOM) {
             gfxObject(scene, port + 0xAE)->flags |= UI_FLAG_VISIBLE;
             ((UIRecord *)gfxObject(scene, port + 0xAE))->frame = 0;
         }
@@ -360,10 +359,10 @@ void fn_2_74E14(MenuScene *scene, s32 a, s32 b, u8 c) {
     gfxObject(scene, a + 0x97)->flags |= UI_FLAG_VISIBLE;
     ((UIRecord *)gfxObject(scene, a + 0x97))->frame = 0;
     ((UIRecord *)gfxObject(scene, a + 0x97))->playMode = UI_PLAY_FORWARD;
-    ((UIRecord *)gfxObject(scene, c + a * 4 + 0x9B))->frame = packed;
+    ((UIRecord *)gfxObject2(scene, c, a * 4 + 0x9B))->frame = packed;
     result = fn_80036214(scene, 0xAB, 0, (b + 1) / 2 - 1);
-    ((UIRecord *)gfxObject(scene, c + a * 4 + 0xA3))->frame = packed;
-    ((UIRecord *)gfxObject(scene, c + a * 4 + 0xA3))->rgba = result;
+    ((UIRecord *)gfxObject2(scene, c, a * 4 + 0xA3))->frame = packed;
+    ((UIRecord *)gfxObject2(scene, c, a * 4 + 0xA3))->rgba = result;
 }
 
 // .text:0x00074DB8 size:0x5C mapped:0x806B3E4C
@@ -417,10 +416,10 @@ void fn_2_74D8C(void) {
 
 // .text:0x00074CD8 size:0xB4 mapped:0x806B3D6C
 void fn_2_74CD8(void) {
-    DrawingSceneStruct *node = currentDrawingItem;
+    DrawingSceneStruct *node;
     int i;
 
-    addGraphicsElementToScene(node, lbl_2_data_2D33C);
+    addGraphicsElementToScene(node = currentDrawingItem, lbl_2_data_2D33C);
     for (i = 0; i < 7; i++) {
         load_Icon(node, i + 0x18, 1, 0x36, i);
     }
@@ -442,9 +441,9 @@ void fn_2_747FC(void) {
         return;
     }
 
-    switch (gameSetUpStep[0x5D]) {
+    switch (gameSetUpStep.currentCharacterSelectProcess[0]) {
     case 0x54:
-        if (gameSetUpStep[0x7] == 0) {
+        if (gameSetUpStep.stepFlags[1][0] == 0) {
             for (i = 0; i < 7; i++) {
                 if (menuCursors[0] == i) {
                     gfxNodeObject(node, i + 3)->flags |= 2;
@@ -464,9 +463,9 @@ void fn_2_747FC(void) {
             gfxNodeSetU32(node, 0x20, 0);
             gfxNodeSetU8(node, 0x20, 1);
             makeCursorUnmovable(0);
-            gameSetUpStep[0x7] = 1;
+            gameSetUpStep.stepFlags[1][0] = 1;
         }
-        if (gameSetUpStep[0x7] == 1) {
+        if (gameSetUpStep.stepFlags[1][0] == 1) {
             s32 hits = 0;
             s32 ready = 0;
 
@@ -479,19 +478,19 @@ void fn_2_747FC(void) {
             ready += maybeCheckAndResetGrapicsElement((MenuScene *)node, 0x20, 0xA) != FALSE;
             if (ready == hits + 1) {
                 makeCursorMovable(0);
-                gameSetUpStep[0x7] = 2;
+                gameSetUpStep.stepFlags[1][0] = 2;
                 updateCharacterSelectProcessCode(0, 0x57);
             }
         }
         break;
     case 0x55:
-        if (gameSetUpStep[0x7] == 0) {
+        if (gameSetUpStep.stepFlags[1][0] == 0) {
             makeCursorUnmovable(0);
-            gameSetUpStep[0x7] = 1;
+            gameSetUpStep.stepFlags[1][0] = 1;
         }
-        if (gameSetUpStep[0x7] == 1) {
+        if (gameSetUpStep.stepFlags[1][0] == 1) {
             makeCursorMovable(0);
-            gameSetUpStep[0x7] = 2;
+            gameSetUpStep.stepFlags[1][0] = 2;
         }
         break;
     case 0x56:
@@ -499,12 +498,12 @@ void fn_2_747FC(void) {
         fn_2_73CBC(node);
         break;
     case 0x57:
-        if (gameSetUpStep[0x7] == 0) {
+        if (gameSetUpStep.stepFlags[1][0] == 0) {
             gfxNodeSetU32(node, cursor + 0x11, 0xE0000);
             gfxNodeSetU8(node, cursor + 0x11, 1);
-            gameSetUpStep[0x7] = 1;
+            gameSetUpStep.stepFlags[1][0] = 1;
         }
-        if (gameSetUpStep[0x7] == 1) {
+        if (gameSetUpStep.stepFlags[1][0] == 1) {
             if (*(u16 *)(Static_Stats_Tables + 0x472C) == 0 && Static_Stats_Tables[0x4751] != 0) {
                 Static_Stats_Tables[0x4752] = 1;
                 if (menuCursors[0] != menuCursors[1]) {
@@ -519,16 +518,16 @@ void fn_2_747FC(void) {
         }
         break;
     case 0x58:
-        if (gameSetUpStep[0x7] == 0) {
+        if (gameSetUpStep.stepFlags[1][0] == 0) {
             gfxNodeSetU32(node, cursor + 0x11, 0x370000);
             gfxNodeSetU8(node, cursor + 0x11, 1);
             makeCursorUnmovable(0);
-            gameSetUpStep[0x7] = 1;
+            gameSetUpStep.stepFlags[1][0] = 1;
         }
-        if (gameSetUpStep[0x7] == 1) {
+        if (gameSetUpStep.stepFlags[1][0] == 1) {
             if (maybeCheckAndResetGrapicsElement((MenuScene *)node, cursor + 0x11, 0x41)) {
                 makeCursorMovable(0);
-                gameSetUpStep[0x7] = 2;
+                gameSetUpStep.stepFlags[1][0] = 2;
             }
         }
         break;
@@ -537,11 +536,12 @@ void fn_2_747FC(void) {
 
 // .text:0x0007463C size:0x1C0 mapped:0x806B36D0
 void fn_2_7463C(MenuScene *scene) {
+    int cursor = menuCursors[0];
     s32 i;
 
-    if (gameSetUpStep[0x7] == 0) {
+    if (cursorLockStateIs(0)) {
         for (i = 0; i < 7; i++) {
-            if (menuCursors[0] == i) {
+            if (cursor == i) {
                 gfxObject(scene, i + 3)->flags |= 2;
                 *(u32 *)((u8 *)gfxObject(scene, i + 3) + 0x5C) = 0;
                 *(u8 *)((u8 *)gfxObject(scene, i + 3) + 0x68) = 1;
@@ -559,19 +559,21 @@ void fn_2_7463C(MenuScene *scene) {
         *(u32 *)((u8 *)gfxObject(scene, 0x20) + 0x5C) = 0;
         *(u8 *)((u8 *)gfxObject(scene, 0x20) + 0x68) = 1;
         makeCursorUnmovable(0);
-        gameSetUpStep[0x7] = 1;
+        gameSetUpStep.stepFlags[1][0] = 1;
     }
 }
 
 // .text:0x00074564 size:0xD8 mapped:0x806B35F8
 void fn_2_74564(MenuScene *scene) {
-    if (gameSetUpStep[0x7] == 1) {
-        int hits = 0;
+    int cursor = menuCursors[0];
+
+    if (cursorLockStateIs(1)) {
         int ready = 0;
+        int hits = 0;
         int i;
 
         for (i = 0; i < 7; i++) {
-            if (menuCursors[0] == i) {
+            if (cursor == i) {
                 hits++;
                 ready += maybeCheckAndResetGrapicsElement(scene, i + 3, 0xE) != FALSE;
             }
@@ -579,7 +581,7 @@ void fn_2_74564(MenuScene *scene) {
         ready += maybeCheckAndResetGrapicsElement(scene, 0x20, 0xA) != FALSE;
         if (ready == hits + 1) {
             makeCursorMovable(0);
-            gameSetUpStep[0x7] = 2;
+            gameSetUpStep.stepFlags[1][0] = 2;
             updateCharacterSelectProcessCode(0, 0x57);
         }
     }
@@ -587,16 +589,16 @@ void fn_2_74564(MenuScene *scene) {
 
 // .text:0x00074518 size:0x4C mapped:0x806B35AC
 void fn_2_74518(void) {
-    if (gameSetUpStep[0x7] == 0) {
+    if (cursorLockStateIs(0)) {
         makeCursorUnmovable(0);
-        gameSetUpStep[0x7] = 1;
+        gameSetUpStep.stepFlags[1][0] = 1;
     }
 }
 
 // .text:0x000744C8 size:0x50 mapped:0x806B355C
 void fn_2_744C8(void) {
-    if (!(1 - gameSetUpStep[0x7])) {
+    if (cursorLockStateIs(1)) {
         makeCursorMovable(0);
-        gameSetUpStep[0x7] = 2;
+        gameSetUpStep.stepFlags[1][0] = 2;
     }
 }

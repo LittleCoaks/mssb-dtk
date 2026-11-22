@@ -12,7 +12,7 @@
 #include "Unknown/File_0x800acf14.h"
 
 extern u32 lbl_803CB750[4];
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern u8 menuNumber[0x28];
 extern u8 lbl_800EFBA4[0x10];
 extern int menuCursors[0x16];
@@ -334,10 +334,10 @@ void mainMenuRelated(void) {
             fn_2_1A88();
         }
 
-        p1 = &gameSetUpStep[1];
+        p1 = &gameSetUpStep.stepFlags[0][0];
         memset(p1, 0, 0x54);
-        gameSetUpStep[0x56] = 0;
-        gameSetUpStep[0x55] = 0;
+        gameSetUpStep.preventCursorMovement[1] = 0;
+        gameSetUpStep.preventCursorMovement[0] = 0;
         memset(&g_MatchInfo, 0, 0x3A);
         memset(Static_Stats_Tables.charIsStarred, 0, sizeof(Static_Stats_Tables.charIsStarred));
         memset(menuNumber, 0, 0x28);
@@ -346,7 +346,7 @@ void mainMenuRelated(void) {
         menuCursors[0] = p2[0];
         menuCursors[1] = ((u8 *)&Static_Stats_Tables)[0x4713];
         g_d_GameSettings.p2_CPU_match_code = P2_CPU_CODE_1_PLAYER_GAME;
-        gameSetUpStep[0] = 0;
+        gameSetUpStep.screen = 0;
         memset(p1, 0, 6);
         Static_Stats_Tables.sceneAlive = 0xFF;
         fn_2_74D8C();
@@ -364,7 +364,7 @@ void mainMenuRelated(void) {
         input.newInput = Static_Stats_Tables.controllerInputs[0].newInput;
         input.processedInput = Static_Stats_Tables.controllerInputs[0].processedInput;
 
-        if (gameSetUpStep[0x55] != 0) {
+        if (gameSetUpStep.preventCursorMovement[0] != 0) {
             break;
         }
 
@@ -437,7 +437,7 @@ void mainMenuRelated(void) {
         break;
 
     case 5:
-        if (gameSetUpStep[0x55] != 0) {
+        if (gameSetUpStep.preventCursorMovement[0] != 0) {
             break;
         }
         ((u8 *)&Static_Stats_Tables)[0x4712] = menuCursors[0];
@@ -661,9 +661,9 @@ void cursorSndFx(u16 button) {
 
 // .text:0x00001BAC size:0x88 mapped:0x80640C40
 void fn_2_1BAC(void) {
-    memset(&gameSetUpStep[1], 0, 0x54);
-    gameSetUpStep[0x56] = 0;
-    gameSetUpStep[0x55] = 0;
+    memset(&gameSetUpStep.stepFlags[0][0], 0, 0x54);
+    gameSetUpStep.preventCursorMovement[1] = 0;
+    gameSetUpStep.preventCursorMovement[0] = 0;
     memset(&g_MatchInfo, 0, 0x3A);
     memset(Static_Stats_Tables.charIsStarred, 0, sizeof(Static_Stats_Tables.charIsStarred));
     memset(menuNumber, 0, 0x28);
@@ -698,7 +698,7 @@ void fn_2_1800(void) {
     input.newInput = Static_Stats_Tables.controllerInputs[0].newInput;
     input.processedInput = Static_Stats_Tables.controllerInputs[0].processedInput;
 
-    if (gameSetUpStep[0x55] != 0) {
+    if (gameSetUpStep.preventCursorMovement[0] != 0) {
         return;
     }
 
@@ -779,7 +779,7 @@ void fn_2_1578(void) {
     input.newInput = Static_Stats_Tables.controllerInputs[0].newInput;
     input.processedInput = Static_Stats_Tables.controllerInputs[0].processedInput;
 
-    if (gameSetUpStep[0x55] != 0) {
+    if (gameSetUpStep.preventCursorMovement[0] != 0) {
         return;
     }
 

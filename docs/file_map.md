@@ -477,7 +477,7 @@ category sibling in this REL.
 | `captain_model_load.c` | `rep_0568` + `0x16870-0x16A98` | 25 (2) | 11,340 | `.text 0x16870-0x194BC`, `.data 0x1E28-0x2798`. Loads the captain models for the Captain Select screen: `captainSelectLoadScreen` starts the load-screen drawing task (`fn_2_188EC`), which allocates the model buffers, queues one load task per port (`fn_2_18650`/`fn_2_18398`/`fn_2_18748`: ARAM transfer, `fn_2_16F78` unpacks the model files and sets up the actor, hand models and bone flags), then per-frame helpers apply the pending animation state and draw the 3D previews (`fn_2_190DC`, `fn_2_19224`, `fn_2_1937C`). | med |
 
 `captainSelect*` is a distinct symbol family from the much larger
-`characterSelect*`/`css*` one — `cssReturnToCapSelect_maybe` returns *to* captain
+`characterSelect*`/`css*` one — `characterSelectBPress` (the CSS B handler) can return *to* captain
 select *from* the character select screen, so those are two adjacent screens
 rather than one category.
 
@@ -645,7 +645,9 @@ translation unit (see `docs/splits.md`, "The text engine is one unit"); 9 of its
 | `src/Unknown/sprt.c` | 1 | the sprite renderer (`AllocateSprite`, `DrawSprite` and its wrappers `DrawNullSprite`, `renderSprite`, `DrawSprite_TexObj`, `setTextRenderingMode`, plus 11 functions without C; main.dol `.text` `0x800B0D28-0x800B2AC8`, `NonMatching`); named by its own `OSPanic` file string. |
 | `src/Unknown/File_0x800bde8c.c` | 1 | the shadow-map pass (`setVectors`, `DrawShadows`/`GetDrawShadows`/`ShouldDrawShadows`, `loadTlutRelated` and eight functions without C; main.dol `.text` `0x800BDE8C-0x800BF074`, `NonMatching`); address-named because the binary gives no file name. |
 | `src/Unknown/sound.c` | 1 | the game's MusyX wrapper (`initSound`, `soundQuit`, `SndAlloc`, `SndFree`; main.dol `.text` `0x800B07FC-0x800B0A14`, `Matching`, `-inline deferred`); named by its own `OSPanic` file string. |
-| `src/Unknown` | 249 | DOL translation units named by address because their role is not yet identified. Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the other 281 were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
+| `src/Unknown/model.c` | 1 | the character model / animation / stadium-load TU (`LoadModel`, the disk-load helpers, `practice_loadAllGraphics`, `QueueCharacterAnimation`/`AnimateCharacter`, `loadAndAnimateCharacter`, stadium lighting and scale setters, `initShortsHandleCompressedDiskReads`; main.dol `.text` `0x80011468-0x8001FE00`, 102 functions, `NonMatching`); named by its own `"model.c"` literal; replaces 27 `Unknown/File_0x800127f8 ... 1fc4c.c` units (docs/splits.md, 2026-11-20). |
+| `src/Unknown/spani_default.c` | 1 | the UI graphics-slot / icon TU (`removeGraphicsElementFromScene`, `addGraphicsElementToScene`, `allocateGraphicsSlot`, `maybeProcessUIUpdates`, `diskReadRelated`, `unregisterObjectByID`, `load_Icon`, `setIndicatorSlotState`; main.dol `.text` `0x80034BCC-0x80036C88`, `NonMatching`); named by its own `OSPanic` file string; replaces eight `Unknown/File_0x*.c` units, whose headers it gathers. |
+| `src/Unknown` | 98 | DOL translation units named by address because their role is not yet identified (98 files as of 2026-11-21: the 2026-11-20 literal-pool merges, then the 2026-11-21 data-order pass in docs/splits.md, which folded 32 small units into larger ones and added gap-only units). Among them: `File_0x80008e00.c` (`main`'s TU with `PostRetraceCallback`), `File_0x8004617c.c` (team management / pause menu), `File_0x8004c9fc.c` (character select, `0x8004C9FC-0x80052188`), `File_0x80021ac8.c` (character / stadium file loading), `File_0x800211f0.c` (sound setup), `File_0x800a8518.c` (the DVD-stream jukebox), `File_0x800a1a70.c` (a sprite/GX helper linked between the OdemuExi2 and exi SDK libraries) and `File_0x800dfdd4.c` (the HVQM4 movie decoder, the last code in the DOL). Two were written by hand (`File_0x800a6304.c`, a small ring-buffer/accumulator with 3/5 functions matched, and `File_0x800a64e0.c`); the rest were promoted from `auto_*` — see below. The text engine's 8 units moved to `src/text` (see above). |
 | `src/executor.c` | 1 | REL glue: `_prolog`, `_epilog`, `_unresolved`. |
 
 ---
@@ -667,7 +669,10 @@ others — so they were promoted into real split units under the existing
 named.
 
 The ~600 remaining `auto_*` code units hold only placeholder-named functions and
-were deliberately **left as auto**. Promoting them would freeze dtk's guessed
+were deliberately **left as auto**. (Later passes in docs/splits.md assigned most
+of them from linker evidence instead: by 2026-11-21 the main DOL's `auto_*`
+code is down to 27,512 bytes in 87 functions, from 117,120 bytes in 287 the day
+before.) Promoting them would freeze dtk's guessed
 boundaries into `splits.txt` as though they were real translation-unit
 boundaries, and unlike the RELs there is nothing to derive real ones from: the
 40-byte `repHeaderData` signature that gives the RELs their `rep_XXXX` boundaries

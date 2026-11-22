@@ -5,11 +5,9 @@
 #include "Unknown/File_0x80049220.h"
 #include "Unknown/File_0x800494cc.h"
 #include "Unknown/File_0x80049c80.h"
+#include "Unknown/game_set_up_step.h"
 
-extern struct {
-    /* 0x00 */ u8 _00[0x5D];
-    /* 0x5D */ u8 unk5D;
-} gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 
 extern u8 skyPanoramaFileDescriptor[0x10];
 
@@ -24,7 +22,7 @@ void gameSettingsRelated(void) {
         stadiumSelect();
         break;
     case 1:
-        if (gameSetUpStep.unk5D == 0) {
+        if (gameSetUpStep.currentCharacterSelectProcess[0] == 0) {
             settings->step++;
         }
         break;

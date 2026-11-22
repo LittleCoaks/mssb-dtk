@@ -21,6 +21,10 @@ int rand(void);
 s8 fn_2_68690(s32 idx);
 
 #define WORK_BASE() (lbl_2_bss_1A824C + 0x190000)
+/* Byte at ChallengeState offset `off` + idx * 10 (a table of 10-byte records). */
+#define CHALLENGE_REC2(idx, off) (((u8 (*)[10])lbl_2_bss_1A8248->_40EE)[idx][(off) - 0x40EE])
+/* Per-captain, per-difficulty "challenge cleared" bytes (4 per captain) behind lbl_2_bss_1A8244. */
+#define CAPTAIN_CLEARED(captain, difficulty) ((lbl_2_bss_1A8244 + (captain) * 4)[(difficulty) + 0xC6])
 
 // .text:0x0004B1AC size:0x124 mapped:0x8068A240
 void fn_2_4B1AC(void) {
@@ -65,13 +69,31 @@ static inline void restoreChallengeProgress(void) {
     int mission;
 
     for (character = 0; character < NUM_CHOOSABLE_CHARACTERS; character++) {
-        lbl_2_bss_1A8248->characters[character].scoutFlagsAchieved = lbl_2_bss_1A8248->characters[character]._7;
+        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[character];
+        record->scoutFlagsAchieved = record->_7;
     }
     for (character = 0; character < NUM_CHOOSABLE_CHARACTERS; character++) {
         ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[character];
         for (mission = 0; mission < STAR_MISSIONS_PER_CHARACTER; mission++) {
             record->inGameMissionTracker[mission].starMissionStatus = record->saveFileMissionTracker[mission].starMissionStatus;
             record->inGameMissionTracker[mission].shownOnPauseMenu = record->saveFileMissionTracker[mission].shownOnPauseMenu;
+        }
+    }
+}
+
+static inline void saveChallengeProgress(void) {
+    s32 character;
+    int mission;
+
+    for (character = 0; character < NUM_CHOOSABLE_CHARACTERS; character++) {
+        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[character];
+        record->_7 = record->scoutFlagsAchieved;
+    }
+    for (character = 0; character < NUM_CHOOSABLE_CHARACTERS; character++) {
+        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[character];
+        for (mission = 0; mission < STAR_MISSIONS_PER_CHARACTER; mission++) {
+            record->saveFileMissionTracker[mission].starMissionStatus = record->inGameMissionTracker[mission].starMissionStatus;
+            record->saveFileMissionTracker[mission].shownOnPauseMenu = record->inGameMissionTracker[mission].shownOnPauseMenu;
         }
     }
 }
@@ -202,31 +224,24 @@ void fn_2_4B2D0(void) {
 
 // .text:0x0004C314 size:0x58 mapped:0x8068B3A8
 void fn_2_4C314(void) {
-    u8 *flags = lbl_2_bss_1A8244;
-    u8 *p = flags;
     BOOL allSet = TRUE;
-    u8 i;
+    s32 captain;
+    s32 difficulty;
 
-    for (i = 5; i > 0; i--) {
-        if (p[0xC6] == 0) {
-            allSet = FALSE;
+    for (captain = 0; captain < 5; captain++) {
+        for (difficulty = 0; difficulty < 3; difficulty++) {
+            if (CAPTAIN_CLEARED(captain, difficulty) == 0) {
+                allSet = FALSE;
+            }
         }
-        if (p[0xC7] == 0) {
-            allSet = FALSE;
-        }
-        if (p[0xC8] == 0) {
-            allSet = FALSE;
-        }
-        p += 4;
     }
-    flags[0xF4] = allSet;
+    lbl_2_bss_1A8244[0xF4] = allSet;
 }
 
 // .text:0x0004C36C size:0x58 mapped:0x8068B400
 void fn_2_4C36C(void) {
     s32 captain;
     s32 difficulty;
-    u8 *p;
 
     ((u8 *)lbl_2_bss_1A8248)[0x4424] = TRUE;
     ((u8 *)lbl_2_bss_1A8248)[0x4425] = TRUE;
@@ -234,8 +249,7 @@ void fn_2_4C36C(void) {
 
     captain = ((u8 *)lbl_2_bss_1A8248)[0x441C];
     difficulty = ((u8 *)lbl_2_bss_1A8248)[0x4415];
-    p = lbl_2_bss_1A8244 + captain * 4 + difficulty;
-    p[0xC6] = TRUE;
+    CAPTAIN_CLEARED(captain, difficulty) = TRUE;
 
     ((u8 *)lbl_2_bss_1A8248)[0x1606] = TRUE;
 }
@@ -389,7 +403,7 @@ void fn_2_4CEE0(void) {
     GameInitVariables *settings = &g_d_GameSettings;
     s32 r;
     s32 sign;
-    s32 a;
+    u8 a;
 
     settings->exhibitionMatchInd = FALSE;
     settings->bJMatchInd = TRUE;
@@ -403,27 +417,32 @@ void fn_2_4CEE0(void) {
 
     configureChallengeShopItems();
 
-    a = *((u8 *)lbl_2_bss_1A8248 + 0x40F0 + lbl_2_bss_1A8248->_16C2 * 10);
-    if (a < 6) {
-        settings->StadiumID = lbl_2_data_3CC0[a];
-        settings->miniGameStadiumIndicator = 0;
-    } else if (lbl_2_bss_1A8248->_16C0 == 3) {
-        if (a == 0) {
-            settings->StadiumID = STADIUM_ID_MARIO_STADIUM;
-        } else if (a == 1) {
-            settings->StadiumID = STADIUM_ID_BOWSERS_CASTLE;
-        } else {
-            settings->StadiumID = STADIUM_ID_PEACH_GARDEN;
-        }
-        settings->miniGameStadiumIndicator = 0;
-    } else {
-        if (a == 2) {
+    a = CHALLENGE_REC2(lbl_2_bss_1A8248->_16C2, 0x40F0);
+    if (a >= 6) {
+        /* The original compares a (>= 6 here) against 0..3, so only the last stadium of each group is reachable. */
+        if (lbl_2_bss_1A8248->_16C0 == 3) {
+            if (a == 0) {
+                settings->StadiumID = STADIUM_ID_MARIO_STADIUM;
+                settings->miniGameStadiumIndicator = 0;
+            } else if (a == 1) {
+                settings->StadiumID = STADIUM_ID_BOWSERS_CASTLE;
+                settings->miniGameStadiumIndicator = 0;
+            } else {
+                settings->StadiumID = STADIUM_ID_PEACH_GARDEN;
+                settings->miniGameStadiumIndicator = 0;
+            }
+        } else if (a == 2) {
             settings->StadiumID = STADIUM_ID_WARIO_PALACE;
+            settings->miniGameStadiumIndicator = 0;
         } else if (a == 3) {
             settings->StadiumID = STADIUM_ID_YOHSI_PARK;
+            settings->miniGameStadiumIndicator = 0;
         } else {
             settings->StadiumID = STADIUM_ID_DK_JUNGLE;
+            settings->miniGameStadiumIndicator = 0;
         }
+    } else {
+        settings->StadiumID = lbl_2_data_3CC0[a];
         settings->miniGameStadiumIndicator = 0;
     }
 }
@@ -452,33 +471,19 @@ void fn_2_4D194(void) {
 
 // .text:0x0004D378 size:0x304 mapped:0x8068C40C
 void fn_2_4D378(void) {
-    s32 i;
-    s32 j;
 
     *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7843) = -1;
 
-    lbl_2_bss_1A8248->opponentCaptain = *((u8 *)lbl_2_bss_1A8248 + 0x40F3 + lbl_2_bss_1A8248->_16C2 * 10);
+    lbl_2_bss_1A8248->opponentCaptain = CHALLENGE_REC2(lbl_2_bss_1A8248->_16C2, 0x40F3);
     lbl_2_bss_1A8248->opponentCaptainCharID = challengeCaptainCharIDs[lbl_2_bss_1A8248->opponentCaptain];
 
     fn_2_4C3EC();
 
-    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
-        lbl_2_bss_1A8248->characters[i]._7 = lbl_2_bss_1A8248->characters[i].scoutFlagsAchieved;
-    }
-
-    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
-        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[i];
-        for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-            record->saveFileMissionTracker[j].starMissionStatus = record->inGameMissionTracker[j].starMissionStatus;
-            record->saveFileMissionTracker[j].shownOnPauseMenu = record->inGameMissionTracker[j].shownOnPauseMenu;
-        }
-    }
+    saveChallengeProgress();
 }
 
 // .text:0x0004D67C size:0x2E4 mapped:0x8068C710
 void fn_2_4D67C(void) {
-    s32 i;
-    s32 j;
     s8 pick;
 
     *(s8 *)(lbl_2_bss_1A824C + 0x190000 + 0x7843) = -1;
@@ -487,15 +492,5 @@ void fn_2_4D67C(void) {
     lbl_2_bss_1A8248->opponentCaptain = pick;
     *((u8 *)lbl_2_bss_1A8248 + 0x4420) = pick - 2;
 
-    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
-        lbl_2_bss_1A8248->characters[i]._7 = lbl_2_bss_1A8248->characters[i].scoutFlagsAchieved;
-    }
-
-    for (i = 0; i < NUM_CHOOSABLE_CHARACTERS; i++) {
-        ChallengeTrackingStruct *record = &lbl_2_bss_1A8248->characters[i];
-        for (j = 0; j < STAR_MISSIONS_PER_CHARACTER; j++) {
-            record->saveFileMissionTracker[j].starMissionStatus = record->inGameMissionTracker[j].starMissionStatus;
-            record->saveFileMissionTracker[j].shownOnPauseMenu = record->inGameMissionTracker[j].shownOnPauseMenu;
-        }
-    }
+    saveChallengeProgress();
 }

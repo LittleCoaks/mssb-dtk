@@ -28,7 +28,7 @@ extern u8 practiceMenu_baserunningPreviewChars[];
 extern BOOL practice_loadAllGraphics(int arg);
 extern void css_initValues(int a, int b, int c, int d, int e, int f);
 extern void cssLoadingRelated_1(int a, int b, int c, int d, int e, int f);
-extern int cssCursorOnBottomControl_maybe(int team, int buttons, int newButtons, int other, int extra);
+extern int charGrid_moveCursor(int team, int buttons, int newButtons, int other, int extra);
 extern u8 charSelectStruct[];
 extern void minigameCharLoadQueueUpdate(void);
 extern void addOrRemoveCharacterToTeam(int team, int charID, BOOL add);
@@ -465,7 +465,7 @@ void practiceRelatedMenu(void) {
         changeScene(1, 6);
         if (g_GameLogic.framesInGameStatus_copy == 1) {
             InputStruct* input = &g_Controls[g_Practice.homeAway];
-            int sel = cssCursorOnBottomControl_maybe(g_Practice.homeAway, input->buttonInput, input->newButtonInput, input->_08, 0);
+            int sel = charGrid_moveCursor(g_Practice.homeAway, input->buttonInput, input->newButtonInput, input->_08, 0);
 
             g_Minigame.selectSlots[g_Practice.homeAway].charID = sel;
             g_Minigame.battingHandedness[g_Practice.homeAway] = PLAYER_KEY(g_Minigame.selectSlots[g_Practice.homeAway].charID);
@@ -556,7 +556,7 @@ void fn_3_B49D4(void) {
             break;
         } else {
             int prevChar = g_Minigame.selectSlots[i].charID;
-            int sel = cssCursorOnBottomControl_maybe(i, input->buttonInput, input->newButtonInput, input->_08, 0);
+            int sel = charGrid_moveCursor(i, input->buttonInput, input->newButtonInput, input->_08, 0);
 
             if (sel >= 0) {
                 g_Minigame.selectSlots[i].charID = sel;

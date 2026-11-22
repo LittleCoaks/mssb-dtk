@@ -11,7 +11,7 @@
 #include "Unknown/File_0x800acf14.h"
 
 extern u32 lbl_803CB750[4];
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern u8 menuNumber[0x28];
 extern u8 lbl_800EFBA4[0x10];
 extern int menuCursors[0x16];

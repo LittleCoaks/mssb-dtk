@@ -70,7 +70,7 @@ extern u8 lbl_80366158[0x30];
 extern u8 lbl_800EFBA4[0x10];
 extern u8 cardCheck[0x5C];
 extern u8 lbl_8037169C[0x1C];
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 extern u8 menuNumber[0x28];
 extern int menuCursors[0x16];
 
@@ -339,7 +339,7 @@ void optionsScreen(void) {
         OPTIONS.screen = OPTIONS_SCREEN_WAIT_SETUP;
         break;
     case OPTIONS_SCREEN_WAIT_SETUP:
-        if (gameSetUpStep[0x5D] == 0) {
+        if (gameSetUpStep.currentCharacterSelectProcess[0] == 0) {
             OPTIONS.screen = OPTIONS_SCREEN_INPUT;
         }
         break;
@@ -370,7 +370,7 @@ void optionsScreen(void) {
         break;
     }
     case OPTIONS_SCREEN_EXIT:
-        if (gameSetUpStep[0x55] == 0) {
+        if (gameSetUpStep.preventCursorMovement[0] == 0) {
             OPTIONS.exitRequested = TRUE;
             OPTIONS.screen = OPTIONS_SCREEN_ENTER;
             menuNumber[0x26] = 1;

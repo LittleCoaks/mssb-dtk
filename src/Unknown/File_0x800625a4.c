@@ -2,14 +2,7 @@
 #include "static/UnknownHomes_Static.h"
 #include "Dolphin/os.h"
 
-extern struct {
-    /*0x00*/ u8 _00;
-    /*0x01*/ u8 stepFlags[14][6];
-    /*0x55*/ u8 preventCursorMovement[4];
-    /*0x59*/ u8 portCaptainSlot[4];
-    /*0x5D*/ u8 currentCharacterSelectProcess[4];
-    /*0x61*/ u8 _61[3];
-} gameSetUpStep;
+extern GameSetUpStep gameSetUpStep;
 
 void updateCharacterSelectProcessCode(int port, u8 process) {
     s32 i;

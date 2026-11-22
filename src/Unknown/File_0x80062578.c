@@ -1,10 +1,11 @@
 #include "Unknown/File_0x80062578.h"
+#include "Unknown/game_set_up_step.h"
 
-extern u8 gameSetUpStep[0x64];
+extern GameSetUpStep gameSetUpStep;
 
 s32 noActiveProcessInd(void) {
     BOOL ret = FALSE;
-    if (gameSetUpStep[0x5D] == 0 && gameSetUpStep[0x5E] == 0) {
+    if (gameSetUpStep.currentCharacterSelectProcess[0] == 0 && gameSetUpStep.currentCharacterSelectProcess[1] == 0) {
         ret = TRUE;
     }
     return ret;

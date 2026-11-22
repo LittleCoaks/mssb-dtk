@@ -6,6 +6,7 @@
 #include "Dolphin/mtx.h"
 #include "game/character_stats.h"   // CharacterStats
 #include "game/challenge/challenge_items.h"
+#include "Unknown/game_set_up_step.h" // GameSetUpStep
 
 typedef enum _P2_CPU_CODE {
     /* 0 */ P2_CPU_CODE_1_PLAYER_GAME,   // team 1 (P2 side) is the CPU
@@ -56,11 +57,10 @@ typedef struct _GameInitVariables {
 
 extern GameInitVariables g_d_GameSettings;
 
-// The object immediately after g_d_GameSettings. symbols.txt records it as
-// .data:0x800E8754 size:0x60. Offsets are anchored on memory, from the old
-// Ghidra export's recorded addresses (see ProjectRio-ASM docs/rename_map.md):
-//   0x800E8758 -> +0x04, 0x800E8759 -> +0x05, 0x800E877C -> +0x28,
-//   0x800E877E -> +0x2A, 0x800E8782 -> +0x2E
+// The object immediately after g_d_GameSettings, .data:0x800E8754 size:0x28.
+// Offsets are anchored on memory, from the old Ghidra export's recorded
+// addresses (see ProjectRio-ASM docs/rename_map.md): 0x800E8758 -> +0x04,
+// 0x800E8759 -> +0x05.
 typedef struct _GameControlOptions {
     /*0x000*/ bool _0;
     /*0x001*/ bool _1;
@@ -80,14 +80,11 @@ typedef struct _InningSettings {
     u8 _pad_6[0x1];
     /*0x07*/ GameControlOptions controlOptions[4];
     u8 _pad_23[0x5];
-    /*0x28*/ s16 rel;           // which REL is resident: 0 boot, 4 menu, 5 match
-    /*0x2A*/ u16 currentScene;  // the menu screenCode (5 main menu, 6 options, ...)
-    /*0x2C*/ u16 _2C;
-    /*0x2E*/ u16 previousScene;
-    u8 _pad_30[0x30];
-} InningSettings; // size: 0x60
+} InningSettings; // size: 0x28
 
 extern InningSettings inningSetting;
+
+#include "static/menu_control.h"
 
 typedef struct {
     /*0x00*/ Mtx44 proj;
@@ -190,11 +187,14 @@ typedef struct {
 } StatisticsPitcher; // size: 0x1E
 
 // One saved Challenge-mode team (Ghidra: challengeRostersStruct).
+// Four 9-character lineups, 0x12 bytes apart (the default at 0x00, then
+// alternates at 0x12/0x24/0x36). The character-select code reads them as
+// charID[lineup * 0x12 + slot] (fn_2_A288, loadDefaultLineup in text_0323C.c).
 typedef struct {
     /* 0x00 */ u8 charID[9];
     /* 0x09 */ u8 _09[0x12 - 0x09];
-    /* 0x12 */ u8 characterTypes[9];
-    /* 0x1B */ u8 _1B[0x48 - 0x1B];
+    /* 0x12 */ u8 altLineup1CharID[9]; // Ghidra: characterTypes (no code support)
+    /* 0x1B */ u8 _1B[0x48 - 0x1B];    // alternate lineups 2 and 3 (0x24, 0x36), same layout
 } ChallengeRoster; // size: 0x48
 
 // lbl_80353260: one entry per roster slot, per team.
@@ -408,7 +408,9 @@ typedef enum _STAR_MENU_DRAW_STEP {
     /* 3 */ STAR_MENU_DRAW_STEP_CLOSE,        // A/B in starMenuCursor
 } STAR_MENU_DRAW_STEP;
 
-/* g_TeamManagement.zMenuPage[team]: Z opens on page 0; left/right switch. */
+/* g_TeamManagement.zMenuPage[team], and the captain-select/character-select
+ * Z menu page (cssWork.zMenuPage[team]): Z opens on page 0; left/right
+ * switch. */
 typedef enum _Z_MENU_PAGE {
     /* 0 */ Z_MENU_PAGE_MAIN,
     /* 1 */ Z_MENU_PAGE_STAR_MOVES, // star swing/pitch (fn_80058B20, zMenuLoadGraphics)
@@ -423,12 +425,50 @@ typedef enum _SCOUT_FLAG_MENU_STATE {
 } SCOUT_FLAG_MENU_STATE;
 
 /* Per-port process codes passed to updateCharacterSelectProcessCode and
- * dispatched on by teamManagementGraphics_steadyState via
- * gameSetUpStep[0x5D + i]. The value space is shared with the
- * character-select screens; only the team-management codes are named.
- * 0x39 (initTeamManagementScreen, 1P game not entered from screen 0xA)
- * and 0x46 (unkCF70 dismissed) are left as literals. */
+ * dispatched on via gameSetUpStep[0x5D + i]: by cssActions (text_8082C.c)
+ * for captain select (gameSetUpStep[0] == 1) and character select
+ * (gameSetUpStep[0] == 2), and by teamManagementGraphics_steadyState for
+ * team management. The value space is shared by all of these screens (and
+ * by other menus, e.g. stadium select and the main menu, whose codes are
+ * left as literals). 0x0C (only toggles a slot highlight), 0x39
+ * (initTeamManagementScreen, 1P game not entered from screen 0xA) and 0x46
+ * (unkCF70 dismissed) are also left as literals. */
 typedef enum _CHAR_SELECT_PROCESS {
+    /* Captain select */
+    /* 0x01 */ CHAR_SELECT_PROCESS_CAP_LOAD = 0x01,                // screen entry, or P2 joins
+    /* 0x02 */ CHAR_SELECT_PROCESS_CAP_EXIT = 0x02,                // B back to the previous screen
+    /* 0x03 */ CHAR_SELECT_PROCESS_CAP_CURSOR_MOVE = 0x03,
+    /* 0x04 */ CHAR_SELECT_PROCESS_CAP_CANCEL = 0x04,              // captain deselected
+    /* 0x05 */ CHAR_SELECT_PROCESS_CAP_CANCEL_P1_LOCKED = 0x05,    // deselected while P1's captain stays locked
+    /* 0x06 */ CHAR_SELECT_PROCESS_CAP_1P_CHOOSE_CPU = 0x06,       // 1P game: P1 now picks the CPU captain
+    /* 0x07 */ CHAR_SELECT_PROCESS_CAP_DONE = 0x07,                // both captains chosen, leaving
+    /* 0x08 */ CHAR_SELECT_PROCESS_CAP_RETURN = 0x08,              // back from character select
+    /* Character select */
+    /* 0x09 */ CHAR_SELECT_PROCESS_CSS_LOAD = 0x09,
+    /* 0x0A */ CHAR_SELECT_PROCESS_CSS_LOAD_FROM_CAPTAIN_SELECT = 0x0A, // or challenge mode not from screen 0xB
+    /* 0x0B */ CHAR_SELECT_PROCESS_CSS_EXIT = 0x0B,                // backing out of the screen
+    /* 0x0D */ CHAR_SELECT_PROCESS_CSS_TOGGLE_GRID = 0x0D,         // onto or off the character grid
+    /* 0x0E */ CHAR_SELECT_PROCESS_CSS_CURSOR_MOVE = 0x0E,
+    /* 0x0F */ CHAR_SELECT_PROCESS_CSS_SELECT_CHARACTER = 0x0F,    // cssSelectCharacter
+    /* 0x10 */ CHAR_SELECT_PROCESS_CSS_REMOVE_CHARACTER = 0x10,
+    /* 0x11 */ CHAR_SELECT_PROCESS_CSS_READY = 0x11,               // cssReady
+    /* 0x12 */ CHAR_SELECT_PROCESS_CSS_UNREADY = 0x12,             // cssUnready
+    /* 0x13 */ CHAR_SELECT_PROCESS_CSS_LEAVE = 0x13,               // both ports: leaving forward to the match
+    /* 0x14 */ CHAR_SELECT_PROCESS_CSS_ROSTER_COMPLETE = 0x14,     // all 9 filled, cursor jumps to DONE
+    /* 0x15 */ CHAR_SELECT_PROCESS_CSS_CURSOR_BACK_FROM_DONE = 0x15, // B on DONE/random: back into the lineup
+    /* 0x16 */ CHAR_SELECT_PROCESS_CSS_RANDOM_FILL = 0x16,         // randomTeamMemberSelection
+    /* 0x17 */ CHAR_SELECT_PROCESS_CSS_CURSOR_TO_DONE = 0x17,      // fn_2_6098
+    /* 0x18 */ CHAR_SELECT_PROCESS_CSS_CURSOR_DONE_RANDOM_SWITCH = 0x18, // cursor between DONE (9) and random (10)
+    /* 0x19 */ CHAR_SELECT_PROCESS_CSS_CLEAR_ROSTER = 0x19,        // then cssRandomFillRoster
+    /* 0x1A */ CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_ENTER = 0x1A,   // R: fielding-position editor
+    /* 0x1B */ CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_EXIT = 0x1B,
+    /* 0x1C */ CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_PICK = 0x1C,    // A: swap source chosen, or the swap made
+    /* 0x1D */ CHAR_SELECT_PROCESS_CSS_LINEUP_EDIT_CANCEL = 0x1D,  // B: swap source dropped
+    /* 0x1E */ CHAR_SELECT_PROCESS_CPU_DIFFICULTY_OPEN = 0x1E,
+    /* 0x1F */ CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CANCEL = 0x1F,
+    /* 0x20 */ CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CURSOR_MOVE = 0x20,
+    /* 0x21 */ CHAR_SELECT_PROCESS_CPU_DIFFICULTY_CONFIRM = 0x21,
+    /* Team management */
     /* 0x38 */ CHAR_SELECT_PROCESS_TM_LOAD = 0x38,             // initTeamManagementScreen
     /* 0x3A */ CHAR_SELECT_PROCESS_TM_RETURN_TO_CSS = 0x3A,    // B on the confirm row
     /* 0x3B */ CHAR_SELECT_PROCESS_TM_CURSOR_MOVE = 0x3B,      // cursor moved or player picked for a swap
@@ -444,15 +484,19 @@ typedef enum _CHAR_SELECT_PROCESS {
     /* 0x45 */ CHAR_SELECT_PROCESS_TM_SHOW_SCOUT_FLAGS = 0x45, // challenge, 1P: after both entry animations
 } CHAR_SELECT_PROCESS;
 
-/* gameSetUpStep[0x37 + port] in team_management_screens.c: each
- * steady-state process starts its animation and locks the cursor (START),
- * waits for it (PLAYING), then unlocks the cursor (DONE). gameSetUpStep
- * itself has no shared type yet. */
-typedef enum _TEAM_MANAGEMENT_ANIM_STEP {
-    /* 0 */ TEAM_MANAGEMENT_ANIM_STEP_START,
-    /* 1 */ TEAM_MANAGEMENT_ANIM_STEP_PLAYING, // after makeCursorUnmovable
-    /* 2 */ TEAM_MANAGEMENT_ANIM_STEP_DONE,    // after makeCursorMovable
-} TEAM_MANAGEMENT_ANIM_STEP;
+/* One per-port step byte of gameSetUpStep's 14 x 6 step table
+ * (gameSetUpStep[1 + 6 * row + port]; updateCharacterSelectProcessCode
+ * clears every row). Each process starts its animation and locks the
+ * cursor (START), waits for it (PLAYING), then unlocks the cursor (DONE).
+ * Row 2 (gameSetUpStep[0xD + port]) is the captain-select and
+ * character-select action step (cssActions and its handlers), row 9
+ * (gameSetUpStep[0x37 + port]) the team-management one (GameSetUpStep,
+ * Unknown/game_set_up_step.h). */
+typedef enum _SET_UP_STEP {
+    /* 0 */ SET_UP_STEP_START,
+    /* 1 */ SET_UP_STEP_PLAYING, // after makeCursorUnmovable
+    /* 2 */ SET_UP_STEP_DONE,    // after makeCursorMovable
+} SET_UP_STEP;
 
 /* g_TeamManagement.rosterView (Ghidra: enum_rosterView). */
 typedef enum _ROSTER_VIEW {

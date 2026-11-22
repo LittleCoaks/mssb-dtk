@@ -11,14 +11,14 @@ typedef struct Unk803C5F74 {
     /* 0x03 */ u8 state;        // 0 on setup, 3 via set803c5f77 (unless already 4), 4 via fn_8004CC18
     /* 0x04 */ u8 unk04;
     /* 0x05 */ u8 _05;
-    /* 0x06 */ u16 unk06[4];
+    /* 0x06 */ s16 unk06[4];
     /* 0x0E */ s16 unk0E[4];
     /* 0x16 */ u16 unk16;
     /* 0x18 */ u16 unk18;
     /* 0x1A */ s8 unk1A;
     /* 0x1B */ u8 unk1B;
     /* 0x1C */ u8 unk1C;
-    /* 0x1D */ u8 _1D;
+    /* 0x1D */ u8 unk1D;
     /* 0x1E */ u8 unk1E;
     /* 0x1F */ u8 _1F[0xB4 - 0x1F];
 } Unk803C5F74; // size 0xB4

@@ -103,7 +103,8 @@ typedef struct _ChallengeState {
     /*0x4445*/ u8 resumeSavedTeams;
     /*0x4446*/ u8 _4446[0x444D - 0x4446];
     /*0x444D*/ E(u8, BOOL) recruitedChar[54];
-    /*0x4483*/ u8 _4483[0x44EF - 0x4483];
+    /*0x4483*/ u8 _4483[0x44B9 - 0x4483];
+    /*0x44B9*/ s8 _44B9[54]; // indexed by CHAR_ID; menus compare it with 1
     /*0x44EF*/ s8 _44EF;
     /*0x44F0*/ s8 _44F0;
     /*0x44F1*/ u8 scoutMissionPending; // set when a scout mission starts, cleared when it hands over to a star mission

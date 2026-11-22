@@ -4,6 +4,7 @@
 #include "Unknown/dvdsys.h"
 #include "Unknown/File_0x800acf14.h"
 #include "game/UnknownHomes_Game.h"
+#include "game/camera/camera.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/math/game_math.h"
 #include "game/animation/animation_init.h"
