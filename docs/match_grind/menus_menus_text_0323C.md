@@ -1,4 +1,374 @@
-# text_0323C second pass
+# menus/menus/text_0323C (src/menus/text_0323C.c) — match grind checkpoint
+
+Baseline (session 1, 2026-11-09): .text 80.708%, 19/67 at 100% (report says 81.54 fuzzy).
+
+| function | status | baseline | pct |
+|---|---|---|---|
+| fn_2_4970 | pending | 57.71% | 97.22% |
+| characterSelectBPress | pending | 65.30% | 94.02% |
+| fn_2_3624 | pending | 65.50% | 95.03% |
+| fn_2_B920 | pending | 67.11% | 77.41% |
+| characterSelectControls | pending | 71.67% | 90.66% |
+| fn_2_A288 | matched | 72.53% | 100.00% |
+| fn_2_EAE0 | pending | 73.88% | 99.88% |
+| cssSortCaptainChemistryOrder (was fn_2_ABC0) | matched | 74.20% | 100.00% |
+| characterSelectAPress | pending | 75.20% | 98.73% |
+| cssUnloadScreen | pending | 76.63% | 76.63% |
+| fn_2_C7DC | pending | 76.64% | 85.55% |
+| fn_2_B324 | pending | 76.67% | 92.52% |
+| fn_2_8CF8 | pending | 77.61% | 77.61% |
+| cssRandomFillRoster | pending | 77.76% | 95.39% |
+| fn_2_CA60 | pending | 79.27% | 96.95% |
+| fn_2_95D8 | pending | 79.36% | 84.60% |
+| fn_2_B66C | pending | 80.69% | 96.50% |
+| characterSelectABDirectionInputs | pending | 81.96% | 92.42% |
+| fn_2_AEE8 | pending | 82.52% | 99.96% |
+| randCharAlgo2 | pending | 82.63% | 82.63% |
+| randCharBasedOnClass | pending | 83.19% | 83.19% |
+| fn_2_6784 | pending | 85.31% | 97.03% |
+| fn_2_52CC | pending | 86.65% | 99.10% |
+| cssResetRosterStruct | pending | 86.80% | 86.80% |
+| teamReady1 | pending | 87.88% | 89.79% |
+| fn_2_9ACC | pending | 88.88% | 88.88% |
+| fn_2_A6E0 | pending | 89.42% | 95.61% |
+| fn_2_A1A0 | matched | 90.16% | 100.00% |
+| randCharacter1 | pending | 90.86% | 90.86% |
+| challengeSetRoster | pending | 91.06% | 91.06% |
+| fn_2_A040 | pending | 91.65% | 99.03% |
+| fn_2_A62C | pending | 91.67% | 97.44% |
+| cssLoadingScreenRelated | pending | 92.24% | 92.24% |
+| cssTransitionToNewScreen_maybe | pending | 93.11% | 93.11% |
+| cssChangeScreens | pending | 93.44% | 93.44% |
+| fn_2_57F0 | pending | 93.73% | 93.73% |
+| fn_2_CCE0 | matched | 93.93% | 100.00% |
+| fn_2_5F80 | matched | 94.14% | 100.00% |
+| fn_2_348C | pending | 94.26% | 94.26% |
+| fn_2_6AF4 | pending | 94.79% | 94.79% |
+| fn_2_5184 | matched | 95.30% | 100.00% |
+| fn_2_C484 | pending | 95.49% | 95.49% |
+| fn_2_33BC | pending | 97.48% | 97.48% |
+| fn_2_9F70 | pending | 97.79% | 97.79% |
+| copyInfoToInMemRoster | pending | 98.27% | 98.27% |
+| fn_2_A50C | pending | 98.54% | 98.54% |
+| fn_2_87A8 | pending | 99.31% | 99.31% |
+| teamSelectScreenMain | pending | 99.90% | 99.90% |
+| closeZMenu | matched | 100.00% | 100.00% |
+| fn_2_57E8 | matched | 100.00% | 100.00% |
+| fn_2_6098 | matched | 100.00% | 100.00% |
+| fn_2_60D4 | matched | 100.00% | 100.00% |
+| fn_2_6138 | matched | 100.00% | 100.00% |
+| cssSelectCPUDifficulty | matched | 100.00% | 100.00% |
+| characterSelectScreenControlable | matched | 100.00% | 100.00% |
+| fn_2_6884 | matched | 100.00% | 100.00% |
+| fn_2_7D44 | matched | 100.00% | 100.00% |
+| fn_2_86EC | matched | 100.00% | 100.00% |
+| fn_2_8780 | matched | 100.00% | 100.00% |
+| fn_2_8794 | matched | 100.00% | 100.00% |
+| fn_2_893C | matched | 100.00% | 100.00% |
+| fn_2_B508 | matched | 100.00% | 100.00% |
+| fn_2_C324 | matched | 100.00% | 100.00% |
+| fn_2_C698 | matched | 100.00% | 100.00% |
+| fn_2_CCBC | matched | 100.00% | 100.00% |
+| fn_2_EC34 | matched | 100.00% | 100.00% |
+| fn_2_EC54 | matched | 100.00% | 100.00% |
+
+Session 1 end (2026-11-10): .text 86.986% (diff), report fuzzy 87.75%, 19/67 at 100% (report counts 20).
+Next session: start with fn_2_57F0 (twin of fn_2_3624 - apply the same CSS_CURSOR / case-order / helper lessons),
+then characterSelectControls, characterSelectAPress, fn_2_B920, cssUnloadScreen, fn_2_8CF8.
+Cross-function leads: the 9-slot "position == cursor" search appears in many functions; write it as
+`for (i...) if ((s8)pos[team][i] == cursor) idx = i;` with a cursor local (no break) unless the target branches out after each hit.
+Hand copies of fn_2_C698 (register char) and fn_2_52CC exist elsewhere in the file; call them.
+addRemoveCharVariantRelated's real prototype is u8(u8,u8,u8) (include/Unknown/mb_subfunc.h); the local s32 prototype at the
+top of the file makes callers emit clrlwi on team (fn_2_4970 diff lines ~175-194) - next lever to try (file-wide, measure all).
+
+## Hypothesis log
+
+fn_2_3624 (lineup/position screen input handler)
+  baseline: 65.50%
+  [1] UP/DOWN/LEFT/RIGHT: prev-cursor store after the 9/10 checks (prev = F468+8 s32[2]), case order from jump tables (UP 0-6,8,7; DOWN 0,2,4,3,5,7,6,8,1; LEFT 0,1,2,3,7,8,4,10,5,6; RIGHT 0,1,4,5,6,7,2,8,3) -> 66.04 (kept)
+  [2] A block: arms were inverted (draft ran the position swap when cursor==9 and stored 9 into 0x61) -> cursor==9 confirms, else 0x5f==0 stores cursor into 0x61 / else swap; challenge copy as a plain 9-loop -> 80.61 (kept, REAL BUG)
+  [3] CSS_CURSOR as *(s32*)&F468[slot*4] byte-offset form (vs (s32*)F468)[slot]: +1.7; prev as F468[slot*4+8] -> 82.77 (kept)
+  [4] controllerInputs copy field-by-field (target uses 3x lhz/sth, struct copy gives lwz+lhz) -> 83.27; `int team = port` -> 83.31 (kept)
+  [5] A block: p2_CPU==0 { slot!=0 / slot==0 } else {100B8} order; CSS_CURSOR(gameSetUpStep[0x59]) = 10 (forwarded store) -> 86.86; int slot -> 87.39 (kept)
+  [6] L block rewritten: GameMode==CHALLENGE test at the end was misread as `lIdx == 5`; playerNumberByPort[0]==0 -> team 1 arms were inverted; found-in-roster skips the store; Z block stored 1 into 0x41 instead of 0x45 -> 87.46 (kept, REAL BUGS)
+  [7] position search: 9-arm else-if chain 89.82 vs loop with int/u32/s8/u8/s16 counter (87.5/87.5/83.1/82.4/82.6) -> chain kept
+  [8] cursor!=9 { ... } else { sound } instead of early-return -> 91.10; challenge arm last (!= CHALLENGE first) -> 92.83; variant (!= -1 && col < 4) first -> 93.42 (kept)
+  [9] idx u8 / (s8)idx first use: 93.23 / 93.42 (no gain); row=0 hoisted above 0x50 store: no change
+  remaining: r0 kept live for GameModeSelected in target (ours r4); add r7 operand order for prev store; challenge-loop scheduling; rosterCharID base not CSE'd in target.
+  [10] slot==0 confirm body is fn_2_52CC (call it; inlines) -> 93.22, then fn_2_52CC's cursor store as CSS_CURSOR(gameSetUpStep[0x59]) = 10 -> fn_2_3624 93.67, fn_2_52CC 86.65 -> 99.10 (kept)
+  [11] L-block tail is fn_2_C698(idx, slot) (call it; inlines) -> 95.03 (kept)
+fn_2_52CC
+  baseline 86.65
+  [1] forwarded-store index CSS_CURSOR(gameSetUpStep[0x59]) = 10 -> 99.10 (kept)
+  [2] read the taken flag into a u8 local before the stores -> 93.83 (reverted)
+  remaining: lis order menuCursors/Static_Stats_Tables/100B8 (registers r4/r5 swap only)
+characterSelectBPress (B press on the lineup screen)
+  baseline: 65.30%
+  [1] full rewrite from asm, structured (no gotos): draft tested the restored cursor (`count == 0`) where the target tests mismatchCount == 0; p2_CPU==1 path was missing; tail sound is one cursorSndFx(0x200) at the end, early `return`s skip it -> 89.22 (kept, REAL BUG)
+  [2] locked-flag neg/or/srwi. idiom: tried !!, ==TRUE, (u32)>0, (x!=0)>0, inline BOOL/bool helpers returning flag / flag!=0 / ?: -> none reproduce it (best 89.43 with ugly (x!=0)>0, not kept)
+  [3] gameSetUpStep[0x55+i] as a 2-trip loop in the p2_CPU==1 branch 89.32 (kept); inline cssPortBusy(p) helper 89.22 (reverted)
+  [4] p2_CPU==0 branch tests CSS_CURSOR(team) directly instead of a cached local -> 89.96 (kept)
+  [5] position searches as `for (i...) if (pos == cur) idx = i;` (no break; MWCC fully unrolls with a walking pointer) -> 90.43 (kept)
+  [6] idx s32 (target indexes with it unextended) -> 90.96; second search compares a cursor local loaded once -> 93.93 (kept)
+  [7] hand-copied fn_2_C698 body instead of the call -> 93.00 (reverted); 36 pairwise declaration swaps -> +0.005 max (not kept)
+  remaining: target keeps GameModeSelected in r0 / p2_CPU in r8 through the inlined fn_2_C698 (ours reloads); team in r31 vs r17; neg/or/srwi idiom
+fn_2_4970 (remove the character in the cursor's lineup slot)
+  baseline: 57.71%
+  [1] rewrite from asm: register-char part is fn_2_C698(idx, team) (draft had the playerNumberByPort[0] arms inverted - REAL BUG, fixed by calling the helper); gotos removed -> 86.96 (kept)
+  [2] cursor read once into a local before the slot search (no break, full unroll) -> 96.77 (kept)
+  [3] search moved into a static inline helper -> 96.13 (reverted)
+  [4] slot char read once into an s8 local for the ==charID / -1 / 0x36 tests -> 96.99 (kept)
+  remaining: charID-match path reloads the cursor in the target; prev-store add operand order; clrlwi on team for addRemoveCharVariantRelated (prototype)
+teamReady1: 87.88 -> 89.79 as a side effect (not worked)
+
+## Session 2 (Opus, short): 87.75 -> 87.79 (commit fda41b06)
+fn_2_A288 72.53 -> 76.30: rows read for m = 1..2 (flags [m-1]), entries compared as s32, captain
+  index `s32 found = (u8)i`. remaining: register naming in the captain loop / row walk.
+Tried and reverted (logged so they are not repeated):
+- addRemoveCharVariantRelated real prototype u8(u8,u8,u8): +0.3..+1.3 in 7 functions (4970 98.31,
+  B66C 81.90, challengeSetRoster 91.97, LoadingScreen 92.73, ReturnToCap 94.20, Controls 72.11)
+  but drops APress -0.11, B920 -0.35, randCharAlgo2 -0.53, randCharacter1 -0.08, C484 -0.08,
+  5184 -0.67. Needs those callers' param types fixed first (5184 port is really u8? making it u8
+  dropped 5184 to 85.5, so not that simply). Next session: apply prototype + fix each dropper.
+- fn_2_57F0 s32 param + (u8) casts: no change in 57F0 (MWCC CSEs the cast), caller -0.8.
+- fn_2_CA60 = { lineup store | fillUnassignedRosterSlot(idx, team); fn_2_C698(idx, team) } (u8 params):
+  72.98 (from 79.27) because the target converts the params at every use; B920 calling CA60(i,0)
+  doesn't inline it (55.3). The B920/B66C loop bodies are CA60 inlined though.
+- fillUnassignedRosterSlot via rosterCharID[][] with s32 id: B920 69.14, B66C 81.02 but A1A0 90.07
+  (-0.09) -> reverted; pointer-walk and k+2 offset variants worse.
+- fn_2_EAE0 flag test as if/else-empty or ternary: no gain / worse.
+REAL BUG FOUND, NOT FIXED (fixing it costs score until the rest of the function matches):
+  fn_2_6784 scans the already-picked defaults from `slot` (the current position) instead of
+  from the start of the roster (target: ptr = &cursorPositions each retry). Rewrite with the
+  target's address-constant `&lbl_8010902C[0xC]` hoisted per else-branch.
+
+## Session 3 (Opus)
+Shared block: fn_2_A1A0 / fn_2_CA60 / B920 + B66C loop bodies
+  [1] CA60 = initRosterSlot(u8 slot, u8 team) static inline (lineup store | fn_2_A1A0; then mode/addOrRemove/variant);
+      fn_2_CA60 is a wrapper; B920 loop = initRosterSlot(i, 0), B66C loop = initRosterSlot(i, 1) -> B920 71.5, B66C 90.4 (kept)
+  [2] fill: inner `for (k = 0; k < 2; k++)` over rosterCharID[k][j] (target's r10+9 row pointer is the unrolled k=1) -> CA60 85.2 (kept)
+  [3] fill is the real fn_2_A1A0 (non-static, called from initRosterSlot; MWCC still inlines it) instead of a static inline
+      + wrapper -> A1A0 98.1; then no locals for taken/p2CPU/flag (read in the conditions, LICM hoists) -> A1A0 100% (kept)
+      readability pass: done (CHAR_ID_MARIO candidate, P2_CPU_CODE_1_PLAYER_GAME, FALSE). Behaviour note: only Mario is ever
+      tried, so it spins forever if Mario is taken / already rostered (comment in source).
+  [4] initRosterSlot: separate `s8 id` (lineup) and `s32 charID` (after the mode test) -> clrlwi for the variant arg; CA60 95.2, B66C 96.4 (kept)
+  [5] lineup stores: struct/[9][4]/[0x24] forms CSE the row+slot*4 address; flat `lineUpInfoStruct[team*0x24 + slot*4 + 1]`
+      gives target's stbx -> CA60 96.56 / B66C 96.06 (kept; B66C prefers struct form by 0.3)
+  remaining (CA60/B66C): target reuses the clrlwi'd slot for slot*4 and the stored value (ours clrlslwi from raw / stores raw i)
+Random lineup switch (B66C/B920): `if (result != -1) { switch {case 0; case 1} } else {=3}` reproduces the -1-first compare tree
+  and block order exactly (case orders, extra case -2/2/default all tried: none) -> B66C 93.6, B920 75.2 (kept)
+fn_2_B920
+  [6] memset/taken via Static_Stats_Tables.charOnCharacterGridSelected (address CSE'd into r26), struct fields -> 73.7 (kept)
+  [7] challenge loop compares u8 v with g_Challenge fields directly (no locals, no (s8)v) -> 76.5 (kept)
+  [8] copy blocks: inline loadDefaultLineup(team, captain); target keeps base = SST + cap*0x48 + sel*0x12 and 0x4380+i as
+      displacement; ours always strength-reduces sel*0x12+0x4380+i. Tried raw byte index orders (5 forms), SSTView struct
+      with rows[12][4][0x12], cast [4][0x12], pointer-param helper (dst, sel*, cap), 2-iteration t loop (unrolls but
+      select on captain) -> best challengeRosters[captain].charID[*sel * 0x12 + i] 77.23 (kept)
+  [9] matchIdx `a = b = 0` / separate inits: no change (target li r0,0; mr r24,r0; mr r28,r0)
+  remaining: copy-block address shape + store-back of F468[0x14] only in the second block; matchIdx zero via r0
+fn_2_EAE0 (73.88)
+  [1] port pick as static inline returning early (`if (!active[port]) return port; return pnbp[0]==0;`) -> bne/b empty-then layout (kept)
+  [2] do-while cursor skip as static inline taking the cursor pointer, called with `&((s32*)menuCursors)[i+8]` while the
+      test reads `((s32*)&menuCursors[0x20])[i]` (different expression => no lwzu CSE, matches target's addi in the branch) -> 86.0
+  [3] target saves r27-r31 although the inner loop is infinite: the loop is `do { ...fn_2_1D54 } while (taken[...] || c[8] == c[8])`
+      (tautology, MWCC folds it after register allocation). `|| TRUE` / `[i+8]==[i+8]` identical. -> 97.35 (kept, comment in source)
+  [4] trip count in a local `count` -> 99.88 (kept)
+  remaining: lbz r0/extsb r4 vs lbz r4/extsb r4 for playerNumberByPort[i] (tried s32/s16/s8 port, u8/s8/s32 returns,
+      pointer/port params, result var, ternary, caller-side empty-then: none better)
+fn_2_6784 (85.31)
+  [1] REAL BUG FIXED: duplicate scan restarts from rosterCharID[1][0] on every retry (draft scanned from the current slot);
+      struct fields (captainSelectedID, rosterCharID, rosterSpotFilledInd, charOnCharacterGridSelected) -> 92.66 (kept)
+  [2] slot 0: roster = captainSelectedID[1]; taken[rosterCharID[1][0]] (store-forwarded; gives the fresh SST base) -> 97.03 (kept)
+  remaining: target loads `lbl_8010902C+0xC` as a hoisted address constant (lbzx); ours hoists lbl_8010902C and folds 0xC
+      into the displacement. 2D cast, struct cast, ptr arith, pointer local (in branch / at top: 86.0) all fail. Probably
+      the 9 char IDs at 0x80109038 are their own array in the original; needs a symbols.txt split of lbl_8010902C
+      (data lives in src/Unknown/mb_subfunc.c) - not done (shared file). Same pattern in the function at 0x6FA8 (fn_2_6AF4).
+fn_2_B324 (76.67)
+  [1] inMemRoster CharID via ((CharacterStats (*)[9])inMemRoster)[team][i].stats.CharID (one pointer, disp 0x24/0x5c4) -> 92.46 (kept)
+  [2] -1 stores need s8 element type (target li -1): casting only the -1 stores splits the IVs (72.3); casting every
+      lineUpInfoStruct/lbl_80353B98 access to s8* -> 92.47 (kept); b declared before a -> 92.52 (kept)
+  [3] no a/b locals (captainSelectedID[x] + i) 88.7; for-init / post-inc in body: no change
+  remaining: register naming only (target r3/r4 = a/b, r7 = inMemRoster, r6/r5 = lineup/3B98)
+fn_2_A288 (76.30)
+  [1] row scan as `for (j = 1; j < 9; j++)` over challengeRosters[found].charID[m * 0x12 + j] (MWCC unrolls it with a
+      walking pointer + disp 0x4381) -> 93.19 (kept)
+  [2] tail `for (m = 1; m < 3; m++) if (3E0[m] == 0) count++;` (reuses &3E0[1] from the first m loop) -> 100% (kept)
+  readability pass: done (captainSelectedID, _470B, CHAR_ID_NONE). Note: the scan writes 3E0[m-1] (0,1) but the count
+  reads 3E0[m] (1,2) - kept as compiled. 12 = captain count, no constant exists.
+fn_2_C7DC (76.64)
+  [1] u8 params (slot, team): target passes team raw to the inlined fn_2_C698 -> 80.30; s32 params + casts 78.78 (u8 kept)
+  [2] lineup writes as static inline setLineupSlot(slot, team) (both branches), [9][4] array form -> 85.55 (kept);
+      flat byte index (u8/s32 params) 80.3-80.9, [0x24] with slot*4+k 84.80
+  remaining: target's [0] stores are stbx(row, slot*4) and slot*4 comes from a fresh clrlslwi of the raw param (ours CSEs
+      with the hoisted (u8)slot); scheduling/register naming in the tail.
+  [3] initRosterSlot second half replaced by a call to fn_2_C698 (inlined): CA60 86.4, B66C 86.7, B920 71.5 -> reverted
+cssRandomFillRoster (77.76)
+  [1] random-algorithm switch has only cases 0,1,2 (the draft's empty `case 3` moved the compare-tree root) -> 80.04 (kept)
+  [2] outer count loop `for (i = 0; i < 6; i += 2)` to keep target's dead `r5 += 2` IV: MWCC removes it anyway (no change)
+  [3] `u8 t = team` local for the F468 indexes: no change (copy-propagated)
+  remaining: target re-derives (u8)team in fresh registers (xor otherTeam, r27 for teamLogo/updateCSPC, else branch)
+      and saves r27-r31; ours CSEs one clrlwi. Dead r5 IV.
+fn_2_ABC0 (74.20)
+  [1] captain row/col as locals (col = id % 9 first, then row = id / 9), byte read inside the loop
+      ((u8 *)&characterStats[row][col])[i + 0x3B] with the vals store before the order store -> 83.9
+  [2] output through Static_Stats_Tables.captainChemistryOrder[(u8)port][i] (disp 0x478d+i) -> 97.4
+  [3] `u8 best; u8 t2; u8 t;` declared at the top -> 100% (kept)
+  readability pass: done (NUM_CHOOSABLE_CHARACTERS for the 54s; chemistry offset documented). Label proposal (medium):
+  fn_2_ABC0 -> cssSortCaptainChemistryOrder (only writer of captainChemistryOrder here) - not applied.
+fn_2_AEE8 (82.52) - both-teams twin of fn_2_ABC0
+  [1] ABC0 lessons: row/col locals, in-loop read ((u8 *)&characterStats[row][col])[i + 0x3B], captainChemistryOrder output -> 98.14
+  [2] here row = id / 9 before col = id % 9, and `u8 best; u8 t2; u8 t;` at the top -> 99.96 (kept)
+  [3] decl permutations of captain/row/col: no change; no captain local 99.91; col-first without local 98.23
+  remaining: col lands in r29 (target r26). NOTE: a session-3 replace() briefly changed AEE8's decls by accident
+  (82.52 -> 82.49 in commit 1f4381da); restored and superseded here.
+fn_2_95D8 (79.36) - debug colour table with the draw calls compiled out
+  [1] team loop written with array indexing (lim/status if-else with the load in both arms, rosterCharID[team][j],
+      captainSelectedID[team], lineUpInfoStruct[team*0x24 + k*4 + 1]); MWCC builds the target's 5 pointer IVs -> 84.69
+  [2] picks as s8 picks[2][9], r-loop with taken[r]/picks[team][j]/charOnCharacterGridSelected[r] -> 84.60 (same)
+  [3] early `goto tail` replaced by `if (state < 4) {...}` (84.69 -> 84.60, kept for structure)
+  [4] tail compare chain (cmplwi 2/4/9/0x13/4 with no body) is dropped by our build. Tried nested ifs, single || chain,
+      else-if, no local, empty static inline call, dead stores/self-assign/(void)/while(0)/x!=x bodies: all removed.
+      Only a zero-trip `for (i = 0; i < 0; i++) {}` body keeps the compares (86.16) but leaves loop residue - not kept.
+      volatile read keeps only the load (85.87) - not kept.
+  remaining: opponentCaptainCharID load is hoisted out of the team loop in ours (target reloads per team; 2 more saved regs),
+      tail compares.
+fn_2_A62C (91.67) / fn_2_A6E0 (89.42, inlines A62C four times and findRosterOverlap twice)
+  [1] A62C via rosterCharID[0][i] / [1][j] with `s8 id` declared in the i loop -> A62C 97.44, A6E0 95.61 (kept).
+      Note the `id != 0xFF` test on an s8 can never fail (target emits it too: cmpwi 0xff) - kept as compiled.
+  [2] j declared before i: A62C 97.78 but A6E0 95.39 (reverted); id at the top: same / worse
+  [3] same struct form in findRosterOverlap: A6E0 97.02 but fn_2_A50C 98.54 -> 85.21 (reverted)
+  remaining: register naming (val in r8/r3 vs ours)
+fn_2_A040 (91.65) - cycle a variant character into roster[team][idx]
+  [1] rosterCharID[team][idx] / [i][j] struct stores (base + team*9, then + idx) -> struct + early-return fallback 75.5;
+      `if (pair[slot] != NONE && slot < 4) { ...; return; } roster = pair[0];` (fallback block last, no goto) -> 99.03 (kept)
+  [2] target/i/j decl orders, s32 target: no gain
+  remaining: target (r7) and the row pointer (r8) swapped
+characterSelectABDirectionInputs (81.96)
+  [1] rewrite from asm: params are (u8 team, u16 held, u16 pressed, u16 repeat) (2nd param is u16, extended lazily);
+      the 0x47 left/right toggle is a static inline (cssToggleZMenuPage) used in both branches; port pick reuses
+      EAE0's cssCursorPort inline; early `goto buttons` kept (shared exit to the A/B tail); PAD_BUTTON_* via Dolphin/pad.h
+      (game/UnknownHomes_Game.h conflicts with this file's local externs, so INPUT_BUTTON is unavailable here) -> 85.90
+  [2] cursor pointer as &((s32 *)&menuCursors[0x20])[team] (lwzu disp 0x20) -> 92.42 (kept)
+  [3] fn_2_57F0 2nd param u16 (removes our clrlwi before the call): 57F0 unchanged, this -0.07 (reverted);
+      option[2] for the 0x49 store in either arm -0.08; s32 team in the toggle helper 90.81; cssCursorPort((u8)team) same
+  remaining: toggle arm 2 re-derives F468+team in the target; clrlwi on held before fn_2_57F0; cssCursorPort index uses
+      a fresh clrlwi of team in ours; register naming in the CPU-port branch.
+  [4] held param typed s32 instead of u16: 92.42 -> 92.13, but the u16 prototype re-allocates registers in the caller
+      characterSelectControls (report 72.58 -> 72.46). Kept s32 so no function regresses; revisit u16 together with
+      characterSelectControls.
+fn_2_5F80 (94.14)
+  [1] hand-written pointer walks replaced with plain indexing (lineUpInfoStruct[team*0x24 + k*4 + 2],
+      rosterCharID / positionSwapMapping, CharacterStats[team][g]) -> 100% (MWCC derives the target's IVs itself)
+  readability pass: done. Lesson for the rest of the file: drafts with manual pointer IVs usually lose to array indexing.
+fn_2_9F70 (97.79)
+  [1] switch {1,2,3} + `goto retry` rewrite of the goto-chain draft: 78.27 (reverted; the draft's loop shape is closer)
+
+Session 3 end (Opus): report unit fuzzy 87.79 -> 90.12; diff .text 87.03 -> 89.69; 19 -> 23 functions at 100%
+  (new: fn_2_A1A0, fn_2_A288, fn_2_ABC0, fn_2_5F80). Commits 4235422f..8811e846.
+Cross-function findings (this file):
+  - Drafts with hand-written pointer walks lose to plain array/struct indexing; MWCC derives the target's IVs itself
+    (5F80 100%, 95D8, A288, B324). Use struct fields (cursorPositions.roster.*, CharacterStats (*)[9] on inMemRoster,
+    Static_Stats_Tables.challengeRosters/captainChemistryOrder/charOnCharacterGridSelected) so offsets fold into displacements.
+  - A recurring residual: the target re-derives (u8)param with a fresh clrlwi/clrlslwi in later blocks (C7DC, CCE0,
+    starHitSetting, CA60/B66C); ours CSEs one conversion. Not an inlining artefact as far as tried; mw 2.5/2.7 builds
+    give identical code, 3.0a3 is far worse.
+  - Tautological loop conditions (x == x) fold after register allocation and keep extra saved registers (EAE0).
+  - Empty-if compare chains survive in the target (95D8 tail) but are dropped in every C form tried.
+Next session: characterSelectControls (71.7) and characterSelectAPress (75.2) are the biggest remaining wins; both
+  should get the array-indexing treatment (check for hand pointer walks). Then cssUnloadScreen, fn_2_8CF8, randCharAlgo2,
+  randCharBasedOnClass, B920 (copy block), C7DC. characterSelectABDirectionInputs' held param should become u16 once
+  characterSelectControls is reworked (see its log).
+Session 4: renamed fn_2_ABC0 -> cssSortCaptainChemistryOrder (approved); score unchanged 100%.
+characterSelectControls (71.67) [S4]
+  [1] full rewrite from asm, early returns instead of the goto dispatch; no #pragma dont_inline so closeZMenu,
+      fn_2_A040(row, col, team, idx), fn_2_C698(idx, team) and cssCursorPort inline as in the target; slot search as a
+      9-trip loop with break; params held/pressed/repeat; PAD_* button names -> 87.83
+      REAL BUGS FIXED: Y (0x800) clear loop ran over rosterCharID[team][1..9] (index 9 = next row) - target is 1..8;
+      Z (0x10) set F468[team+0x41] where the target sets 0x45 (profile shown), and checked the slot before the cursor 9/10 test.
+  [2] cursor 9/10 rejection sound placed after the success path (`if (CSS != 9 && CSS != 10) {...return;} snd`), same as a goto -> 90.23
+  [3] decl-order permutations of team/held/pressed/repeat/count: <=+0.01; moving the function before fn_2_A040: no change
+  [4] characterSelectABDirectionInputs held typed u16 now helps both (Controls 90.34, ABDir 92.42) - kept
+  remaining: register naming (target team r27 / count r28 / held..repeat r29-r31); target recomputes cursorPositions bases
+      inside the inlined A040/C698 where ours CSEs a cP+2 base; `held = pressed` zero copy kept as li in ours.
+characterSelectAPress (75.20) [S4]
+  [1] dont_inline pragma removed so fn_2_60D4, fn_2_5184 and fn_2_C698 inline as in the target; challenge-lock test as
+      static inline cssChallengeLocked() (mode == CHALLENGE && F468[0x3f]) -> 76.33
+      REAL BUG FIXED: draft locked whenever the mode was Challenge OR F468[0x3f] (target: AND)
+  [2] full structured rewrite from asm (s8 filled/freeCount/slot/variantRow locals initialised at the top, slot search loop
+      with break, rosterCharID/positionSwapMapping/rosterSpotFilledInd/chemWCaptain fields, fn_2_C698 call in the tail) -> 92.95
+      REAL BUGS FIXED: 2P duplicate check read charOnCharacterGridSelected[other] instead of F468[other + 0x41];
+      challenge free-slot rejection lacked the "selected slot is occupied" condition.
+  [3] simple-remove arm (variant query == 0) placed in the else; picked char read once into newChar -> 96.25
+  [4] g_MatchInfo stores before the chemWCaptain store -> 98.27 (kept)
+  [5] (u8)port in fn_2_5184's variant call: 5184 95.3 -> 88.3 (reverted); 25 decl permutations: none better;
+      raw-offset chem read 96.05
+  remaining: register naming only (team r30/captain r27 in target) + the inlined 5184's addRemoveCharVariantRelated arg.
+Session 4 end: unit report 90.12 -> 92.17; characterSelectControls 71.67 -> 90.34, characterSelectAPress 75.20 -> 98.27,
+  ABDir 92.13 -> 92.42 (held u16). fn_2_ABC0 renamed cssSortCaptainChemistryOrder.
+fn_2_5184 (95.30) [S4] - inlined into characterSelectAPress, measured together
+  [1] struct-field rewrite of the clear loop (s8/s32/u8 id): 76.6-78.9 (reverted; the raw s8 *cur indexing is what matches)
+  [2] addOrRemoveCharacterToTeam gets the roster byte re-read (cur[...]) instead of the charId local -> 97.38 / APress 98.54
+  [3] captain compared directly (no local), playerNumberByPort without the (s8) cast -> 99.27 / 98.63
+  [4] updateCharacterSelectProcessCode(port & 0xFF, ...) - a fresh conversion instead of CSE with (u8)port -> 100% / APress 98.73
+      ((u16)(u8)port: 97.44/99.02; u8 local: no change)
+  readability pass: done (CSS_CURSOR, TRUE/FALSE). The rosterSpotFilledInd/chemWCaptain stores stay as raw cur offsets with a
+  comment: the struct-field form drops 5184 to 79.2 and APress to 97.5.
+  Lead: `x & 0xFF` reproduces the target's fresh clrlwi where `(u8)x` gets CSE'd - try it on C7DC, CCE0, starHitSetting, CA60.
+u8 re-conversion pass [S5]
+fn_2_CCE0 (93.93)
+  [1] `port & 0xFF` on a u8 param: no effect (folded). Param retyped s32 with (u8)port indexes and `port & 0xFF` for the
+      updateCharacterSelectProcessCode calls -> 96.74; rosterCharID/positionSwapMapping fields -> 97.30
+  [2] previous-cursor store written as ((s32 *)lbl_2_bss_F468)[(u8)port + 2] (target adds base first) -> 100%
+      readability pass: done (CSS_CURSOR, CHAR_ID_NONE / NUM_CHOOSABLE_CHARACTERS, TRUE/FALSE).
+  Changing the CSS_PREV_CURSOR macro itself to that form: Controls/ReturnToCap/4970 up but fn_2_3624 95.03 -> 94.36 (rejected);
+  try it per call site in 3624's siblings later. CSS_CURSOR as an s32 index: worse everywhere.
+fn_2_C7DC (85.55) - did not respond
+  [1] params u8 -> `& 0xFF` folds away. Params s32 with (u8) uses: 83.40; `& 0xFF` on setLineupSlot args / inMemRoster
+      team index / captain index / fn_2_C698 arg: 83.31; setLineupSlot(s32, s32) indexing [team & 0xFF][slot & 0xFF]: 83.75.
+      All below the u8-param version; reverted to it.
+cssRandomFillRoster (80.04)
+  [1] teamLogoDetermination / both updateCharacterSelectProcessCode calls take `team & 0xFF` -> 87.34 (kept);
+      also masking the otherTeam xor: 85.60 (not kept); xor alone 80.00
+  [2] other team's cursor as ((s32 *)&menuCursors[0x20])[otherTeam] (both reads) -> 95.39 (kept)
+  remaining: target's fresh clrlwi before the xor (masking it costs elsewhere), dead r5 IV, register naming
+fn_2_CA60 / fn_2_B66C / fn_2_B920 (shared initRosterSlot), scored together
+  [1] lineup indexes as (slot & 0xFF) * 4 -> CA60 96.56->96.95, B66C 96.21->96.50, B920 77.29->77.41 (kept)
+  [2] also masking the stored value: CA60 96.03 (worse); team & 0xFF in the lineup index: no change; slot & 0xFF in the
+      inMemRoster index: CA60 95.63; in the C698-half read: all three drop hard; s32 params (with or without masks): CA60 ~77
+  remaining: register naming; B920's copy block (unchanged)
+Pass summary [S5]: CCE0 93.93->100, starHit 80.04->95.39, CA60/B66C/B920 small gains, C7DC did not respond.
+CSS_PREV_CURSOR_S32 (s32-index form of the previous-cursor slot) [S5]
+  New macro next to CSS_PREV_CURSOR; per call site:
+  - fn_2_3624: every one of its 7 sites individually loses (93.8-94.4 vs 95.03) -> left on CSS_PREV_CURSOR
+  - characterSelectBPress: each of its 6 sites alone loses (92.6-93.5), all 6 together 93.93 -> 94.02 (kept, all)
+  - characterSelectControls: each site alone 90.50, both 90.66 (kept)
+  - fn_2_4970: 96.99 -> 97.22 (kept)
+  - fn_2_CCE0: already used the form (now spelled with the macro; still 100%)
+  - fn_2_57F0's oldState pointer (&...[idx*4 + 8]): 93.73 -> 90.03 (not kept)
+
+Naming pass (2026-11-20, no codegen change):
+- Renamed: starHitSetting_Unused_maybe -> cssRandomFillRoster, cssReturnToCapSelect_maybe -> characterSelectBPress,
+  stopShowingCaptainProfile -> closeZMenu, cssShowCaptainProfile -> cssOpenZMenu, cssToggleBottomOption -> cssToggleZMenuPage,
+  cssCursorOnBottomControl_maybe (DOL) -> charGrid_moveCursor.
+- The two work areas are now named cssWork (was lbl_2_bss_F468) and capSelectState (was lbl_2_bss_100B8); see
+  include/menus/css_work.h. This file still declares them u8[] and uses the CSS_WORK_* / CAP_STATE_* offset defines
+  and CSS_CURSOR / CSS_PREV_CURSOR / CSS_PREV_CURSOR_S32 (same bodies as before, now in css_work.h). Functions where
+  the cast view compiles the same use CSS_WORK_VIEW.field / CAP_SELECT_STATE_VIEW.field; the rest are marked
+  "kept as offset access: struct form changes codegen".
+- Lead: declaring them as typed externs for the whole file (extern CssWork cssWork; extern CapSelectState
+  capSelectState; cursor macros -> cssWork.lineupCursor[x] / lineupCursorPrev[x]) moved scores both ways:
+  gains characterSelectBPress 94.10->96.34, teamReady1 89.92->94.38, characterSelectControls 90.81->91.19,
+  fn_2_4970 97.22->97.46, fn_2_3624 95.51->95.54; drops cssRandomFillRoster 95.39->82.82, fn_2_57F0 93.96->87.93,
+  fn_2_9F70 97.79->92.21, characterSelectABDirectionInputs 92.87->91.95, fn_2_B920 80.19->79.22. Not applied.
+  Every other CSS file (text_76874, text_78F78, text_7BFF8, text_7E380, ...) gained or stayed identical with the
+  typed externs. Declaring gameSetUpStep as GameSetUpStep here also nudges characterSelectControls 90.81->90.89.
+- Process codes are CHAR_SELECT_PROCESS_* and the step bytes SET_UP_STEP_* (UnknownHomes_Static.h).
+
+---
+
+## Earlier independent pass (from another session, 2026-11-14; superseded by the log above, kept for its experiment notes)
+
+### text_0323C second pass
 
 Current verified state: .text80.51268% (baseline73.60118%). 19/66 matched (15 pre-existing +86EC/6884/B508/C698),42 functions improved; 87A8 exhausted99.30693%,46 pending. All51 initially unmatched functions have assessment/experiment entries, but full-file grind is not complete. Full ninja build and native git diff --check pass. No header/config changes or commits.
 
