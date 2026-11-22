@@ -3013,6 +3013,44 @@ void fn_8001DB74(ActorObjectTable* table) {
     }
 }
 
+void fn_8001DEA4(ActorObjectEntry* entry, int group, MtxPtr camera) {
+    Actor* actor = entry->actor;
+    u32* args = entry->drawArgs;
+
+    if (entry->callback != NULL) {
+        entry->callback(entry);
+    }
+    switch (entry->drawArgCount) {
+    case 0:
+        fn_8001DD58(actor, group, camera, 0);
+        break;
+    case 1:
+        fn_8001DD58(actor, group, camera, 1, args[0]);
+        break;
+    case 2:
+        fn_8001DD58(actor, group, camera, 2, args[0], args[1]);
+        break;
+    case 3:
+        fn_8001DD58(actor, group, camera, 3, args[0], args[1], args[2]);
+        break;
+    case 4:
+        fn_8001DD58(actor, group, camera, 4, args[0], args[1], args[2], args[3]);
+        break;
+    case 5:
+        fn_8001DD58(actor, group, camera, 5, args[0], args[1], args[2], args[3], args[4]);
+        break;
+    case 6:
+        fn_8001DD58(actor, group, camera, 6, args[0], args[1], args[2], args[3], args[4], args[5]);
+        break;
+    case 7:
+        fn_8001DD58(actor, group, camera, 7, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+        break;
+    case 8:
+        fn_8001DD58(actor, group, camera, 8, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+        break;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 
@@ -3353,6 +3391,7 @@ void fn_80017D28(u8* obj) {
     p[0x25A] = obj[0x25A];
     p[0x25B] = obj[0x25B];
     *(u32*)(p + 8) = *(u32*)(obj + 0xC);
+    /* fn_80017814 takes four arguments; the original passes only what is already in r4-r6, so the call is cast to one argument. */
     ((void (*)(void*))fn_80017814)(p);
 }
 

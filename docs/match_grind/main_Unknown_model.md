@@ -17,6 +17,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001D074 | pending | 91.30 |
 | fn_80011578 | pending | 66.10 |
 | fn_8001DD58 | matched | 100 |
+| fn_8001DEA4 | matched | 100 |
 | fn_800189E4 | pending | 91.88 |
 | fn_8001B35C | pending | 83.65 |
 | fn_80019A60 | pending | 91.69 |
@@ -91,3 +92,6 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   next: switch layout / goto-style joins; mode flag stored via (g==9) cntlzw idiom.
 - [S2] fn_80017814's real signature is (u8* record, s32 slot, s32 mode, void (*callback)(u8*)); the old one-arg prototype was removed. fn_80017D28 still calls it with
   one argument via a cast (the original leaves r4-r6 as set up earlier; passing real arguments dropped fn_80017D28 from 88.1% to 64.05%). Opus: fix when drafting fn_80017814.
+- [S2] fn_8001DEA4 (564 bytes) drafted -> 100% in the report (diff tool shows 99.89%, sizes 564/564). Runs entry->callback, then switch on entry->drawArgCount (0-8)
+  forwarding that many entry->drawArgs words to fn_8001DD58(actor, group, camera, count, ...). readability pass: done (fields already named in ActorObjectEntry).
+- [S2] added a source comment at the fn_80017D28 -> fn_80017814 cast call explaining the one-argument cast.
