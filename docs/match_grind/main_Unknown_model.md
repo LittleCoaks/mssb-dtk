@@ -25,6 +25,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001CCC8 | pending | 84.25 |
 | fn_8001DB74 | pending | 87.81 |
 | fn_8001758C | pending | 80.09 |
+| fn_80017340 | pending | 81.76 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -95,3 +96,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 - [S2] fn_8001DEA4 (564 bytes) drafted -> 100% in the report (diff tool shows 99.89%, sizes 564/564). Runs entry->callback, then switch on entry->drawArgCount (0-8)
   forwarding that many entry->drawArgs words to fn_8001DD58(actor, group, camera, count, ...). readability pass: done (fields already named in ActorObjectEntry).
 - [S2] added a source comment at the fn_80017D28 -> fn_80017814 cast call explaining the one-argument cast.
+- [S2] fn_80017340 (588 bytes target, 592 ours) drafted: batch-slot allocator for a model record's anim bank. If the loaded flag (huge+0x2D8D) is clear it scans the
+  4 cached character ids (huge+0x2D89..) against the 4 object slots 9..12; a hit reuses the cached buffer (huge+0x2CB0+j*4) and returns TRUE, otherwise unused
+  cache slots are freed (-1), the first free one takes the record's charId, an ARAMTransfer of the character's anim file (+0xB in practice mode, else +3) is started
+  and the flag set (returns FALSE). When the flag is set it calls ANIMGet(record+0x14) once lbl_803C6CF8[0x715]==1 -> 81.76%
+  next: the asm's inner loop does not hoist the invariant objects[9+i] load (left in the inner loop); the first-free search is the unrolled 4-step compare chain.

@@ -3051,6 +3051,63 @@ void fn_8001DEA4(ActorObjectEntry* entry, int group, MtxPtr camera) {
     }
 }
 
+BOOL fn_80017340(int slot) {
+    u8* rec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+    s32 used[4];
+    s32 i;
+    s32 j;
+    s32 free;
+
+    if (*HA(0x2D8D) != 0) {
+        if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+            ANIMGet(*(void**)(rec + 0x14));
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+    used[0] = 0;
+    used[1] = 0;
+    used[2] = 0;
+    used[3] = 0;
+    for (i = 0; i < 4; i++) {
+        for (j = 0; j < 4; j++) {
+            u8* obj = HA_OBJ(9 + i);
+
+            if (obj != NULL) {
+                if ((s8)rec[0x252] == (s8)*HA(0x2D89 + j)) {
+                    *(u32*)(rec + 0x14) = *(u32*)HA(0x2CB0 + j * 4);
+                    return TRUE;
+                }
+                if ((s8)obj[0x252] == (s8)*HA(0x2D89 + j)) {
+                    used[j] = 1;
+                    break;
+                }
+            }
+        }
+    }
+    for (j = 0; j < 4; j++) {
+        if (used[j] == 0) {
+            *HA(0x2D89 + j) = 0xFF;
+        }
+    }
+    for (free = 0; free < 4; free++) {
+        if ((s8)*HA(0x2D89 + free) < 0) {
+            break;
+        }
+    }
+    *HA(0x2D89 + free) = rec[0x252];
+    *(u32*)(rec + 0x14) = *(u32*)HA(0x2CB0 + free * 4);
+    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+        i = (s8)rec[0x252] * 0x13 + 0xB;
+    } else {
+        i = (s8)rec[0x252] * 0x13 + 3;
+    }
+    ARAMTransfer((u8*)lbl_803CB790 + i * 16, *(s32*)(rec + 0x14), 0, 0);
+    *HA(0x2D8D) = 1;
+    return FALSE;
+}
+
 void fn_80011578(void) {
     s8 i;
 
