@@ -2513,6 +2513,73 @@ static inline void clearObjectField5C(s8 index) {
     *(u32*)(obj + 0x5C) = 0;
 }
 
+typedef struct ModelStateObject {
+    /* 0x00 */ u8 _00[0x62];
+    /* 0x62 */ s16 frame;
+    /* 0x64 */ u8 _64[0x252 - 0x64];
+    /* 0x252 */ E(s8, CHAR_ID) charId;
+    /* 0x253 */ u8 _253[0x255 - 0x253];
+    /* 0x255 */ s8 slot;
+} ModelStateObject;
+
+extern void fn_8004B6EC(void* obj);
+extern void updateSpecialBatAttach(void* obj);
+extern void fn_8005240C(void* obj);
+extern void processCharacterStateBasedOnGameMode(void* actor);
+
+#define MODEL_ENTRY_ACTOR_FLAG(entry) (*(u8*)(*(u8**)(entry) + 0x99))
+
+void fn_80011468(void) {
+    s32 i;
+
+    for (i = 0; i < 13; i++) {
+        ModelStateObject* obj = hugeAnimStruct.objects[i];
+        u8* entry;
+
+        if (obj == NULL) {
+            continue;
+        }
+        entry = (u8*)hugeAnimStruct.actorTable + obj->slot * 0x90 + 0x34;
+        switch (obj->charId) {
+        case CHAR_ID_BOWSERJR:
+            fn_8004B6EC(obj);
+            break;
+        case CHAR_ID_GOOMBA:
+        case CHAR_ID_PARAGOOMBA:
+            processCharacterStateBasedOnGameMode(obj);
+            break;
+        case CHAR_ID_PETEY:
+            MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
+            updateSpecialBatAttach(obj);
+            break;
+        case CHAR_ID_MONTY:
+            updateSpecialBatAttach(obj);
+            break;
+        case CHAR_ID_BOO:
+        case CHAR_ID_KINGBOO:
+            fn_8005240C(obj);
+            break;
+        case CHAR_ID_YOSHI:
+        case CHAR_ID_WARIO:
+        case CHAR_ID_KOOPA_GREEN:
+        case CHAR_ID_NOKI_BLUE:
+        case CHAR_ID_NOKI_RED:
+        case CHAR_ID_NOKI_GREEN:
+        case CHAR_ID_KOOPA_RED:
+            MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
+            break;
+        case CHAR_ID_PARATROOPA_RED:
+        case CHAR_ID_PARATROOPA_GREEN:
+            if (obj->frame == 0x40) {
+                MODEL_ENTRY_ACTOR_FLAG(entry) = 0;
+            } else {
+                MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
+            }
+            break;
+        }
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 

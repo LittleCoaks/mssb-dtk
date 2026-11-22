@@ -16,6 +16,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80014990 | pending | 93.09 |
 | fn_8001D074 | pending | 91.30 |
 | fn_80011578 | pending | 66.10 |
+| fn_80011468 | pending | 85.15 |
 
 ## Findings
 - fn_80011578 loops s8 i over 13 object slots calling the bounds-checked `clearObjectField5C` (same inline as fn_800115C8); loop form differs.
@@ -23,5 +24,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   obj+0x255 is the actor slot (s8) indexing hugeAnimStruct.actorTable[slot*0x90]; node+0x98 bit 2 and node+0x68 are toggled by
   fn_8001D074 / fn_8001B308. fn_8001C528 resets 13 records of 0x27C bytes (+0xC64..+0xE73).
 - hugeAnimStruct is a typedef + #define view per former unit; the appended block uses the base HugeAnimStruct (after the last #undef).
-- Still unowned (0%): fn_80011468, fn_800116DC.. (everything in the earlier listing except the 17 above); biggest: fn_80012B90 (2800),
+- Still unowned (0%): fn_800116DC.. (everything in the earlier listing except the 17 above); biggest: fn_80012B90 (2800),
   fn_80011CA8 (2628), fn_8001E784 (2536), fn_80018DEC (2284), fn_8001D2D4 (2208).
+
+## Log
+- [S2] fn_80011468 (264 bytes, jump table) drafted: loops 13 object slots, switch on charId (CHAR_ID_*) sets/clears the actor entry
+  flag at actor+0x99 or calls fn_8004B6EC / updateSpecialBatAttach / fn_8005240C / processCharacterStateBasedOnGameMode -> 85.15% (size exact)
+  next: logic believed right; remaining diff is likely register/scheduling in the switch prologue; not ground.
