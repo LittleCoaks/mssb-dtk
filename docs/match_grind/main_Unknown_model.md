@@ -16,6 +16,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80014990 | pending | 93.09 |
 | fn_8001D074 | pending | 91.30 |
 | fn_80011578 | pending | 66.10 |
+| fn_8001DD58 | matched | 100 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -49,3 +50,5 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 - [S2] fn_8001B5EC (316 bytes) drafted: sibling of fn_8001B4D8; transforms the actor root vector (result unused) and stores bone ids into actor node +0x98/+0x9A:
   mode 0 -> root bone (+0x162) and partBones[4] (+0x16A); mode != 0 -> root bone for both -> 89.87% (size exact)
   next: the two near-identical branches are written out in full; the original probably shares an inline.
+- [S2] fn_8001DD58 (332 bytes) drafted -> 100.00% (matched). Variadic variant of ACTRender (src/C3/actor/act.c) without the fn_800B2D5C call, gated on
+  actor->unk98 bit (group*3) instead of mask 9. readability pass: done (group index kept as int, no enum evidence).

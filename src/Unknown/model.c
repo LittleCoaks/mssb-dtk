@@ -32,6 +32,7 @@
 #include "Unknown/File_0x8001c67c.h"
 #include "C3/actor.h"
 #include "Unknown/File_0x8001c920.h"
+#include <stdarg.h>
 #include "Unknown/File_0x8001cbd4.h"
 #include "Unknown/File_0x80023b90.h"
 #include "Unknown/File_0x8001ce74.h"
@@ -2719,6 +2720,33 @@ BOOL fn_80016F7C(void) {
         (*HA(0x2D88))++;
     } while ((s8)*HA(0x2D88) < 4);
     return TRUE;
+}
+
+void fn_8001DD58(Actor* actor, int group, MtxPtr camera, u8 numLights, ...) {
+    va_list list;
+    sBone* bone;
+
+    if (actor->unk98 & (1 << (group * 3))) {
+        if (actor->skinObject != NULL) {
+            GXInvalidateVtxCache();
+            va_start(list, numLights);
+            if (actor->skHeader != NULL) {
+                DOVARender(actor->skinObject, camera, numLights, &list);
+            } else {
+                DOVARenderSkin(actor->skinObject, camera, actor->skinMtxArray, actor->skinInvTransposeMtxArray, numLights, &list);
+            }
+            va_end(list);
+        }
+
+        for (bone = (sBone*)actor->drawPriorityList.Head; bone != NULL; bone = (sBone*)bone->drawPriorityLink.Next) {
+            if (bone->dispObj != NULL) {
+                DOSetWorldMatrix(bone->dispObj, bone->forwardMtx);
+            }
+            va_start(list, numLights);
+            DOVARender(bone->dispObj, camera, numLights, &list);
+            va_end(list);
+        }
+    }
 }
 
 void fn_80011578(void) {
