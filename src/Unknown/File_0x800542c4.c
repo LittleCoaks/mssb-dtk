@@ -6,6 +6,9 @@
 #include "text/text.h"
 #include "static/UnknownHomes_Static.h"
 #include "game/challenge/challenge_state.h"
+#include "Unknown/game_set_up_step.h"
+#include "Unknown/File_0x80062674.h"
+#include "Unknown/orderchange.h"
 
 // 0x800542C4-0x800569C8: one translation unit by its .data order and call graph
 // (docs/splits.md, 2026-11-21): the former File_0x80056120.c (newMenuRelated)
@@ -16,9 +19,101 @@
 #define OBJ_U16(o, off) (*(u16 *)((u8 *)(o) + (off)))
 #define OBJ_U32(o, off) (*(u32 *)((u8 *)(o) + (off)))
 
+extern GameSetUpStep gameSetUpStep;
 extern u8 lbl_803C5EE0[0x18];
 extern u8 lbl_802E4BB0[0x10];
 extern UIRecordDescriptor lbl_800FF540[];
+
+#define MENU_REC(scene, n) ((UIRecord *)graphicsRelatedArray[((MenuScene *)(scene))->firstHandle + (n)].object)
+
+void fn_80054910(MenuScene *scene, int port) {
+    u8 *gs = (u8 *)&gameSettings;
+    s32 sel;
+    s32 other;
+    s32 valueA;
+    s32 valueB;
+    BOOL result;
+    BOOL expected;
+
+    if (gameSetUpStep.stepFlags[8][port] != SET_UP_STEP_PLAYING) {
+        return;
+    }
+    sel = (s8)gs[port + 0x65];
+    other = (s8)gs[port + 0x69];
+    if (sel != 0) {
+        if (gs[0x36] == 0) {
+            valueA = gs[sel + 0x3B];
+            valueB = gs[other + 0x40];
+        } else {
+            valueA = (gs + port * 4)[sel + 0x45];
+            valueB = (gs + port * 4)[other + 0x55];
+        }
+    }
+    result = FALSE;
+    expected = FALSE;
+    if (other == sel && (s8)valueA != (s8)valueB) {
+        if (gs[0x36] == 0 && sel != 0) {
+            if (sel == 1) {
+                if ((s8)valueA != 0) {
+                    expected = TRUE;
+                    result = maybeCheckAndResetGrapicsElement(scene, 0x1A, 5) != FALSE;
+                } else {
+                    expected = TRUE;
+                    result = maybeCheckAndResetGrapicsElement(scene, 0x1A, 0x19) != FALSE;
+                }
+            }
+        } else if (gs[0x36] == 1) {
+            if (gs[port + 0x37] == 0) {
+                expected = TRUE;
+                result = maybeCheckAndResetGrapicsElement(scene, sel + port * 4 + 0x33, 0) != FALSE;
+            } else {
+                expected = TRUE;
+                result = maybeCheckAndResetGrapicsElement(scene, sel + port * 4 + 0x33, 0xA) != FALSE;
+            }
+        }
+    }
+    if (result == expected) {
+        makeCursorMovable(port);
+        gameSetUpStep.stepFlags[8][port] = SET_UP_STEP_DONE;
+    }
+}
+
+void fn_80055798(MenuScene *scene, int port) {
+    u8 *gs = (u8 *)&gameSettings;
+
+    if (gameSetUpStep.stepFlags[8][port] != SET_UP_STEP_START) {
+        return;
+    }
+    if (gs[0x36] == 0) {
+        if (gs[0x3C] == 1) {
+            MENU_REC(scene, 26)->playMode = UI_PLAY_FORWARD;
+        } else {
+            MENU_REC(scene, 26)->frame = 30 << 16;
+            MENU_REC(scene, 26)->playMode = UI_PLAY_BACKWARD;
+        }
+        MENU_REC(scene, 6)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 11)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 27)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 28)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 0x20)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 0x21)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 0x22)->playMode = UI_PLAY_FORWARD;
+        if (*(u8 *)((u8 *)&g_d_GameSettings + 6) != 2 && g_d_GameSettings.GameModeSelected == 5) {
+            MENU_REC(scene, 87)->frame = 30 << 16;
+            MENU_REC(scene, 87)->playMode = UI_PLAY_BACKWARD;
+        }
+    } else {
+        MENU_REC(scene, 38)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 41)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 42)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 6)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 11)->playMode = UI_PLAY_FORWARD;
+        MENU_REC(scene, 27)->playMode = UI_PLAY_FORWARD;
+    }
+    MENU_REC(scene, 88)->playMode = UI_PLAY_FORWARD;
+    makeCursorUnmovable(port);
+    gameSetUpStep.stepFlags[8][port] = SET_UP_STEP_PLAYING;
+}
 
 void newMenuRelated(void) {
     DrawingSceneStruct *item = currentDrawingItem;
