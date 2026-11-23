@@ -30,6 +30,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80017DBC | pending | 90.70 |
 | fn_80018B74 | pending | 87.89 |
 | fn_80017098 | pending | 78.84 |
+| fn_8001A3FC | pending | 35.90 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -125,3 +126,11 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   (clearing its old object-table entry) and returns TRUE. On a miss it queues the loader task, picks the first free slot (<0 in huge+0x2D6A..; 9-12 only when d >= 9, else 0-12) and fills the
   task bytes (+0x14..+0x1D), marks the slot busy and returns FALSE -> 78.84%
   next: 32 bytes short; the match test (flag then combined test) and the two free-slot searches (the d >= 9 one is unrolled in the asm) probably differ in shape; task writes may go through a struct.
+- [S2] fn_8001A3FC (692 bytes target, 968 ours -- WEAK DRAFT, logic believed right, shape wrong) drafted: model/animation system init for a mode. Calls animationInitializationRunnerRelated(mode), clears
+  lbl_803CBC34[0..3] and sets [4]=1; sets lbl_80118220[i*0x64+0x61] = -2 for i=1..12; sizes a pool as the max (& 0x0FFFFFFF) of the +4 field of the lbl_803CB794 entries
+  named by lbl_800EEB18[0..53] (>= 0), allocates it (32-aligned, heap 0x20) into lbl_80118220[0] / lbl_803CBC30 and sets bytes 0x60/0x61 = 0xFF; then fn_800145F8(mode),
+  huge+0x13C = fn_80023AA4(), fn_80018DEC(mode), initActorArray(13); for the 13 records sets rec+0x255 = k, rec+0x257 = -1, objects[k] = NULL, huge[0x2D6A+k] = -1;
+  huge[0x2D7F..0x2D87] and [0x2D89..0x2D8C] = -1 -> 35.90%
+  next: the target keeps the constant `1` (flags[4]) in r4 as a loop-guard/flag (cmpwi r4,0xd ; cmpwi r4,0) and uses only r31 plus scratch registers (stwu -0x10 frame, no stmw), with the
+  13-record loop unrolled 3x3+4 and the 9-byte clear unrolled behind a `cmpwi r7,9` guard. Mine allocates many more registers (stmw r24). The max scan wants to be one inline over the three
+  entries per step (lhau stride 2). Try making the guard variables the same object as flags[4] (e.g. a local u8 counter stored to flags[4]) and a single inline helper for the max step.
