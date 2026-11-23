@@ -41,7 +41,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80016344 | pending | 77.25 |
 | fn_8001BE50 | pending | 81.43 |
 | fn_80014204 | pending | 49.62 |
-| fn_8001BA44 | pending | 72.36 |
+| fn_8001BA44 | pending | 79.40 |
+| fn_80016B60 | pending | 75.32 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -213,3 +214,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   record is handed to the (still undrafted) fn_80011CA8(obj, kind, seq) whenever obj+0x30 is non-NULL, instead of the two actorRelated calls -> 72.36%
   next: 72 bytes short; the asm keeps the object in r28 and a `valid` flag that merges the negative-id path back into the shared tail check; try restructuring the negative-id handling as the original
   (if/else with a shared join) and compare against fn_8001BE50's chain. The bank ladder, bone setup and inlined fn_8001B5EC / fn_8001B308 tails are identical to fn_8001BE50.
+- [S2] fn_8001BA44: switched to the `valid` flag-merge form (negative anim id = valid FALSE, bank logic only when valid) -> 79.40% (was 72.36% with the early return); ours 988 vs target 1036.
+- [S2] fn_80016B60 (1052 bytes target, 992 ours) drafted: the per-record animation-bank load state machine (state byte huge+0x2D8D, 0 -> 1 ... 10 -> 0 returning TRUE) called per record by fn_80016F7C.
+  Odd states start an ARAMTransfer into a per-record buffer (rec+0x18/0x14/0x1C/0x10/0x24 from huge+slot*0x14+0x2CEC..0x2CFC; the file number is charId*0x13 + an offset picked from the game mode),
+  even states wait for lbl_803C6CF8[0x715] == 1 and ANIMGet the buffer. State 6 jumps to 9 (copying huge+0x2CF8 into rec+0x10) so states 7/8 are only reachable if set from outside
+  -> 75.32%
+  next: 60 bytes short; computing the file offset in an if/else chain with a single ARAMTransfer per state (as the asm does) gained ~5 points vs duplicating the call per branch. Compare state 9 (fixed
+  offset 0x10, lwz of lbl_803CB790 before extsb) and the else-if chain structure.
