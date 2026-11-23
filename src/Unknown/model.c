@@ -5076,6 +5076,189 @@ void fn_8001AB10(StadiumModel* model, Mtx camera) {
     }
 }
 
+extern f32 lbl_803CC4D0;
+
+void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
+    ActorObjectEntry* entry = &hugeAnimStruct.actorTable->entries[slot];
+    u32* header = *(u32**)(rec + 8);
+    u32 tex;
+    u32 layout;
+    u32 geo;
+    u32 skn;
+    void* anim;
+    u16 boneCount;
+    u16 bone;
+    s32 i;
+
+    if (header[0] != 0) {
+        (*(u32**)(rec + 8))[0] = (u32)header + header[0];
+        if ((*(u32**)(rec + 8))[1] != 0) {
+            (*(u32**)(rec + 8))[1] = (u32)header + header[1];
+            if ((*(u32**)(rec + 8))[2] != 0) {
+                (*(u32**)(rec + 8))[2] = (u32)header + header[2];
+                if ((*(u32**)(rec + 8))[3] != 0) {
+                    (*(u32**)(rec + 8))[3] = (u32)header + header[3];
+                    if ((*(u32**)(rec + 8))[4] != 0) {
+                        (*(u32**)(rec + 8))[4] = (u32)header + header[4];
+                    }
+                }
+            }
+        }
+    }
+    tex = (*(u32**)(rec + 8))[0];
+    convertTextureHeader((void*)tex);
+    layout = (*(u32**)(rec + 8))[1];
+    if (layout == 0) {
+        return;
+    }
+    geo = (*(u32**)(rec + 8))[2];
+    skn = (*(u32**)(rec + 8))[3];
+    LoadActorLayout((void*)layout);
+    convertGeometryAndSknHeader((void*)geo, (void*)skn);
+    haveActLayoutPointToGeoHeader((void*)layout, (void*)geo);
+    UpdateTexturePalettePointers((void*)geo, (void*)tex);
+
+    if (mode < 9) {
+        anim = *(void**)(rec + 0x18);
+    } else {
+        anim = *(void**)(rec + 0x14);
+    }
+    characterAndBallDisplayRelated(entry, (s8)rec[0x255], (u16)slot, (ActorLayout*)layout, anim, skn);
+    if ((*(u32**)(rec + 8))[4] != 0) {
+        adjustInternalPointers((void*)(*(u32**)(rec + 8))[4]);
+        ACTActorRelated((void*)(*(u32**)(rec + 8))[4], entry);
+    }
+
+    boneCount = *(u16*)((u8*)entry->actor + 6);
+    memset(rec + 0x162, 0xFF, 0xF0);
+    for (i = 0; i < boneCount; i++) {
+        bone = **(u16**)(*(u8**)((u8*)entry->actor + 0x18) + i * 4);
+        if (bone != 0xFFFF) {
+            *(u16*)(rec + 0x162 + bone * 2) = i;
+        }
+    }
+    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x188));
+    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x194));
+    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x1AA));
+    *(Actor**)rec = entry->actor;
+    if (*(u16*)(rec + 0x168) != 0xFFFF) {
+        fn_800B2B54(*(UnkB2B4C**)rec, *(u16*)(rec + 0x168), 13);
+    }
+    fn_800BD548(entry, 4, HA_U32(0xAC), HA_U32(0xB0), HA_U32(0xB4), HA_U32(0xB8));
+    CTRLSetTranslation(&entry->control, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4B8);
+    CTRLSetRotation(&entry->control, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4B8);
+    entry->speed = lbl_803CC4D0;
+    entry->speedPending = 1;
+    bone = *(u16*)(rec + 0x168);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+    }
+    bone = *(u16*)(rec + 0x166);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+    }
+    bone = *(u16*)(rec + 0x164);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+    }
+    bone = *(u16*)(rec + 0x1AA);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+    }
+    bone = *(u16*)(rec + 0x1BE);
+    if (bone != 0xFFFF) {
+        fn_800B2BA8(entry->actor, bone, NULL, 0);
+        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+    }
+    fn_800B2C08(entry->actor, *(u16*)(rec + 0x16A));
+    initShortsHandleCompressedDiskReads((ShortsTableOwner*)rec);
+    entry->callback = (void (*)(ActorObjectEntry*))callback;
+
+    for (i = 0; i < 8; i++) {
+        *(s16*)(rec + 0x60 + i * 2) = -1;
+    }
+    rec[0x25D] = 0;
+    rec[0x25E] = 0;
+    rec[0x25F] = 0;
+    rec[0x260] = 0;
+    rec[0x261] = 0;
+    rec[0x262] = 0;
+    rec[0x263] = 0;
+    rec[0x264] = 0;
+    rec[0x265] = 0;
+    rec[0x266] = 0;
+    rec[0x267] = 0;
+    rec[0x268] = 0;
+    rec[0x269] = 0;
+    rec[0x26A] = 0;
+    rec[0x26B] = 0;
+    rec[0x26C] = 0;
+    rec[0x26D] = 0;
+    rec[0x26E] = 0;
+    rec[0x270] = 0;
+    rec[0x271] = 0;
+    rec[0x272] = 0;
+    rec[0x273] = 0;
+    rec[0x277] = 0xFF;
+
+    switch ((s8)rec[0x252]) {
+    case CHAR_ID_DK:
+        fn_800638B4(rec, entry);
+        break;
+    case CHAR_ID_MAGIKOOPA_BLUE:
+    case CHAR_ID_MAGIKOOPA_RED:
+    case CHAR_ID_MAGIKOOPA_GREEN:
+    case CHAR_ID_MAGIKOOPA_YELLOW:
+        fn_80063010(rec, entry);
+        break;
+    case CHAR_ID_BOWSERJR:
+        fn_8004B7B4(rec, entry);
+        break;
+    case CHAR_ID_KOOPA_GREEN:
+    case CHAR_ID_PIANTA_BLUE:
+    case CHAR_ID_PIANTA_RED:
+    case CHAR_ID_PIANTA_YELLOW:
+    case CHAR_ID_KOOPA_RED:
+        entry->actor->unk98 = 1;
+        break;
+    case CHAR_ID_NOKI_BLUE:
+    case CHAR_ID_NOKI_RED:
+    case CHAR_ID_NOKI_GREEN:
+        entry->actor->unk98 = 1;
+        break;
+    case CHAR_ID_PARATROOPA_RED:
+    case CHAR_ID_PARATROOPA_GREEN:
+        fn_800637BC(rec, entry);
+        break;
+    case CHAR_ID_PETEY:
+        entry->actor->unk98 = 1;
+        initSpecialHandBones(rec, entry);
+        break;
+    case CHAR_ID_PARAGOOMBA:
+        fn_800637D4(rec, entry);
+        initSpecialHandBones(rec, entry);
+        break;
+    case CHAR_ID_MONTY:
+    case CHAR_ID_GOOMBA:
+        initSpecialHandBones(rec, entry);
+        break;
+    case CHAR_ID_BOO:
+    case CHAR_ID_KINGBOO:
+        fn_80052634(rec, entry);
+        break;
+    case CHAR_ID_SHYGUY_RED:
+    case CHAR_ID_SHYGUY_BLUE:
+    case CHAR_ID_SHYGUY_YELLOW:
+    case CHAR_ID_SHYGUY_GREEN:
+    case CHAR_ID_SHYGUY_BLACK:
+        fn_80062ED4(rec, entry);
+        break;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 

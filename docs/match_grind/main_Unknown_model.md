@@ -47,6 +47,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001500C | pending | 88.99 |
 | fn_8001AB10 | pending | 93.93 |
 | fn_80015468 | pending | 93.57 |
+| fn_80017814 | pending | 56.21 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -247,3 +248,12 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   no object 0..8 still uses (a local used[9] marks entries whose charId matches an object; unused ones are set to -1), state 1 stores the cached buffer into obj+0x18 (fn_80014A18 stores obj+0x24),
   and state 2 is identical -> 93.57%
   next: 8 bytes short; the asm's inner match loop is unrolled 3x (ctr 3) with a repeated null check of objects[i]; same invariant-reload quirk as fn_80014A18.
+- [S2] fn_80017814 (1300 bytes target, 1660 ours -- WEAK DRAFT) drafted: (record, slot, mode, callback) finish routine for a loaded model record. Relocates the five file-relative pointers of the loaded block
+  (rec+8 -> [0..4], each only if the previous is non-zero), convertTextureHeader, then (only if a layout exists) LoadActorLayout / convertGeometryAndSknHeader / haveActLayoutPointToGeoHeader /
+  UpdateTexturePalettePointers, characterAndBallDisplayRelated(entry, (s8)rec[0x255], slot, layout, rec+0x18 (mode < 9) or rec+0x14, skn), ACTActorRelated for the extra file, rebuilds the bone->part map
+  (memset 0xFF x 0xF0 at rec+0x162, then partBones[boneId] = index), the three DS list inserts, the same bone setup as fn_80017DBC, entry speed 0.5 / pending flag, initShortsHandleCompressedDiskReads(rec),
+  entry->callback = callback, clears the per-record animation state (+0x60..0x6E = -1, bytes 0x25D..0x273 = 0, +0x277 = 0xFF) and runs the per-character setup switch (jump table 0x800EEC40: DK, MAGIKOOPAx4,
+  BOWSERJR, a flag-only group KOOPA_GREEN/PIANTAx3/KOOPA_RED, a separate identical flag-only group NOKIx3, PARATROOPAx2, PETEY, PARAGOOMBA, MONTY/GOOMBA, BOO/KINGBOO, SHYGUYx5) -> 56.21%
+  next: 360 bytes over. Candidates: the five-step relocation chain (the asm reloads rec+8 each time but uses the first-loaded header for the adds), the 22 single-byte zero stores (asm keeps r3 = 0),
+  the bone-map loop, and the eight s16 -1 stores (the asm writes them straight-line; I use a loop).
+- [S2] fn_80017D28 re-check: passing the real arguments (p, (s8)obj[0x255], obj[0x254], fn_8001FDD4) scores 64.05% vs 88.11% with the one-argument cast, so the cast and its comment stay.
