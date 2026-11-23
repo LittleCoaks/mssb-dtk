@@ -44,6 +44,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001BA44 | pending | 79.40 |
 | fn_80016B60 | pending | 75.32 |
 | fn_80016710 | pending | 75.07 |
+| fn_8001500C | pending | 88.99 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -227,3 +228,9 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   buffer (lbl_80118220 + slot*0x64) otherwise (two copies of the same attach block, each with a "no part" goto join), and state 5 finishes with animateModelArmsGlovesBats (practice) or the undrafted
   fn_80012B90 (otherwise) and returns 1 without resetting the state -> 75.07%
   next: 76 bytes short; as with fn_80016344 the repeated "ready" blocks are probably one inline; the two attach blocks differ only in the effect buffer pointer, which suggests an inline taking it as a parameter.
+- [S2] fn_8001500C (1116 bytes target, 1124 ours) drafted: (team, idx, slot) loader for a runner/batter-style extra model, state byte huge+0x2D77 (the asm takes a third argument, slot, that the extern
+  declaration in game/match_setup/match_transitions.c omits). 0 -> fn_80017098(team, idx, 1, slot, slot == 9, -1), result saved at huge+0x2D78 (slot 9 goes to state 2, others straight to 5 if the object
+  has no +0x30 effect); 2 binds the object slot to the record index huge+0x2D79; 3 waits for fn_80017340 and picks 4 (needs an effect buffer: lbl_803CBC34[3], or [4] with slot 9) or 5; 4 finds or allocates
+  a slot of lbl_80118220 (0x64-byte effect buffers, +0x60 charId, +0x61 slot/-1 free/-2 end) for the character and attaches its part effect (lbl_803CBC28 = chosen index, lbl_803CBBF9/FA handshakes);
+  5 runs animateModelArmsGlovesBats -> 88.99%
+  next: 8 bytes over; the search for an existing/free buffer is two loops with the free-slot index published through lbl_803CBC28; the final return value after the fn_80017098 result path should be checked.
