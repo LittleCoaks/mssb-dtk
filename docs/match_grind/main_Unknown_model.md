@@ -45,6 +45,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80016B60 | pending | 75.32 |
 | fn_80016710 | pending | 75.07 |
 | fn_8001500C | pending | 88.99 |
+| fn_8001AB10 | pending | 93.93 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -234,3 +235,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   a slot of lbl_80118220 (0x64-byte effect buffers, +0x60 charId, +0x61 slot/-1 free/-2 end) for the character and attaches its part effect (lbl_803CBC28 = chosen index, lbl_803CBBF9/FA handshakes);
   5 runs animateModelArmsGlovesBats -> 88.99%
   next: 8 bytes over; the search for an existing/free buffer is two loops with the free-slot index published through lbl_803CBC28; the final return value after the fn_80017098 result path should be checked.
+- [S2] note on fn_8001500C: the real function takes a third `slot` argument that callers pass in r5; the two-argument extern in game/match_setup/match_transitions.c is left alone on purpose
+  (that REL file's codegen depends on it).
+- [S2] fn_8001AB10 (1160 bytes, ours 1160) drafted -> 93.93%. The shadow/overlay draw callback registered with fn_800BF058 (StadiumModel* is really an ActorObjectEntry*; header prototype kept).
+  Picks a material colour from the owning record (huge+0xC04+entry->slot*0x27C): kind +0x25D == 3 -> grey level fn_8003AE54() scaled by a height fade ((lbl_803CB7BC - |y|) / lbl_803CB7BC clamped to 0..1),
+  kind 1 -> level with alpha rec[0x277] (skipped if 0), otherwise returns; GXSetChanMatColor; translate to the object position; outside toy-field mode draws the actor's bones and skin directly
+  (fn_8003A8A0 / DOVARenderSkin) and restores the colour; in toy-field mode applies a lighting colour (lbl_803CB7C1 rgb, lbl_803CB7C0 alpha) and draws the entry through the usual drawArgCount switch.
+  next: only scheduling/register differences remain; the two PSMTXTrans calls (one per toy-field branch) are intentionally duplicated as in the asm.

@@ -4863,6 +4863,132 @@ int fn_8001500C(int team, int idx, int slot) {
     return result;
 }
 
+extern f32 lbl_803CB7BC;
+extern u8 lbl_803CB7C0;
+extern u8 lbl_803CB7C1;
+extern u8 fn_8003AE54(void);
+
+void fn_8001AB10(StadiumModel* model, Mtx camera) {
+    ActorObjectEntry* entry = (ActorObjectEntry*)model;
+    u8* rec = HA(MODEL_RECORD_BASE + entry->slot * MODEL_RECORD_SIZE);
+    BOOL isToyField = g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD;
+    GXColor color;
+    Mtx trans;
+    Mtx world;
+    f32 height;
+    f32 fade;
+    u8 shade;
+    Actor* actor;
+    u32* args;
+
+    if (rec[0x25D] == 3) {
+        height = *(f32*)(rec + 0x38);
+        if (height < lbl_803CC4B8) {
+            height = -height;
+        }
+        fade = (lbl_803CB7BC - height) / lbl_803CB7BC;
+        if (fade > lbl_803CC4F0) {
+            fade = lbl_803CC4F0;
+        } else if (fade < lbl_803CC4B8) {
+            fade = lbl_803CC4B8;
+        }
+        shade = (u8)(fade * (f32)fn_8003AE54());
+        color.a = 0xFF;
+        color.r = shade;
+        color.g = shade;
+        color.b = shade;
+    } else if (rec[0x25D] == 1) {
+        if (rec[0x277] == 0) {
+            return;
+        }
+        shade = fn_8003AE54();
+        color.r = shade;
+        color.g = shade;
+        color.b = shade;
+        color.a = rec[0x277];
+    } else {
+        return;
+    }
+    GXSetChanMatColor(GX_COLOR0A0, color);
+
+    if (isToyField) {
+        PSMTXTrans(trans, *(f32*)(rec + 0x34), *(f32*)(rec + 0x38), *(f32*)(rec + 0x3C));
+    } else {
+        PSMTXTrans(trans, *(f32*)(rec + 0x34), *(f32*)(rec + 0x38), *(f32*)(rec + 0x3C));
+    }
+
+    if (!isToyField) {
+        sBone* bone;
+        Actor* skinActor;
+
+        PSMTXConcat(camera, trans, world);
+        skinActor = entry->actor;
+        for (bone = (sBone*)skinActor->drawPriorityList.Head; bone != NULL; bone = (sBone*)bone->drawPriorityLink.Next) {
+            if (bone->dispObj != NULL) {
+                DOSetWorldMatrix(bone->dispObj, bone->forwardMtx);
+                fn_8003A8A0(bone->dispObj, world, 1);
+            }
+        }
+        skinActor = entry->actor;
+        if (skinActor->skinObject != NULL) {
+            if (skinActor->skHeader != NULL) {
+                fn_8003A8A0(skinActor->skinObject, world, 0);
+            } else {
+                DOVARenderSkin(skinActor->skinObject, camera, skinActor->skinMtxArray, skinActor->skinInvTransposeMtxArray,
+                               0, NULL);
+            }
+        }
+        shade = fn_8003AE54();
+        color.r = shade;
+        color.g = shade;
+        color.b = shade;
+        color.a = 0xFF;
+        GXSetChanMatColor(GX_COLOR0A0, color);
+        return;
+    }
+
+    color.r = lbl_803CB7C1;
+    color.g = lbl_803CB7C1;
+    color.b = lbl_803CB7C1;
+    color.a = lbl_803CB7C0;
+    adjustLightingParams(1, color);
+    PSMTXConcat(camera, trans, world);
+    actor = entry->actor;
+    args = entry->drawArgs;
+    if (entry->callback != NULL) {
+        entry->callback(entry);
+    }
+    switch (entry->drawArgCount) {
+    case 0:
+        fn_8001DD58(actor, 0, world, 0);
+        break;
+    case 1:
+        fn_8001DD58(actor, 0, world, 1, args[0]);
+        break;
+    case 2:
+        fn_8001DD58(actor, 0, world, 2, args[0], args[1]);
+        break;
+    case 3:
+        fn_8001DD58(actor, 0, world, 3, args[0], args[1], args[2]);
+        break;
+    case 4:
+        fn_8001DD58(actor, 0, world, 4, args[0], args[1], args[2], args[3]);
+        break;
+    case 5:
+        fn_8001DD58(actor, 0, world, 5, args[0], args[1], args[2], args[3], args[4]);
+        break;
+    case 6:
+        fn_8001DD58(actor, 0, world, 6, args[0], args[1], args[2], args[3], args[4], args[5]);
+        break;
+    case 7:
+        fn_8001DD58(actor, 0, world, 7, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+        break;
+    case 8:
+        fn_8001DD58(actor, 0, world, 8, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+        break;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 
