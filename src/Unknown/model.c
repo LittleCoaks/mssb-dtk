@@ -3446,50 +3446,56 @@ extern void fn_800145F8(int mode);
 extern void* fn_80023AA4(void);
 extern void fn_80018DEC(int mode);
 
-void fn_8001A3FC(int mode) {
-    s32 start;
+/* The slot arrays of hugeAnimStruct that fn_8001A3FC resets. */
+typedef struct hugeAnimStruct_view_8001a3fc {
+    /* 0x0000 */ u8 _0000[0xC04];
+    /* 0x0C04 */ u8 pool[13][MODEL_RECORD_SIZE];
+    /* 0x2C50 */ void* objects[13];
+    /* 0x2C84 */ u8 _2C84[0x2D6A - 0x2C84];
+    /* 0x2D6A */ u8 flags[0x2D90 - 0x2D6A];
+} hugeAnimStruct_view_8001a3fc;
+#define HA_SLOTS (*(hugeAnimStruct_view_8001a3fc*)&hugeAnimStruct)
+
+/* Largest (low 28 bits of the +4 word) of the file entries named by
+ * lbl_800EEB18; negative ids are unused. */
+static inline u32 maxListedFileSize(void) {
+    u8* files = lbl_803CB794;
     s32 i;
-    s32 k;
-    u32 maxSize;
-    s16* entry;
     u32 v;
+    u32 maxSize = 0;
+    s16* ids = lbl_800EEB18;
+
+    for (i = 0; i < 54; i++) {
+        s32 id = ids[i];
+        if (id >= 0) {
+            v = *(u32*)(files + id * 16 + 4) & 0x0FFFFFFF;
+            if (maxSize < v) {
+                maxSize = v;
+            }
+        }
+    }
+    return maxSize;
+}
+
+void fn_8001A3FC(int mode) {
+    s32 i;
+    u32 maxSize;
     u8* pool;
-    u8* flags = lbl_803CBC34;
+    s32 count;
+    s32 k;
+    s32 slot;
 
     animationInitializationRunnerRelated(mode);
-    start = 1;
-    flags[0] = 0;
-    flags[1] = 0;
-    flags[2] = 0;
-    flags[3] = 0;
-    flags[4] = start;
-    for (i = start; i < 13; i++) {
+    lbl_803CBC34[0] = 0;
+    lbl_803CBC34[1] = 0;
+    lbl_803CBC34[2] = 0;
+    lbl_803CBC34[3] = 0;
+    lbl_803CBC34[4] = count = i = 1;
+    for (; i < 13; i++) {
         lbl_80118220[i * 0x64 + 0x61] = -2;
     }
-    if (start != 0) {
-        maxSize = 0;
-        entry = lbl_800EEB18;
-        for (i = 0; i < 18; i++) {
-            if (entry[0] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[0] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            if (entry[1] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[1] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            if (entry[2] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[2] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            entry += 3;
-        }
+    if (count != 0) {
+        maxSize = maxListedFileSize();
         pool = _OSAllocFromHeap(0x20, (maxSize + 0x1F) & ~0x1F);
         *(u8**)lbl_80118220 = pool;
         lbl_803CBC30 = pool;
@@ -3497,24 +3503,29 @@ void fn_8001A3FC(int mode) {
         lbl_80118220[0x60] = 0xFF;
     }
     fn_800145F8(mode);
-    HA_U32(0x13C) = (u32)fn_80023AA4();
+    hugeAnimStruct.modelEntries = fn_80023AA4();
     fn_80018DEC(mode);
     initActorArray(13);
-    for (k = 0; k < 13; k++) {
-        u8* rec = HA(MODEL_RECORD_BASE + k * MODEL_RECORD_SIZE);
-
-        rec[0x255] = k;
-        HA_OBJ(k) = NULL;
-        *HA(0x2D6A + k) = 0xFF;
-        rec[0x257] = 0xFF;
+    slot = 0;
+    for (k = 0; k < 9; k++, slot++) {
+        HA_SLOTS.pool[slot][0x255] = slot;
+        HA_SLOTS.objects[slot] = NULL;
+        HA_SLOTS.flags[slot] = 0xFF;
+        HA_SLOTS.pool[slot][0x257] = 0xFF;
     }
-    for (i = start - 1; i < 9; i++) {
-        *HA(0x2D7F + i) = 0xFF;
+    for (k = 0; k < 4; k++, slot++) {
+        HA_SLOTS.pool[slot][0x255] = slot;
+        HA_SLOTS.objects[slot] = NULL;
+        HA_SLOTS.flags[slot] = 0xFF;
+        HA_SLOTS.pool[slot][0x257] = 0xFF;
     }
-    *HA(0x2D89) = 0xFF;
-    *HA(0x2D8A) = 0xFF;
-    *HA(0x2D8B) = 0xFF;
-    *HA(0x2D8C) = 0xFF;
+    for (i = 0; i < 9; i++) {
+        HA_SLOTS.flags[0x2D7F - 0x2D6A + i] = 0xFF;
+    }
+    HA_SLOTS.flags[0x2D89 - 0x2D6A] = 0xFF;
+    HA_SLOTS.flags[0x2D8A - 0x2D6A] = 0xFF;
+    HA_SLOTS.flags[0x2D8B - 0x2D6A] = 0xFF;
+    HA_SLOTS.flags[0x2D8C - 0x2D6A] = 0xFF;
 }
 
 extern u8 lbl_80366158[];

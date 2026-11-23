@@ -58,7 +58,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80019A60 | pending | 91.69 |
 | fn_80019C00 | pending | 77.59 |
 | fn_8001A25C | pending | 91.69 |
-| fn_8001A3FC | pending-WEAK | 35.90 |
+| fn_8001A3FC | exhausted | 98.61 |
 | challengeMapRelated | pending | 87.45 |
 | fn_8001AAA4 | matched | 100.00 |
 | fn_8001AAF0 | matched | 100.00 |
@@ -152,7 +152,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80017DBC | pending | 90.70 |
 | fn_80018B74 | pending | 87.89 |
 | fn_80017098 | pending | 78.84 |
-| fn_8001A3FC | pending | 35.90 |
+| fn_8001A3FC | exhausted | 98.61 |
 | fn_8001C234 | pending | 86.23 |
 | fn_8001E488 | pending | 97.30 |
 | fn_80014A18 | pending | 94.58 |
@@ -181,7 +181,29 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80016F7C | pending | 89.54 |
 | fn_8001B5EC | pending | 89.87 |
 
+## fn_8001A3FC [O1] (692 bytes target, 692 ours; 35.90% -> 98.61% fuzzy, unit 80.28% -> 81.01%)
+  baseline: 35.90% (968 bytes)
+  [1] one 54-entry scan loop (no hand 3x unroll), struct view for pool/objects/flags, natural 13-loop -> 54.6..63.6% (kept the scan; the 13-loop still unrolled 6x+remainder)
+  [2] 13-record loop: s32/u32/s16/u16/s8/u8 index, while/do-while, rec pointer, pointer-walk, two loops (0..9 / 9..13 and 0..9 / ;<13), <=12, !=13 -> best 78.65% (split 9 + 4); MWCC picks the
+      known-count factor from the trip count (9 -> 3, 13 -> 6 + dynamic remainder), not from body size
+  [3] KEY: `slot = 0; for (k = 0; k < 9; k++, slot++) {...} for (k = 0; k < 4; k++, slot++) {...}` -- a separate counter k with the stored/index variable as a
+      secondary induction variable gives the target's incremental `addi r9,r9,1` 3x unroll (ctr 3) and the 4-body tail recomputed from r9 -> 88.4%, then 94.86%
+  [4] scan `s32 id = tbl[i]` local (drops extsh.) -> +0.5
+  [5] guard sharing the `1`: `count = 1; lbl[4] = count; for (i = count..)` 700 bytes; `lbl_803CBC34[4] = count = i = 1; for (; i < 13; i++)` + `if (count != 0)` -> 692 bytes, 95.66%
+      (also `count = i = 1;` before the zero stores: same). Tried/worse: `if (lbl_803CBC34[4])` reload, `if (count)` (folded), count as u8/s8/u32, initModelCache(count) inline
+      (96.06, 688), `for (i = 0; i < count; i++)` alloc loop (85..89%), ModelCacheEntry struct + pointer walk (73%)
+  [6] separate `slot` variable for the record loops instead of reusing i -> 97.27% (stops NULL being a copy of the index's 0)
+  [7] scan moved into a `static inline u32 maxListedFileSize(void)` -> 98.49%; its local declaration order (files, i, v, maxSize, ids of 120 perms) -> 98.60%
+  tried, no gain: outer local declaration order (40 perms), scan via ids param / count param / ids++ walk, slot-init inline, 2D7F-loop inline or other counter
+  variable, s8 -1 stores, chain zero stores, `maxSize` reused for count.
+  remaining (register numbering only, no instruction differences): the `1` lands in r5 instead of r4 at the top; scan ptr/counter r5<->r7 swap;
+  tail base/zero r3/r7 vs r4/r3. Same scan block appears in fn_80019C00 (target there also copies maxSize's 0 into the dead counter): try maxListedFileSize there.
+  readability: enum-shaped bytes left as literals (lbl_803CBC34[0..4] flags/count, lbl_80118220 0x64-byte cache entries with -2 end / -1 free sentinels at +0x61).
+
 ## Findings
+- [O1] Unroll shape lever: a loop whose stored/index value is a secondary induction variable (`for (k = 0; k < N; k++, slot++)`) unrolls with
+  incremental `addi rX,rX,1` per copy, and a constant-count follow-on loop from that runtime value comes out as straight copies off a mulli-computed base.
+  A plain `for (i = 0; i < N; i++)` gives parallel `addi rA,rI,1 / rI,2` copies instead. Likely relevant to fn_800145F8 / fn_80014204 / fn_80019C00.
 - fn_80011578 loops s8 i over 13 object slots calling the bounds-checked `clearObjectField5C` (same inline as fn_800115C8); loop form differs.
 - Object slot record at hugeAnimStruct+0x2C50 (+i*4); obj+0x2C / +0x30 hold per-object effect/part records (fn_80011B64 resets them);
   obj+0x255 is the actor slot (s8) indexing hugeAnimStruct.actorTable[slot*0x90]; node+0x98 bit 2 and node+0x68 are toggled by
