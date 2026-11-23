@@ -105,7 +105,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001F16C | pending | 88.91 |
 | resetGameStadiumStateOnExit | pending | 94.06 |
 | challengeMapMaybe | matched | 100.00 |
-| somethingFileHandlingLoadingRelated | pending-WEAK | 42.34 |
+| somethingFileHandlingLoadingRelated | pending | 95.51 |
 | fn_8001F8A4 | pending | 86.06 |
 | initShortsHandleCompressedDiskReads | matched | 100.00 |
 | fn_8001FDD4 | matched | 100.00 |
@@ -218,7 +218,24 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   allocation; and the final loop copies the hugeAnimStruct base (`mr r9,r3`, the 4 extra bytes) where the target computes it straight into the pointer register.
   next: buffer-loop expression shape (the target keeps 2(i+k) values in r27..r30 across the body); try a records struct view with both buffer pointers adjacent.
 
+## somethingFileHandlingLoadingRelated [O1] (700 bytes target, 696 ours; 42.34% -> 95.51% fuzzy, unit 81.75% -> 82.38%)
+  baseline: 42.34% (656 bytes)
+  [1] effect-init loop as `for (i = 0; i < count; i++)` with every field written through `hugeAnimStruct.effects[i].` (no fx local) in the target's order
+      pos.x/y/z, rot.x/y/z, visible, update -> the body matches (pointer reloaded per store, stfsx) -> 68.7%
+  [2] KEY: `count = hugeAnimStruct.effectCount = 30;` keeps count unfolded (target: `li r31,30` live across the calls, `mulli r4,r31,0x28`, `cmpwi r31,0`
+      guard, dynamic 2x unroll with srwi./andi.). `count = 30; effectCount = count;`, `effectCount = count = 30;`, longer chains with i/off, count as
+      u16/s16/u8/u32/int, an inline returning 30 all fold -> 94.63%
+  [3] model-table loop addressing `modelTable + i * 0x90 + 0x34/0x44` instead of a separate `off` induction variable -> 95.43%
+      (`for (i = off = 0; ...)` gives 700 bytes but 94.83; parenthesised offsets / &table[...] 91.96; PMModelEntry struct view, `0x90 * i`: no change)
+  remaining: the target reloads sources[0].data/geo/tex from memory after storing them (lwz r27/r28/r30, 0x2da0..0x2da8); ours keeps the stored values
+      (mr), 4 bytes and the reg assignment of the three locals. Tried, all forwarded identically: u32-word stores, a 3-iteration store loop, a
+      relocateWords inline with a k loop, a PMModelSource* src for stores or loads, raw-offset loads, (void**) loads, a 1-iteration loop.
+      Also the target copies the table offset induction variable from i (`mr r28,r27`), ours materialises a second `li 0`.
+
 ## Findings
+- [O1] Unfolded-constant lever (seen twice now): assigning a constant through a chain into a struct/array field, e.g. `count = field = 30;` or
+  `field = count = i = 1;`, keeps MWCC from constant-propagating `count`, so guards, multiplies and loop bounds use the register as in the target.
+  Which chain order works differs per function; try every order.
 - [O1] Unroll shape lever: a loop whose stored/index value is a secondary induction variable (`for (k = 0; k < N; k++, slot++)`) unrolls with
   incremental `addi rX,rX,1` per copy, and a constant-count follow-on loop from that runtime value comes out as straight copies off a mulli-computed base.
   A plain `for (i = 0; i < N; i++)` gives parallel `addi rA,rI,1 / rI,2` copies instead. Likely relevant to fn_800145F8 / fn_80014204 / fn_80019C00.

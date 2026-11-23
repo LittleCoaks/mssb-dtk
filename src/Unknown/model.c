@@ -2499,10 +2499,8 @@ void somethingFileHandlingLoadingRelated(void) {
     void* tex;
     int i;
     s32 count;
-    int off;
 
-    count = 30;
-    hugeAnimStruct.effectCount = count;
+    count = hugeAnimStruct.effectCount = 30;
 
     archive = hugeAnimStruct.archive;
     hugeAnimStruct.sources[0].data = (u8*)archive + archive[0];
@@ -2520,25 +2518,24 @@ void somethingFileHandlingLoadingRelated(void) {
 
     hugeAnimStruct.modelTable = ActorObjectInitTable(count);
 
-    for (i = 0, off = 0; i < 30; i++, off += 0x90) {
+    for (i = 0; i < 30; i++) {
         animateBallRelated(hugeAnimStruct.modelTable, i, i, hugeAnimStruct.sources[0].data, 0, 0);
-        fn_800BD548(hugeAnimStruct.modelTable + off + 0x34, 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1],
+        fn_800BD548(hugeAnimStruct.modelTable + i * 0x90 + 0x34, 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1],
                     hugeAnimStruct._AC[2], hugeAnimStruct._AC[3]);
-        CTRLSetTranslation((Control*)(hugeAnimStruct.modelTable + off + 0x44), 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation((Control*)(hugeAnimStruct.modelTable + off + 0x44), 0.0f, 0.0f, 0.0f);
+        CTRLSetTranslation((Control*)(hugeAnimStruct.modelTable + i * 0x90 + 0x44), 0.0f, 0.0f, 0.0f);
+        CTRLSetRotation((Control*)(hugeAnimStruct.modelTable + i * 0x90 + 0x44), 0.0f, 0.0f, 0.0f);
     }
 
     hugeAnimStruct.effects = _OSAllocFromHeap(0x20, count * sizeof(PMEffect));
-    for (i = 0; i < 30; i++) {
-        PMEffect* fx = &hugeAnimStruct.effects[i];
-        fx->update = 0;
-        fx->pos.x = 0.0f;
-        fx->pos.y = 0.0f;
-        fx->pos.z = 0.0f;
-        fx->rot.x = 0.0f;
-        fx->rot.y = 0.0f;
-        fx->rot.z = 0.0f;
-        fx->visible = FALSE;
+    for (i = 0; i < count; i++) {
+        hugeAnimStruct.effects[i].pos.x = 0.0f;
+        hugeAnimStruct.effects[i].pos.y = 0.0f;
+        hugeAnimStruct.effects[i].pos.z = 0.0f;
+        hugeAnimStruct.effects[i].rot.x = 0.0f;
+        hugeAnimStruct.effects[i].rot.y = 0.0f;
+        hugeAnimStruct.effects[i].rot.z = 0.0f;
+        hugeAnimStruct.effects[i].visible = FALSE;
+        hugeAnimStruct.effects[i].update = NULL;
     }
 }
 
