@@ -33,6 +33,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001A3FC | pending | 35.90 |
 | fn_8001C234 | pending | 86.23 |
 | fn_8001E488 | pending | 97.30 |
+| fn_80014A18 | pending | 94.58 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -147,3 +148,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   builds a per-object frustum (offsets from the object's x/y divided by lbl_803CC514 plus lbl_803CC518..528), GXSetProjection, runs the entry callback and draws it with the same
   drawArgCount switch as fn_8001DEA4 (group 0, camera 0's view matrix) -- the original has that body inlined.
   next: pure register allocation: target walks hugeAnimStruct+0x2C50 via r30 (mr r30,r31) with separate counters r27/r29, ours uses an addi r27 pointer; try different loop-variable declarations.
+- [S2] note for fn_8001E488: the nine-case drawArgCount switch was probably a shared static inline in the original (used by both fn_8001DEA4 and fn_8001E488); try it
+  only if fn_8001DEA4 stays at 100%.
+- [S2] fn_80014A18 (820 bytes target, 808 ours) drafted: three-state loader (huge+0x2D8E) for the nine fielder-type animation banks. State 0 resets the cache table (huge+0x2D7F x9 = -1).
+  State 1 walks objects 0..8 matching each object's charId (+0x252) against the cache; hits take the cached buffer (huge+0x2CC0+j*4) into obj+0x24, the first miss moves to state 2 and
+  returns FALSE (all hit: returns TRUE). State 2 picks a free cache slot for the object's record, starts an ARAMTransfer (file charId*0x13+4, or +0x11 when huge+0x2D7C is set) and then
+  waits for lbl_803C6CF8[0x715] == 1 before ANIMGet and going back to state 1. The `team` parameter is unused in the asm -> 94.58%
+  next: 12 bytes short; the free-slot search is a fully unrolled compare chain in the asm and the invariant objects[i] reload sits inside the inner loop (as in fn_80017340).
