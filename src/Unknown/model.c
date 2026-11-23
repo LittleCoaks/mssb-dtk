@@ -55,6 +55,7 @@
 #include "Unknown/File_0x8001fc4c.h"
 #include "game/match_setup/match_loading.h"
 #include "Unknown/File_0x8004b7f4.h"
+#include "Unknown/File_0x800bd8c4.h"
 #include "Unknown/File_0x80052734.h"
 
 typedef struct _StadiumLightInput {
@@ -2954,7 +2955,6 @@ s32 fn_8001B35C(int index, int mode) {
     return steps;
 }
 
-extern void fn_800BDA24(void* entry);
 
 void fn_8001DB74(ActorObjectTable* table) {
     u16 i;
@@ -5405,6 +5405,274 @@ void fn_80019C00(void) {
         *HA(0x307C) = 1;
         removeCurrentDrawingItem();
         break;
+    }
+}
+
+extern f32 lbl_803CC510;
+extern int fn_80024C6C(void* obj, int which);
+extern void fn_800B2C88(Actor* actor, u16 bone, Mtx out);
+extern void fn_8001C234(u32* changedMask);
+
+#define STATE_FLAG_BIT7(p, v) ((p)[0x11] = ((p)[0x11] & 0x7F) | ((v) << 7))
+#define MODEL_STATE_VIEW(p) ((u8*)(p))
+
+void fn_8001D2D4(void) {
+    u32 changedMask;
+    s32 i;
+    s32 k;
+    u8* obj;
+    ActorObjectEntry* entry;
+    Actor* actor;
+    u8* shadowA;
+    u8* shadowB;
+    u8* shadowC;
+    u8* effectFile;
+    f32 scale;
+    Vec point;
+    Vec transformed;
+    Mtx mtx;
+    u8* gs = (u8*)&g_d_GameSettings;
+    u8* item;
+
+    if (*HA(0x307A) == 0 || *HA(0x307C) == 0) {
+        return;
+    }
+    if (lbl_80366158[0x28] != 0) {
+        highLevelSimulationFlag[0] = 1;
+    }
+    fn_8001C234(&changedMask);
+
+    for (i = 0; i < 13; i++) {
+        obj = HA_OBJ(i);
+        if (obj == NULL) {
+            continue;
+        }
+        entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
+        switch ((s8)obj[0x252]) {
+        case CHAR_ID_BOWSERJR:
+            fn_8004B6EC(obj);
+            break;
+        case CHAR_ID_GOOMBA:
+        case CHAR_ID_PARAGOOMBA:
+            processCharacterStateBasedOnGameMode((CharacterStateActor*)obj);
+            break;
+        case CHAR_ID_PETEY:
+            entry->actor->unk98 = 1;
+            updateSpecialBatAttach(obj);
+            break;
+        case CHAR_ID_MONTY:
+            updateSpecialBatAttach(obj);
+            break;
+        case CHAR_ID_BOO:
+        case CHAR_ID_KINGBOO:
+            fn_8005240C(obj);
+            break;
+        case CHAR_ID_YOSHI:
+        case CHAR_ID_WARIO:
+        case CHAR_ID_KOOPA_GREEN:
+        case CHAR_ID_NOKI_BLUE:
+        case CHAR_ID_NOKI_RED:
+        case CHAR_ID_NOKI_GREEN:
+        case CHAR_ID_KOOPA_RED:
+            entry->actor->unk98 = 1;
+            break;
+        case CHAR_ID_PARATROOPA_RED:
+        case CHAR_ID_PARATROOPA_GREEN:
+            if (*(s16*)(obj + 0x62) == 0x40) {
+                entry->actor->unk98 = 0;
+            } else {
+                entry->actor->unk98 = 1;
+            }
+            break;
+        }
+    }
+
+    for (i = 0; i < hugeAnimStruct.actorTable->count; i++) {
+        hugeAnimStruct.actorTable->entries[i].applyControl = 0;
+    }
+
+    for (i = 0; i < 13; i++) {
+        obj = HA_OBJ(i);
+        if (obj == NULL) {
+            continue;
+        }
+        entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
+        shadowA = NULL;
+        if (*(u8**)(obj + 0x2C) != NULL) {
+            shadowA = *(u8**)(obj + 0x2C) + 0x10;
+        }
+        if (*(u8**)(obj + 0x30) != NULL) {
+            shadowB = *(u8**)(obj + 0x30) + 0x10;
+            shadowC = *(u8**)(obj + 0x30) + 0x74;
+        } else {
+            shadowB = NULL;
+            shadowC = NULL;
+        }
+        entry->applyControl = obj[0x25D];
+        CTRLSetRotation(&entry->control, lbl_803CC510 * *(f32*)(obj + 0x40), lbl_803CC510 * *(f32*)(obj + 0x44),
+                        lbl_803CC510 * *(f32*)(obj + 0x48));
+        scale = charSizeMultipliers[(s8)obj[0x252]][*HA(0x307A) == 5];
+        CTRLSetScale(&entry->control, scale, scale, scale);
+        if (highLevelSimulationFlag[0] != 0) {
+            entry->speed = lbl_803CC4B8;
+            entry->speedPending = 1;
+            if (shadowA != NULL) {
+                STATE_FLAG_BIT7(shadowA, 0);
+            }
+            if (shadowB != NULL) {
+                STATE_FLAG_BIT7(shadowB, 0);
+            }
+            if (shadowC != NULL) {
+                STATE_FLAG_BIT7(shadowC, 0);
+            }
+        } else if (obj[0x26F] != 0) {
+            entry->speed = lbl_803CC4B8;
+            entry->speedPending = 1;
+            obj[0x26F] = 0;
+            if (shadowA != NULL) {
+                STATE_FLAG_BIT7(shadowA, 0);
+            }
+            if (shadowB != NULL) {
+                STATE_FLAG_BIT7(shadowB, 0);
+            }
+            if (shadowC != NULL) {
+                STATE_FLAG_BIT7(shadowC, 0);
+            }
+        } else {
+            entry->speed = *(f32*)(obj + 0x4C);
+            entry->speedPending = 1;
+            if (shadowA != NULL) {
+                *(f32*)(shadowA + 4) = *(f32*)(obj + 0x4C);
+            }
+            if (shadowB != NULL) {
+                *(f32*)(shadowB + 4) = *(f32*)(obj + 0x4C);
+            }
+            if (shadowC != NULL) {
+                *(f32*)(shadowC + 4) = *(f32*)(obj + 0x4C);
+            }
+            if (shadowA != NULL) {
+                STATE_FLAG_BIT7(shadowA, 1);
+            }
+            if (shadowB != NULL) {
+                STATE_FLAG_BIT7(shadowB, 1);
+            }
+            if (shadowC != NULL) {
+                STATE_FLAG_BIT7(shadowC, 1);
+            }
+        }
+        if (*(s16*)(obj + 0x68) != 0) {
+            if (*(u8**)(obj + 0x2C) != NULL) {
+                fn_80024DB0(*(u8**)(obj + 0x2C) + 0x10);
+            }
+            effectFile = *(u8**)(obj + 0x30);
+            if (effectFile != NULL && *(u32*)(effectFile + 4) != 0 && *(u32*)(effectFile + 0x68) != 0 &&
+                effectFile[0xCC] != 0) {
+                fn_80024DB0(effectFile + 0x10);
+                fn_80024DB0(*(u8**)(obj + 0x30) + 0x74);
+            }
+        }
+    }
+
+    fn_8001DB74(hugeAnimStruct.actorTable);
+
+    for (i = 0; i < 13; i++) {
+        obj = HA_OBJ(i);
+        if (obj == NULL) {
+            continue;
+        }
+        if (obj[0x25D] == 0) {
+            continue;
+        }
+        entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
+        actor = entry->actor;
+        if ((actor->unk98 & 9) == 0) {
+            continue;
+        }
+        if (actor != NULL) {
+            point.x = point.y = point.z = lbl_803CC4B8;
+            fn_800B2C88(actor, actor->unk84, mtx);
+            PSMTXTransApply(mtx, mtx, *(f32*)(obj + 0x34), *(f32*)(obj + 0x38), *(f32*)(obj + 0x3C));
+            PSMTXMultVec(mtx, &point, &point);
+            transformed = point;
+            setVectors(transformed);
+        }
+        if (*(u8**)(obj + 0x2C) != NULL) {
+            fn_80024FA4((StadiumModel*)entry, *(void**)(*(u8**)(obj + 0x2C) + 0x30), *(u8**)(obj + 0x2C) + 0x10, -1);
+        }
+        effectFile = *(u8**)(obj + 0x30);
+        if (effectFile != NULL && *(u32*)(effectFile + 4) != 0 && *(u32*)(effectFile + 0x68) != 0 &&
+            effectFile[0xCC] != 0) {
+            u8* modelEntry;
+            s16 anim = *(s16*)(obj + 0x62);
+
+            if (anim >= 0x3A && anim <= 0x3C && obj[0x25B] == 0) {
+                modelEntry = (u8*)HA_U32(0x13C) + effectFile[0x60] * 0x90 + 0x34;
+                fn_80024FA4((StadiumModel*)modelEntry, *(void**)(effectFile + 0x30), effectFile + 0x74,
+                            fn_80024C6C(obj, 0));
+                effectFile = *(u8**)(obj + 0x30);
+                modelEntry = (u8*)HA_U32(0x13C) + effectFile[0xC4] * 0x90 + 0x34;
+                fn_80024FA4((StadiumModel*)modelEntry, *(void**)(*(u8**)(obj + 0x30) + 0x94), effectFile + 0x10,
+                            fn_80024C6C(obj, 1));
+            } else {
+                modelEntry = (u8*)HA_U32(0x13C) + effectFile[0x60] * 0x90 + 0x34;
+                fn_80024FA4((StadiumModel*)modelEntry, *(void**)(effectFile + 0x30), effectFile + 0x10,
+                            fn_80024C6C(obj, 1));
+                effectFile = *(u8**)(obj + 0x30);
+                modelEntry = (u8*)HA_U32(0x13C) + effectFile[0xC4] * 0x90 + 0x34;
+                fn_80024FA4((StadiumModel*)modelEntry, *(void**)(effectFile + 0x94), effectFile + 0x74,
+                            fn_80024C6C(obj, 0));
+            }
+        }
+    }
+
+    if (*HA(0x307A) == 2) {
+        highLevelSimulationFlag[0] = 0;
+        return;
+    }
+    highLevelSimulationFlag[0] = 0;
+    if (HA_U32(0x2D90) != 0) {
+        u8* base = (u8*)HA_U32(0x2D90);
+
+        if (base[0xEE] != 0) {
+            fn_80024DB0(HA(0x30A8));
+            fn_80024FA4((StadiumModel*)((u8*)HA_U32(0x64) + 0x304), (void*)HA_U32(0x30C8), HA(0x30A8), -1);
+        }
+        if (((u8*)HA_U32(0x2D90))[0x116] != 0) {
+            fn_80024DB0(HA(0x3104));
+            fn_80024FA4((StadiumModel*)((u8*)HA_U32(0x64) + 0x394), (void*)HA_U32(0x3124), HA(0x3104), -1);
+        }
+        for (k = 0; k < 25; k++) {
+            item = (u8*)HA_U32(0x2D90) + k * 0x28;
+            if (k == 4) {
+                item[0x26] = 0;
+                *((u8*)HA_U32(0x64) + 0xA0 + k * 0x90) = item[0x26];
+            }
+            *((u8*)HA_U32(0x64) + 0xA0 + k * 0x90) = item[0x26] & 1;
+            if (item[0x26] != 0) {
+                CTRLSetTranslation((Control*)((u8*)HA_U32(0x64) + 0x44 + k * 0x90), *(f32*)(item + 4), *(f32*)(item + 8),
+                                   *(f32*)(item + 0xC));
+                CTRLSetRotation((Control*)((u8*)HA_U32(0x64) + 0x44 + k * 0x90), lbl_803CC510 * *(f32*)(item + 0x10),
+                                lbl_803CC510 * *(f32*)(item + 0x14), lbl_803CC510 * *(f32*)(item + 0x18));
+            }
+        }
+        fn_800BD8C4((ActorObjectTable*)HA_U32(0x64), (MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40));
+    }
+    if (*(u16*)HA(0x3078) != 0) {
+        for (k = 0; k < *(u16*)HA(0x3078); k++) {
+            item = (u8*)HA_U32(0x2D94) + k * 0x28;
+            *((u8*)HA_U32(0x68) + 0xA0 + k * 0x90) = item[0x26] & 1;
+            if (item[0x26] != 0) {
+                CTRLSetTranslation((Control*)((u8*)HA_U32(0x68) + 0x44 + k * 0x90), *(f32*)(item + 4), *(f32*)(item + 8),
+                                   *(f32*)(item + 0xC));
+                CTRLSetRotation((Control*)((u8*)HA_U32(0x68) + 0x44 + k * 0x90), lbl_803CC510 * *(f32*)(item + 0x10),
+                                lbl_803CC510 * *(f32*)(item + 0x14), lbl_803CC510 * *(f32*)(item + 0x18));
+            }
+        }
+        fn_800BD8C4((ActorObjectTable*)HA_U32(0x68), (MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40));
+    }
+    if (HA_U32(0x3070) != 0) {
+        ((void (*)(MtxPtr))HA_U32(0x3070))((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40));
+        HA_U32(0x3070) = 0;
     }
 }
 

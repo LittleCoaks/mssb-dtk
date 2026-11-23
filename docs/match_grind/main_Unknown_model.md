@@ -49,6 +49,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80015468 | pending | 93.57 |
 | fn_80017814 | pending | 56.21 |
 | fn_80019C00 | pending | 77.59 |
+| fn_8001D2D4 | pending | 90.92 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -266,3 +267,11 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   default: huge+0x2D7D/0x307C = 1, removeCurrentDrawingItem -> 77.59%
   next: 136 bytes over: the pool max scan and the per-record init loops are the likely culprits (same unrolling problems as fn_8001A3FC / fn_800145F8); state 5 is shared with fn_800196D8's state 2 and
   probably one inline in the original.
+- [S2] fn_8001D2D4 (2208 bytes target, 2204 ours) drafted -> 90.92%: the per-frame actor/model update for all 13 objects, run only while huge+0x307C && huge+0x307A are set. Steps: fn_8001C234 (animation
+  state machine, mask unused here), the per-character special-case switch (same table as fn_80011468), clears applyControl of every actor-table entry, then per object: copies the object's control /
+  rotation (lbl_803CC510 scaled) and scale (charSizeMultipliers[charId][mode == 5]) into its actor entry, handles the frozen/paused speed state (speed 0 or obj+0x4C, the bit-7 flag at +0x11 of the
+  shadow/effect records obj+0x2C+0x10, obj+0x30+0x10/+0x74), refreshes them with fn_80024DB0; fn_8001DB74(actor table); second pass for visible actors (transform the origin through fn_800B2C88/
+  PSMTXTransApply/PSMTXMultVec -> setVectors, fn_80024FA4 for the shadow records and the model-entry pairs chosen by anim 0x3A..0x3C); then, unless mode 2, the extra effect tables at huge+0x2D90/+0x64/+0x2D94/+0x68
+  (translation/rotation per entry, fn_800BD8C4 with camera 0's view matrix) and the optional one-shot hook at huge+0x3070.
+  next: scheduling/register only (4 bytes short); the three bit-7 flag clears/sets and the three speed copies are written as straight-line null-check blocks as in the asm.
+  Added #include "Unknown/File_0x800bd8c4.h" (fn_800BDA24 now comes from it; the local extern was removed).
