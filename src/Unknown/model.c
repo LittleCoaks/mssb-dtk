@@ -4004,37 +4004,45 @@ extern void* lbl_803CB7A8;
 extern void* lbl_803CBC24;
 
 #define FILE_ENTRY_FIELD(base, idx, n) (*(u32*)((u8*)(base) + (idx) * 16 + 4 + (n) * 0x10) & 0x0FFFFFFF)
-#define MAX_STEP(maxVar, idx, n)                               \
-    do {                                                       \
-        u32 v_ = FILE_ENTRY_FIELD(lbl_803CB7A8, idx, n);       \
-        if ((maxVar) < v_) {                                   \
-            (maxVar) = v_;                                     \
-        }                                                      \
-    } while (0)
-#define MAX_OF_SIX_FIELDS(maxVar, idx) \
-    MAX_STEP(maxVar, idx, 0);          \
-    MAX_STEP(maxVar, idx, 1);          \
-    MAX_STEP(maxVar, idx, 2);          \
-    MAX_STEP(maxVar, idx, 3);          \
-    MAX_STEP(maxVar, idx, 4);          \
-    MAX_STEP(maxVar, idx, 5)
+
+/* One 16-byte entry of the file table at lbl_803CB7A8; the low 28 bits of
+ * `size` are the file size. */
+typedef struct FileTableEntry {
+    u32 _00;
+    u32 size;
+    u32 _08;
+    u32 _0C;
+} FileTableEntry;
+
+/* Largest of the six consecutive file entries starting at `idx`. */
+static inline u32 maxFileSizeOfSix(u32 maxSize, s32 idx) {
+    s32 k;
+
+    for (k = 0; k < 6; k++) {
+        u32 v = ((FileTableEntry*)lbl_803CB7A8)[idx + k].size & 0x0FFFFFFF;
+        if (maxSize < v) {
+            maxSize = v;
+        }
+    }
+    return maxSize;
+}
 
 void fn_800145F8(int mode) {
-    u32 maxSize = 0;
     u32 size;
     u8* pool;
-    s32 i;
+    u32 i;
     s32 j;
-    s32 idx;
-    s32 a;
-    s32 b;
+    u32 t;
+    s16 idx;
+    u8* rec;
+    u32 maxSize = 0;
 
     if (mode == 0) {
-        for (i = 0; i < 2; i++) {
+        for (t = 0; t < 2; t++) {
             for (j = 0; j < 9; j++) {
-                idx = lbl_800EEAAC[*(s16*)((u8*)&inMemRoster[i][j] + 0x24)];
+                idx = lbl_800EEAAC[*(s16*)((u8*)&inMemRoster[t][j] + 0x24)];
                 if (idx >= 0) {
-                    MAX_OF_SIX_FIELDS(maxSize, idx);
+                    maxSize = maxFileSizeOfSix(maxSize, idx);
                 }
             }
         }
@@ -4042,7 +4050,7 @@ void fn_800145F8(int mode) {
         for (i = 0; i < 54; i++) {
             idx = lbl_800EEAAC[i];
             if (idx >= 0) {
-                MAX_OF_SIX_FIELDS(maxSize, idx);
+                maxSize = maxFileSizeOfSix(maxSize, idx);
             }
         }
     }
@@ -4053,25 +4061,19 @@ void fn_800145F8(int mode) {
     for (i = 0; i < 13; i++) {
         u8* rec = HA(i * 0xD4);
 
-        *(u32*)(rec + 0x140) = (u32)pool + size * (i * 2);
-        *(u32*)(rec + 0x1A4) = (u32)pool + size * (i * 2 + 1);
+        *(u32*)(rec + 0x140) = (u32)lbl_803CBC24 + size * (i * 2);
+        *(u32*)(rec + 0x1A4) = (u32)lbl_803CBC24 + size * (i * 2 + 1);
     }
-    a = 0;
-    b = 1;
-    for (i = 0; i < 13; i++) {
-        u8* rec = HA(i * 0xD4);
-
-        rec[0x20F] = 0xFF;
-        rec[0x211] = 0xFF;
-        rec[0x210] = 0xFF;
+    for (i = 0, rec = HA(0); i < 13; i++, rec += 0xD4) {
+        ((s8*)rec)[0x20F] = -1;
+        ((s8*)rec)[0x211] = -1;
+        ((s8*)rec)[0x210] = -1;
         rec[0x20D] = 0xFF;
         rec[0x20E] = 0xFF;
         *(u32*)(rec + 0x208) = 0;
         rec[0x20C] = 0;
-        rec[0x1A0] = a;
-        a += 2;
-        rec[0x204] = b;
-        b += 2;
+        rec[0x1A0] = i * 2;
+        rec[0x204] = i * 2 + 1;
     }
 }
 

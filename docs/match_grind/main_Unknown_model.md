@@ -26,7 +26,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80012B90 | pending | 88.88 |
 | animateModelArmsGlovesBats | pending-WEAK | 57.33 |
 | fn_80014204 | pending-WEAK | 49.62 |
-| fn_800145F8 | pending-WEAK | 39.48 |
+| fn_800145F8 | pending | 87.85 |
 | fn_80014990 | pending | 93.09 |
 | fn_80014A18 | pending | 94.58 |
 | loadSomethingFromDiskAtBeginningOfAB1 | matched | 100.00 |
@@ -199,6 +199,24 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   remaining (register numbering only, no instruction differences): the `1` lands in r5 instead of r4 at the top; scan ptr/counter r5<->r7 swap;
   tail base/zero r3/r7 vs r4/r3. Same scan block appears in fn_80019C00 (target there also copies maxSize's 0 into the dead counter): try maxListedFileSize there.
   readability: enum-shaped bytes left as literals (lbl_803CBC34[0..4] flags/count, lbl_80118220 0x64-byte cache entries with -2 end / -1 free sentinels at +0x61).
+
+## fn_800145F8 [O1] (920 bytes target, 924 ours; 39.48% -> 87.85% fuzzy, unit 81.01% -> 81.75%)
+  baseline: 39.48% (1196 bytes)
+  [1] idx as s16 (target `extsh.` test), team counter u32 t (`cmplwi r9,2`), loop index u32 i (`cmplwi r8,13` on the remainder) -> 42.6%
+  [2] buffer loop reads the global back (`(u32)lbl_803CBC24 + size * (i * 2)`): matches the target's reload of lbl_803CBC24 in the remainder loop -> 43.2%
+  [3] KEY: final 13-record loop kept rolled by walking a pointer (`for (i = 0, rec = HA(0); i < 13; i++, rec += 0xD4)`); `i != 13` and do-while also stay rolled
+      (77.4 / 76.8) but the pointer walk scores best -> 77.7%
+  [4] six-field max written as a loop over k < 6 indexing `FileTableEntry[idx + k].size` (fully unrolled late, so each step is `addi rT,rIdx16,K; lwzx`);
+      explicit six steps / parenthesised offsets all CSE `base + idx*16` into `lwz off(r)` -> 85.4%
+  [5] 0x20F/0x211/0x210 stored as s8 -1 (target uses a separate -1 constant from the 0xFF ones) -> size 920 but 84.7 alone; with
+      `rec[0x1A0] = i * 2; rec[0x204] = i * 2 + 1` (the zero stores become copies of i's 0 as in the target) -> 85.3%
+  [6] six-field loop moved into `static inline u32 maxFileSizeOfSix(u32 maxSize, s32 idx)` and maxSize declared last -> 87.08% (scan regions now identical to target)
+  tried, no gain: separate a/b counters or k++/a+=2 in the buffer loop (unrolls differently, 648 bytes), record-relative pointer (HA(0x140)), Rec145 struct view,
+  direct HA() stores, `i * 2 * size`, pool local vs global (pool: 920 bytes but 86.48), other counter variables for the final loop, rec declared in block,
+  a/b in the final loop header (920 bytes, 86.92).
+  remaining: the unrolled 6x buffer loop uses r23..r31 (stmw r23) where the target uses r27..r31 -- same instruction multiset, different scheduling/
+  allocation; and the final loop copies the hugeAnimStruct base (`mr r9,r3`, the 4 extra bytes) where the target computes it straight into the pointer register.
+  next: buffer-loop expression shape (the target keeps 2(i+k) values in r27..r30 across the body); try a records struct view with both buffer pointers adjacent.
 
 ## Findings
 - [O1] Unroll shape lever: a loop whose stored/index value is a secondary induction variable (`for (k = 0; k < N; k++, slot++)`) unrolls with
