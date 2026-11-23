@@ -5259,6 +5259,155 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     }
 }
 
+void fn_80019C00(void) {
+    DrawingSceneStruct* item = currentDrawingItem;
+    u8* itemState = (u8*)item + 0x14;
+    DrawingSceneStruct* fresh;
+    Vec dir;
+    Vec copy;
+    f32 len;
+    s32 i;
+    s32 k;
+    u32 maxSize;
+    u32 v;
+    u32 size;
+    u8* pool;
+    s16* entry;
+    u8* effects = lbl_80118220;
+
+    switch (*itemState) {
+    case 0:
+        setupAnimationModelMemory();
+        initActorArray(((g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) + 1) * 4);
+        for (k = 4; k <= 12; k++) {
+            effects[0x61 + k * 0x64] = 0xFF;
+        }
+        maxSize = 0;
+        entry = lbl_800EEB18;
+        for (i = 0; i < 18; i++) {
+            if (entry[0] >= 0) {
+                v = *(u32*)((u8*)lbl_803CB794 + entry[0] * 16 + 4) & 0x0FFFFFFF;
+                if (maxSize < v) {
+                    maxSize = v;
+                }
+            }
+            if (entry[1] >= 0) {
+                v = *(u32*)((u8*)lbl_803CB794 + entry[1] * 16 + 4) & 0x0FFFFFFF;
+                if (maxSize < v) {
+                    maxSize = v;
+                }
+            }
+            if (entry[2] >= 0) {
+                v = *(u32*)((u8*)lbl_803CB794 + entry[2] * 16 + 4) & 0x0FFFFFFF;
+                if (maxSize < v) {
+                    maxSize = v;
+                }
+            }
+            entry += 3;
+        }
+        size = (maxSize + 0x1F) & ~0x1F;
+        pool = _OSAllocFromHeap(0x20, size * 4);
+        lbl_803CBC30 = pool;
+        *(u8**)effects = pool;
+        effects[0x61] = 0xFF;
+        effects[0x60] = 0xFF;
+        *(u32*)(effects + 0x64) = (u32)pool + size;
+        effects[0xC5] = 0xFF;
+        effects[0xC4] = 0xFF;
+        *(u32*)(effects + 0xC8) = (u32)pool + size * 2;
+        effects[0x129] = 0xFF;
+        effects[0x128] = 0xFF;
+        *(u32*)(effects + 0x12C) = (u32)pool + size * 3;
+        effects[0x18D] = 0xFF;
+        effects[0x18C] = 0xFF;
+        fn_80014204(4);
+        HA_U32(0x13C) = (u32)fn_80023AA4();
+        for (k = 0; k < 4; k++) {
+            HA(MODEL_RECORD_BASE + k * MODEL_RECORD_SIZE)[0x255] = k;
+            HA_OBJ(k) = NULL;
+            *HA(0x2D6A + k) = 0xFF;
+            HA(MODEL_RECORD_BASE + k * MODEL_RECORD_SIZE)[0x257] = 0xFF;
+        }
+        for (i = 0; i < 9; i++) {
+            *HA(0x2D7F + i) = 0xFF;
+        }
+        *HA(0x2D89) = 0xFF;
+        *HA(0x2D8A) = 0xFF;
+        *HA(0x2D8B) = 0xFF;
+        *HA(0x2D8C) = 0xFF;
+        *HA(0x2D77) = 0;
+        *HA(0x2D7B) = 0;
+        *HA(0x2D7C) = 0;
+        (*itemState)++;
+        break;
+    case 1:
+        fresh = insertGraphicDrawingFunction(fn_800188C0, 0);
+        *((u8*)fresh + 0x14) = 0;
+        *((u8*)fresh + 0x16) = 0;
+        *((u8*)fresh + 0x17) = 0xFF;
+        *HA(0x307B) = 1;
+        (*itemState)++;
+        break;
+    case 2:
+        if (*HA(0x307B) == 0) {
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+                *itemState = *itemState + 1;
+            } else {
+                *itemState = 5;
+            }
+        }
+        break;
+    case 3:
+        HA_U32(0x2D9C) = (u32)ARAMTransfer(MinigameCommonFiles, 0, 0, 0);
+        (*itemState)++;
+        break;
+    case 4:
+        if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+            *itemState = *itemState + 1;
+        }
+        break;
+    case 5:
+        dir.x = -lbl_80367318[0].pos.x;
+        dir.y = -lbl_80367318[0].pos.y;
+        dir.z = -lbl_80367318[0].pos.z;
+        len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
+        *HA(0x3087) = 1;
+        dir.x /= len;
+        dir.y /= len;
+        dir.z /= len;
+        fn_8003A540(0);
+        *HA(0x3086) = 1;
+        DrawShadows(1);
+        copy = dir;
+        updateVectorInArray(0, copy);
+        fn_800BF048(fn_8001AAF0);
+        fn_800BF058(fn_8001AB10);
+        for (i = 0; i < 80; i += 8) {
+            for (k = 0; k < 8; k++) {
+                ((u32*)HA_U32(0x2C84))[i + k] += HA_U32(0x2C84);
+            }
+        }
+        *HA(0x307C) = 0;
+        *HA(0x307D) = 0;
+        *HA(0x3082) = 0;
+        fn_8001F8A4();
+        (*itemState)++;
+        break;
+    case 6:
+        challengeMapMaybe();
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
+            somethingFileHandlingLoadingRelated();
+        }
+        (*itemState)++;
+        break;
+    default:
+        *HA(0x2D7D) = 1;
+        *HA(0x307C) = 1;
+        removeCurrentDrawingItem();
+        break;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 

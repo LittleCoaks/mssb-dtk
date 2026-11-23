@@ -48,6 +48,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001AB10 | pending | 93.93 |
 | fn_80015468 | pending | 93.57 |
 | fn_80017814 | pending | 56.21 |
+| fn_80019C00 | pending | 77.59 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -257,3 +258,11 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   next: 360 bytes over. Candidates: the five-step relocation chain (the asm reloads rec+8 each time but uses the first-loaded header for the adds), the 22 single-byte zero stores (asm keeps r3 = 0),
   the bone-map loop, and the eight s16 -1 stores (the asm writes them straight-line; I use a loop).
 - [S2] fn_80017D28 re-check: passing the real arguments (p, (s8)obj[0x255], obj[0x254], fn_8001FDD4) scores 64.05% vs 88.11% with the one-argument cast, so the cast and its comment stay.
+- [S2] fn_80019C00 (1628 bytes target, 1764 ours) drafted: the drawing task registered by fn_8001A25C (twin of fn_800196D8; jump table 0x800EEDC0 maps states 0..6 in order, >= 7 is the exit state).
+  0: setupAnimationModelMemory, initActorArray((toyField + 1) * 4), marks effect buffers 4..12 free (lbl_80118220[0x61 + k*0x64] = -1), sizes a pool as the max of the +4 field of the lbl_803CB794 entries
+  named by lbl_800EEB18 (same scan as fn_8001A3FC), carves four 0x64-byte effect buffers from it (lbl_803CBC30, lbl_80118220 +0/0x64/0xC8/0x12C), fn_80014204(4), huge+0x13C = fn_80023AA4(),
+  initialises the 4 records / object slots / bank caches; 1: spawns the fn_800188C0 task (huge+0x307B = 1); 2: waits for it (toy field -> state 3, otherwise state 5); 3: ARAMTransfer(MinigameCommonFiles) into
+  huge+0x2D9C; 4: waits for lbl_803C6CF8[0x715] == 1; 5: the shadow setup identical to fn_800196D8 state 2; 6: challengeMapMaybe (+ somethingFileHandlingLoadingRelated in toy field);
+  default: huge+0x2D7D/0x307C = 1, removeCurrentDrawingItem -> 77.59%
+  next: 136 bytes over: the pool max scan and the per-record init loops are the likely culprits (same unrolling problems as fn_8001A3FC / fn_800145F8); state 5 is shared with fn_800196D8's state 2 and
+  probably one inline in the original.
