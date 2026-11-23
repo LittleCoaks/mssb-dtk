@@ -46,6 +46,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80016710 | pending | 75.07 |
 | fn_8001500C | pending | 88.99 |
 | fn_8001AB10 | pending | 93.93 |
+| fn_80015468 | pending | 93.57 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -242,3 +243,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   kind 1 -> level with alpha rec[0x277] (skipped if 0), otherwise returns; GXSetChanMatColor; translate to the object position; outside toy-field mode draws the actor's bones and skin directly
   (fn_8003A8A0 / DOVARenderSkin) and restores the colour; in toy-field mode applies a lighting colour (lbl_803CB7C1 rgb, lbl_803CB7C0 alpha) and draws the entry through the usual drawArgCount switch.
   next: only scheduling/register differences remain; the two PSMTXTrans calls (one per toy-field branch) are intentionally duplicated as in the asm.
+- [S2] fn_80015468 (1252 bytes target, 1244 ours) drafted: the other-side counterpart of fn_80014A18 (same three-state bank loader on huge+0x2D8E for the 9 fielder banks): its state 0 first frees cache entries
+  no object 0..8 still uses (a local used[9] marks entries whose charId matches an object; unused ones are set to -1), state 1 stores the cached buffer into obj+0x18 (fn_80014A18 stores obj+0x24),
+  and state 2 is identical -> 93.57%
+  next: 8 bytes short; the asm's inner match loop is unrolled 3x (ctr 3) with a repeated null check of objects[i]; same invariant-reload quirk as fn_80014A18.

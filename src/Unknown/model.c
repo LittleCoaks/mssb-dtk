@@ -3755,6 +3755,93 @@ int fn_80014A18(int team) {
     return FALSE;
 }
 
+int fn_80015468(int team) {
+    s32 i;
+    s32 j;
+
+    if (*HA(0x2D8E) == 0) {
+        s32 used[9];
+
+        *HA(0x2D8E) = 1;
+        *HA(0x2D88) = 0xFF;
+        for (j = 0; j < 9; j++) {
+            used[j] = 0;
+        }
+        for (i = 0; i <= 8; i++) {
+            for (j = 0; j < 9; j++) {
+                if (HA_OBJ(i) != NULL && (s8)HA_OBJ(i)[0x252] == (s8)*HA(0x2D7F + j)) {
+                    used[j] = 1;
+                    break;
+                }
+            }
+        }
+        for (j = 0; j < 9; j++) {
+            if (used[j] == 0) {
+                *HA(0x2D7F + j) = 0xFF;
+            }
+        }
+    }
+
+    if (*HA(0x2D8E) == 1) {
+        for (i = 0; i <= 8; i++) {
+            for (j = 0; j < 9; j++) {
+                if ((s8)HA_OBJ(i)[0x252] == (s8)*HA(0x2D7F + j)) {
+                    *(u32*)(HA_OBJ(i) + 0x18) = *(u32*)HA(0x2CC0 + j * 4);
+                    break;
+                }
+            }
+            if (j >= 9) {
+                *HA(0x2D8D) = 0;
+                *HA(0x2D8E) = 2;
+                *HA(0x2D88) = i;
+                break;
+            }
+        }
+        if (i > 8) {
+            return TRUE;
+        }
+    }
+
+    if (*HA(0x2D8E) == 2) {
+        u8* obj = HA_OBJ((s8)*HA(0x2D88));
+        u8* rec = HA(MODEL_RECORD_BASE + (s8)obj[0x255] * MODEL_RECORD_SIZE);
+
+        if (*HA(0x2D8D) == 0) {
+            s32 k;
+
+            for (k = 0; k < 9; k++) {
+                if ((s8)*HA(0x2D7F + k) < 0) {
+                    break;
+                }
+            }
+            *HA(0x2D7F + k) = rec[0x252];
+            if (*HA(0x2D7C) == 0) {
+                *(u32*)(rec + 0x18) = *(u32*)HA(0x2CC0 + k * 4);
+                ARAMTransfer((u8*)lbl_803CB790 + ((s8)rec[0x252] * 0x13 + 4) * 16, *(s32*)(rec + 0x18), 0, 0);
+            } else {
+                *(u32*)(rec + 0x24) = *(u32*)HA(0x2CC0 + k * 4);
+                ARAMTransfer((u8*)lbl_803CB790 + ((s8)rec[0x252] * 0x13 + 0x11) * 16, *(s32*)(rec + 0x24), 0, 0);
+            }
+            *HA(0x2D8D) = 1;
+        } else {
+            BOOL ready = FALSE;
+
+            if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+                if (*HA(0x2D7C) == 0) {
+                    ANIMGet(*(void**)(rec + 0x18));
+                } else {
+                    ANIMGet(*(void**)(rec + 0x24));
+                }
+                ready = TRUE;
+            }
+            if (ready) {
+                *HA(0x2D8E) = 1;
+            }
+        }
+    }
+    return FALSE;
+}
+
 extern void fn_8001F8A4(void);
 
 void fn_800196D8(void) {
