@@ -37,6 +37,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_800196D8 | pending | 86.33 |
 | fn_8001E0D8 | pending | 89.80 |
 | fn_800145F8 | pending | 39.48 |
+| fn_8001F8A4 | pending | 86.06 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -175,3 +176,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   +0x1A4 = pool+size*(2k+1)) and initialises record bytes +0x1A0 = 2k, +0x204 = 2k+1, +0x20C = 0, +0x208 = 0, +0x20D..+0x211 = 0xFF -> 39.48%
   next: the extra ~280 bytes are loop unrolling: the target runs the final 13-record init loop rolled (ctr 13, a += 2 / b += 2 induction variables) and unrolls only the first buffer-assign
   loop (6x2 + remainder); mine unrolls the init loop. Try pointer-walking the record, or keeping the 13-loop body larger/opaque. The six-field max is written as six explicit steps (matches the asm).
+- [S2] fn_8001F8A4 (936 bytes target, 920 ours) drafted: the "overlay/ball actor" model setup run from fn_800196D8 state 2. Walks the 24 (layout, geo, tex) triples of the offset table at huge+0x2C84
+  (LoadActorLayout, convertGeometryAndSknHeader, haveActLayoutPointToGeoHeader, convertTextureHeader unless set 11, which uses table word 0x20; UpdateTexturePalettePointers), sets up the two
+  special actors at huge+0x309C / +0x30F8 (adjustInternalPointers, actRelated, actorRelated), creates a 25-entry ActorObjectTable at huge+0x64 filled via animateBallRelated using
+  lbl_800EEA58[i] to pick the layout (sets >= 16 also get the shared anim bank, are started with ACTSetAnimation and flagged pending), lights/translation/rotation per entry, ACTActorRelated for
+  entries 5 and 6, and finally allocates and zeroes a 25 x 0x28 byte block at huge+0x2D90 -> 86.06%
+  next: 16 bytes short; the final zeroing loop reloads huge+0x2D90 for every store in the asm (kept), the entry accesses probably want a cached entry pointer / different casts; lbl_800EEA58
+  is a u8[25] table (declared extern here, owned by this unit's data).

@@ -3977,6 +3977,98 @@ void fn_800145F8(int mode) {
     }
 }
 
+extern u8 lbl_800EEA58[];
+
+#define OFFSET_TABLE ((u32*)HA_U32(0x2C84))
+
+void fn_8001F8A4(void) {
+    s32 i;
+    s32 set;
+    u32 layout;
+    u32 geo;
+    u32 tex;
+    u8* actorSet;
+    f32 zero;
+
+    for (i = 0; i < 24; i++) {
+        layout = OFFSET_TABLE[i * 3];
+        geo = OFFSET_TABLE[i * 3 + 1];
+        tex = OFFSET_TABLE[i * 3 + 2];
+        LoadActorLayout((void*)layout);
+        convertGeometryAndSknHeader((void*)geo, NULL);
+        haveActLayoutPointToGeoHeader((void*)layout, (void*)geo);
+        if (i == 11) {
+            tex = OFFSET_TABLE[0x80 / 4];
+        } else {
+            convertTextureHeader((void*)tex);
+        }
+        UpdateTexturePalettePointers((void*)geo, (void*)tex);
+    }
+    ANIMGet((void*)OFFSET_TABLE[0x120 / 4]);
+    adjustInternalPointers((void*)OFFSET_TABLE[0x130 / 4]);
+    HA_U32(0x309C) = OFFSET_TABLE[0x134 / 4];
+    actRelated((void*)OFFSET_TABLE[0x130 / 4], HA(0x309C));
+    actorRelated(HA(0x309C), 0, 0);
+    adjustInternalPointers((void*)OFFSET_TABLE[0x138 / 4]);
+    HA_U32(0x30F8) = OFFSET_TABLE[0x13C / 4];
+    actRelated((void*)OFFSET_TABLE[0x138 / 4], HA(0x30F8));
+    actorRelated(HA(0x30F8), 0, 0);
+
+    HA_U32(0x64) = (u32)ActorObjectInitTable(0x19);
+    for (i = 0; i < 25; i++) {
+        ActorObjectTable* table;
+        ActorObjectEntry* entry;
+
+        set = lbl_800EEA58[i];
+        layout = OFFSET_TABLE[set * 3];
+        if (set < 16) {
+            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, (void*)layout, 0, 0);
+        } else {
+            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, (void*)layout, OFFSET_TABLE[0x120 / 4], 0);
+            table = (ActorObjectTable*)HA_U32(0x64);
+            entry = &table->entries[i];
+            zero = lbl_803CC4B8;
+            entry->seqNum = 0;
+            entry->frame = zero;
+            entry->animPending = 1;
+            entry->framePending = entry->speedPending = (entry->anim != NULL);
+            entry->blendTime = zero;
+            ACTSetAnimation(entry->actor, entry->anim, NULL, entry->seqNum, zero, entry->blendTime);
+            updateBoneParam(entry->actor, 0);
+        }
+        set = lbl_800EEA58[i];
+        if (set == 0 || set == 4 || (u8)(set - 7) <= 3 || (u8)(set - 12) <= 6 || set == 0x13) {
+            fn_800BD548(&((ActorObjectTable*)HA_U32(0x64))->entries[i], 4, HA_U32(0xAC), HA_U32(0xB0), HA_U32(0xB4),
+                        HA_U32(0xB8));
+        } else {
+            fn_800BD548(&((ActorObjectTable*)HA_U32(0x64))->entries[i], 0, 0, 0, 0, 0);
+        }
+        CTRLSetTranslation(&((ActorObjectTable*)HA_U32(0x64))->entries[i].control, lbl_803CC4B8, lbl_803CC4B8,
+                           lbl_803CC4B8);
+        CTRLSetRotation(&((ActorObjectTable*)HA_U32(0x64))->entries[i].control, lbl_803CC4B8, lbl_803CC4B8,
+                        lbl_803CC4B8);
+        if (i == 5) {
+            ACTActorRelated((void*)HA_U32(0x30C8), &((ActorObjectTable*)HA_U32(0x64))->entries[i]);
+        } else if (i == 6) {
+            ACTActorRelated((void*)HA_U32(0x3124), &((ActorObjectTable*)HA_U32(0x64))->entries[i]);
+        }
+    }
+
+    HA_U32(0x2D90) = (u32)_OSAllocFromHeap(0x20, 1000);
+    for (i = 0; i < 25; i++) {
+        u8* base = (u8*)HA_U32(0x2D90);
+
+        *(f32*)(base + i * 0x28 + 4) = lbl_803CC4B8;
+        *(f32*)(base + i * 0x28 + 8) = lbl_803CC4B8;
+        *(f32*)(base + i * 0x28 + 0xC) = lbl_803CC4B8;
+        *(f32*)(base + i * 0x28 + 0x10) = lbl_803CC4B8;
+        *(f32*)(base + i * 0x28 + 0x14) = lbl_803CC4B8;
+        *(f32*)(base + i * 0x28 + 0x18) = lbl_803CC4B8;
+        ((u8*)HA_U32(0x2D90))[i * 0x28 + 0x26] = 0;
+        *(u32*)((u8*)HA_U32(0x2D90) + i * 0x28) = 0;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 
