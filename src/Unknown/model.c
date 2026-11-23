@@ -4407,7 +4407,6 @@ void fn_8001BE50(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     obj->mode = mode;
 }
 
-extern void fn_80011CA8(void* obj, s32 kind, s32 seq);
 
 void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attach, s32 speedDivisor) {
     f32 blend = lbl_803CC4B8;
@@ -6009,6 +6008,123 @@ void fn_8001E784(void) {
         }
     } while (mode-- != 0);
     GXSetScissor(0, 0, 0x280, 0x1C0);
+}
+
+#define BANK_DESC_SIZE 0x64
+#define BANK_DESC_AT(rec, k) ((rec) + 0x140 + ((k) >> 1) * 0xD4 + ((k) & 1) * BANK_DESC_SIZE)
+
+static void copyBankDesc(u8* dst, u8* src) {
+    *(u32*)(dst + 0x0) = *(u32*)(src + 0x0);
+    dst[0x60] = src[0x60];
+    *(u32*)(dst + 0x4) = *(u32*)(src + 0x4);
+    *(u32*)(dst + 0x8) = *(u32*)(src + 0x8);
+    *(u32*)(dst + 0xC) = *(u32*)(src + 0xC);
+    *(u32*)(dst + 0x30) = *(u32*)(src + 0x30);
+    dst[0x5C] = src[0x5C];
+    memcpy(dst + 0x10, src + 0x10, 0x20);
+    memcpy(dst + 0x34, src + 0x34, 0x28);
+}
+
+static inline void linkHandPartNode(ModelObject* cur, s32 which) {
+    u16 bone;
+
+    if (cur != NULL) {
+        bone = cur->partBones[handAttachBoneIDs[which]];
+    } else {
+        bone = 0xFFFF;
+    }
+    if (bone != 0xFFFF) {
+        ModelOwner* owner = cur->owner;
+        s32 n = (s16)lbl_800EEAAC[cur->charId];
+
+        if (n >= 0 && owner != NULL) {
+            ModelActor* actor = (ModelActor*)cur->actors[0];
+            ModelLinkNode* node = (ModelLinkNode*)actor->nodes[bone];
+            ModelPartList* parts = ((ModelEntry*)hugeAnimStruct.modelEntries)[owner->blocks[which].slot].parts;
+
+            if (parts != NULL) {
+                s32 i;
+
+                for (i = parts->count; i != 0; i--) {
+                    ModelLinkNode* cand = parts->nodes[i - 1];
+
+                    if (cand->link != NULL) {
+                        node->link = cand->link;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+BOOL fn_80011CA8(void* objPtr, s32 kind, s32 seq) {
+    u8* obj = objPtr;
+    u8 bankCopy[6][BANK_DESC_SIZE];
+    u8 used[6] = {0, 0, 0, 0, 0, 0};
+    u8* rec = HA((s8)obj[0x254] * 0x27C);
+    u8* effect;
+    s32 i;
+    s32 first;
+    s32 second;
+    s32 spare;
+
+    copyBankDesc(bankCopy[BANK_DESC_AT(rec, 0)[0x60] % 6], BANK_DESC_AT(rec, 0));
+    copyBankDesc(bankCopy[BANK_DESC_AT(rec, 1)[0x60] % 6], BANK_DESC_AT(rec, 1));
+    copyBankDesc(bankCopy[BANK_DESC_AT(rec, 2)[0x60] % 6], BANK_DESC_AT(rec, 2));
+    copyBankDesc(bankCopy[BANK_DESC_AT(rec, 3)[0x60] % 6], BANK_DESC_AT(rec, 3));
+    copyBankDesc(bankCopy[BANK_DESC_AT(rec, 4)[0x60] % 6], BANK_DESC_AT(rec, 4));
+    copyBankDesc(bankCopy[BANK_DESC_AT(rec, 5)[0x60] % 6], BANK_DESC_AT(rec, 5));
+
+    if ((u32)(kind - 2) > 2) {
+        if (obj[0x25B] != 0) {
+            first = 2;
+            second = 3;
+        } else {
+            first = 4;
+            second = 5;
+        }
+    } else if (obj[0x25A] != 0) {
+        first = 4;
+        second = 1;
+    } else {
+        first = 0;
+        second = 3;
+    }
+
+    effect = *(u8**)(obj + 0x30);
+    copyBankDesc(effect, bankCopy[first]);
+    copyBankDesc(effect + BANK_DESC_SIZE, bankCopy[second]);
+    used[first] = 1;
+    used[second] = 1;
+
+    spare = 0;
+    for (i = 0; i < 6; i++) {
+        if (used[i] == 0) {
+            switch (spare) {
+            case 0:
+                copyBankDesc(BANK_DESC_AT(rec, 2), bankCopy[i]);
+                break;
+            case 1:
+                copyBankDesc(BANK_DESC_AT(rec, 3), bankCopy[i]);
+                break;
+            case 2:
+                copyBankDesc(BANK_DESC_AT(rec, 4), bankCopy[i]);
+                break;
+            case 3:
+                copyBankDesc(BANK_DESC_AT(rec, 5), bankCopy[i]);
+                break;
+            }
+            spare++;
+        }
+    }
+
+    linkHandPartNode(hugeAnimStruct.objects[(s8)obj[0x254]], 0);
+    linkHandPartNode(hugeAnimStruct.objects[(s8)obj[0x254]], 1);
+
+    actorRelated(*(u8**)(obj + 0x30) + 4, kind, seq);
+    actorRelated(*(u8**)(obj + 0x30) + 0x68, kind, seq);
+    return TRUE;
 }
 
 void fn_80011578(void) {

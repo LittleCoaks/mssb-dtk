@@ -52,6 +52,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001D2D4 | pending | 90.92 |
 | fn_80018DEC | pending | 78.59 |
 | fn_8001E784 | pending | 75.96 |
+| fn_80011CA8 | pending | 60.01 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -292,3 +293,11 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   and the one-shot hook at huge+0x3074, then the hook again and fn_8003414C. Ends with GXSetScissor(0,0,640,448) -> 75.96%
   next: 40 bytes over; the repeated hook / overlay-table blocks are macros here (the original probably used static inlines), and fn_8001E488's body is duplicated by hand (it is inlined in the original --
   a shared static inline would also serve fn_8001E488; only try it if fn_8001E488 stays at 97.30%).
+- [S2] fn_80011CA8 (2628 bytes target, 2116 ours) drafted: (obj, kind, seq) re-balances an object's six animation-bank descriptors after a new animation kind is chosen. The six descriptors (three 0xD4-byte
+  bank records of slot*0x27C, each with buffers at +0x140 and +0x1A4) are first copied into a local table indexed by (desc id % 6); two of them (picked by kind and obj+0x25A / +0x25B: kinds 2..4 use
+  {4,1} or {0,3}, others {2,3} or {4,5}) are copied into the object's effect record (obj+0x30 and obj+0x30+0x64); the four remaining ones are written back to descriptors 2..5 in order; then the two
+  hand-attach part nodes (handAttachBoneIDs[0] / [1], same block as the tail of LoadModel) get their link from the last part node that has one; finally actorRelated(effect + 4 / + 0x68, kind, seq). Returns TRUE
+  (fn_8001BE50 / fn_8001BA44 call it and ignore the result) -> 60.01%.
+  Needed: the local `used[6] = {0,...}` initialiser (the target loads it from lbl_803CD308/30C) and writing the six copies out explicitly (BANK_DESC_AT macro) -- a loop was 1256 bytes.
+  next: 512 bytes short: the asm keeps the six descriptor pointers live in saved registers / stack slots and expands the 4-way write-back with per-case stores through those pointers; the hand-node link block is
+  also two separate non-inlined-looking copies. Candidates: inline copyBankDesc (static inline) and write the used/spare loop with six explicit blocks.
