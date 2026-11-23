@@ -3755,6 +3755,68 @@ int fn_80014A18(int team) {
     return FALSE;
 }
 
+extern void fn_8001F8A4(void);
+
+void fn_800196D8(void) {
+    DrawingSceneStruct* item = currentDrawingItem;
+    u8* itemState = (u8*)item + 0x14;
+    DrawingSceneStruct* fresh;
+    Vec dir;
+    Vec copy;
+    f32 len;
+    s32 i;
+    s32 k;
+
+    switch ((s8)*itemState) {
+    case 0:
+        fresh = insertGraphicDrawingFunction(fn_800188C0, 0);
+        *((u8*)fresh + 0x14) = 0;
+        *((u8*)fresh + 0x16) = 0;
+        *((u8*)fresh + 0x17) = 0xFF;
+        *HA(0x307B) = 1;
+        (*itemState)++;
+        break;
+    case 1:
+        if (*HA(0x307B) == 0) {
+            *itemState = *itemState + 1;
+        }
+        break;
+    case 2:
+        dir.x = -lbl_80367318[0].pos.x;
+        dir.y = -lbl_80367318[0].pos.y;
+        dir.z = -lbl_80367318[0].pos.z;
+        len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
+        *HA(0x3087) = 1;
+        dir.x /= len;
+        dir.y /= len;
+        dir.z /= len;
+        fn_8003A540(0);
+        *HA(0x3086) = 1;
+        DrawShadows(1);
+        copy = dir;
+        updateVectorInArray(0, copy);
+        fn_800BF048(fn_8001AAF0);
+        fn_800BF058(fn_8001AB10);
+        for (i = 0; i < 80; i += 8) {
+            for (k = 0; k < 8; k++) {
+                ((u32*)HA_U32(0x2C84))[i + k] += HA_U32(0x2C84);
+            }
+        }
+        *HA(0x307C) = 0;
+        *HA(0x307D) = 0;
+        *HA(0x3082) = 0;
+        fn_8001F8A4();
+        (*itemState)++;
+        break;
+    default:
+        challengeMapMaybe();
+        *HA(0x2D7D) = 1;
+        *HA(0x307C) = 1;
+        removeCurrentDrawingItem();
+        break;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 

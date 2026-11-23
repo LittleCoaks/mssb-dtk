@@ -34,6 +34,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001C234 | pending | 86.23 |
 | fn_8001E488 | pending | 97.30 |
 | fn_80014A18 | pending | 94.58 |
+| fn_800196D8 | pending | 86.33 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -155,3 +156,9 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   returns FALSE (all hit: returns TRUE). State 2 picks a free cache slot for the object's record, starts an ARAMTransfer (file charId*0x13+4, or +0x11 when huge+0x2D7C is set) and then
   waits for lbl_803C6CF8[0x715] == 1 before ANIMGet and going back to state 1. The `team` parameter is unused in the asm -> 94.58%
   next: 12 bytes short; the free-slot search is a fully unrolled compare chain in the asm and the invariant objects[i] reload sits inside the inner loop (as in fn_80017340).
+- [S2] fn_800196D8 (904 bytes target, 924 ours) drafted: the drawing task registered by fn_80019A60/fn_8001A25C; byte +0x14 of the task is its state.
+  0: spawns the fn_800188C0 task (its +0x14/+0x16 cleared, +0x17 = 0xFF) and sets huge+0x307B; 1: waits for huge+0x307B to clear; 2: light direction = normalised -lbl_80367318[0].pos
+  (dolsqrtf2, same as challengeMapRelated's case 6), shadows on (fn_8003A540(0), huge 0x3086/0x3087, DrawShadows(1), updateVectorInArray, fn_800BF048/BF058 callbacks), relocates the 80
+  offsets at huge+0x2C84 by their own base, fn_8001F8A4(); default (>=3 or negative): challengeMapMaybe(), huge+0x2D7D/0x307C = 1, removeCurrentDrawingItem() -> 86.33%
+  Note: this is the same body as challengeMapRelated's state 6 (that one is also pending); the two share a lot and may be one inline/macro in the original.
+  next: 20 bytes over; check the relocation loop (target unrolls 8 words with huge+0x2C84 reloaded for every store) and the sqrt inline placement.
