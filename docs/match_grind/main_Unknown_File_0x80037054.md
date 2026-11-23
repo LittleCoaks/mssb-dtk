@@ -1,22 +1,28 @@
-# main/Unknown/File_0x80037054  [S1] (rope / chain simulation TU, hugeAnimStruct objects)
+# main/Unknown/File_0x80037054  [S1] (rope / chain / rigid-body simulation TU, hugeAnimStruct objects)
 
-Baseline: empty source, 0%. After [S1]: .text 21.83% (12 of 20 functions drafted), link ok. Not yet drafted (still link from asm):
-fn_80037054 (712), fn_8003731C (1100), fn_80037768 (508), fn_80037BAC (1520), fn_8003819C (544), fn_800387B0 (920),
-fn_80038F08 (1032), fn_80039310 (1852) = the integrator/constraint core.
+Baseline: empty source, 0%. After [S1] (2nd session): .text 84.65%, .sdata2 86.4%; ALL 20 functions drafted, every size equal
+to the target. Uses the canonical HugeAnimStruct (include/HugeAnimStruct.h). Link ok.
 
 | function | status | pct |
 |---|---|---|
-| fn_80037964, fn_80038E2C, fn_80039A4C | matched | 100 |
+| fn_80037964, fn_80038E2C, fn_80039A4C, fn_80037AA0, fn_80038EC4 | matched | 100 |
 | fn_80037B18 | pending | 99.59 |
 | fn_80038B48 | pending | 99.09 |
 | fn_800385F0 | pending | 98.02 |
 | fn_80037984 | pending | 95.94 |
-| fn_80038EC4 | pending | 94.12 |
-| fn_80037AA0 | pending | 79.17 |
+| fn_80037054 | pending | 95.93 |
+| fn_800387B0 | pending | 91.00 |
+| fn_80037768 | pending | 88.72 |
+| fn_80038F08 | pending | 86.21 |
+| fn_80039310 | pending | 84.16 |
+| fn_8003731C | pending | 77.78 |
 | fn_80038CD0 | pending | 75.49 |
 | fn_800383BC | pending | 75.43 |
 | fn_80038418 | pending | 74.42 |
-| fn_80037054, fn_8003731C, fn_80037768, fn_80037BAC, fn_8003819C, fn_800387B0, fn_80038F08, fn_80039310 | pending (not drafted) | 0 |
+| fn_80037BAC | pending | 73.36 |
+| fn_8003819C | pending | 71.32 |
+
+next (all): register allocation / stack layout of the Vec locals; none were ground. readability pass: pending for the five 100% functions (none have enum-shaped values).
 
 ## Findings
 - Object layout (raw offsets): rope/rigid simulation record init in fn_800385F0 (0x0 pos?, 0x24 mass, 0x28 1/mass, 0x30/0x34/0x38 inertia,
@@ -34,3 +40,11 @@ fn_80038F08 (1032), fn_80039310 (1852) = the integrator/constraint core.
 [S1] 38CD0 75.5%: next: loop form (target keeps node ptr increments and 'count-1' compare), float conv of i.
 [S1] 38418 74.4%: next: stack layout (q/m1/m2/v), acos/sin result handling.
 [S1] 383BC/37AA0: only register assignment differs.
+
+## Session-2 findings
+- fn_80037054 integrates a rigid body (state copy of 0x154 bytes, substeps of dt = obj+0x48) using fn_8003731C for contact forces;
+  fn_80037BAC is the collision-impulse variant (two probe points pt[0]=+0xC, pt[1]=+0, flag -1 = reject step and halve dt).
+  fn_8003819C accumulates gravity/drag/force per 0..10 sample along the body; fn_800387B0 is the rope spring/damper/friction
+  force pass; fn_80039310 is a box tipping simulation (RK4 gyroscopic, two corner probes, settles when energy <= restLimit).
+  fn_80038F08 is the 3-state (copy / measure velocity / run fn_80039310) hand-bone capture machine at lbl_800F79B8+0x78.
+- All of this uses raw offsets via RF32/RU32; the object layout is in the first-session findings above.
