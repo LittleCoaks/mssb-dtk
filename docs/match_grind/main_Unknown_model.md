@@ -38,6 +38,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001E0D8 | pending | 89.80 |
 | fn_800145F8 | pending | 39.48 |
 | fn_8001F8A4 | pending | 86.06 |
+| fn_80016344 | pending | 74.07 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -183,3 +184,11 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   entries 5 and 6, and finally allocates and zeroes a 25 x 0x28 byte block at huge+0x2D90 -> 86.06%
   next: 16 bytes short; the final zeroing loop reloads huge+0x2D90 for every store in the asm (kept), the entry accesses probably want a cached entry pointer / different casts; lbl_800EEA58
   is a u8[25] table (declared extern here, owned by this unit's data).
+- [S2] correction for fn_8001F8A4: symbols.txt gives lbl_800EEA58 size 0x54 (84 bytes, data:byte), not 25; the loop only reads 25 entries, so the table either holds more than that
+  or is shaped differently. symbols.txt left unchanged; the draft declares it `extern u8 lbl_800EEA58[]`.
+- [S2] fn_80016344 (972 bytes target, 928 ours) drafted: (charId, slot, c, d) model-load state machine on huge+0x2D77 (6 -> return 1, 1 -> return 0, 0 -> kicks fn_80017098(0, d, 1, slot, 1, charId)).
+  2: bind object slot to its record and set +0x25A/+0x25B = c; 3: start (ARAMTransfer/fn_80021BBC, bank chosen by slot: 12 -> +0x11, practice mode or <9 -> fn_80021BBC, >=9 -> +0x10) then wait for
+  lbl_803C6CF8[0x715] == 1 and ANIMGet; 4: attach the part effect via lbl_80118220 (fn_80021ADC once, then actRelated) or clear rec+0x2C when the character has no part (lbl_800EEB18 == -1 or part+0x10 == 0);
+  5: animateModelArmsGlovesBats, then state 0 and return 1 -> 74.07%
+  next: 44 bytes short. A goto-based variant for the "no part" join (jumping into the else) scored 77.25% at 932 bytes; I kept the goto-free form. The two "ready" flag blocks (slot 12 and others) are duplicated
+  in the asm and may come from one inline taking the transfer as a callback.
