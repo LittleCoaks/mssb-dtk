@@ -1,5 +1,127 @@
 # main/Unknown/model  [S1] -- PARTIAL (small functions only)
 
+## Final status after first pass [S2] (unit .text 80.28%, 34/102 functions at 100%)
+
+Every function in the unit is now drafted (no 0% rows).  rows (< 75%) are the ones whose code shape is still far from the target
+(wrong loop unrolling / missing inlines); hand them to the Opus pass first. Everything else is a near-miss (register or scheduling differences).
+
+| function | status | % |
+|---|---|---|
+| fn_80011468 | pending | 85.15 |
+| fn_80011570 | matched | 100.00 |
+| fn_80011578 | pending-WEAK | 66.10 |
+| fn_800115C8 | pending | 99.00 |
+| fn_80011604 | pending | 99.00 |
+| fn_80011640 | matched | 100.00 |
+| fn_800116DC | pending | 99.63 |
+| fn_800117CC | pending | 99.61 |
+| fn_800118AC | pending | 95.83 |
+| fn_8001196C | pending | 91.97 |
+| fn_80011A60 | pending | 92.62 |
+| fn_80011B64 | pending | 97.69 |
+| fn_80011BE4 | pending | 97.96 |
+| fn_80011CA8 | pending-WEAK | 60.01 |
+| fn_800126EC | pending | 84.18 |
+| LoadModel | pending | 80.22 |
+| fn_80012B90 | pending | 88.88 |
+| animateModelArmsGlovesBats | pending-WEAK | 57.33 |
+| fn_80014204 | pending-WEAK | 49.62 |
+| fn_800145F8 | pending-WEAK | 39.48 |
+| fn_80014990 | pending | 93.09 |
+| fn_80014A18 | pending | 94.58 |
+| loadSomethingFromDiskAtBeginningOfAB1 | matched | 100.00 |
+| loadSomethingFromDiskAtBeginningOfAB2 | matched | 100.00 |
+| loadBatterModelFromDisk | matched | 100.00 |
+| fn_8001500C | pending | 88.99 |
+| fn_80015468 | pending | 93.57 |
+| practice_loadAllGraphics | pending-WEAK | 70.08 |
+| fn_80016344 | pending | 77.25 |
+| fn_80016710 | pending | 75.07 |
+| fn_80016B60 | pending | 75.32 |
+| fn_80016F7C | pending | 89.54 |
+| fn_80017098 | pending | 78.84 |
+| fn_80017340 | pending | 81.76 |
+| fn_8001758C | pending | 80.09 |
+| fn_800177B4 | pending | 99.00 |
+| fn_80017814 | pending-WEAK | 56.21 |
+| fn_80017D28 | pending | 88.11 |
+| fn_80017DBC | pending | 90.70 |
+| setupAnimationModelMemory | pending-WEAK | 63.93 |
+| animationInitializationRunnerRelated | pending-WEAK | 70.75 |
+| fn_800188C0 | matched | 100.00 |
+| fn_800189B8 | matched | 100.00 |
+| fn_800189E4 | pending | 91.88 |
+| fn_80018B38 | matched | 100.00 |
+| fn_80018B74 | pending | 87.89 |
+| fn_80018DEC | pending | 78.59 |
+| fn_800196D8 | pending | 86.33 |
+| fn_80019A60 | pending | 91.69 |
+| fn_80019C00 | pending | 77.59 |
+| fn_8001A25C | pending | 91.69 |
+| fn_8001A3FC | pending-WEAK | 35.90 |
+| challengeMapRelated | pending | 87.45 |
+| fn_8001AAA4 | matched | 100.00 |
+| fn_8001AAF0 | matched | 100.00 |
+| fn_8001AB10 | pending | 93.93 |
+| fn_8001AF98 | matched | 100.00 |
+| fn_8001B200 | matched | 100.00 |
+| fn_8001B214 | matched | 100.00 |
+| fn_8001B224 | pending | 97.53 |
+| copyAnimationStructures | matched | 100.00 |
+| fn_8001B308 | pending | 93.57 |
+| fn_8001B35C | pending | 83.65 |
+| fn_8001B4D8 | pending-WEAK | 74.81 |
+| fn_8001B5EC | pending | 89.87 |
+| getAnimationCollisionOffset | matched | 100.00 |
+| getAnimRelatedCoordinates | matched | 100.00 |
+| QueueCharacterAnimation | matched | 100.00 |
+| AnimateCharacter | matched | 100.00 |
+| fn_8001BA44 | pending | 79.40 |
+| fn_8001BE50 | pending | 81.43 |
+| fn_8001C234 | pending | 86.23 |
+| fn_8001C528 | pending | 95.62 |
+| loadFielderActors | matched | 100.00 |
+| loadAndAnimateCharacter | pending | 88.88 |
+| loadCharacterAnimation | matched | 100.00 |
+| fn_8001CA40 | matched | 100.00 |
+| fn_8001CB10 | matched | 100.00 |
+| initStadiumLighting | matched | 100.00 |
+| fn_8001CCC8 | pending | 84.25 |
+| stadiumSetupRelated | pending | 88.20 |
+| fn_8001D074 | pending | 91.30 |
+| applyUniformScaleToObject | matched | 100.00 |
+| applyNonUniformScaleToObject | matched | 100.00 |
+| baseballCTRLSetScale | matched | 100.00 |
+| setHandModelAttached | matched | 100.00 |
+| fn_8001D2D4 | pending | 90.92 |
+| fn_8001DB74 | pending | 87.81 |
+| fn_8001DD58 | matched | 100.00 |
+| fn_8001DEA4 | matched | 100.00 |
+| fn_8001E0D8 | pending | 89.80 |
+| fn_8001E460 | matched | 100.00 |
+| setNullPtrForStadiumObjs | matched | 100.00 |
+| fn_8001E488 | pending | 97.30 |
+| fn_8001E784 | pending | 75.96 |
+| fn_8001F16C | pending | 88.91 |
+| resetGameStadiumStateOnExit | pending | 94.06 |
+| challengeMapMaybe | matched | 100.00 |
+| somethingFileHandlingLoadingRelated | pending-WEAK | 42.34 |
+| fn_8001F8A4 | pending | 86.06 |
+| initShortsHandleCompressedDiskReads | matched | 100.00 |
+| fn_8001FDD4 | matched | 100.00 |
+
+Weak list, with the likely cause (details in the log below): fn_8001A3FC (constant-folded loop guards), fn_800145F8 / fn_80014204 (loop unrolling of the pool init loops),
+somethingFileHandlingLoadingRelated, fn_80017814 (relocation chain and zero stores), animateModelArmsGlovesBats (existing draft), fn_80011CA8 (descriptor write-back),
+setupAnimationModelMemory, fn_80011578, practice_loadAllGraphics, animationInitializationRunnerRelated, fn_8001B4D8.
+
+## fn_80012B90 [S2]
+- fn_80012B90 (2800 bytes target, 2808 ours) drafted -> 88.88%: the second-generation hand-item loader (the sibling of animateModelArmsGlovesBats used by fn_80016710 for non-practice modes): phase byte lbl_803CBC04 0..8, three groups of three phases,
+  each group working on one ModelOwner (slot*3 + group)*0xD4 + 0x140. Phases 0/3/6 set the owner up (texture, charId, +0xD0/+0xD1 slot bytes, +0xCD/+0xCE from obj+0x25A/+0x25B, +0xCC = 1, blocks' slots = 2g / 2g+1);
+  1/2 load the hand item chosen by the owner flag (kind 2/3) and flip the flag; 4/5/7/8 load kinds 1/0/5/4 into block 1 / 0; each load waits on lbl_803C6CF8[0x715] and ends in the same finish routine
+  (relocate loaded[0..3], layout/geo/texture fix-ups, fn_800238E0, ACTActorRelated, actRelated), here an inline taking the texture from lbl_803CBC08 (attachHandModelTail uses lbl_803CBC00). Phase 8
+  stores the owner base into huge+0x30, resets phase / texture and returns TRUE.
+  next: 8 bytes over, register differences; attachHandModelTail may be the same inline parameterised by texture (candidate to unify if both stay at their scores).
+
 Baseline 20.35% .text, 19/102 at 100%. After [S1]: 26.45%, 31/102 at 100% (30 small unowned functions drafted, appended at the end of
 src/Unknown/model.c through HA()/HA_OBJ() raw-offset macros over hugeAnimStruct).
 Left alone: every function over ~150 bytes that was unowned, and all existing drafts.
