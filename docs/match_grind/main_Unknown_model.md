@@ -36,6 +36,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80014A18 | pending | 94.58 |
 | fn_800196D8 | pending | 86.33 |
 | fn_8001E0D8 | pending | 89.80 |
+| fn_800145F8 | pending | 39.48 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -168,3 +169,9 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   ambient alpha = level; adjustLightingParams), builds camera*translate(obj pos), fn_800B9948(obj+0x5C callback), lbl_803CBC18 = obj, runs the entry callback and the same drawArgCount
   switch as fn_8001DEA4 / fn_8001E488 with the given group; finishes with fn_800B993C() -> 89.80%
   next: 8 bytes short, register allocation around the lightLevel/ambient locals; the shared nine-case switch inline (see fn_8001E488 note) applies here too.
+- [S2] fn_800145F8 (920 bytes target, 1196 ours -- WEAK DRAFT, logic believed right, loops unrolled differently) drafted: sizes and carves the per-character model buffer pool. Takes the max
+  (& 0x0FFFFFFF) of six consecutive 16-byte file-entry fields (+4,+0x14,..,+0x54) of lbl_803CB7A8 for the files lbl_800EEAAC[charId] of every roster entry (mode 0: 2 teams x 9)
+  or of all 54 characters (mode != 0), rounds to 32, allocates 26 x that (heap 0x20) into lbl_803CBC24, gives each of the 13 0xD4-byte records at huge+0 two buffers (+0x140 = pool+size*2k,
+  +0x1A4 = pool+size*(2k+1)) and initialises record bytes +0x1A0 = 2k, +0x204 = 2k+1, +0x20C = 0, +0x208 = 0, +0x20D..+0x211 = 0xFF -> 39.48%
+  next: the extra ~280 bytes are loop unrolling: the target runs the final 13-record init loop rolled (ctr 13, a += 2 / b += 2 induction variables) and unrolls only the first buffer-assign
+  loop (6x2 + remainder); mine unrolls the init loop. Try pointer-walking the record, or keeping the 13-loop body larger/opaque. The six-field max is written as six explicit steps (matches the asm).

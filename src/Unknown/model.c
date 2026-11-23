@@ -3902,6 +3902,81 @@ void fn_8001E0D8(ActorObjectTable* table, int group, MtxPtr camera) {
     fn_800B993C();
 }
 
+extern void* lbl_803CB7A8;
+extern void* lbl_803CBC24;
+
+#define FILE_ENTRY_FIELD(base, idx, n) (*(u32*)((u8*)(base) + (idx) * 16 + 4 + (n) * 0x10) & 0x0FFFFFFF)
+#define MAX_STEP(maxVar, idx, n)                               \
+    do {                                                       \
+        u32 v_ = FILE_ENTRY_FIELD(lbl_803CB7A8, idx, n);       \
+        if ((maxVar) < v_) {                                   \
+            (maxVar) = v_;                                     \
+        }                                                      \
+    } while (0)
+#define MAX_OF_SIX_FIELDS(maxVar, idx) \
+    MAX_STEP(maxVar, idx, 0);          \
+    MAX_STEP(maxVar, idx, 1);          \
+    MAX_STEP(maxVar, idx, 2);          \
+    MAX_STEP(maxVar, idx, 3);          \
+    MAX_STEP(maxVar, idx, 4);          \
+    MAX_STEP(maxVar, idx, 5)
+
+void fn_800145F8(int mode) {
+    u32 maxSize = 0;
+    u32 size;
+    u8* pool;
+    s32 i;
+    s32 j;
+    s32 idx;
+    s32 a;
+    s32 b;
+
+    if (mode == 0) {
+        for (i = 0; i < 2; i++) {
+            for (j = 0; j < 9; j++) {
+                idx = lbl_800EEAAC[*(s16*)((u8*)&inMemRoster[i][j] + 0x24)];
+                if (idx >= 0) {
+                    MAX_OF_SIX_FIELDS(maxSize, idx);
+                }
+            }
+        }
+    } else {
+        for (i = 0; i < 54; i++) {
+            idx = lbl_800EEAAC[i];
+            if (idx >= 0) {
+                MAX_OF_SIX_FIELDS(maxSize, idx);
+            }
+        }
+    }
+
+    size = (maxSize + 0x1F) & ~0x1F;
+    pool = _OSAllocFromHeap(0x20, size * 0x1A);
+    lbl_803CBC24 = pool;
+    for (i = 0; i < 13; i++) {
+        u8* rec = HA(i * 0xD4);
+
+        *(u32*)(rec + 0x140) = (u32)pool + size * (i * 2);
+        *(u32*)(rec + 0x1A4) = (u32)pool + size * (i * 2 + 1);
+    }
+    a = 0;
+    b = 1;
+    for (i = 0; i < 13; i++) {
+        u8* rec = HA(i * 0xD4);
+
+        rec[0x20F] = 0xFF;
+        rec[0x211] = 0xFF;
+        rec[0x210] = 0xFF;
+        rec[0x20D] = 0xFF;
+        rec[0x20E] = 0xFF;
+        *(u32*)(rec + 0x208) = 0;
+        rec[0x20C] = 0;
+        rec[0x1A0] = a;
+        a += 2;
+        rec[0x204] = b;
+        b += 2;
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 
