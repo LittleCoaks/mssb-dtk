@@ -51,6 +51,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80019C00 | pending | 77.59 |
 | fn_8001D2D4 | pending | 90.92 |
 | fn_80018DEC | pending | 78.59 |
+| fn_8001E784 | pending | 75.96 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -283,3 +284,11 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   finally six words of each of the 13 object records are cleared and huge s16 +0x2D68 = -1 -> 78.59%
   next: 152 bytes short; the asm's carve loops are unrolled 8x with a running index (my while loops are counted differently) and the max scans use pointer-walking; the three scans are the main size.
 - [S2] tidy: fn_8001C234's local extern before fn_8001D2D4 is now a plain forward declaration matching the definition.
+- [S2] fn_8001E784 (2536 bytes target, 2576 ours) drafted: the top-level stadium/overlay render pass. GXSetCurrentGXThread; with huge+0x307A == 0 it only runs the stadium hook (lbl_803CB7AC[drawStadiumRelated == 0],
+  once with 0 and, if still set, again with 1 then cleared) when +0x3088 && +0x307E and finishes with fn_8003414C / minigamesGXStuff. Otherwise it re-lights the stadium (+0x3085: ambient colour
+  through adjustLightingParams, the four LIT lights re-initialised with attenuation / position / colour / normalised direction / camera transform), then for each scissor mode (last to first, setScissorAndProjection)
+  switches on +0x307A: 3 = stadium hooks + overlay table (huge+0x68 entries drawn through sknRelated with the per-entry callbacks at huge+0x2D94) + fn_8003414C; 5 = the overlay frustum pass (body of fn_8001E488
+  inlined, drawArgCount switch of fn_8001DD58); 2 = GXSetZCompLoc(0) + fn_8001E0D8; 4 = fn_8001E0D8 + overlay table + fn_8003414C; anything else = hook, then (+0x307C) fn_8001E0D8, fn_800BD670, overlay table
+  and the one-shot hook at huge+0x3074, then the hook again and fn_8003414C. Ends with GXSetScissor(0,0,640,448) -> 75.96%
+  next: 40 bytes over; the repeated hook / overlay-table blocks are macros here (the original probably used static inlines), and fn_8001E488's body is duplicated by hand (it is inlined in the original --
+  a shared static inline would also serve fn_8001E488; only try it if fn_8001E488 stays at 97.30%).

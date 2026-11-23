@@ -5824,6 +5824,193 @@ void fn_80018DEC(int mode) {
     *(s16*)HA(0x2D68) = -1;
 }
 
+extern void GXSetCurrentGXThread(void);
+extern void fn_8003414C(MtxPtr camera);
+extern void fn_800BD670(void* table, MtxPtr camera);
+
+#define STADIUM_HOOK() (lbl_803CB7AC[drawStadiumRelated == 0])
+#define CAMERA_VIEW(mode) ((MtxPtr)((u8*)returnFloatFromModeIndex(mode) + 0x40))
+
+#define RUN_STADIUM_HOOK(mode, arg)                      \
+    if (STADIUM_HOOK() != NULL) {                        \
+        STADIUM_HOOK()(CAMERA_VIEW(mode), (arg), 1);     \
+    }
+
+#define RUN_AND_CLEAR_STADIUM_HOOK(mode)                 \
+    if (STADIUM_HOOK() != NULL) {                        \
+        STADIUM_HOOK()(CAMERA_VIEW(mode), 1, 1);         \
+        STADIUM_HOOK() = NULL;                           \
+    }
+
+#define DRAW_OVERLAY_TABLE()                                                                   \
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);                                                   \
+    GXSetCullMode(GX_CULL_BACK);                                                               \
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);               \
+    for (k = 0; (u16)k < ((ActorObjectTable*)HA_U32(0x68))->count; k++) {                      \
+        ActorObjectEntry* overlay = &((ActorObjectTable*)HA_U32(0x68))->entries[(u16)k];       \
+        if (overlay->actor != NULL && overlay->applyControl != 0) {                            \
+            void (*overlayCb)(void) = *(void (**)(void))((u8*)HA_U32(0x2D94) + (u16)k * 0x28); \
+            if (overlayCb != NULL) {                                                           \
+                overlayCb();                                                                   \
+            }                                                                                  \
+            sknRelated(overlay, CAMERA_VIEW(0));                                               \
+        }                                                                                      \
+    }
+
+void fn_8001E784(void) {
+    s32 i;
+    s32 k;
+    s32 mode;
+    u32 level;
+    Mtx44 proj;
+    GXColor color;
+    Vec dir;
+    StadiumLightInput* light = lbl_80367318;
+    u8* state = HA(0x307A);
+
+    GXSetCurrentGXThread();
+    if (*state == 0) {
+        if (*HA(0x3088) != 0 && *HA(0x307E) != 0) {
+            RUN_STADIUM_HOOK(0, 0);
+            if (STADIUM_HOOK() != NULL) {
+                STADIUM_HOOK()(CAMERA_VIEW(0), 1, 1);
+                STADIUM_HOOK() = NULL;
+            }
+        }
+        fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
+        minigamesGXStuff();
+        return;
+    }
+
+    if (*HA(0x3085) != 0) {
+        color = inputParams[g_d_GameSettings._54].ambient;
+        adjustLightingParams(inputParams[g_d_GameSettings._54].ambient.a != 0, color);
+        for (i = 0; i < 4; i++) {
+            LITInitAttn((void*)HA_U32(0xAC + i * 4), lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
+                        lbl_803CC4B8, lbl_803CC4B8);
+            LITInitPos((void*)HA_U32(0xAC + i * 4), light[i].pos.x, light[i].pos.y, light[i].pos.z);
+            color = light[i].color;
+            LITInitColor((void*)HA_U32(0xAC + i * 4), &color);
+            dir = light[i].pos;
+            PSVECNormalize(&dir, &dir);
+            LITInitDir((void*)HA_U32(0xAC + i * 4), dir.x, dir.y, dir.z);
+            LITXForm((void*)HA_U32(0xAC + i * 4), CAMERA_VIEW(0));
+        }
+    }
+
+    mode = returnScissorMode() - 1;
+    do {
+        setScissorAndProjection(mode);
+        if (*state == 3) {
+            RUN_STADIUM_HOOK(mode, 0);
+            RUN_AND_CLEAR_STADIUM_HOOK(mode);
+            if (*(u16*)HA(0x3078) != 0) {
+                DRAW_OVERLAY_TABLE();
+            }
+            if (*HA(0x307E) != 0) {
+                fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
+                minigamesGXStuff();
+            }
+        } else if (*state == 5) {
+            GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+            GXSetCullMode(GX_CULL_BACK);
+            GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+            {
+                s32 i2;
+                for (i2 = 0; i2 < hugeAnimStruct.actorTable->count; i2++) {
+                    u8* obj = HA_OBJ(i2);
+                    ActorObjectEntry* entry = &hugeAnimStruct.actorTable->entries[i2];
+                    Actor* actor;
+                    u32* args;
+                    MtxPtr camera;
+                    f32 x;
+                    f32 y;
+
+                    if (obj == NULL) {
+                        continue;
+                    }
+                    if (entry->actor == NULL) {
+                        continue;
+                    }
+                    if (entry->applyControl == 0) {
+                        continue;
+                    }
+                    x = *(f32*)(obj + 0x34) / lbl_803CC514;
+                    y = *(f32*)(obj + 0x38) / lbl_803CC514;
+                    C_MTXFrustum(proj, lbl_803CC518 + y, lbl_803CC51C + y, lbl_803CC520 + x, lbl_803CC524 + x,
+                                 lbl_803CC4F0, lbl_803CC528);
+                    GXSetProjection(proj, GX_PERSPECTIVE);
+                    camera = CAMERA_VIEW(0);
+                    actor = entry->actor;
+                    args = entry->drawArgs;
+                    if (entry->callback != NULL) {
+                        entry->callback(entry);
+                    }
+                    switch (entry->drawArgCount) {
+                    case 0:
+                        fn_8001DD58(actor, 0, camera, 0);
+                        break;
+                    case 1:
+                        fn_8001DD58(actor, 0, camera, 1, args[0]);
+                        break;
+                    case 2:
+                        fn_8001DD58(actor, 0, camera, 2, args[0], args[1]);
+                        break;
+                    case 3:
+                        fn_8001DD58(actor, 0, camera, 3, args[0], args[1], args[2]);
+                        break;
+                    case 4:
+                        fn_8001DD58(actor, 0, camera, 4, args[0], args[1], args[2], args[3]);
+                        break;
+                    case 5:
+                        fn_8001DD58(actor, 0, camera, 5, args[0], args[1], args[2], args[3], args[4]);
+                        break;
+                    case 6:
+                        fn_8001DD58(actor, 0, camera, 6, args[0], args[1], args[2], args[3], args[4], args[5]);
+                        break;
+                    case 7:
+                        fn_8001DD58(actor, 0, camera, 7, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+                        break;
+                    case 8:
+                        fn_8001DD58(actor, 0, camera, 8, args[0], args[1], args[2], args[3], args[4], args[5], args[6],
+                                    args[7]);
+                        break;
+                    }
+                }
+            }
+        } else if (*state == 2) {
+            GXSetZCompLoc(0);
+            fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
+        } else if (*state == 4) {
+            fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
+            if (*(u16*)HA(0x3078) != 0) {
+                DRAW_OVERLAY_TABLE();
+            }
+            fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
+            minigamesGXStuff();
+        } else {
+            RUN_STADIUM_HOOK(mode, 0);
+            if (*HA(0x307C) != 0) {
+                fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
+                fn_800BD670((void*)HA_U32(0x64), CAMERA_VIEW(mode));
+                if (*(u16*)HA(0x3078) != 0) {
+                    DRAW_OVERLAY_TABLE();
+                }
+                if (HA_U32(0x3074) != 0) {
+                    ((void (*)(MtxPtr))HA_U32(0x3074))(CAMERA_VIEW(mode));
+                    HA_U32(0x3074) = 0;
+                }
+            }
+            RUN_AND_CLEAR_STADIUM_HOOK(mode);
+            if (*HA(0x307E) != 0) {
+                fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
+                minigamesGXStuff();
+            }
+        }
+    } while (mode-- != 0);
+    GXSetScissor(0, 0, 0x280, 0x1C0);
+}
+
 void fn_80011578(void) {
     s8 i;
 
