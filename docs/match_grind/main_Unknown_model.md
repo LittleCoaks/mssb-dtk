@@ -41,6 +41,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80016344 | pending | 77.25 |
 | fn_8001BE50 | pending | 81.43 |
 | fn_80014204 | pending | 49.62 |
+| fn_8001BA44 | pending | 72.36 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -207,3 +208,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   -> 49.62%
   next: 188 bytes over: the target unrolls the buffer-assign loop 8x and the init loop 4x with a remainder loop (runtime trip count count*3); mine unrolls differently. Same structure problem as
   fn_800145F8; whichever of the two gets matched first should transfer.
+- [S2] fn_8001BA44 (1036 bytes target, 964 ours) drafted: the alternate animation starter (same signature and structure as fn_8001BE50, called from fn_8001C234 when gs[0x11] && gs[6] == 2).
+  Differences from fn_8001BE50: a negative anim id clears the entry instead (anim NULL, seqNum 0, frame 0.0, animPending 1, framePending/speedPending 0, blendTime 0.0) and stops; the second effect
+  record is handed to the (still undrafted) fn_80011CA8(obj, kind, seq) whenever obj+0x30 is non-NULL, instead of the two actorRelated calls -> 72.36%
+  next: 72 bytes short; the asm keeps the object in r28 and a `valid` flag that merges the negative-id path back into the shared tail check; try restructuring the negative-id handling as the original
+  (if/else with a shared join) and compare against fn_8001BE50's chain. The bank ladder, bone setup and inlined fn_8001B5EC / fn_8001B308 tails are identical to fn_8001BE50.
