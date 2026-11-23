@@ -35,6 +35,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001E488 | pending | 97.30 |
 | fn_80014A18 | pending | 94.58 |
 | fn_800196D8 | pending | 86.33 |
+| fn_8001E0D8 | pending | 89.80 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -162,3 +163,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   offsets at huge+0x2C84 by their own base, fn_8001F8A4(); default (>=3 or negative): challengeMapMaybe(), huge+0x2D7D/0x307C = 1, removeCurrentDrawingItem() -> 86.33%
   Note: this is the same body as challengeMapRelated's state 6 (that one is also pending); the two share a lot and may be one inline/macro in the original.
   next: 20 bytes over; check the relocation loop (target unrolls 8 words with huge+0x2C84 reloaded for every store) and the sqrt inline placement.
+- [S2] fn_8001E0D8 (904 bytes target, 896 ours) drafted: lit-object draw pass over an ActorObjectTable-sized object list (table, group, camera). Sets GX Z/cull/blend, then per object
+  (skipping obj[0x25D] == 2 and entries without actor/applyControl): switches the ambient light when obj[0x277] changes (0xFF restores the stadium ambient, 0 skips the object, else
+  ambient alpha = level; adjustLightingParams), builds camera*translate(obj pos), fn_800B9948(obj+0x5C callback), lbl_803CBC18 = obj, runs the entry callback and the same drawArgCount
+  switch as fn_8001DEA4 / fn_8001E488 with the given group; finishes with fn_800B993C() -> 89.80%
+  next: 8 bytes short, register allocation around the lightLevel/ambient locals; the shared nine-case switch inline (see fn_8001E488 note) applies here too.

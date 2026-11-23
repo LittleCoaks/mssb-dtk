@@ -3817,6 +3817,91 @@ void fn_800196D8(void) {
     }
 }
 
+void fn_8001E0D8(ActorObjectTable* table, int group, MtxPtr camera) {
+    u8 lightLevel = 0xFF;
+    GXColor ambient = inputParams[g_d_GameSettings._54].ambient;
+    u16 i;
+
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    GXSetCullMode(GX_CULL_BACK);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    for (i = 0; i < table->count; i++) {
+        u8* obj = HA_OBJ(i);
+        ActorObjectEntry* entry;
+        Actor* actor;
+        u32* args;
+        Mtx trans;
+
+        if (obj == NULL) {
+            continue;
+        }
+        if (obj[0x25D] == 2) {
+            continue;
+        }
+        entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
+        if (entry->actor == NULL) {
+            continue;
+        }
+        if (entry->applyControl == 0) {
+            continue;
+        }
+        if (lightLevel != obj[0x277]) {
+            GXColor color;
+
+            lightLevel = obj[0x277];
+            if (lightLevel == 0xFF) {
+                color = inputParams[g_d_GameSettings._54].ambient;
+            } else {
+                ambient.a = lightLevel;
+                if (lightLevel == 0) {
+                    continue;
+                }
+                color = ambient;
+            }
+            adjustLightingParams(1, color);
+        }
+        PSMTXTrans(trans, *(f32*)(obj + 0x34), *(f32*)(obj + 0x38), *(f32*)(obj + 0x3C));
+        PSMTXConcat(camera, trans, trans);
+        fn_800B9948(*(DOTevSetupCallback*)(obj + 0x5C));
+        lbl_803CBC18 = (u32)obj;
+        actor = entry->actor;
+        args = entry->drawArgs;
+        if (entry->callback != NULL) {
+            entry->callback(entry);
+        }
+        switch (entry->drawArgCount) {
+        case 0:
+            fn_8001DD58(actor, group, trans, 0);
+            break;
+        case 1:
+            fn_8001DD58(actor, group, trans, 1, args[0]);
+            break;
+        case 2:
+            fn_8001DD58(actor, group, trans, 2, args[0], args[1]);
+            break;
+        case 3:
+            fn_8001DD58(actor, group, trans, 3, args[0], args[1], args[2]);
+            break;
+        case 4:
+            fn_8001DD58(actor, group, trans, 4, args[0], args[1], args[2], args[3]);
+            break;
+        case 5:
+            fn_8001DD58(actor, group, trans, 5, args[0], args[1], args[2], args[3], args[4]);
+            break;
+        case 6:
+            fn_8001DD58(actor, group, trans, 6, args[0], args[1], args[2], args[3], args[4], args[5]);
+            break;
+        case 7:
+            fn_8001DD58(actor, group, trans, 7, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+            break;
+        case 8:
+            fn_8001DD58(actor, group, trans, 8, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+            break;
+        }
+    }
+    fn_800B993C();
+}
+
 void fn_80011578(void) {
     s8 i;
 
