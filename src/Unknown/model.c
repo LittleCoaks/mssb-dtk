@@ -4000,7 +4000,6 @@ void fn_8001E0D8(ActorObjectTable* table, int group, MtxPtr camera) {
 extern void* lbl_803CB7A8;
 extern void* lbl_803CBC24;
 
-#define FILE_ENTRY_FIELD(base, idx, n) (*(u32*)((u8*)(base) + (idx) * 16 + 4 + (n) * 0x10) & 0x0FFFFFFF)
 
 /* One 16-byte entry of the file table at lbl_803CB7A8; the low 28 bits of
  * `size` are the file size. */
@@ -4536,32 +4535,33 @@ void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     obj->mode = mode;
 }
 
-#define MAX_STEP_S32(maxVar, base, n)                          \
-    do {                                                       \
-        s32 v_ = (s32)FILE_ENTRY_FIELD(lbl_803CB7A8, base, n); \
-        if ((maxVar) < v_) {                                   \
-            (maxVar) = v_;                                     \
-        }                                                      \
-    } while (0)
+/* Signed variant of maxFileSizeOfSix. */
+static inline s32 maxFileSizeOfSixS32(s32 maxSize, int idx) {
+    s32 k;
+
+    for (k = 0; k < 6; k++) {
+        s32 v = ((FileTableEntry*)lbl_803CB7A8)[idx + k].size & 0x0FFFFFFF;
+        if (maxSize < v) {
+            maxSize = v;
+        }
+    }
+    return maxSize;
+}
 
 void fn_80014204(s32 count) {
-    s32 maxSize = 0;
     s32 size;
     u8* pool;
     s32 total;
     s32 i;
     s32 fileBase = 0;
+    u8* rec;
     s32 a;
     s32 b;
+    s32 maxSize = 0;
 
     for (i = 0; i < 54; i++) {
         if (lbl_800EEAAC[i] >= 0) {
-            MAX_STEP_S32(maxSize, fileBase, 0);
-            MAX_STEP_S32(maxSize, fileBase, 1);
-            MAX_STEP_S32(maxSize, fileBase, 2);
-            MAX_STEP_S32(maxSize, fileBase, 3);
-            MAX_STEP_S32(maxSize, fileBase, 4);
-            MAX_STEP_S32(maxSize, fileBase, 5);
+            maxSize = maxFileSizeOfSixS32(maxSize, fileBase);
             fileBase += 6;
         }
     }
@@ -4573,25 +4573,19 @@ void fn_80014204(s32 count) {
     for (i = 0; i < total; i++) {
         u8* rec = HA(i * 0xD4);
 
-        *(u32*)(rec + 0x140) = (u32)pool + size * (i * 2);
-        *(u32*)(rec + 0x1A4) = (u32)pool + size * (i * 2 + 1);
+        *(u32*)(rec + 0x140) = (u32)lbl_803CBC24 + size * (i * 2);
+        *(u32*)(rec + 0x1A4) = (u32)lbl_803CBC24 + size * (i * 2 + 1);
     }
-    a = 0;
-    b = 1;
-    for (i = 0; i < total; i++) {
-        u8* rec = HA(i * 0xD4);
-
-        rec[0x210] = 0xFF;
-        rec[0x211] = 0xFF;
-        rec[0x20F] = 0xFF;
+    for (i = 0, rec = HA(0), a = 0, b = 1; i < total; i++, rec += 0xD4, a += 2, b += 2) {
+        ((s8*)rec)[0x210] = -1;
+        ((s8*)rec)[0x211] = -1;
+        ((s8*)rec)[0x20F] = -1;
         rec[0x20E] = 0xFF;
         rec[0x20D] = 0xFF;
         *(u32*)(rec + 0x208) = 0;
         rec[0x20C] = 0;
         rec[0x1A0] = a;
-        a += 2;
         rec[0x204] = b;
-        b += 2;
     }
 }
 

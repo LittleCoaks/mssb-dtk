@@ -25,7 +25,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | LoadModel | pending | 80.22 |
 | fn_80012B90 | pending | 88.88 |
 | animateModelArmsGlovesBats | pending-WEAK | 57.33 |
-| fn_80014204 | pending-WEAK | 49.62 |
+| fn_80014204 | pending | 80.71 |
 | fn_800145F8 | pending | 87.85 |
 | fn_80014990 | pending | 93.09 |
 | fn_80014A18 | pending | 94.58 |
@@ -231,6 +231,21 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       (mr), 4 bytes and the reg assignment of the three locals. Tried, all forwarded identically: u32-word stores, a 3-iteration store loop, a
       relocateWords inline with a k loop, a PMModelSource* src for stores or loads, raw-offset loads, (void**) loads, a 1-iteration loop.
       Also the target copies the table offset induction variable from i (`mr r28,r27`), ours materialises a second `li 0`.
+
+## fn_80014204 [O1] (1012 bytes target, 1016 ours; 49.62% -> 80.71% fuzzy, unit 82.38% -> 82.90%)
+  baseline: 49.62% (1200 bytes)
+  [1] fn_800145F8's recipe: k < 6 loop in an inline (signed: maxFileSizeOfSixS32), pool read back through lbl_803CBC24, s8 -1 stores for
+      0x210/0x211/0x20F, `i * 2` / `i * 2 + 1` -> 38.3% alone (1352 bytes): the final loop unrolled 8x instead of the target's 4x
+  [2] final loop as a pointer walk (`rec += 0xD4`) -> dynamic 4x unroll as in the target -> 75.6%
+  [3] KEY for the scan: the helper's index parameter as `int` (s32 is `long` here) -> `slwi` once + `addi K; lwzx` per step like the target;
+      with s32/u32 the inner (idx + k) is recomputed or strength-reduced into a +96 induction variable -> 79.9% (s16/u16 idx 79.8/80.0 but 1020/1016)
+      tried, worse: `(base + idx)[k]`, byte-offset forms (988/992 bytes, idx*16 strength-reduced), `int i` (78.3)
+  [4] final loop with explicit a/b counters in the for header (`a = 0, b = 1 ... a += 2, b += 2`) -> 80.33%
+  tried, no gain: local declaration order (30 perms), helper parameter order/types, total as int or inlined `count * 3`, `(u32)pool` in the buffer loop
+      (1012 bytes but 78.19), `i = 0` outside the pointer-walk loop, k++/a += 2 counter in the buffer loop (changes the unroll, 804 bytes).
+  remaining: same as fn_800145F8 -- the 8x-unrolled buffer loop uses r19..r31 where the target uses r24..r31 (same instructions), so total
+      ends up in r24 instead of r7; and the final loop copies the hugeAnimStruct base (`mr`) instead of computing it into the pointer register.
+      The scan's maxSize/fileBase/pointer registers are rotated (r4/r7/r5 vs r7/r5/r4).
 
 ## Findings
 - [O1] Unfolded-constant lever (seen twice now): assigning a constant through a chain into a struct/array field, e.g. `count = field = 30;` or
