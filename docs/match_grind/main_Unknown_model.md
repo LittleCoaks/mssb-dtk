@@ -40,6 +40,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001F8A4 | pending | 86.06 |
 | fn_80016344 | pending | 77.25 |
 | fn_8001BE50 | pending | 81.43 |
+| fn_80014204 | pending | 49.62 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -200,3 +201,9 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   feeds actorRelated for the two effect records, sets boneParam 3 or 2, frame = frame * obj+0x4C, then inlines fn_8001B5EC(index, mode) and fn_8001B308(index, attach) and stores obj[0x268] = mode -> 81.43%
   next: 48 bytes short; the anim-id range chain is a straight if/else ladder in the asm (r26/r27 stay uninitialised for negative ids -- kept), and fn_8001B5EC / fn_8001B308 are probably real inlines
   (calls to the already-drafted functions inlined at their original definitions).
+- [S2] fn_80014204 (1012 bytes target, 1200 ours -- WEAK DRAFT, logic believed right) drafted: sibling of fn_800145F8 taking a `count`: same six-field max (signed compare here, s32) over the 54 entries
+  of lbl_800EEAAC, but the file base is a running index (+6 per non-negative entry), not lbl_800EEAAC's value (fn_800145F8 uses the value -- the two really differ in the asm). Allocates
+  count * size * 6 into lbl_803CBC24, then assigns two buffers (+0x140/+0x1A4) and initialises bytes/words (+0x1A0 = 2i, +0x204 = 2i+1, 0x20C/0x208 = 0, 0x20D..0x211 = -1/0xFF) for count*3 records
+  -> 49.62%
+  next: 188 bytes over: the target unrolls the buffer-assign loop 8x and the init loop 4x with a remainder loop (runtime trip count count*3); mine unrolls differently. Same structure problem as
+  fn_800145F8; whichever of the two gets matched first should transfer.
