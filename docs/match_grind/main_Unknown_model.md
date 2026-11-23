@@ -2,7 +2,7 @@
 
 ## Final status after first pass [S2] (unit .text 80.28%, 34/102 functions at 100%)
 
-Every function in the unit is now drafted (no 0% rows).  rows (< 75%) are the ones whose code shape is still far from the target
+Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK (< 75%) are the ones whose code shape is still far from the target
 (wrong loop unrolling / missing inlines); hand them to the Opus pass first. Everything else is a near-miss (register or scheduling differences).
 
 | function | status | % |
