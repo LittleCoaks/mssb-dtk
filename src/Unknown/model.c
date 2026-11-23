@@ -4140,30 +4140,33 @@ int fn_80016344(int charId, int slot, int c, int d) {
 
     if (*HA(0x2D77) == 4) {
         s32 fileIndex = lbl_800EEB18[(u8)charId];
-        u8* slotRec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
 
-        part = NULL;
         if (fileIndex != -1) {
+            u8* slotRec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+
             part = *(u8**)(slotRec + 8);
-        }
-        if (part != NULL && *(u32*)(part + 0x10) != 0) {
-            if (lbl_803CBBFA == 0) {
-                fn_80021ADC(fileIndex, *(void**)lbl_80118220);
-                lbl_803CBBFA = 1;
-            }
-            if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                lbl_80118220[0x60] = charId;
-                lbl_80118220[0x61] = slot;
-                *(u32*)(lbl_80118220 + 4) = *(u32*)lbl_80118220;
-                actRelated(*(void**)(part + 0x10), lbl_80118220 + 4);
-                lbl_803CBBFA = 0;
-                *(u8**)(slotRec + 0x2C) = lbl_80118220;
-                ready = TRUE;
+            if (*(u32*)(part + 0x10) != 0) {
+                if (lbl_803CBBFA == 0) {
+                    fn_80021ADC(fileIndex, *(void**)lbl_80118220);
+                    lbl_803CBBFA = 1;
+                }
+                if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+                    lbl_80118220[0x60] = charId;
+                    lbl_80118220[0x61] = slot;
+                    *(u32*)(lbl_80118220 + 4) = *(u32*)lbl_80118220;
+                    actRelated(*(void**)(part + 0x10), lbl_80118220 + 4);
+                    lbl_803CBBFA = 0;
+                    *(u8**)(slotRec + 0x2C) = lbl_80118220;
+                    ready = TRUE;
+                } else {
+                    ready = FALSE;
+                }
             } else {
-                ready = FALSE;
+                goto noPart;
             }
         } else {
-            *(u32*)(slotRec + 0x2C) = 0;
+        noPart:
+            *(u32*)(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE) + 0x2C) = 0;
             ready = TRUE;
         }
         if (!ready) {
@@ -4181,6 +4184,140 @@ int fn_80016344(int charId, int slot, int c, int d) {
     }
     fn_80017098(0, d, 1, slot, 1, charId);
     return 0;
+}
+
+extern f32 lbl_803CC504;
+
+typedef struct ModelAnimObject {
+    /* 0x00 */ UnkB2B4C* actor;
+    /* 0x04 */ u8 _04[0x10 - 0x04];
+    /* 0x10 */ u8* banks[6];
+    /* 0x28 */ u8 _28[0x2C - 0x28];
+    /* 0x2C */ u8* effectA;
+    /* 0x30 */ u8* effectB;
+    /* 0x34 */ u8 _34[0x4C - 0x34];
+    /* 0x4C */ f32 frameScale;
+    /* 0x50 */ u8 _50[0x72 - 0x50];
+    /* 0x72 */ u8 attachPoint[1];
+    /* 0x73 */ u8 _73[0x162 - 0x73];
+    /* 0x162 */ u16 partBones[5];
+    /* 0x16C */ u8 _16C[0x255 - 0x16C];
+    /* 0x255 */ s8 slot;
+    /* 0x256 */ u8 _256[0x268 - 0x256];
+    /* 0x268 */ u8 mode;
+    /* 0x269 */ u8 _269[0x26C - 0x269];
+    /* 0x26C */ u8 flag26C;
+} ModelAnimObject;
+
+static inline u16 getAnimBone(ModelAnimObject* obj, int which) {
+    if (obj != NULL) {
+        return obj->partBones[which];
+    }
+    return 0xFFFF;
+}
+
+void fn_8001BE50(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attach, s32 speedDivisor) {
+    f32 blend = lbl_803CC4B8;
+    ModelAnimObject* obj = hugeAnimStruct.objects[index];
+    ActorObjectEntry* entry;
+    ActorObjectTable* table;
+    s32 kind;
+    s32 seq;
+    u8* bank;
+    ModelAnimObject* cur;
+    u16 boneEnd;
+    u16 boneRoot;
+    u8* node;
+    Vec offset;
+
+    if (obj == NULL) {
+        return;
+    }
+    entry = &hugeAnimStruct.actorTable->entries[obj->slot];
+    if ((u8)speedDivisor != 0) {
+        blend = lbl_803CC4F0 / (f32)(u8)speedDivisor;
+    }
+    if (obj->flag26C == 0) {
+        fn_800B2B54(obj->actor, getAnimBone(obj, 4), 13);
+    } else {
+        fn_800B2B54(obj->actor, getAnimBone(obj, 4), 1);
+        fn_800B2B54((UnkB2B4C*)entry->actor, getAnimBone(hugeAnimStruct.objects[index], 4), 1);
+        fn_800B2B4C((UnkB2B4C*)entry->actor, lbl_803CC504);
+        *(f32*)((u8*)entry->actor + 0x8C) = lbl_803CC4B8;
+    }
+
+    if (anim >= 0) {
+        if (anim < 45) {
+            seq = anim;
+            kind = 2;
+        } else if (anim < 61) {
+            seq = anim - 45;
+            kind = 1;
+        } else if (anim < 63) {
+            seq = anim - 61;
+            kind = 4;
+        } else if (anim < 75) {
+            seq = anim - 63;
+            kind = 3;
+        } else if (anim < 105) {
+            seq = anim - 75;
+            kind = 0;
+        } else {
+            kind = 5;
+            seq = anim - 105;
+        }
+    }
+    bank = obj->banks[kind];
+    if (bank != NULL) {
+        if (seq >= *(u16*)(bank + 0xA) || seq < 0) {
+            return;
+        }
+        entry->anim = bank;
+        entry->seqNum = seq;
+        entry->frame = lbl_803CC4B8;
+        entry->animPending = 1;
+        entry->framePending = entry->speedPending = (bank != NULL);
+        entry->blendTime = blend;
+    }
+    if (obj->effectA != NULL) {
+        actorRelated(obj->effectA + 4, kind, seq);
+    }
+    if (obj->effectB != NULL && obj->effectB[0xCC] != 0) {
+        actorRelated(obj->effectB + 0x68, kind, seq);
+        actorRelated(obj->effectB + 4, kind, seq);
+    }
+    if (boneParam != 0) {
+        entry->boneParam = 3;
+    } else {
+        entry->boneParam = 2;
+    }
+    entry->frame = (f32)frame * obj->frameScale;
+    entry->framePending = 1;
+
+    cur = hugeAnimStruct.objects[index];
+    if (cur != NULL) {
+        if (mode == 0) {
+            boneRoot = getAnimBone(cur, 4);
+            boneEnd = getAnimBone(cur, 0);
+        } else {
+            boneRoot = getAnimBone(cur, 0);
+            boneEnd = getAnimBone(cur, 0);
+        }
+        node = (u8*)hugeAnimStruct.actorTable + (u16)cur->slot * 0x90;
+        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
+        *(u16*)(node + 0x98) = boneEnd;
+        *(u16*)(node + 0x9A) = boneRoot;
+    }
+    cur = hugeAnimStruct.objects[index];
+    if (cur != NULL) {
+        table = hugeAnimStruct.actorTable;
+        if (attach == 0) {
+            table->entries[cur->slot].unk68 = 0;
+        } else {
+            table->entries[cur->slot].unk68 = (u32)cur->attachPoint;
+        }
+    }
+    obj->mode = mode;
 }
 
 void fn_80011578(void) {

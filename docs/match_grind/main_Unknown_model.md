@@ -38,7 +38,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001E0D8 | pending | 89.80 |
 | fn_800145F8 | pending | 39.48 |
 | fn_8001F8A4 | pending | 86.06 |
-| fn_80016344 | pending | 74.07 |
+| fn_80016344 | pending | 77.25 |
+| fn_8001BE50 | pending | 81.43 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -192,3 +193,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   5: animateModelArmsGlovesBats, then state 0 and return 1 -> 74.07%
   next: 44 bytes short. A goto-based variant for the "no part" join (jumping into the else) scored 77.25% at 932 bytes; I kept the goto-free form. The two "ready" flag blocks (slot 12 and others) are duplicated
   in the asm and may come from one inline taking the transfer as a callback.
+- [S2] fn_80016344: switched to the goto ("no part" join) variant -> 77.25% (972 target / 932 ours); the goto-free form scored 74.07%.
+- [S2] fn_8001BE50 (996 bytes target, 948 ours) drafted: (index, anim, boneParam, mode, frame, attach, speedDivisor) starts an animation on an object's actor entry. Blend time = 1/speedDivisor (0 if none).
+  Sets bone state through fn_800B2B54 (13 normally; 1 + fn_800B2B4C(lbl_803CC504) when obj[0x26C] != 0). Maps the global anim id to (bank kind, sequence): <45 kind 2, <61 kind 1 (-45), <63 kind 4 (-61),
+  <75 kind 3 (-63), <105 kind 0 (-75), else kind 5 (-105); bails out if the sequence is out of range for that bank, otherwise loads it into the entry (anim/seqNum/frame 0/pending flags/blendTime),
+  feeds actorRelated for the two effect records, sets boneParam 3 or 2, frame = frame * obj+0x4C, then inlines fn_8001B5EC(index, mode) and fn_8001B308(index, attach) and stores obj[0x268] = mode -> 81.43%
+  next: 48 bytes short; the anim-id range chain is a straight if/else ladder in the asm (r26/r27 stay uninitialised for negative ids -- kept), and fn_8001B5EC / fn_8001B308 are probably real inlines
+  (calls to the already-drafted functions inlined at their original definitions).
