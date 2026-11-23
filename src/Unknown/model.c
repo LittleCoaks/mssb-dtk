@@ -4586,6 +4586,139 @@ BOOL fn_80016B60(void* record) {
     return FALSE;
 }
 
+extern BOOL fn_80012B90(void* record);
+
+int fn_80016710(int charId, int slot) {
+    u8* rec;
+    BOOL ready;
+    u8* part;
+    u8* effectBuf;
+
+    if (*HA(0x2D77) == 6) {
+        return 1;
+    }
+    if (*HA(0x2D77) == 1) {
+        return 0;
+    }
+    if (*HA(0x2D77) == 2) {
+        HA_OBJ(slot) = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+        *HA(0x2D8D) = 0;
+        *HA(0x2D77) = 3;
+    }
+
+    if (*HA(0x2D77) == 3) {
+        rec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+        if (*HA(0x2D8D) == 0) {
+            *HA(0x2D8D) = 1;
+            *HA(0x2D7F + slot) = rec[0x252];
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+                *(u32*)(rec + 0x24) = HA_U32(0x2CAC);
+                fn_80021BBC((s8)rec[0x252], *(s32*)(rec + 0x24));
+            } else if (slot >= 9) {
+                *(u32*)(rec + 0x24) = HA_U32(0x2CAC);
+                ARAMTransfer((u8*)lbl_803CB790 + ((s8)rec[0x252] * 0x13 + 0x10) * 16, *(s32*)(rec + 0x24), 0, 0);
+            } else {
+                *(u32*)(rec + 0x24) = HA_U32(0x2CFC + slot * 0x14);
+                fn_80021BBC((s8)rec[0x252], *(s32*)(rec + 0x24));
+            }
+            ready = FALSE;
+        } else {
+            ready = FALSE;
+            if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+                ANIMGet(*(void**)(rec + 0x24));
+                ready = TRUE;
+            }
+        }
+        if (!ready) {
+            return 0;
+        }
+        *HA(0x2D77) = 4;
+    }
+
+    if (*HA(0x2D77) == 4) {
+        s32 fileIndex = lbl_800EEB18[(u8)charId];
+
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+            if (fileIndex != -1) {
+                u8* slotRec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+
+                part = *(u8**)(slotRec + 8);
+                if (*(u32*)(part + 0x10) != 0) {
+                    if (lbl_803CBBFA == 0) {
+                        fn_80021ADC(fileIndex, *(void**)lbl_80118220);
+                        lbl_803CBBFA = 1;
+                    }
+                    if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+                        lbl_80118220[0x60] = charId;
+                        lbl_80118220[0x61] = slot;
+                        *(u32*)(lbl_80118220 + 4) = *(u32*)lbl_80118220;
+                        actRelated(*(void**)(part + 0x10), lbl_80118220 + 4);
+                        lbl_803CBBFA = 0;
+                        *(u8**)(slotRec + 0x2C) = lbl_80118220;
+                        ready = TRUE;
+                    } else {
+                        ready = FALSE;
+                    }
+                } else {
+                    goto noPartPractice;
+                }
+            } else {
+            noPartPractice:
+                *(u32*)(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE) + 0x2C) = 0;
+                ready = TRUE;
+            }
+        } else {
+            if (fileIndex != -1) {
+                u8* slotRec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+
+                part = *(u8**)(slotRec + 8);
+                if (*(u32*)(part + 0x10) != 0) {
+                    if (lbl_803CBBFA == 0) {
+                        fn_80021ADC(fileIndex, *(void**)(lbl_80118220 + slot * 0x64));
+                        lbl_803CBBFA = 1;
+                    }
+                    if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+                        effectBuf = lbl_80118220 + slot * 0x64;
+                        effectBuf[0x60] = charId;
+                        effectBuf[0x61] = slot;
+                        *(u32*)(effectBuf + 4) = *(u32*)effectBuf;
+                        actRelated(*(void**)(part + 0x10), effectBuf + 4);
+                        lbl_803CBBFA = 0;
+                        *(u8**)(slotRec + 0x2C) = effectBuf;
+                        ready = TRUE;
+                    } else {
+                        ready = FALSE;
+                    }
+                } else {
+                    goto noPart;
+                }
+            } else {
+            noPart:
+                *(u32*)(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE) + 0x2C) = 0;
+                ready = TRUE;
+            }
+        }
+        if (!ready) {
+            return 0;
+        }
+        *HA(0x2D77) = 5;
+    }
+
+    if (*HA(0x2D77) == 5) {
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+            ready = animateModelArmsGlovesBats(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE));
+        } else {
+            ready = fn_80012B90(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE));
+        }
+        if (!ready) {
+            return 0;
+        }
+        return 1;
+    }
+    fn_80017098(0, 0, 0, slot, 1, charId);
+    return 0;
+}
+
 void fn_80011578(void) {
     s8 i;
 

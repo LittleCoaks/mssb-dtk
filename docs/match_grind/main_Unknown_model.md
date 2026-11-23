@@ -43,6 +43,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80014204 | pending | 49.62 |
 | fn_8001BA44 | pending | 79.40 |
 | fn_80016B60 | pending | 75.32 |
+| fn_80016710 | pending | 75.07 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -221,3 +222,8 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   -> 75.32%
   next: 60 bytes short; computing the file offset in an if/else chain with a single ARAMTransfer per state (as the asm does) gained ~5 points vs duplicating the call per branch. Compare state 9 (fixed
   offset 0x10, lwz of lbl_803CB790 before extsb) and the else-if chain structure.
+- [S2] fn_80016710 (1104 bytes target, 1028 ours) drafted: (charId, slot) sibling of fn_80016344 for the non-captain path, same huge+0x2D77 state machine (6 -> 1, 1 -> 0, 0 -> fn_80017098(0,0,0,slot,1,charId)).
+  Differences: state 2 only binds the object slot (no +0x25A/+0x25B), state 3 has no slot-12 special case, state 4 attaches the part effect through lbl_80118220 itself in practice mode but through a per-slot
+  buffer (lbl_80118220 + slot*0x64) otherwise (two copies of the same attach block, each with a "no part" goto join), and state 5 finishes with animateModelArmsGlovesBats (practice) or the undrafted
+  fn_80012B90 (otherwise) and returns 1 without resetting the state -> 75.07%
+  next: 76 bytes short; as with fn_80016344 the repeated "ready" blocks are probably one inline; the two attach blocks differ only in the effect buffer pointer, which suggests an inline taking it as a parameter.
