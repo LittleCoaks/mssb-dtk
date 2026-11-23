@@ -3608,6 +3608,81 @@ void fn_8001C234(u32* changedMask) {
     }
 }
 
+extern f32 lbl_803CC514;
+extern f32 lbl_803CC518;
+extern f32 lbl_803CC51C;
+extern f32 lbl_803CC520;
+extern f32 lbl_803CC524;
+extern f32 lbl_803CC528;
+
+void fn_8001E488(void) {
+    s32 i;
+    Mtx44 proj;
+
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    GXSetCullMode(GX_CULL_BACK);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    for (i = 0; i < hugeAnimStruct.actorTable->count; i++) {
+        u8* obj = HA_OBJ(i);
+        ActorObjectEntry* entry = &hugeAnimStruct.actorTable->entries[i];
+        Actor* actor;
+        u32* args;
+        MtxPtr camera;
+        f32 x;
+        f32 y;
+
+        if (obj == NULL) {
+            continue;
+        }
+        if (entry->actor == NULL) {
+            continue;
+        }
+        if (entry->applyControl == 0) {
+            continue;
+        }
+        x = *(f32*)(obj + 0x34) / lbl_803CC514;
+        y = *(f32*)(obj + 0x38) / lbl_803CC514;
+        C_MTXFrustum(proj, lbl_803CC518 + y, lbl_803CC51C + y, lbl_803CC520 + x, lbl_803CC524 + x, lbl_803CC4F0,
+                     lbl_803CC528);
+        GXSetProjection(proj, GX_PERSPECTIVE);
+        camera = (MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40);
+        actor = entry->actor;
+        args = entry->drawArgs;
+        if (entry->callback != NULL) {
+            entry->callback(entry);
+        }
+        switch (entry->drawArgCount) {
+        case 0:
+            fn_8001DD58(actor, 0, camera, 0);
+            break;
+        case 1:
+            fn_8001DD58(actor, 0, camera, 1, args[0]);
+            break;
+        case 2:
+            fn_8001DD58(actor, 0, camera, 2, args[0], args[1]);
+            break;
+        case 3:
+            fn_8001DD58(actor, 0, camera, 3, args[0], args[1], args[2]);
+            break;
+        case 4:
+            fn_8001DD58(actor, 0, camera, 4, args[0], args[1], args[2], args[3]);
+            break;
+        case 5:
+            fn_8001DD58(actor, 0, camera, 5, args[0], args[1], args[2], args[3], args[4]);
+            break;
+        case 6:
+            fn_8001DD58(actor, 0, camera, 6, args[0], args[1], args[2], args[3], args[4], args[5]);
+            break;
+        case 7:
+            fn_8001DD58(actor, 0, camera, 7, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+            break;
+        case 8:
+            fn_8001DD58(actor, 0, camera, 8, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+            break;
+        }
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 

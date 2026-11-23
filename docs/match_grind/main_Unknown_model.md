@@ -32,6 +32,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80017098 | pending | 78.84 |
 | fn_8001A3FC | pending | 35.90 |
 | fn_8001C234 | pending | 86.23 |
+| fn_8001E488 | pending | 97.30 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -142,3 +143,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   otherwise it reads fn_800B4C40 for the playing animation. Finally (unless highLevelSimulationFlag) fn_8004B208(obj, anim, stadiumCollisionRelated(gs[9], obj[0x275]), time) -> 86.23%
   next: 48 bytes over; the tail where the promotion `continue`s past the collision call and the two f31 assignments (fn_800B4C40 result vs int-to-float of +0x6C vs lbl_803CC4B8) are likely
   structured as a single `time` variable with different control flow; try if/else restructure or goto-free join.
+- [S2] fn_8001E488 (764 bytes, ours 764) drafted -> 97.30%. Overlay pass: sets GX Z/cull/blend state, then for every actor-table entry that has an object, an actor and applyControl set,
+  builds a per-object frustum (offsets from the object's x/y divided by lbl_803CC514 plus lbl_803CC518..528), GXSetProjection, runs the entry callback and draws it with the same
+  drawArgCount switch as fn_8001DEA4 (group 0, camera 0's view matrix) -- the original has that body inlined.
+  next: pure register allocation: target walks hugeAnimStruct+0x2C50 via r30 (mr r30,r31) with separate counters r27/r29, ours uses an addi r27 pointer; try different loop-variable declarations.
