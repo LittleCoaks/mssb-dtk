@@ -5408,10 +5408,10 @@ void fn_80019C00(void) {
     }
 }
 
+void fn_8001C234(u32* changedMask);
 extern f32 lbl_803CC510;
 extern int fn_80024C6C(void* obj, int which);
 extern void fn_800B2C88(Actor* actor, u16 bone, Mtx out);
-extern void fn_8001C234(u32* changedMask);
 
 #define STATE_FLAG_BIT7(p, v) ((p)[0x11] = ((p)[0x11] & 0x7F) | ((v) << 7))
 #define MODEL_STATE_VIEW(p) ((u8*)(p))
@@ -5674,6 +5674,154 @@ void fn_8001D2D4(void) {
         ((void (*)(MtxPtr))HA_U32(0x3070))((MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40));
         HA_U32(0x3070) = 0;
     }
+}
+
+#define REC_FIELD(rec, off) (*(u32*)((u8*)(rec) + (off)) & 0x0FFFFFFF)
+#define TRACK_MAX(maxVar, rec, off)         \
+    do {                                    \
+        u32 v_ = REC_FIELD(rec, off);       \
+        if ((maxVar) < v_) {                \
+            (maxVar) = v_;                  \
+        }                                   \
+    } while (0)
+
+void fn_80018DEC(int mode) {
+    u32 m3 = 0;
+    u32 m4 = 0;
+    u32 m5 = 0;
+    u32 m6 = 0;
+    u32 m7 = 0;
+    u32 m8 = 0;
+    u8* files = lbl_803CB790;
+    s32 i;
+    s32 j;
+    s32 n;
+    u32 sizeA;
+    u32 sizeB;
+    u32 sizeC;
+    u32 sizeD;
+    u32 sizeE;
+    u32 sizeG;
+    u32 total;
+    u32 cursor;
+    u32* table;
+
+    if (mode == 2) {
+        u8* rec = files;
+
+        for (i = 0; i < 18; i++) {
+            for (j = 0; j < 3; j++) {
+                TRACK_MAX(m3, rec + j * 0x130, 0xA4);
+                TRACK_MAX(m4, rec + j * 0x130, 0xB4);
+                TRACK_MAX(m6, rec + j * 0x130, 0x124);
+                TRACK_MAX(m8, rec + j * 0x130, 0x44);
+            }
+            rec += 0x390;
+        }
+        for (i = 1; i < 9; i++) {
+            u8* ch = files + *(s16*)((u8*)&inMemRoster[0][i] + 0x24) * 0x130;
+
+            TRACK_MAX(m5, ch, 0x44);
+            TRACK_MAX(m7, ch, 0x64);
+        }
+    } else if (mode == 0) {
+        for (i = 0; i < 2; i++) {
+            for (j = 0; j < 9; j++) {
+                u8* ch = files + *(s16*)((u8*)&inMemRoster[i][j] + 0x24) * 0x130;
+
+                TRACK_MAX(m3, ch, 0x24);
+                TRACK_MAX(m4, ch, 0x34);
+                TRACK_MAX(m5, ch, 0x44);
+                TRACK_MAX(m6, ch, 0x54);
+                TRACK_MAX(m7, ch, 0x64);
+            }
+        }
+    } else {
+        u8* rec = files;
+
+        for (i = 0; i < 27; i++) {
+            for (j = 0; j < 2; j++) {
+                TRACK_MAX(m3, rec + j * 0x130, 0x24);
+                TRACK_MAX(m4, rec + j * 0x130, 0x34);
+                TRACK_MAX(m5, rec + j * 0x130, 0x44);
+                TRACK_MAX(m6, rec + j * 0x130, 0x54);
+                TRACK_MAX(m7, rec + j * 0x130, 0x64);
+            }
+            rec += 0x260;
+        }
+    }
+
+    sizeA = (m3 + 0x1F) & ~0x1F;
+    sizeB = (m4 + 0x1F) & ~0x1F;
+    sizeC = (m6 + 0x1F) & ~0x1F;
+    sizeG = (m7 + 0x1F) & ~0x1F;
+    sizeE = (m5 + 0x1F) & ~0x1F;
+    sizeD = (m8 + 0x1F) & ~0x1F;
+    HA_U32(0x2C90) = sizeA;
+    HA_U32(0x2C94) = sizeB;
+    HA_U32(0x2C9C) = sizeC;
+    HA_U32(0x2CA0) = sizeG;
+    HA_U32(0x2C98) = sizeE;
+    if (mode == 2) {
+        total = sizeB * 4 + sizeE * 8 + sizeD + sizeC + sizeG + sizeA + sizeA;
+    } else {
+        total = sizeB * 4 + sizeE * 9 + sizeC + sizeG + sizeA + sizeA;
+    }
+    HA_U32(0x2C88) = (u32)_OSAllocFromHeap(0x20, total);
+    HA_U32(0x2D60) = total;
+
+    cursor = HA_U32(0x2C88);
+    HA_U32(0x2CE8) = cursor;
+    cursor += sizeG;
+    table = (u32*)HA(0x2CA8);
+    n = 15;
+    while (n > 14) {
+        table[n] = cursor;
+        cursor += sizeC;
+        n--;
+    }
+    if (mode == 2) {
+        while (n > 6) {
+            table[n] = cursor;
+            cursor += sizeE;
+            n--;
+        }
+        n--;
+        table[n + 1] = cursor;
+        cursor += sizeD;
+    } else {
+        while (n > 5) {
+            table[n] = cursor;
+            cursor += sizeE;
+            n--;
+        }
+    }
+    while (n > 1) {
+        table[n] = cursor;
+        cursor += sizeB;
+        n--;
+    }
+    while (n > 0) {
+        table[n] = cursor;
+        cursor += sizeA;
+        n--;
+    }
+    HA_U32(0x2D48) = cursor;
+    HA_U32(0x2D4C) = sizeA;
+    *(s16*)HA(0x2D50) = -1;
+    *HA(0x2D52) = 0;
+
+    for (i = 0; i < 13; i++) {
+        u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
+
+        *(u32*)(rec + 0x10) = 0;
+        *(u32*)(rec + 0x1C) = 0;
+        *(u32*)(rec + 0x20) = 0;
+        *(u32*)(rec + 0x14) = 0;
+        *(u32*)(rec + 0x18) = 0;
+        *(u32*)(rec + 0x24) = 0;
+    }
+    *(s16*)HA(0x2D68) = -1;
 }
 
 void fn_80011578(void) {

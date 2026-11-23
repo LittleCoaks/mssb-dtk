@@ -50,6 +50,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80017814 | pending | 56.21 |
 | fn_80019C00 | pending | 77.59 |
 | fn_8001D2D4 | pending | 90.92 |
+| fn_80018DEC | pending | 78.59 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -275,3 +276,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   (translation/rotation per entry, fn_800BD8C4 with camera 0's view matrix) and the optional one-shot hook at huge+0x3070.
   next: scheduling/register only (4 bytes short); the three bit-7 flag clears/sets and the three speed copies are written as straight-line null-check blocks as in the asm.
   Added #include "Unknown/File_0x800bd8c4.h" (fn_800BDA24 now comes from it; the local extern was removed).
+- [S2] fn_80018DEC (2284 bytes target, 2132 ours) drafted: (mode 0/1/2) sizes and carves the big shared character-animation buffer pool (called from fn_8001A3FC during init). Six running maxima (& 0x0FFFFFFF)
+  over the character file table lbl_803CB790 (stride 0x130): mode 2 scans all 54 records for fields +0xA4/+0xB4/+0x124/+0x44 and the eight non-captain roster entries for +0x44/+0x64; mode 0 scans the
+  18 roster entries (fields +0x24..+0x64); other modes scan all 54 records (+0x24..+0x64). Each is rounded to 32 and stored at huge+0x2C90..0x2CA0, the total (5 buffer kinds; mode 2 has one fewer 'E' buffer and an
+  extra 'D' one) is allocated from heap 0x20 into huge+0x2C88 / +0x2D60, then the buffers are handed out in descending table order (huge+0x2CA8 + 4*i) with the cursor left at +0x2D48 and the A size at +0x2D4C;
+  finally six words of each of the 13 object records are cleared and huge s16 +0x2D68 = -1 -> 78.59%
+  next: 152 bytes short; the asm's carve loops are unrolled 8x with a running index (my while loops are counted differently) and the max scans use pointer-walking; the three scans are the main size.
+- [S2] tidy: fn_8001C234's local extern before fn_8001D2D4 is now a plain forward declaration matching the definition.
