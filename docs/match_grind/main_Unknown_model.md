@@ -31,6 +31,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80018B74 | pending | 87.89 |
 | fn_80017098 | pending | 78.84 |
 | fn_8001A3FC | pending | 35.90 |
+| fn_8001C234 | pending | 86.23 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
 | fn_8001B4D8 | pending | 74.81 |
@@ -134,3 +135,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   next: the target keeps the constant `1` (flags[4]) in r4 as a loop-guard/flag (cmpwi r4,0xd ; cmpwi r4,0) and uses only r31 plus scratch registers (stwu -0x10 frame, no stmw), with the
   13-record loop unrolled 3x3+4 and the 9-byte clear unrolled behind a `cmpwi r7,9` guard. Mine allocates many more registers (stmw r24). The max scan wants to be one inline over the three
   entries per step (lhau stride 2). Try making the guard variables the same object as flags[4] (e.g. a local u8 counter stored to flags[4]) and a single inline helper for the max step.
+- [S2] fn_8001C234 (756 bytes target, 804 ours) drafted: per-frame animation state machine over the 13 objects; writes a bitmask of objects whose animation changed into *changedMask.
+  Per live object (+0x25D): ticks the frame counter +0x6A (cap 600), derives the current animation step (+0x68) from the actor's bone anim time / +0x4C (or the queued +0x70),
+  and when the animation finished (state +0x25E == 1, or state 2 with step 0 and counter > 1, or no current anim +0x62 == -1) promotes the queued anim (+0x64 -> +0x62 -> +0x60; its
+  parameter bytes +0x260.. shift down to +0x25F..), starts it through fn_8001BE50 (fn_8001BA44 when gs[0x11] && gs[6] == 2), and promotes a second queued anim (+0x66) if present;
+  otherwise it reads fn_800B4C40 for the playing animation. Finally (unless highLevelSimulationFlag) fn_8004B208(obj, anim, stadiumCollisionRelated(gs[9], obj[0x275]), time) -> 86.23%
+  next: 48 bytes over; the tail where the promotion `continue`s past the collision call and the two f31 assignments (fn_800B4C40 result vs int-to-float of +0x6C vs lbl_803CC4B8) are likely
+  structured as a single `time` variable with different control flow; try if/else restructure or goto-free join.

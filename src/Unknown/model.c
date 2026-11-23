@@ -3517,6 +3517,97 @@ void fn_8001A3FC(int mode) {
     *HA(0x2D8C) = 0xFF;
 }
 
+extern u8 lbl_80366158[];
+extern void fn_8001BA44(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
+extern void fn_8004B208(void* obj, s16 anim, int collision, f32 time);
+void fn_8001BE50(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
+
+#define OBJ_S16(o, off) (*(s16*)((u8*)(o) + (off)))
+#define OBJ_U8(o, off)  (*(u8*)((u8*)(o) + (off)))
+#define OBJ_F32(o, off) (*(f32*)((u8*)(o) + (off)))
+
+void fn_8001C234(u32* changedMask) {
+    s32 i;
+    u8* gs = (u8*)&g_d_GameSettings;
+
+    *changedMask = 0;
+    for (i = 0; i < 13; i++) {
+        u8* obj = HA_OBJ(i);
+        f32 time;
+        f32 animTime;
+        u16 bone;
+        s32 state;
+
+        if (obj == NULL) {
+            continue;
+        }
+        if (obj[0x25D] == 0) {
+            continue;
+        }
+        if (OBJ_S16(obj, 0x6A) < 600 && lbl_80366158[0x28] == 0 && highLevelSimulationFlag[0] == 0 &&
+            obj[0x26F] == 0) {
+            OBJ_S16(obj, 0x6A) = OBJ_S16(obj, 0x6A) + 1;
+        }
+        animTime = lbl_803CC4F0;
+        if (HA_OBJ(i) != NULL) {
+            bone = *(u16*)(HA_OBJ(i) + 0x16A);
+        } else {
+            bone = 0xFFFF;
+        }
+        if (bone != 0xFFFF) {
+            animTime = getActorBoneAnimTime(hugeAnimStruct.actorTable->entries[(s8)obj[0x255]].actor, bone);
+        }
+        OBJ_S16(obj, 0x68) = (s16)(animTime / OBJ_F32(obj, 0x4C));
+        if (OBJ_S16(obj, 0x70) >= 0) {
+            OBJ_S16(obj, 0x68) = OBJ_S16(obj, 0x70);
+        }
+        OBJ_S16(obj, 0x70) = -1;
+
+        state = obj[0x25E];
+        if (state == 1 || (state == 2 && OBJ_S16(obj, 0x68) == 0 && OBJ_S16(obj, 0x6A) > 1) ||
+            OBJ_S16(obj, 0x62) == -1) {
+            *changedMask |= 1 << i;
+            if (OBJ_S16(obj, 0x64) >= 0) {
+                time = (f32)OBJ_S16(obj, 0x6C);
+                if (gs[0x11] != 0 && gs[6] == 2) {
+                    fn_8001BA44(i, OBJ_S16(obj, 0x64), obj[0x260], obj[0x263], OBJ_S16(obj, 0x6C), obj[0x266], obj[0x26A]);
+                } else {
+                    fn_8001BE50(i, OBJ_S16(obj, 0x64), obj[0x260], obj[0x263], OBJ_S16(obj, 0x6C), obj[0x266], obj[0x26A]);
+                }
+                OBJ_S16(obj, 0x60) = OBJ_S16(obj, 0x62);
+                OBJ_S16(obj, 0x62) = OBJ_S16(obj, 0x64);
+                OBJ_S16(obj, 0x64) = -1;
+                obj[0x25F] = obj[0x260];
+                obj[0x262] = obj[0x263];
+                obj[0x265] = obj[0x266];
+                obj[0x269] = obj[0x26A];
+                obj[0x26C] = obj[0x26D];
+                OBJ_S16(obj, 0x6A) = 0;
+                if (OBJ_S16(obj, 0x66) >= 0) {
+                    OBJ_S16(obj, 0x64) = OBJ_S16(obj, 0x66);
+                    OBJ_S16(obj, 0x6C) = OBJ_S16(obj, 0x6E);
+                    obj[0x260] = obj[0x261];
+                    obj[0x263] = obj[0x264];
+                    obj[0x25E] = 2;
+                    obj[0x266] = obj[0x267];
+                    obj[0x26A] = obj[0x26B];
+                    obj[0x26D] = obj[0x26E];
+                    OBJ_S16(obj, 0x66) = -1;
+                    continue;
+                }
+            } else {
+                time = lbl_803CC4B8;
+            }
+            obj[0x25E] = 0;
+        } else {
+            time = fn_800B4C40(hugeAnimStruct.actorTable->entries[(s8)obj[0x255]].actor);
+        }
+        if (highLevelSimulationFlag[0] == 0) {
+            fn_8004B208(obj, OBJ_S16(obj, 0x62), stadiumCollisionRelated(gs[9], obj[0x275]), time);
+        }
+    }
+}
+
 void fn_80011578(void) {
     s8 i;
 
