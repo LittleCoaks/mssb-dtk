@@ -22,7 +22,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80011BE4 | pending | 97.96 |
 | fn_80011CA8 | pending | 66.51 |
 | fn_800126EC | pending | 84.18 |
-| LoadModel | pending | 80.22 |
+| LoadModel | pending | 98.30 |
 | fn_80012B90 | pending | 88.88 |
 | animateModelArmsGlovesBats | pending | 92.08 |
 | fn_80014204 | pending | 80.71 |
@@ -488,6 +488,18 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       from three places) -> 92.02% local, 92.06% report
   remaining (8 bytes short): rec[0x252] is reloaded for the fn_8002204C call in the target (ours keeps it), and the load / store
       scheduling around the roster bytes differs.
+
+## LoadModel [O1] (920 bytes target, 920 ours; 80.22% -> 98.30% fuzzy, unit 90.93% -> 91.21%)
+  baseline: 80.22% (864 bytes)
+  [1] the hand-item block reached through block->loaded at every use (the target re-reads the block's table pointer; no `loaded`
+      local), the requested block held in a `block` local while lbl_803CBC10 is set and passed to loadCharacterHandItem, the 0x715
+      byte through (s8), texPalette read from obj->owner after the ready test; the attach-bone link written in the do / while (j-- != 0)
+      actor-loop form with the parts walk `*--p` (as in animateModelArmsGlovesBats / fn_80011CA8) -> 95.6%
+  [2] the body under `if (lbl_803716B8.unk1E8 == 0) { ... return TRUE; } return FALSE;` (one shared failure exit as in the target),
+      the lbl_800EEAAC entry read as s16 (lhax) -> 98.04%, size exact
+  [3] local declaration order (block, partSlot, geo, texPalette, layout, i) -> 98.22% local, 98.30% report
+  remaining: obj / texPalette sit in r28 / r29 swapped, and the lbl_803CB7C4 / mulli setup before LoadActorLayout is scheduled in a
+      different order.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
