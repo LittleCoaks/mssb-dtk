@@ -6003,7 +6003,7 @@ void fn_8001E784(void) {
 #define BANK_DESC_SIZE 0x64
 #define BANK_DESC_AT(rec, k) ((rec) + 0x140 + ((k) >> 1) * 0xD4 + ((k) & 1) * BANK_DESC_SIZE)
 
-static void copyBankDesc(u8* dst, u8* src) {
+static inline void copyBankDesc(u8* dst, u8* src) {
     *(u32*)(dst + 0x0) = *(u32*)(src + 0x0);
     dst[0x60] = src[0x60];
     *(u32*)(dst + 0x4) = *(u32*)(src + 0x4);
@@ -6016,7 +6016,7 @@ static void copyBankDesc(u8* dst, u8* src) {
 }
 
 static inline void linkHandPartNode(ModelObject* cur, s32 which) {
-    u16 bone;
+    s32 bone;
 
     if (cur != NULL) {
         bone = cur->partBones[handAttachBoneIDs[which]];
@@ -6024,27 +6024,34 @@ static inline void linkHandPartNode(ModelObject* cur, s32 which) {
         bone = 0xFFFF;
     }
     if (bone != 0xFFFF) {
-        ModelOwner* owner = cur->owner;
-        s32 n = (s16)lbl_800EEAAC[cur->charId];
+        s16 n = lbl_800EEAAC[cur->charId];
+        s32 j = 0;
 
-        if (n >= 0 && owner != NULL) {
-            ModelActor* actor = (ModelActor*)cur->actors[0];
-            ModelLinkNode* node = (ModelLinkNode*)actor->nodes[bone];
-            ModelPartList* parts = ((ModelEntry*)hugeAnimStruct.modelEntries)[owner->blocks[which].slot].parts;
+        do {
+            ModelActor* actor = (ModelActor*)cur->actors[j];
 
-            if (parts != NULL) {
-                s32 i;
+            if (n >= 0 && cur->owner != NULL) {
+                ModelLinkNode* node = (ModelLinkNode*)actor->nodes[bone];
+                ModelPartList* parts =
+                    ((ModelEntry*)hugeAnimStruct.modelEntries)[cur->owner->blocks[which].slot].parts;
 
-                for (i = parts->count; i != 0; i--) {
-                    ModelLinkNode* cand = parts->nodes[i - 1];
+                if (parts != NULL) {
+                    s32 i = parts->count;
+                    ModelLinkNode** p = parts->nodes + i;
 
-                    if (cand->link != NULL) {
-                        node->link = cand->link;
-                        break;
-                    }
+                    do {
+                        ModelLinkNode* cand = *--p;
+
+                        i--;
+                        if (cand->link != NULL) {
+                            node->link = cand->link;
+                            break;
+                        }
+                    } while (i != 0);
                 }
+                return;
             }
-        }
+        } while (j-- != 0);
     }
 }
 

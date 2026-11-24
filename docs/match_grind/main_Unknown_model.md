@@ -20,7 +20,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80011A60 | pending | 92.62 |
 | fn_80011B64 | pending | 97.69 |
 | fn_80011BE4 | pending | 97.96 |
-| fn_80011CA8 | pending-WEAK | 60.01 |
+| fn_80011CA8 | pending | 66.51 |
 | fn_800126EC | pending | 84.18 |
 | LoadModel | pending | 80.22 |
 | fn_80012B90 | pending | 88.88 |
@@ -285,6 +285,21 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   not done: unifying attachHandModel with fn_80012B90's finishHandItemLoad -- the two sit under different hugeAnimStruct views (raw byte
       array here, the full struct there) and lbl_803CB7C4/lbl_803716B8 views; the bodies are now the same shape, so a shared inline is
       possible once the views are unified.
+
+## fn_80011CA8 [O1] (2628 bytes target, 2156 ours; 60.01% -> 66.51% fuzzy, unit 85.41% -> 85.70%)
+  baseline: 60.01% (2116 bytes)
+  [1] copyBankDesc made `static inline` (the target inlines all twelve copies: scalar fields + two memcpy each) -> part of the gain
+  [2] linkHandPartNode rewritten like animateModelArmsGlovesBats' linkHandAttachBone: int bone (addis compare), s16 table value tested inside
+      a `j = 0; do { ... } while (j-- != 0);` loop over cur->actors, the parts walk as `p = nodes + count; do { *--p; count--; } while (count)`
+      -> both link blocks now match the target's shape. Together with [1]: 63.16% local, 66.51% report.
+  tried, worse: descriptor pointers in the target's owner form ((slot * 3 + k / 2) * 0xD4 + 0x140, as fn_80012B90 does) for descriptors 2..5
+      everywhere (44.5%, 2492 bytes), only in the write-back (52.9%), only as copy-in sources (54.0%), and with `rec` dropped in favour of
+      HA(slot * 0x27C) at every use (43.9% / 52.4%, 2532 / 2436 bytes). They get closer in size but misalign the copy-in sequence.
+  remaining: 472 bytes short. The target recomputes hugeAnimStruct + slot*0x27C for every copy-in and keeps the descriptor memcpy pointers
+      (desc+0x10 / desc+0x34) for descriptors 2..5 live in r18..r25, computed in the owner form; the write-back switch then stores through 28
+      precomputed field addresses held on the stack (0x270..0x2C8). Ours folds everything into constant offsets from one record pointer.
+      Next idea: give the copy-in and the write-back the same owner-form descriptor pointer expressions but keep the scalar reads through
+      a separately recomputed record base (e.g. a typed records view vs. byte arithmetic), so only the memcpy addresses are shared.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
