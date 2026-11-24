@@ -7,7 +7,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 
 | function | status | % |
 |---|---|---|
-| fn_80011468 | pending | 85.15 |
+| fn_80011468 | matched | 100.00 |
 | fn_80011570 | matched | 100.00 |
 | fn_80011578 | matched | 100.00 |
 | fn_800115C8 | matched | 100.00 |
@@ -175,7 +175,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80018DEC | pending | 80.11 |
 | fn_8001E784 | pending | 97.94 |
 | fn_80011CA8 | pending | 60.01 |
-| fn_80011468 | pending | 85.15 |
+| fn_80011468 | matched | 100.00 |
 | fn_800126EC | matched | 100.00 |
 | fn_8001B4D8 | pending | 98.12 |
 | fn_80016F7C | pending | 89.54 |
@@ -557,6 +557,20 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   readability pass: done. Left as literals: `_3085 = 4`, the light count 4 (no named constant), `StadiumID + 7` minigame offset.
   lead for stadiumSetupRelated: its target shows the same swapped stack slots / registers; it is very likely the same two inlines
   plus the prop-entry loop (the inlines are defined just above fn_8001CCC8, so they would have to move above stadiumSetupRelated).
+
+## fn_80011468 [O1] (264 bytes target, 264 ours; 85.15% -> 100%, unit 91.88% -> 92.00%; fn_8001D2D4 90.92% -> 92.33% as a side effect)
+  baseline: 85.15% (268 bytes)
+  [1] Petey falls through into the Monty case (one shared updateSpecialBatAttach call) -> 87.95%, 260 bytes
+  [2] `(slot * 0x90 + 0x34)` parenthesised -> 93.79% (the +0x34 still folded into the load displacements)
+      (tried, no gain: an int offset local, u32 cast, a getActorEntry inline, the switch as an inline taking entry, repeating the
+       expression per case 52.02%)
+  [3] KEY: the entry is passed on. Target asm of fn_8004B6EC and fn_8005240C reads r4 as an ActorObjectEntry* (0x59 framePending,
+      0x5C frame, 0x0 actor), so their externs are now (void* obj, void* entry); the extra use stops the folding -> 93.64% (report)
+  [4] entry typed as `ActorObjectEntry*` = &hugeAnimStruct.actorTable->entries[obj->slot], flag as entry->actor->unk99 -> 99.62%
+  [5] updateSpecialBatAttach(obj, entry) too (target keeps entry live in r4 through the Petey fallthrough) -> 100%
+  The three extern changes also apply to fn_8001D2D4's copy of the same switch (90.92 -> 92.33).
+  readability pass: done. The unused MODEL_ENTRY_ACTOR_FLAG macro is gone. The 13 stays a literal: ANIM_OBJECT_COUNT is #undef'd
+  before this point. Note for fn_8001D2D4: its copy of the switch writes entry->actor->unk98, but the target stores 0x99 (unk99).
 
 ## Findings
 - [O1] UNIT-LEVEL ITEM FOR THE END: fn_8001B35C (99.95%) differs only in its .sdata2 float literal references

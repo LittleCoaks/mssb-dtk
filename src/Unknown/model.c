@@ -2411,7 +2411,7 @@ typedef struct {
 void challengeMapMaybe(void) {
     int i;
 
-    for (i = 0; i < ANIM_OBJECT_COUNT; i++) {
+    for (i = 0; i < 13; i++) {
         AnimObject_8001f4c0* obj = &hugeAnimStruct.pool[i];
 
         obj->_25C = 0;
@@ -2435,7 +2435,7 @@ void challengeMapMaybe(void) {
         obj->_34[5] = 0.0f;
         obj->_70 = -1;
     }
-    for (i = 0; i < ANIM_OBJECT_COUNT; i++) {
+    for (i = 0; i < 13; i++) {
         if (hugeAnimStruct.objects[i] != NULL) {
             hugeAnimStruct.objects[i]->_25C = 1;
         }
@@ -2564,41 +2564,37 @@ typedef struct ModelStateObject {
     /* 0x255 */ s8 slot;
 } ModelStateObject;
 
-extern void fn_8004B6EC(void* obj);
-extern void updateSpecialBatAttach(void* obj);
-extern void fn_8005240C(void* obj);
-
-#define MODEL_ENTRY_ACTOR_FLAG(entry) (*(u8*)(*(u8**)(entry) + 0x99))
+extern void fn_8004B6EC(void* obj, void* entry);
+extern void updateSpecialBatAttach(void* obj, void* entry);
+extern void fn_8005240C(void* obj, void* entry);
 
 void fn_80011468(void) {
     s32 i;
 
     for (i = 0; i < 13; i++) {
         ModelStateObject* obj = hugeAnimStruct.objects[i];
-        u8* entry;
+        ActorObjectEntry* entry;
 
         if (obj == NULL) {
             continue;
         }
-        entry = (u8*)hugeAnimStruct.actorTable + obj->slot * 0x90 + 0x34;
+        entry = &hugeAnimStruct.actorTable->entries[obj->slot];
         switch (obj->charId) {
         case CHAR_ID_BOWSERJR:
-            fn_8004B6EC(obj);
+            fn_8004B6EC(obj, entry);
             break;
         case CHAR_ID_GOOMBA:
         case CHAR_ID_PARAGOOMBA:
             processCharacterStateBasedOnGameMode((CharacterStateActor*)obj);
             break;
         case CHAR_ID_PETEY:
-            MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
-            updateSpecialBatAttach(obj);
-            break;
+            entry->actor->unk99 = 1;
         case CHAR_ID_MONTY:
-            updateSpecialBatAttach(obj);
+            updateSpecialBatAttach(obj, entry);
             break;
         case CHAR_ID_BOO:
         case CHAR_ID_KINGBOO:
-            fn_8005240C(obj);
+            fn_8005240C(obj, entry);
             break;
         case CHAR_ID_YOSHI:
         case CHAR_ID_WARIO:
@@ -2607,14 +2603,14 @@ void fn_80011468(void) {
         case CHAR_ID_NOKI_RED:
         case CHAR_ID_NOKI_GREEN:
         case CHAR_ID_KOOPA_RED:
-            MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
+            entry->actor->unk99 = 1;
             break;
         case CHAR_ID_PARATROOPA_RED:
         case CHAR_ID_PARATROOPA_GREEN:
             if (obj->frame == 0x40) {
-                MODEL_ENTRY_ACTOR_FLAG(entry) = 0;
+                entry->actor->unk99 = 0;
             } else {
-                MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
+                entry->actor->unk99 = 1;
             }
             break;
         }
@@ -5418,7 +5414,7 @@ void fn_8001D2D4(void) {
         entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
         switch ((s8)obj[0x252]) {
         case CHAR_ID_BOWSERJR:
-            fn_8004B6EC(obj);
+            fn_8004B6EC(obj, entry);
             break;
         case CHAR_ID_GOOMBA:
         case CHAR_ID_PARAGOOMBA:
@@ -5426,14 +5422,14 @@ void fn_8001D2D4(void) {
             break;
         case CHAR_ID_PETEY:
             entry->actor->unk98 = 1;
-            updateSpecialBatAttach(obj);
+            updateSpecialBatAttach(obj, entry);
             break;
         case CHAR_ID_MONTY:
-            updateSpecialBatAttach(obj);
+            updateSpecialBatAttach(obj, entry);
             break;
         case CHAR_ID_BOO:
         case CHAR_ID_KINGBOO:
-            fn_8005240C(obj);
+            fn_8005240C(obj, entry);
             break;
         case CHAR_ID_YOSHI:
         case CHAR_ID_WARIO:
