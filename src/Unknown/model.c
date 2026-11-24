@@ -4691,40 +4691,32 @@ int fn_80016710(int charId, int slot) {
 
 extern u8 lbl_803CBBF9;
 
-#define EFFECT_BUF(i) (lbl_80118220 + (i) * 0x64)
 
 int fn_8001500C(int team, int idx, int slot) {
-    u8* obj;
-    u8* buf;
-    s32 i;
-    s32 found;
-    s32 ok;
-    s32 result;
-    u8 charId;
-    u8* flags = lbl_803CBC34;
+    u8 result;
 
     if (*HA(0x2D77) == 1) {
         return 0;
     }
     if (*HA(0x2D77) == 2) {
-        HA_OBJ(slot) = HA(MODEL_RECORD_BASE + *HA(0x2D79) * MODEL_RECORD_SIZE);
+        hugeAnimStruct.objects[slot] = HA(*HA(0x2D79) * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE;
         *HA(0x2D8D) = 0;
         *HA(0x2D77) = 3;
     }
 
     if (*HA(0x2D77) == 3) {
         if (fn_80017340(*HA(0x2D79))) {
-            if (*HA(0x2D78) != 0 && *(u32*)(HA_OBJ(slot) + 0x2C) != 0) {
-                if (*(u32*)(HA_OBJ(slot) + 0x30) == 0) {
+            if (*HA(0x2D78) != 0 && *(u32*)(((u8*)hugeAnimStruct.objects[slot]) + 0x2C) != 0) {
+                if (*(u32*)(((u8*)hugeAnimStruct.objects[slot]) + 0x30) == 0) {
                     *HA(0x2D77) = 5;
                     return 0;
                 }
                 *HA(0x2D77) = 0;
                 return 1;
             }
-            if (flags[3] != 0) {
+            if (lbl_803CBC34[3] != 0) {
                 *HA(0x2D77) = 4;
-            } else if (flags[4] != 0 && slot == 9) {
+            } else if (lbl_803CBC34[4] != 0 && slot == 9) {
                 *HA(0x2D77) = 4;
             } else {
                 *HA(0x2D77) = 5;
@@ -4735,67 +4727,46 @@ int fn_8001500C(int team, int idx, int slot) {
     }
 
     if (*HA(0x2D77) == 4) {
-        obj = HA_OBJ(slot);
-        charId = obj[0x252];
-        found = FALSE;
+        u8* obj = (u8*)hugeAnimStruct.objects[slot];
+        u8 typeId = obj[0x252];
+        u8 found;
+
         if (lbl_803CBBF9 == 0) {
-            buf = lbl_80118220;
-            for (i = 0; (s8)buf[0x61] != -2; i++, buf += 0x64) {
-                if ((s8)charId == (s8)buf[0x60] && (s8)buf[0x61] == -1) {
-                    buf = EFFECT_BUF(i);
-                    *(u8**)(obj + 0x2C) = buf;
-                    buf[0x60] = charId;
-                    buf[0x61] = slot;
-                    *(u32*)(buf + 0x30) = *(u32*)(*(u8**)(obj + 8) + 0x10);
+            u8* q = lbl_80118220;
+            u8* p;
+            s32 i;
+            s32 count;
+            u8 c61;
+
+            for (i = 0, p = q; (s8)(c61 = p[0x61]) != -2; p += 0x64, i++) {
+                if ((s8)typeId == (s8)p[0x60] && (s8)c61 == -1) {
+                    u8* entry = lbl_80118220 + i * 0x64;
+
+                    *(u8**)(obj + 0x2C) = entry;
+                    entry[0x60] = typeId;
+                    entry[0x61] = slot;
+                    *(u32*)(entry + 0x30) = *(u32*)(*(u8**)(obj + 0x08) + 0x10);
                     found = TRUE;
+                    goto done;
+                }
+            }
+            lbl_803CBBF9 = 1;
+            for (count = 0; (s8)(c61 = q[0x61]) != -2; q += 0x64, count++) {
+                if ((s8)c61 == -1) {
                     break;
                 }
             }
-            if (!found) {
-                lbl_803CBBF9 = 1;
-                buf = lbl_80118220;
-                for (i = 0; (s8)buf[0x61] != -2; i++, buf += 0x64) {
-                    if ((s8)buf[0x61] == -1) {
-                        break;
-                    }
-                }
-                lbl_803CBC28 = i;
-            }
+            lbl_803CBC28 = count;
         }
-        if (!found) {
-            s32 k = lbl_803CBC28;
-            s32 fileIndex = lbl_800EEB18[charId];
-
-            buf = EFFECT_BUF(k);
-            buf[0x5D] = 0;
-            if (fileIndex == -1 || *(u32*)(*(u8**)(obj + 8) + 0x10) == 0) {
-                *(u32*)(obj + 0x2C) = 0;
-                ok = TRUE;
-            } else {
-                if (lbl_803CBBFA == 0) {
-                    fn_80021ADC(fileIndex, *(void**)buf);
-                    lbl_803CBBFA = 1;
-                }
-                if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                    buf = EFFECT_BUF(k);
-                    buf[0x60] = charId;
-                    buf[0x61] = slot;
-                    *(u32*)(buf + 4) = *(u32*)buf;
-                    actRelated(*(void**)(*(u8**)(obj + 8) + 0x10), buf + 4);
-                    *(u8**)(obj + 0x2C) = buf;
-                    lbl_803CBBFA = 0;
-                    ok = TRUE;
-                } else {
-                    ok = FALSE;
-                }
-            }
-            if (ok) {
-                lbl_803CBBF9 = 0;
-                found = TRUE;
-            }
+        if (loadPracticeEffect(obj, typeId, slot)) {
+            lbl_803CBBF9 = 0;
+            found = TRUE;
+        } else {
+            found = FALSE;
         }
+    done:
         if (found) {
-            if (*HA(0x2D78) != 0 && *(u32*)(HA_OBJ(slot) + 0x30) != 0) {
+            if (*HA(0x2D78) != 0 && *(u32*)((u8*)hugeAnimStruct.objects[slot] + 0x30) != 0) {
                 *HA(0x2D77) = 0;
                 return 1;
             }
@@ -4806,7 +4777,7 @@ int fn_8001500C(int team, int idx, int slot) {
     }
 
     if (*HA(0x2D77) == 5) {
-        if (animateModelArmsGlovesBats(HA_OBJ(slot))) {
+        if ((u8)animateModelArmsGlovesBats(((u8*)hugeAnimStruct.objects[slot]))) {
             *HA(0x2D77) = 0;
             return 1;
         }
@@ -4819,16 +4790,15 @@ int fn_8001500C(int team, int idx, int slot) {
         *HA(0x2D78) = fn_80017098(team, idx, 1, slot, 0, -1);
     }
     result = *HA(0x2D78);
-    if (result == 0) {
-        return result;
-    }
-    if (slot == 9) {
-        *HA(0x2D77) = 2;
-        return 0;
-    }
-    if (*(u32*)(HA_OBJ(slot) + 0x30) == 0) {
-        *HA(0x2D77) = 5;
-        return 0;
+    if (result != 0) {
+        if (slot == 9) {
+            *HA(0x2D77) = 2;
+            return 0;
+        }
+        if (*(u32*)(((u8*)hugeAnimStruct.objects[slot]) + 0x30) == 0) {
+            *HA(0x2D77) = 5;
+            return 0;
+        }
     }
     return result;
 }

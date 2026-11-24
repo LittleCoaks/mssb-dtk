@@ -32,7 +32,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | loadSomethingFromDiskAtBeginningOfAB1 | matched | 100.00 |
 | loadSomethingFromDiskAtBeginningOfAB2 | matched | 100.00 |
 | loadBatterModelFromDisk | matched | 100.00 |
-| fn_8001500C | pending | 88.99 |
+| fn_8001500C | pending | 96.83 |
 | fn_80015468 | pending | 93.57 |
 | practice_loadAllGraphics | pending | 97.25 |
 | fn_80016344 | pending | 97.49 |
@@ -166,7 +166,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001BA44 | pending | 94.59 |
 | fn_80016B60 | matched | 100.00 |
 | fn_80016710 | pending | 93.55 |
-| fn_8001500C | pending | 88.99 |
+| fn_8001500C | pending | 96.83 |
 | fn_8001AB10 | pending | 93.93 |
 | fn_80015468 | pending | 93.57 |
 | fn_80017814 | pending | 56.21 |
@@ -706,6 +706,22 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   [2] declaration order table, i, obj, entry (best of all 24) -> 99.15%
   tried, no gain: int i, obj / entry declared in the loop, the assignment inside the if, continue form (all 99.15); early return 96.81 (192).
   remaining: the loop counter and the object pointer swap r28 / r30.
+
+## fn_8001500C [O1] (1116 bytes target, 1116 ours; 88.99% -> 96.83%, unit 93.46% -> 93.61%)
+  baseline: 88.99% (1124 bytes). match_transitions.c's two-argument extern left alone.
+  [1] no `flags` pointer local (lbl_803CBC34[3] / [4] directly) and objects through hugeAnimStruct.objects[slot] -> 89.53% local
+  [2] KEY: state 4 is the same effect-buffer step as the practice code's STEP_PRACTICE_EFFECTS: the search loop with
+      `goto done` on a hit, the free-slot scan, then the existing loadPracticeEffect(obj, typeId, slot) inline (single exit, u8)
+      -> 94.67% local
+  [3] (u8) on animateModelArmsGlovesBats's result and `u8 result` for huge+0x2D78; slot passed straight through (no idxByte
+      local) with a (s8) compare of typeId -> 95.27%
+  [4] the record as HA(index * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE; both scan loops step the pointer before the counter
+      (`p += 0x64, i++`); the tail as `if (result != 0) { ... } return result;` -> 96.83% local, size exact
+  tried, no gain: the 0x715 test through (s8) in the old body (86.14), typeId as s32 (no change), a (u32) compare (96.31, 1112).
+  remaining: the target keeps hugeAnimStruct in r30 and typeId in r31 (ours r31 / r27), zero-extends typeId once before the
+      search (clrlwi), and schedules the hit-path stores slightly differently.
+  The goto here is the same one the practice macro uses: a hit in the search loop skips the load step and lands on the shared
+      `found` test; the structured form (a found flag tested after the loop) emitted an extra test per exit (S2 baseline).
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
