@@ -52,7 +52,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_800189B8 | matched | 100.00 |
 | fn_800189E4 | pending | 91.88 |
 | fn_80018B38 | matched | 100.00 |
-| fn_80018B74 | pending | 87.89 |
+| fn_80018B74 | pending | 97.50 |
 | fn_80018DEC | pending | 80.11 |
 | fn_800196D8 | matched | 100.00 |
 | fn_80019A60 | pending | 91.69 |
@@ -150,7 +150,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001758C | pending | 92.06 |
 | fn_80017340 | pending | 98.09 |
 | fn_80017DBC | pending | 90.70 |
-| fn_80018B74 | pending | 87.89 |
+| fn_80018B74 | pending | 97.50 |
 | fn_80017098 | pending | 98.15 |
 | fn_8001A3FC | exhausted | 98.61 |
 | fn_8001C234 | matched | 100.00 |
@@ -639,6 +639,18 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       camera inside the inline (95.95 / 89.46), an s32 counter with (u16) casts (99.30).
   remaining: inside the inline the shift multiply should use the loop-condition copy of mode (r25) while the calls use a second
       truncation (r24); ours uses one truncated copy for both, which renumbers r22-r25.
+
+## fn_80018B74 [O1] (632 bytes target, 632 ours; 87.89% -> 97.50%, unit 92.88% -> 92.98%)
+  baseline: 87.89% (604 bytes)
+  [1] each mode-dependent maximum compares inside both branches of its if/else (target duplicates the compare per branch) -> 88.87% (640)
+  [2] the per-slot record pointer as HA(i * MODEL_RECORD_SIZE) with MODEL_RECORD_BASE folded into each field offset (target walks
+      huge + i*0x27C and stores at 0xC14.., 0xC20..) -> 92.22%, size exact
+  [3] total as `sizeD + (sizeA + (sizeB + sizeC + sizeE)) * 4` (target adds A last as the first operand) -> 96.30%
+  [4] all 120 orders of the five max declarations: best D,E,A,B,C 97.09%; then all 120 orders of the size declarations: best
+      E,B,D,C,A -> 97.50%
+  tried, no gain: mode declared first (94.81), last / assigned late (97.50, same), no mode local (94.81).
+  remaining: volatile register numbering in the scan loop (target maxA r6 / maxD r3 / maxE r9 / mode r5) and the matching size
+      registers.
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were

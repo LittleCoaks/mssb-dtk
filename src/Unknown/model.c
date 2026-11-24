@@ -3211,16 +3211,16 @@ void fn_8001AF98(void) {
 #define ROUND_UP_32(v) (((v) + 0x1F) & ~0x1F)
 
 void fn_80018B74(void) {
+    u32 maxD = 0;
+    u32 maxE = 0;
     u32 maxA = 0;
     u32 maxB = 0;
     u32 maxC = 0;
-    u32 maxD = 0;
-    u32 maxE = 0;
-    u32 sizeA;
-    u32 sizeB;
-    u32 sizeC;
-    u32 sizeD;
     u32 sizeE;
+    u32 sizeB;
+    u32 sizeD;
+    u32 sizeC;
+    u32 sizeA;
     u8 mode = g_d_GameSettings.GameModeSelected;
     s32 i;
     u32 v;
@@ -3229,19 +3229,25 @@ void fn_80018B74(void) {
     for (i = 0; i < 54; i++) {
         if (mode == GAME_TYPE_MINIGAMES) {
             v = CHAR_RECORD_FIELD(i, 0xD4);
+            if (maxA < v) {
+                maxA = v;
+            }
         } else {
             v = CHAR_RECORD_FIELD(i, 0x44);
-        }
-        if (maxA < v) {
-            maxA = v;
+            if (maxA < v) {
+                maxA = v;
+            }
         }
         if (mode == GAME_TYPE_TOY_FIELD) {
             v = CHAR_RECORD_FIELD(i, 0xE4);
+            if (maxB < v) {
+                maxB = v;
+            }
         } else {
             v = CHAR_RECORD_FIELD(i, 0xC4);
-        }
-        if (maxB < v) {
-            maxB = v;
+            if (maxB < v) {
+                maxB = v;
+            }
         }
         v = CHAR_RECORD_FIELD(i, 0x124);
         if (maxC < v) {
@@ -3249,11 +3255,14 @@ void fn_80018B74(void) {
         }
         if (mode == GAME_TYPE_MINIGAMES) {
             v = CHAR_RECORD_FIELD(i, 0x94);
+            if (maxD < v) {
+                maxD = v;
+            }
         } else {
             v = CHAR_RECORD_FIELD(i, 0x24);
-        }
-        if (maxD < v) {
-            maxD = v;
+            if (maxD < v) {
+                maxD = v;
+            }
         }
         v = CHAR_RECORD_FIELD(i, 0x104);
         if (maxE < v) {
@@ -3271,13 +3280,13 @@ void fn_80018B74(void) {
     HA_U32(0x2C9C) = sizeC;
     HA_U32(0x2C90) = sizeD;
     HA_U32(0x2CA4) = sizeE;
-    HA_U32(0x2D60) = sizeD + (sizeA + sizeB + sizeC + sizeE) * 4;
+    HA_U32(0x2D60) = sizeD + (sizeA + (sizeB + sizeC + sizeE)) * 4;
     cursor = (u32)_OSAllocFromHeap(0x20, HA_U32(0x2D60));
     HA_U32(0x2C88) = cursor;
 
     for (i = 0; i < 4; i++) {
         u8* set = HA(i * 0x14);
-        u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
+        u8* rec = HA(i * MODEL_RECORD_SIZE);
 
         *(u32*)(set + 0x2CEC) = cursor;
         cursor += sizeA;
@@ -3293,12 +3302,12 @@ void fn_80018B74(void) {
         }
         *(u32*)(set + 0x2CFC) = cursor;
         cursor += sizeE;
-        *(u32*)(rec + 0x10) = 0;
-        *(u32*)(rec + 0x1C) = 0;
-        *(u32*)(rec + 0x20) = 0;
-        *(u32*)(rec + 0x14) = 0;
-        *(u32*)(rec + 0x18) = 0;
-        *(u32*)(rec + 0x24) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x10) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x1C) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x20) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x14) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x18) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x24) = 0;
     }
     *(s16*)HA(0x2D68) = -1;
 }
