@@ -35,8 +35,8 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001500C | pending | 88.99 |
 | fn_80015468 | pending | 93.57 |
 | practice_loadAllGraphics | pending | 97.25 |
-| fn_80016344 | pending | 77.25 |
-| fn_80016710 | pending | 93.51 |
+| fn_80016344 | pending | 97.49 |
+| fn_80016710 | pending | 93.55 |
 | fn_80016B60 | matched | 100.00 |
 | fn_80016F7C | pending | 89.54 |
 | fn_80017098 | pending | 78.84 |
@@ -160,12 +160,12 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001E0D8 | pending | 89.80 |
 | fn_800145F8 | pending | 39.48 |
 | fn_8001F8A4 | pending | 86.06 |
-| fn_80016344 | pending | 77.25 |
+| fn_80016344 | pending | 97.49 |
 | fn_8001BE50 | pending | 81.43 |
 | fn_80014204 | pending | 49.62 |
 | fn_8001BA44 | pending | 79.40 |
 | fn_80016B60 | matched | 100.00 |
-| fn_80016710 | pending | 93.51 |
+| fn_80016710 | pending | 93.55 |
 | fn_8001500C | pending | 88.99 |
 | fn_8001AB10 | pending | 93.93 |
 | fn_80015468 | pending | 93.57 |
@@ -411,6 +411,20 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   tried, no gain: light initialised at the declaration / in the for header / inside the 0x3085 block.
   remaining: 4 bytes over -- the light pointer is copied into a saved register (`mr`) instead of being loaded straight into it, plus
       add/addi ordering in three entry address computations.
+
+## fn_80016344 [O1] (972 bytes target, 972 ours; 77.25% -> 97.49% fuzzy; fn_80016710 93.51% -> 93.55% as a side effect, unit 89.32% -> 89.65%)
+  baseline: 77.25% (932 bytes)
+  [1] fn_80016710's recipe: typed HA_SLOTS addressing, the non-slot-12 state-3 branch is exactly loadSlotAnimBank (moved above this
+      function so both can use it), the slot-12 branch as a sibling inline loadExtraSlotAnimBank (0x2CBC buffer, file +0x11),
+      state 4 as one attach block with the no-part case in the condition and a u8 result, state 5 with a (u8) test -> 95.06%
+  [2] state 2 through hugeAnimStruct.objects[slot] (the model.c base struct) for the store and both byte writes (HA_SLOTS.objects adds an
+      extra address register, HA_OBJ is 94.7) -> 95.68%
+  [3] the final rec+0x2C store through HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE): the target recomputes the record base there
+      instead of reusing it -> 96.54%, size exact (reading the part pointer as ((u8**)pool[slot])[2] scores 96.95 but is 968 bytes; not kept)
+  [4] loadSlotAnimBank reads the per-slot bank as ((u32*)HA(0x2CFC))[slot * 5] (base + index order) -> 97.04% local, 97.49% report;
+      fn_80016710 (the other user) rises to 93.55
+  remaining: register numbering (one more saved register in ours for the rec+8 pointer) and the clrlslwi/rlwinm spelling of the
+      lbl_800EEB18 index (same instruction).
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
