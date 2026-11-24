@@ -40,7 +40,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80016B60 | matched | 100.00 |
 | fn_80016F7C | pending | 89.54 |
 | fn_80017098 | pending | 98.15 |
-| fn_80017340 | pending | 81.76 |
+| fn_80017340 | pending | 98.09 |
 | fn_8001758C | pending | 92.06 |
 | fn_800177B4 | pending | 99.00 |
 | fn_80017814 | pending | 92.88 |
@@ -148,7 +148,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001CCC8 | pending | 84.25 |
 | fn_8001DB74 | pending | 87.81 |
 | fn_8001758C | pending | 92.06 |
-| fn_80017340 | pending | 81.76 |
+| fn_80017340 | pending | 98.09 |
 | fn_80017DBC | pending | 90.70 |
 | fn_80018B74 | pending | 87.89 |
 | fn_80017098 | pending | 98.15 |
@@ -508,6 +508,16 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   [2] the anim parameter as an int (the target tests it with a plain cmpwi; both extern declarations in model.c updated, callers
       unchanged) -> 96.83% local, 96.87% report, size exact
   remaining: the same two-register object copy and clear-path ordering differences as fn_8001BA44.
+
+## fn_80017340 [O1] (588 bytes target, 588 ours; 81.76% -> 98.09% fuzzy, unit 91.43% -> 91.59%)
+  baseline: 81.76% (592 bytes)
+  [1] KEY: the scan / allocate path under `if (*HA(0x2D8D) == 0) { ... }` with the ready test as `else if` and one shared
+      `return FALSE` (the target's single failure exit), the record through HA_SLOTS.pool[slot] (the view definition moved up again,
+      above this function), the 0x715 byte through (s8) -> 94.99%, size exact
+  [2] the per-slot bank table read as `((u32*)HA(0x2CB0))[j]` / `[free]` (base + index order) -> 96.69%
+  [3] j declared before i -> 97.03% local, 98.09% report
+  tried, worse: the object slot through hugeAnimStruct.objects[9 + i] (92.7 / 94.4 with the table change).
+  remaining: register numbering in the nested search loop.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
