@@ -106,7 +106,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | resetGameStadiumStateOnExit | pending | 94.06 |
 | challengeMapMaybe | matched | 100.00 |
 | somethingFileHandlingLoadingRelated | pending | 95.51 |
-| fn_8001F8A4 | pending | 86.06 |
+| fn_8001F8A4 | pending | 98.70 |
 | initShortsHandleCompressedDiskReads | matched | 100.00 |
 | fn_8001FDD4 | matched | 100.00 |
 
@@ -159,7 +159,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_800196D8 | pending | 86.33 |
 | fn_8001E0D8 | pending | 89.80 |
 | fn_800145F8 | pending | 39.48 |
-| fn_8001F8A4 | pending | 86.06 |
+| fn_8001F8A4 | pending | 98.70 |
 | fn_80016344 | pending | 97.49 |
 | fn_8001BE50 | pending | 96.87 |
 | fn_80014204 | pending | 49.62 |
@@ -571,6 +571,21 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   The three extern changes also apply to fn_8001D2D4's copy of the same switch (90.92 -> 92.33).
   readability pass: done. The unused MODEL_ENTRY_ACTOR_FLAG macro is gone. The 13 stays a literal: ANIM_OBJECT_COUNT is #undef'd
   before this point. Note for fn_8001D2D4: its copy of the switch writes entry->actor->unk98, but the target stores 0x99 (unk99).
+
+## fn_8001F8A4 [O1] (936 bytes target, 936 ours; 86.06% -> 98.70%, unit 92.00% -> 92.19%)
+  baseline: 86.06% (920 bytes)
+  [1] the final clear loop reads HA_U32(0x2D90) afresh for every store (no cached base), with the float through `zero = lbl_803CC4B8`
+      assigned once before the loop (target hoists one lfs and recomputes base per store) -> 94.33%, size exact
+      (no zero local 90.49 / 952 bytes; zero assigned before the alloc 90.51)
+  [2] set as u8 (target cmplwi) -> folded into [1]
+  [3] the "else" fn_800BD548 call passes four trailing zeros, not five (variadic; target sets r4..r7 only) -> 94.76%
+  [4] the layout index through `idx = set * 3` (target mulli 3 then slwi 2) -> 95.17%
+  [5] `zero = lbl_803CC4B8` moved after `entry->seqNum = 0` -> 95.75%; `anim = entry->anim` read first, flags from it -> 98.01%;
+      zero assigned right after the entry pointer -> 98.55%
+  [6] declarations tex, geo, layout (first-loop register order) -> 98.70%; locals as void* (casts at the table reads) same score, kept
+  tried, no gain: framePending/speedPending order and split forms (93.46 / 94.74), a flag local (97.84), no table local, a setEntryAnimation
+      inline (95.32), other layout/geo/tex orders, i last, zero first, a separate counter for the first loop (98.29-98.44), geo as s32.
+  remaining: first loop i <-> geo register swap (r31/r28); set loads into r3 instead of r0; the lfs zero / li order in the entry block.
 
 ## Findings
 - [O1] UNIT-LEVEL ITEM FOR THE END: fn_8001B35C (99.95%) differs only in its .sdata2 float literal references

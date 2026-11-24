@@ -4002,26 +4002,26 @@ extern u8 lbl_800EEA58[];
 
 void fn_8001F8A4(void) {
     s32 i;
-    s32 set;
-    u32 layout;
-    u32 geo;
-    u32 tex;
-    u8* actorSet;
+    u8 set;
+    s32 idx;
+    void* tex;
+    void* geo;
+    void* layout;
     f32 zero;
 
     for (i = 0; i < 24; i++) {
-        layout = OFFSET_TABLE[i * 3];
-        geo = OFFSET_TABLE[i * 3 + 1];
-        tex = OFFSET_TABLE[i * 3 + 2];
-        LoadActorLayout((void*)layout);
-        convertGeometryAndSknHeader((void*)geo, NULL);
-        haveActLayoutPointToGeoHeader((void*)layout, (void*)geo);
+        layout = (void*)OFFSET_TABLE[i * 3];
+        geo = (void*)OFFSET_TABLE[i * 3 + 1];
+        tex = (void*)OFFSET_TABLE[i * 3 + 2];
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
         if (i == 11) {
-            tex = OFFSET_TABLE[0x80 / 4];
+            tex = (void*)OFFSET_TABLE[0x80 / 4];
         } else {
-            convertTextureHeader((void*)tex);
+            convertTextureHeader(tex);
         }
-        UpdateTexturePalettePointers((void*)geo, (void*)tex);
+        UpdateTexturePalettePointers(geo, tex);
     }
     ANIMGet((void*)OFFSET_TABLE[0x120 / 4]);
     adjustInternalPointers((void*)OFFSET_TABLE[0x130 / 4]);
@@ -4037,20 +4037,23 @@ void fn_8001F8A4(void) {
     for (i = 0; i < 25; i++) {
         ActorObjectTable* table;
         ActorObjectEntry* entry;
+        void* anim;
 
         set = lbl_800EEA58[i];
-        layout = OFFSET_TABLE[set * 3];
+        idx = set * 3;
+        layout = (void*)OFFSET_TABLE[idx];
         if (set < 16) {
-            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, (void*)layout, 0, 0);
+            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, layout, 0, 0);
         } else {
-            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, (void*)layout, OFFSET_TABLE[0x120 / 4], 0);
+            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, layout, OFFSET_TABLE[0x120 / 4], 0);
             table = (ActorObjectTable*)HA_U32(0x64);
             entry = &table->entries[i];
             zero = lbl_803CC4B8;
+            anim = entry->anim;
             entry->seqNum = 0;
             entry->frame = zero;
             entry->animPending = 1;
-            entry->framePending = entry->speedPending = (entry->anim != NULL);
+            entry->speedPending = entry->framePending = (anim != NULL);
             entry->blendTime = zero;
             ACTSetAnimation(entry->actor, entry->anim, NULL, entry->seqNum, zero, entry->blendTime);
             updateBoneParam(entry->actor, 0);
@@ -4060,7 +4063,7 @@ void fn_8001F8A4(void) {
             fn_800BD548(&((ActorObjectTable*)HA_U32(0x64))->entries[i], 4, HA_U32(0xAC), HA_U32(0xB0), HA_U32(0xB4),
                         HA_U32(0xB8));
         } else {
-            fn_800BD548(&((ActorObjectTable*)HA_U32(0x64))->entries[i], 0, 0, 0, 0, 0);
+            fn_800BD548(&((ActorObjectTable*)HA_U32(0x64))->entries[i], 0, 0, 0, 0);
         }
         CTRLSetTranslation(&((ActorObjectTable*)HA_U32(0x64))->entries[i].control, lbl_803CC4B8, lbl_803CC4B8,
                            lbl_803CC4B8);
@@ -4074,15 +4077,14 @@ void fn_8001F8A4(void) {
     }
 
     HA_U32(0x2D90) = (u32)_OSAllocFromHeap(0x20, 1000);
+    zero = lbl_803CC4B8;
     for (i = 0; i < 25; i++) {
-        u8* base = (u8*)HA_U32(0x2D90);
-
-        *(f32*)(base + i * 0x28 + 4) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 8) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 0xC) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 0x10) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 0x14) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 0x18) = lbl_803CC4B8;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 4) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 8) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 0xC) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 0x10) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 0x14) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 0x18) = zero;
         ((u8*)HA_U32(0x2D90))[i * 0x28 + 0x26] = 0;
         *(u32*)((u8*)HA_U32(0x2D90) + i * 0x28) = 0;
     }
