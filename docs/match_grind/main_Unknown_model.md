@@ -47,7 +47,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80017D28 | pending | 88.11 |
 | fn_80017DBC | pending | 90.70 |
 | setupAnimationModelMemory | pending | 85.74 |
-| animationInitializationRunnerRelated | pending-WEAK | 70.75 |
+| animationInitializationRunnerRelated | pending | 84.68 |
 | fn_800188C0 | matched | 100.00 |
 | fn_800189B8 | matched | 100.00 |
 | fn_800189E4 | pending | 91.88 |
@@ -342,6 +342,21 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   tried, no gain: OBJ_SLOT as a u8** array index, typeId as s32 with (u8) casts, the count loop as a for with break (vs while).
   remaining: typeId is re-zero-extended in the target (clrlwi before the match loop, clrlslwi for the lbl_800EEB18 index); register numbering
       (base r28/r29 vs ours r29/r30); the lineUp / inMemRoster address setup order in the release loop.
+
+## animationInitializationRunnerRelated [O1] (1616 bytes target, 1680 ours; 70.75% -> 84.68% fuzzy, unit 87.12% -> 87.49%)
+  baseline: 70.75% (1736 bytes)
+  [1] CORRECTNESS FIX: the draft sized the pools with `(a >> 5)` where the target uses aUp * 4 (`extlwi rX,rY,25,2` = ((maxA + 31) >> 5) << 7):
+      mode 2 allocates aUp * 4 + 0x13E80, the other modes bUp * 9 + aUp * 4 + aUp + bUp. The old draft computed a different value.
+  [2] the roster scans use byte addressing `*(u32*)(base + (charId * 19 + k) * 16 + 4)` (file entry 0 / 1 of the character's 19-entry
+      block), giving the target's mulli 0x130 / (mulli 0x13; addi 1; slwi 4) + lwzx forms; same for the all-characters B scan -> 75.6%
+  [3] int `i` (the 1..8 alloc loop compares signed) and the mode-2 buffer carve as a running `base += aUp` like the other branch -> 77.9%
+  [4] the nine-slot buffer loop counted with a u8 (`slot`) -> 84.68% report (s32 81.6, s16 79.6, u32 no change)
+  tried, no gain: separate/typed counters for the 13-slot clear loop (u32/s32/u8/s16 all <= 79.0), chain-initialised counters
+      (`i = n = 0`), a shared zero variable for the clear loop, a chained double store.
+  remaining (64 bytes over): the target fully unrolls the nine-slot carve (constant offsets 0xC0C..0x1FEC) behind a `cmpwi r0,9` guard and
+      the 13-slot clear as 12 straight stores + a remainder loop behind a `cmpwi r6,13` guard (both guards on a register holding the
+      loop's 0, the clear loop's 0 shared with the stored value); ours unrolls both partially. Also the mode-0 scan's team counter is a
+      copy of maxA's 0 in the target (`mr r9,r31`).
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too

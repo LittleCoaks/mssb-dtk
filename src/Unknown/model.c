@@ -1230,16 +1230,16 @@ typedef u8 hugeAnimStruct_view_80018270[];
 void animationInitializationRunnerRelated(int mode) {
     u32 maxA = 0;
     u32 maxB = 0;
-    u32 i;
+    int i;
     u32 n;
     u32 v;
     u32 base;
-    u32 a;
     u32 aUp;
     u32 bUp;
     u32 size;
     int t;
     int p;
+    u8 slot;
 
     if (mode == 2) {
         base = (u32)_OSAllocFromHeap(0x20, 0x13E80);
@@ -1256,16 +1256,19 @@ void animationInitializationRunnerRelated(int mode) {
             }
         }
 
-        a = maxA + 0x1F;
-        aUp = a & ~0x1F;
-        size = (a >> 5) + 0x13E80;
+        aUp = (maxA + 0x1F) & ~0x1F;
+        size = aUp * 4 + 0x13E80;
         base = (u32)_OSAllocFromHeap(0x20, size);
         HUGE_U32(0x2268) = base;
-        HUGE_U32(0x24E4) = base + aUp;
-        HUGE_U32(0x2760) = base + aUp * 2;
-        HUGE_U32(0x29DC) = base + aUp * 3;
+        base += aUp;
+        HUGE_U32(0x24E4) = base;
+        base += aUp;
+        HUGE_U32(0x2760) = base;
+        base += aUp;
+        HUGE_U32(0x29DC) = base;
+        base += aUp;
         HUGE_U32(0x2D64) = size;
-        HUGE_U32(0x2D3C) = base + aUp * 4;
+        HUGE_U32(0x2D3C) = base;
         HUGE_U32(0x2D40) = 0x13E80;
         HUGE_S16(0x2D44) = -1;
         HUGE_U8(0x2D46) = 0;
@@ -1273,7 +1276,7 @@ void animationInitializationRunnerRelated(int mode) {
         if (mode == 0) {
             for (t = 0; t < TEAMS_PER_GAME; t++) {
                 for (p = 0; p < PLAYERS_PER_TEAM; p++) {
-                    v = CHAR_RECORD_U32(inMemRoster[t][p].stats.CharID, 0x4) & 0x0FFFFFFF;
+                    v = *(u32 *)((u8 *)lbl_803CB790 + (inMemRoster[t][p].stats.CharID * 19) * 16 + 4) & 0x0FFFFFFF;
                     if (maxA < v) {
                         maxA = v;
                     }
@@ -1281,7 +1284,7 @@ void animationInitializationRunnerRelated(int mode) {
             }
             for (t = 0; t < TEAMS_PER_GAME; t++) {
                 for (p = 0; p < PLAYERS_PER_TEAM; p++) {
-                    v = CHAR_RECORD_U32(inMemRoster[t][p].stats.CharID, 0x14) & 0x0FFFFFFF;
+                    v = *(u32 *)((u8 *)lbl_803CB790 + (inMemRoster[t][p].stats.CharID * 19 + 1) * 16 + 4) & 0x0FFFFFFF;
                     if (maxB < v) {
                         maxB = v;
                     }
@@ -1295,7 +1298,7 @@ void animationInitializationRunnerRelated(int mode) {
                 }
             }
             for (n = 0; n < CHAR_RECORD_COUNT; n++) {
-                v = CHAR_RECORD_U32(n, 0x14) & 0x0FFFFFFF;
+                v = *(u32 *)((u8 *)lbl_803CB790 + (n * 19 + 1) * 16 + 4) & 0x0FFFFFFF;
                 if (maxB < v) {
                     maxB = v;
                 }
@@ -1303,14 +1306,13 @@ void animationInitializationRunnerRelated(int mode) {
         }
 
         bUp = (maxB + 0x1F) & ~0x1F;
-        a = maxA + 0x1F;
-        aUp = a & ~0x1F;
-        size = bUp * 9 + (a >> 5) + aUp + bUp;
+        aUp = (maxA + 0x1F) & ~0x1F;
+        size = bUp * 9 + aUp * 4 + aUp + bUp;
         base = (u32)_OSAllocFromHeap(0x20, size);
         HUGE_U32(0x2C8C) = base;
         HUGE_U32(0x2D64) = size;
-        for (i = 0; i < 9; i++) {
-            HUGE_U32(0xC0C + i * OBJECT_SLOT_STRIDE) = base;
+        for (slot = 0; slot < 9; slot++) {
+            HUGE_U32(0xC0C + slot * OBJECT_SLOT_STRIDE) = base;
             base += bUp;
         }
         HUGE_U32(0x2268) = base;
