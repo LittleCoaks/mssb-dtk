@@ -69,7 +69,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001B224 | pending | 97.53 |
 | copyAnimationStructures | matched | 100.00 |
 | fn_8001B308 | pending | 93.57 |
-| fn_8001B35C | pending | 83.65 |
+| fn_8001B35C | pending | 99.95 |
 | fn_8001B4D8 | pending | 98.12 |
 | fn_8001B5EC | pending | 91.52 |
 | getAnimationCollisionOffset | matched | 100.00 |
@@ -142,7 +142,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001DEA4 | matched | 100 |
 | fn_8001AF98 | matched | 100 |
 | fn_800189E4 | pending | 91.88 |
-| fn_8001B35C | pending | 83.65 |
+| fn_8001B35C | pending | 99.95 |
 | fn_80019A60 | pending | 91.69 |
 | fn_8001A25C | pending | 91.69 |
 | fn_8001CCC8 | pending | 84.25 |
@@ -518,6 +518,19 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   [3] j declared before i -> 97.03% local, 98.09% report
   tried, worse: the object slot through hugeAnimStruct.objects[9 + i] (92.7 / 94.4 with the table change).
   remaining: register numbering in the nested search loop.
+
+## fn_8001B35C [O1] (380 bytes target, 380 ours; 83.65% -> 99.95% fuzzy, unit 91.59% -> 91.70%)
+  baseline: 83.65% (376 bytes)
+  [1] bone as s32 (addis/cmplwi 0xffff test) and switch arms in order case 1, case 0, case 2 -> 85.84%, size exact
+  [2] KEY: both step loops as `for (;;) { if (cond) break; ... }` (target tests at the loop top, no rotation) -> 96.11%
+      (while (1) same; goto form for the first loop 89.68%)
+  [3] the bone / height block wrapped in a second `if (obj != NULL) { ... }` (target's redundant `beq` pair) -> 97.16%, size exact
+  [4] part declared before steps -> 99.47%
+  [5] `diff = v.y; diff += obj->pos.y;` (v.y lands in f2) -> 99.58% local, 99.95% report
+  tried, no gain: limit/diff order, `diff -= pos.y`, Vec v first, ternary for bone, steps/part assigned late,
+      `return steps` on NULL; `obj->pos.y + v.y` 97.03; the height block as a static inline returning f32 98.32 (384 bytes).
+  remaining: only the sdata2 float literal relocations (@1097/@1985/@1986/@1736/@1987 vs lbl_803CC4B8/4F8/4FC/4D0/500),
+      a unit-level pool naming/ordering issue, not code.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
