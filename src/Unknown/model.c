@@ -2710,15 +2710,15 @@ BOOL fn_80016F7C(void) {
         *HA(0x2D8D) = 0;
         *HA(0x2D88) = 0;
     }
-    do {
+    for (;;) {
         s8 cur = *HA(0x2D88);
 
-        if (!fn_80016B60(MODEL_RECORD(cur))) {
-            return FALSE;
+        if (!fn_80016B60(HA(cur * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE)) {
+            break;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            u32* src = (u32*)MODEL_RECORD((s8)*HA(0x2D88));
-            u32* dst = (u32*)MODEL_RECORD((s8)*HA(0x2D88) + 4);
+            u32* src = (u32*)(HA((s8)*HA(0x2D88) * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE);
+            u32* dst = (u32*)(HA(((s8)*HA(0x2D88) + 4) * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE);
 
             dst[4] = src[4];
             dst[5] = src[5];
@@ -2729,8 +2729,11 @@ BOOL fn_80016F7C(void) {
             dst[10] = src[10];
         }
         (*HA(0x2D88))++;
-    } while ((s8)*HA(0x2D88) < 4);
-    return TRUE;
+        if ((s8)*HA(0x2D88) >= 4) {
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 void fn_8001DD58(Actor* actor, int group, MtxPtr camera, u8 numLights, ...) {

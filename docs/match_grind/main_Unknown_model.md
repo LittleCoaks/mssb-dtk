@@ -38,7 +38,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80016344 | pending | 97.49 |
 | fn_80016710 | pending | 93.55 |
 | fn_80016B60 | matched | 100.00 |
-| fn_80016F7C | pending | 89.54 |
+| fn_80016F7C | matched | 100.00 |
 | fn_80017098 | pending | 98.15 |
 | fn_80017340 | pending | 98.09 |
 | fn_8001758C | pending | 92.06 |
@@ -178,7 +178,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80011468 | matched | 100.00 |
 | fn_800126EC | matched | 100.00 |
 | fn_8001B4D8 | pending | 98.12 |
-| fn_80016F7C | pending | 89.54 |
+| fn_80016F7C | matched | 100.00 |
 | fn_8001B5EC | pending | 91.52 |
 
 ## fn_8001A3FC [O1] (692 bytes target, 692 ours; 35.90% -> 98.61% fuzzy, unit 80.28% -> 81.01%)
@@ -722,6 +722,15 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       search (clrlwi), and schedules the hit-path stores slightly differently.
   The goto here is the same one the practice macro uses: a hit in the search loop skips the load step and lands on the shared
       `found` test; the structured form (a found flag tested after the loop) emitted an extra test per exit (S2 baseline).
+
+## fn_80016F7C [O1] (284 bytes target, 284 ours; 89.54% -> 100%, unit 93.61% -> 93.66%)
+  baseline: 89.54%
+  [1] the record pointers as HA(index * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE (target adds the 0xC04 after the base, and keeps
+      it out of the copy displacements) -> 94.23%
+  [2] KEY: the loop as `for (;;) { if (!fn_80016B60(...)) break; ...; if (++count >= 4) return TRUE; } return FALSE;` (target places
+      the FALSE exit last) -> 100%. (A do/while with `goto fail` also gives 100%; kept the structured form. A single `ret` variable:
+      94.23; the body inside if/else: 89.92.)
+  readability pass: done (no enum-shaped literals beyond GAME_TYPE_TOY_FIELD, already named).
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
