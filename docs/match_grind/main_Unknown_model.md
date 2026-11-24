@@ -54,7 +54,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80018B38 | matched | 100.00 |
 | fn_80018B74 | pending | 87.89 |
 | fn_80018DEC | pending | 80.11 |
-| fn_800196D8 | pending | 86.33 |
+| fn_800196D8 | matched | 100.00 |
 | fn_80019A60 | pending | 91.69 |
 | fn_80019C00 | pending | 99.51 |
 | fn_8001A25C | pending | 91.69 |
@@ -156,7 +156,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001C234 | matched | 100.00 |
 | fn_8001E488 | pending | 97.30 |
 | fn_80014A18 | pending | 94.58 |
-| fn_800196D8 | pending | 86.33 |
+| fn_800196D8 | matched | 100.00 |
 | fn_8001E0D8 | pending | 89.80 |
 | fn_800145F8 | pending | 39.48 |
 | fn_8001F8A4 | pending | 98.70 |
@@ -604,6 +604,18 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       (an lbl_80366158 pointer local helped only while gs existed; declaration permutations of obj / i / hl / gs: <= 99.60)
   readability pass: done (named GameInitVariables fields replace gs[0x11] / gs[6] / gs[9]; the object fields stay OBJ_S16 offsets,
   no struct for them yet; 600 = the 0x6A counter cap, no named constant).
+
+## fn_800196D8 [O1] (904 bytes target, 904 ours; 86.33% -> 100%, unit 92.37% -> 92.57%)
+  baseline: 86.33% (924 bytes)
+  [1] the offset relocation as one plain loop: `base = HA_U32(0x2C84); for (i = 0; i < 80; i++) table[i] = base + ((u32*)base)[i];`
+      with the table reloaded for every store (the compiler does the 8x unroll) -> 98.91%, 912 bytes
+  [2] switch on the u8 state directly (no s8 cast; target lbz + cmpwi) -> 99.42%, 908 bytes
+  [3] KEY: the light direction / shadow enable / relocation block as `static inline void enableStadiumShadows(void)` (own dir, len,
+      i, base) -> 100% (the inline without the relocation loop: 99.49%, 908 bytes; the extra Vec copy for the by-value call is
+      codegen-neutral and was dropped)
+  readability pass: done (huge+0x307B/0x307C/... byte flags have no names yet; task bytes +0x14/+0x16/+0x17 left as offsets).
+  lead: challengeMapRelated case 6 and fn_80019C00 state 5 carry the same block; enableStadiumShadows sits just above
+  fn_800196D8, so it would have to move above challengeMapRelated (which uses a different lbl_80367318 view) to be shared.
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were

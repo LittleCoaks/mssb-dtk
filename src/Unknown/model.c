@@ -3780,17 +3780,38 @@ int fn_80015468(int team) {
 
 extern void fn_8001F8A4(void);
 
+static inline void enableStadiumShadows(void) {
+    Vec dir;
+    f32 len;
+    s32 i;
+    u32 base;
+
+    dir.x = -lbl_80367318[0].pos.x;
+    dir.y = -lbl_80367318[0].pos.y;
+    dir.z = -lbl_80367318[0].pos.z;
+    len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
+    *HA(0x3087) = 1;
+    dir.x /= len;
+    dir.y /= len;
+    dir.z /= len;
+    fn_8003A540(0);
+    *HA(0x3086) = 1;
+    DrawShadows(1);
+    updateVectorInArray(0, dir);
+    fn_800BF048(fn_8001AAF0);
+    fn_800BF058(fn_8001AB10);
+    base = HA_U32(0x2C84);
+    for (i = 0; i < 80; i++) {
+        ((u32*)HA_U32(0x2C84))[i] = base + ((u32*)base)[i];
+    }
+}
+
 void fn_800196D8(void) {
     DrawingSceneStruct* item = currentDrawingItem;
     u8* itemState = (u8*)item + 0x14;
     DrawingSceneStruct* fresh;
-    Vec dir;
-    Vec copy;
-    f32 len;
-    s32 i;
-    s32 k;
 
-    switch ((s8)*itemState) {
+    switch (*itemState) {
     case 0:
         fresh = insertGraphicDrawingFunction(fn_800188C0, 0);
         *((u8*)fresh + 0x14) = 0;
@@ -3805,26 +3826,7 @@ void fn_800196D8(void) {
         }
         break;
     case 2:
-        dir.x = -lbl_80367318[0].pos.x;
-        dir.y = -lbl_80367318[0].pos.y;
-        dir.z = -lbl_80367318[0].pos.z;
-        len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
-        *HA(0x3087) = 1;
-        dir.x /= len;
-        dir.y /= len;
-        dir.z /= len;
-        fn_8003A540(0);
-        *HA(0x3086) = 1;
-        DrawShadows(1);
-        copy = dir;
-        updateVectorInArray(0, copy);
-        fn_800BF048(fn_8001AAF0);
-        fn_800BF058(fn_8001AB10);
-        for (i = 0; i < 80; i += 8) {
-            for (k = 0; k < 8; k++) {
-                ((u32*)HA_U32(0x2C84))[i + k] += HA_U32(0x2C84);
-            }
-        }
+        enableStadiumShadows();
         *HA(0x307C) = 0;
         *HA(0x307D) = 0;
         *HA(0x3082) = 0;
