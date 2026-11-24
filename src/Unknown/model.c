@@ -5639,14 +5639,11 @@ void fn_80018DEC(int mode) {
     if (mode == 2) {
         u8* rec = files;
 
-        for (i = 0; i < 18; i++) {
-            for (j = 0; j < 3; j++) {
-                TRACK_MAX(m3, rec + j * 0x130, 0xA4);
-                TRACK_MAX(m4, rec + j * 0x130, 0xB4);
-                TRACK_MAX(m6, rec + j * 0x130, 0x124);
-                TRACK_MAX(m8, rec + j * 0x130, 0x44);
-            }
-            rec += 0x390;
+        for (i = 0; i < 54; i++, rec += 0x130) {
+            TRACK_MAX(m3, rec, 0xA4);
+            TRACK_MAX(m4, rec, 0xB4);
+            TRACK_MAX(m6, rec, 0x124);
+            TRACK_MAX(m8, rec, 0x44);
         }
         for (i = 1; i < 9; i++) {
             u8* ch = files + *(s16*)((u8*)&inMemRoster[0][i] + 0x24) * 0x130;
@@ -5669,15 +5666,12 @@ void fn_80018DEC(int mode) {
     } else {
         u8* rec = files;
 
-        for (i = 0; i < 27; i++) {
-            for (j = 0; j < 2; j++) {
-                TRACK_MAX(m3, rec + j * 0x130, 0x24);
-                TRACK_MAX(m4, rec + j * 0x130, 0x34);
-                TRACK_MAX(m5, rec + j * 0x130, 0x44);
-                TRACK_MAX(m6, rec + j * 0x130, 0x54);
-                TRACK_MAX(m7, rec + j * 0x130, 0x64);
-            }
-            rec += 0x260;
+        for (i = 0; i < 54; i++, rec += 0x130) {
+            TRACK_MAX(m3, rec, 0x24);
+            TRACK_MAX(m4, rec, 0x34);
+            TRACK_MAX(m5, rec, 0x44);
+            TRACK_MAX(m6, rec, 0x54);
+            TRACK_MAX(m7, rec, 0x64);
         }
     }
 
@@ -5694,10 +5688,11 @@ void fn_80018DEC(int mode) {
     HA_U32(0x2C98) = sizeE;
     if (mode == 2) {
         total = sizeB * 4 + sizeE * 8 + sizeD + sizeC + sizeG + sizeA + sizeA;
+        HA_U32(0x2C88) = (u32)_OSAllocFromHeap(0x20, total);
     } else {
         total = sizeB * 4 + sizeE * 9 + sizeC + sizeG + sizeA + sizeA;
+        HA_U32(0x2C88) = (u32)_OSAllocFromHeap(0x20, total);
     }
-    HA_U32(0x2C88) = (u32)_OSAllocFromHeap(0x20, total);
     HA_U32(0x2D60) = total;
 
     cursor = HA_U32(0x2C88);
@@ -5741,7 +5736,7 @@ void fn_80018DEC(int mode) {
     *(s16*)HA(0x2D50) = -1;
     *HA(0x2D52) = 0;
 
-    for (i = 0; i < 13; i++) {
+    for (i = *HA(0x2D52); i < 13; i++) {
         u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
 
         *(u32*)(rec + 0x10) = 0;

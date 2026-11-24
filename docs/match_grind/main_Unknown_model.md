@@ -53,7 +53,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_800189E4 | pending | 91.88 |
 | fn_80018B38 | matched | 100.00 |
 | fn_80018B74 | pending | 87.89 |
-| fn_80018DEC | pending | 78.59 |
+| fn_80018DEC | pending | 80.11 |
 | fn_800196D8 | pending | 86.33 |
 | fn_80019A60 | pending | 91.69 |
 | fn_80019C00 | pending | 99.51 |
@@ -172,7 +172,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80017814 | pending | 56.21 |
 | fn_80019C00 | pending | 99.51 |
 | fn_8001D2D4 | pending | 90.92 |
-| fn_80018DEC | pending | 78.59 |
+| fn_80018DEC | pending | 80.11 |
 | fn_8001E784 | pending | 97.94 |
 | fn_80011CA8 | pending | 60.01 |
 | fn_80011468 | pending | 85.15 |
@@ -439,6 +439,20 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       counted by i, `= 0` instead of NULL.
   remaining (4 bytes over): the target's nine-flag loop guard reuses the slot loop's zero register (`li r7,0` for k = 0, the NULL
       stores and `cmpwi r7,9`); ours materialises a second zero.
+
+## fn_80018DEC [O1] (2284 bytes target, 2084 ours; 78.59% -> 80.11% fuzzy, unit 90.24% -> 90.30%)
+  baseline: 78.59% (2132 bytes)
+  [1] the mode-2 and default scans as single 54-record loops over a walking record pointer (the compiler's own 3x / 2x unrolls with ctr
+      18 / 27), instead of hand-nested 18x3 / 27x2 loops -> scans match the target
+  [2] each branch allocates for itself (`HA_U32(0x2C88) = _OSAllocFromHeap(0x20, total)` inside the if / else) -> 77.3% local
+  [3] the 13-record clear loop starts from `i = *HA(0x2D52)` just after storing 0 there (the target keeps the loop guard on the register
+      holding that 0; a plain `i = 0` folds the guard and `*HA(0x2D52) = i = 0` scores 76.8) -> 78.98% local, 80.11% report.
+      Kept because it scores higher even though it moves the size further from the target (2084 vs 2284).
+  tried, worse: the carve loops as for-loops over HA_U32(0x2CA8 + n * 4) (74.96), a carveBuffers(&n, stop, cursor, size) inline (73.7),
+      n opaque via `n = i = 15` / for-header chains (no change: the first one-iteration carve loop is still folded), n as int (no change)
+      or s16 / u16 / u8 / s8 (58..60).
+  remaining (200 bytes short): the target keeps every carve loop as a dynamic 8x unroll with a remainder loop -- including the first,
+      one-iteration `n > 14` loop, whose start 15 it never constant-folds; ours folds that loop and unrolls the others differently.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
