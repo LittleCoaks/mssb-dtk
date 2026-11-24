@@ -37,7 +37,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | practice_loadAllGraphics | pending | 97.25 |
 | fn_80016344 | pending | 77.25 |
 | fn_80016710 | pending | 93.51 |
-| fn_80016B60 | pending | 75.32 |
+| fn_80016B60 | matched | 100.00 |
 | fn_80016F7C | pending | 89.54 |
 | fn_80017098 | pending | 78.84 |
 | fn_80017340 | pending | 81.76 |
@@ -164,7 +164,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001BE50 | pending | 81.43 |
 | fn_80014204 | pending | 49.62 |
 | fn_8001BA44 | pending | 79.40 |
-| fn_80016B60 | pending | 75.32 |
+| fn_80016B60 | matched | 100.00 |
 | fn_80016710 | pending | 93.51 |
 | fn_8001500C | pending | 88.99 |
 | fn_8001AB10 | pending | 93.93 |
@@ -383,6 +383,18 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       `li r0,0` join) -> 93.1% local, 93.51% report
   remaining (24 bytes short): the record + 8 address is kept in a register in a slightly different order, the final attach-store sequence
       (lis / stb lbl_803CBBFA / add) is scheduled differently, and a few lwz loads of rec+8 sit before vs. after their address computation.
+
+## fn_80016B60 [O1] -- matched (1052 bytes)
+  baseline: 75.32% (992 bytes)
+  [1] KEY: each mode branch computes the whole file index (`fileIndex = (s8)rec[0x252] * 0x13 + K`) and the transfer adds it to
+      lbl_803CB790 once (`base + fileIndex * 16`), as the target does, instead of selecting only the offset K -> 96.16%, size exact
+  [2] MODEL_ANIM_READY tests the byte through (s8) (cmpwi) -> 97.30%
+  [3] MODEL_RECORD_BUFFER indexes the five-word per-slot buffer sets as `((u32*)HA(offset))[(s8)rec[0x255] * 5]` (base + index order);
+      a typed 0x14-byte struct index also gives 100%, a reassociated byte sum does not (97.30) -> 100%
+  Both macros are used only by this function.
+  final source: see fn_80016B60 in src/Unknown/model.c (committed with this entry).
+  readability pass: done. 0x13 (files per character) and the per-mode file numbers (4, 0xB..0xE, 5/0x12, 2/9/0xA, 0x10) left as literals:
+      no file-id enum exists. GAME_TYPE_* already used for the mode tests.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too

@@ -4505,13 +4505,14 @@ void fn_80014204(s32 count) {
 }
 
 #define MODEL_ARAM_FILE(rec, offset) ((u8*)lbl_803CB790 + ((s8)(rec)[0x252] * 0x13 + (offset)) * 16)
-#define MODEL_RECORD_BUFFER(rec, offset) (*(u32*)(HA((s8)(rec)[0x255] * 0x14 + (offset))))
+/* The slot's buffer for one animation file: five words per model slot from hugeAnimStruct+0x2CEC. */
+#define MODEL_RECORD_BUFFER(rec, offset) (((u32*)HA(offset))[(s8)(rec)[0x255] * 5])
 #define MODEL_LOAD_STATE (*HA(0x2D8D))
-#define MODEL_ANIM_READY (((u8*)&lbl_803C6CF8)[0x715] == 1)
+#define MODEL_ANIM_READY ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1)
 
 BOOL fn_80016B60(void* record) {
     u8* rec = record;
-    s32 fileOffset;
+    s32 fileIndex;
 
     if (MODEL_LOAD_STATE == 0) {
         MODEL_LOAD_STATE = 1;
@@ -4519,11 +4520,11 @@ BOOL fn_80016B60(void* record) {
     if (MODEL_LOAD_STATE == 1) {
         *(u32*)(rec + 0x18) = MODEL_RECORD_BUFFER(rec, 0x2CEC);
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-            fileOffset = 0xD;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xD;
         } else {
-            fileOffset = 4;
+            fileIndex = (s8)rec[0x252] * 0x13 + 4;
         }
-        ARAMTransfer(MODEL_ARAM_FILE(rec, fileOffset), *(s32*)(rec + 0x18), 0, 0);
+        ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 0x18), 0, 0);
         MODEL_LOAD_STATE = 2;
     } else if (MODEL_LOAD_STATE == 2) {
         if (MODEL_ANIM_READY) {
@@ -4533,13 +4534,13 @@ BOOL fn_80016B60(void* record) {
     } else if (MODEL_LOAD_STATE == 3) {
         *(u32*)(rec + 0x14) = MODEL_RECORD_BUFFER(rec, 0x2CF0);
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            fileOffset = 0xB;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xB;
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            fileOffset = 0xE;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xE;
         } else {
-            fileOffset = 0xC;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xC;
         }
-        ARAMTransfer(MODEL_ARAM_FILE(rec, fileOffset), *(s32*)(rec + 0x14), 0, 0);
+        ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 0x14), 0, 0);
         MODEL_LOAD_STATE = 4;
     } else if (MODEL_LOAD_STATE == 4) {
         if (MODEL_ANIM_READY) {
@@ -4549,11 +4550,11 @@ BOOL fn_80016B60(void* record) {
     } else if (MODEL_LOAD_STATE == 5) {
         *(u32*)(rec + 0x1C) = MODEL_RECORD_BUFFER(rec, 0x2CF4);
         if (g_d_GameSettings.minigamesEnabled != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            fileOffset = 0x12;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0x12;
         } else {
-            fileOffset = 5;
+            fileIndex = (s8)rec[0x252] * 0x13 + 5;
         }
-        ARAMTransfer(MODEL_ARAM_FILE(rec, fileOffset), *(s32*)(rec + 0x1C), 0, 0);
+        ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 0x1C), 0, 0);
         MODEL_LOAD_STATE = 6;
     } else if (MODEL_LOAD_STATE == 6) {
         if (MODEL_ANIM_READY) {
@@ -4564,13 +4565,13 @@ BOOL fn_80016B60(void* record) {
     } else if (MODEL_LOAD_STATE == 7) {
         *(u32*)(rec + 0x10) = MODEL_RECORD_BUFFER(rec, 0x2CF8);
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-            fileOffset = 9;
+            fileIndex = (s8)rec[0x252] * 0x13 + 9;
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            fileOffset = 0xA;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xA;
         } else {
-            fileOffset = 2;
+            fileIndex = (s8)rec[0x252] * 0x13 + 2;
         }
-        ARAMTransfer(MODEL_ARAM_FILE(rec, fileOffset), *(s32*)(rec + 0x10), 0, 0);
+        ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 0x10), 0, 0);
         MODEL_LOAD_STATE = 8;
     } else if (MODEL_LOAD_STATE == 8) {
         if (MODEL_ANIM_READY) {
