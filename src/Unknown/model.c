@@ -225,24 +225,12 @@ u8 lbl_803CBC15;
 
 BOOL LoadModel(void* objPtr) {
     ModelObject* obj = objPtr;
-    ModelOwner* owner;
     ModelSlotBlock* block;
-    void** loaded;
-    void* layout;
+    void* partSlot;
     void* geo;
     void* texPalette;
-    void* partSlot;
-    s32 slot;
-    s32 flag;
-    u16 bone;
-    s32 n;
+    void* layout;
     s32 i;
-    void** cursor;
-    ModelActor* actor;
-    ModelLinkNode* node;
-    ModelPartList* parts;
-    ModelLinkNode** partNodes;
-    ModelObject* hugeObj;
 
     if (obj == NULL) {
         OSPanic("model.c", 0x22E6, " Character Data None \n");
@@ -253,91 +241,98 @@ BOOL LoadModel(void* objPtr) {
         return FALSE;
     }
 
-    if (lbl_803CBC14 == 0 && lbl_803C6CF8.cancel.bytes[1] == 1) {
-        owner = obj->owner;
+    if (lbl_803CBC14 == 0 && (s8)lbl_803C6CF8.cancel.bytes[1] == 1) {
+        ModelOwner* owner = obj->owner;
+
         if (owner->flag != 0) {
-            lbl_803CBC10 = &owner->blocks[1];
-            loadCharacterHandItem(owner->charId, 5, owner->blocks[1].loaded);
+            block = &owner->blocks[1];
+            lbl_803CBC10 = block;
+            loadCharacterHandItem(obj->owner->charId, 5, block->loaded);
             lbl_803CBC15 = 1;
         } else {
-            lbl_803CBC10 = &owner->blocks[0];
-            loadCharacterHandItem(owner->charId, 0, owner->blocks[0].loaded);
+            block = &owner->blocks[0];
+            lbl_803CBC10 = block;
+            loadCharacterHandItem(obj->owner->charId, 0, block->loaded);
             lbl_803CBC15 = 0;
         }
         lbl_803CBC14 = 1;
     }
 
-    if (lbl_803716B8.unk1E8 != 0) {
-        return FALSE;
-    }
+    if (lbl_803716B8.unk1E8 == 0) {
 
-    block = lbl_803CBC10;
-    owner = obj->owner;
-    texPalette = owner->texPalette;
-    loaded = block->loaded;
-
-    for (i = 0; i < 4; i++) {
-        if (loaded[i] != NULL) {
-            loaded[i] = (void*)((u8*)loaded + (u32)loaded[i]);
-        }
-    }
-
-    slot = block->slot;
-    layout = loaded[lbl_803CB7C4[0]];
-    geo = loaded[lbl_803CB7C4[1]];
-    partSlot = &hugeAnimStruct.entries[slot].parts;
-
-    LoadActorLayout(layout);
-    convertGeometryAndSknHeader(geo, NULL);
-    haveActLayoutPointToGeoHeader(layout, geo);
-    UpdateTexturePalettePointers(geo, texPalette);
-    fn_800238E0(hugeAnimStruct.entries, slot, slot, layout);
-
-    if (loaded[2] != NULL) {
-        adjustInternalPointers(loaded[lbl_803CB7C4[2]]);
-        ACTActorRelated(loaded[lbl_803CB7C4[2]], partSlot);
-    }
-
-    block->_04 = loaded[lbl_803CB7C4[3]];
-    actRelated(loaded[lbl_803CB7C4[2]], &block->_04);
-
-    flag = lbl_803CBC15;
-    hugeObj = hugeAnimStruct.objects[obj->slot];
-    if (hugeObj != NULL) {
-        bone = hugeObj->partBones[handAttachBoneIDs[flag]];
-    } else {
-        bone = NO_BONE;
-    }
-
-    if (bone != NO_BONE) {
-        owner = hugeObj->owner;
-        n = (s16)lbl_800EEAAC[hugeObj->charId];
-        cursor = hugeObj->actors;
-        i = 0;
-        if (n >= 0 && owner != NULL) {
-            actor = (ModelActor*)cursor[0];
-            partNodes = actor->nodes;
-            node = (ModelLinkNode*)partNodes[bone];
-            if (flag & 1) {
-                parts = hugeAnimStruct.entries[owner->blocks[1].slot].parts;
-            } else {
-                parts = hugeAnimStruct.entries[owner->blocks[0].slot].parts;
+        block = lbl_803CBC10;
+        texPalette = obj->owner->texPalette;
+        for (i = 0; i < 4; i++) {
+            if (block->loaded[i] != NULL) {
+                block->loaded[i] = (void*)((u8*)block->loaded + (u32)block->loaded[i]);
             }
-            if (parts != NULL) {
-                for (i = parts->count; i != 0; i--) {
-                    ModelLinkNode* cand = parts->nodes[i - 1];
-                    if (cand->link != NULL) {
-                        node->link = cand->link;
+        }
+        layout = block->loaded[lbl_803CB7C4[0]];
+        geo = block->loaded[lbl_803CB7C4[1]];
+        partSlot = &hugeAnimStruct.entries[block->slot].parts;
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
+        UpdateTexturePalettePointers(geo, texPalette);
+        fn_800238E0(hugeAnimStruct.entries, block->slot, block->slot, layout);
+        if (block->loaded[2] != NULL) {
+            adjustInternalPointers(block->loaded[lbl_803CB7C4[2]]);
+            ACTActorRelated(block->loaded[lbl_803CB7C4[2]], partSlot);
+        }
+        block->_04 = block->loaded[lbl_803CB7C4[3]];
+        actRelated(block->loaded[lbl_803CB7C4[2]], &block->_04);
+
+        {
+            ModelObject* cur = hugeAnimStruct.objects[obj->slot];
+            u8 flag = lbl_803CBC15;
+            s32 bone;
+
+            if (cur != NULL) {
+                bone = cur->partBones[handAttachBoneIDs[flag]];
+            } else {
+                bone = NO_BONE;
+            }
+            if (bone != NO_BONE) {
+                s16 n = ((s16*)lbl_800EEAAC)[cur->charId];
+                s32 j = 0;
+
+                do {
+                    ModelActor* actor = (ModelActor*)cur->actors[j];
+
+                    if (n >= 0 && cur->owner != NULL) {
+                        ModelLinkNode* node = (ModelLinkNode*)actor->nodes[bone];
+                        ModelPartList* parts;
+
+                        if (flag & 1) {
+                            parts = hugeAnimStruct.entries[cur->owner->blocks[1].slot].parts;
+                        } else {
+                            parts = hugeAnimStruct.entries[cur->owner->blocks[0].slot].parts;
+                        }
+                        if (parts != NULL) {
+                            s32 k = parts->count;
+                            ModelLinkNode** p = parts->nodes + k;
+
+                            do {
+                                ModelLinkNode* cand = *--p;
+
+                                k--;
+                                if (cand->link != NULL) {
+                                    node->link = cand->link;
+                                    break;
+                                }
+                            } while (k != 0);
+                        }
                         break;
                     }
-                }
+                } while (j-- != 0);
             }
         }
-    }
 
-    lbl_803CBC14 = 0;
-    lbl_803CBC10 = NULL;
-    return TRUE;
+        lbl_803CBC14 = 0;
+        lbl_803CBC10 = NULL;
+        return TRUE;
+    }
+    return FALSE;
 }
 
 #undef MODEL_ENTRY_SIZE
