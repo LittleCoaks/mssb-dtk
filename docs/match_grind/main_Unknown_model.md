@@ -78,7 +78,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | AnimateCharacter | matched | 100.00 |
 | fn_8001BA44 | pending | 94.59 |
 | fn_8001BE50 | pending | 96.87 |
-| fn_8001C234 | pending | 86.23 |
+| fn_8001C234 | matched | 100.00 |
 | fn_8001C528 | pending | 95.62 |
 | loadFielderActors | matched | 100.00 |
 | loadAndAnimateCharacter | pending | 88.88 |
@@ -153,7 +153,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80018B74 | pending | 87.89 |
 | fn_80017098 | pending | 98.15 |
 | fn_8001A3FC | exhausted | 98.61 |
-| fn_8001C234 | pending | 86.23 |
+| fn_8001C234 | matched | 100.00 |
 | fn_8001E488 | pending | 97.30 |
 | fn_80014A18 | pending | 94.58 |
 | fn_800196D8 | pending | 86.33 |
@@ -591,7 +591,24 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   The per-character switch stored the actor flag at unk98 (0x98); the target stores 0x99 (unk99), as in fn_80011468. Fixed the four
   stores -> 92.33% -> 92.34%. The later `(actor->unk98 & 9)` test is a real 0x98 read and stays.
 
+## fn_8001C234 [O1] (756 bytes target, 756 ours; 86.23% -> 100%, unit 92.19% -> 92.37%)
+  baseline: 86.23% (804 bytes)
+  [1] restructured from the asm: bone as s32, the three s16 "next" fields (0x70 / 0x64 / 0x66) read once into a local and
+      tested with >= 0, the 0x6C frame read once and passed on (also converted for `time`), the 0x6A increment as ++, the state
+      tested on obj[0x25E] directly, the actor through the byte-offset table form -> 89.88% (still 804 bytes)
+  [2] KEY: model.c never included C3/actor/actorAnim.h, so getActorBoneAnimTime and fn_800B4C40 were implicitly declared
+      (int return -> extra int-to-float conversions). Added the include -> 97.93%, size exact; no other function changed.
+  [3] objects read as hugeAnimStruct.objects[i] (all three reads; target walks a base copy with disp 0x2C50) with `obj` declared
+      at function level before i and assigned in the loop -> 99.60% local
+  [4] no gs byte-pointer local: g_d_GameSettings.minigamesEnabled / ._06 / .StadiumID directly, and lbl_80366158 directly -> 100%
+      (an lbl_80366158 pointer local helped only while gs existed; declaration permutations of obj / i / hl / gs: <= 99.60)
+  readability pass: done (named GameInitVariables fields replace gs[0x11] / gs[6] / gs[9]; the object fields stay OBJ_S16 offsets,
+  no struct for them yet; 600 = the 0x6A counter cap, no named constant).
+
 ## Findings
+- [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
+  implicitly int. Check other units for implicit declarations of float-returning functions when an int->float conversion
+  sequence (xoris 0x8000 / lis 0x4330 / lfd / fsubs) appears after a call that the target uses straight from f1.
 - [O1] UNIT-LEVEL ITEM FOR THE END: fn_8001B35C (99.95%) differs only in its .sdata2 float literal references
   (ours @1097/@1985/@1986/@1736/@1987, target lbl_803CC4B8/4F8/4FC/4D0/500). That is literal order or sharing between
   functions in the unit's pool, not code; leave it until the end and solve it at the unit level (tools/match_pool.py).

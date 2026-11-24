@@ -38,6 +38,7 @@
 #include "Unknown/File_0x8001ce74.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/vec.h"
+#include "C3/actor/actorAnim.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
 #include "Unknown/File_0x8001d0d0.h"
@@ -3458,17 +3459,18 @@ void fn_8001BE50(s32 index, int a, u8 b, u8 c, s16 d, u8 e, s32 f);
 #define OBJ_F32(o, off) (*(f32*)((u8*)(o) + (off)))
 
 void fn_8001C234(u32* changedMask) {
+    u8* obj;
     s32 i;
-    u8* gs = (u8*)&g_d_GameSettings;
 
     *changedMask = 0;
     for (i = 0; i < 13; i++) {
-        u8* obj = HA_OBJ(i);
         f32 time;
         f32 animTime;
-        u16 bone;
-        s32 state;
+        s32 bone;
+        s16 next;
+        s16 frame;
 
+        obj = (u8*)hugeAnimStruct.objects[i];
         if (obj == NULL) {
             continue;
         }
@@ -3477,33 +3479,35 @@ void fn_8001C234(u32* changedMask) {
         }
         if (OBJ_S16(obj, 0x6A) < 600 && lbl_80366158[0x28] == 0 && highLevelSimulationFlag[0] == 0 &&
             obj[0x26F] == 0) {
-            OBJ_S16(obj, 0x6A) = OBJ_S16(obj, 0x6A) + 1;
+            OBJ_S16(obj, 0x6A)++;
         }
         animTime = lbl_803CC4F0;
-        if (HA_OBJ(i) != NULL) {
-            bone = *(u16*)(HA_OBJ(i) + 0x16A);
+        if (hugeAnimStruct.objects[i] != NULL) {
+            bone = *(u16*)((u8*)hugeAnimStruct.objects[i] + 0x16A);
         } else {
             bone = 0xFFFF;
         }
         if (bone != 0xFFFF) {
-            animTime = getActorBoneAnimTime(hugeAnimStruct.actorTable->entries[(s8)obj[0x255]].actor, bone);
+            animTime = getActorBoneAnimTime(*(Actor**)((u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34), bone);
         }
         OBJ_S16(obj, 0x68) = (s16)(animTime / OBJ_F32(obj, 0x4C));
-        if (OBJ_S16(obj, 0x70) >= 0) {
-            OBJ_S16(obj, 0x68) = OBJ_S16(obj, 0x70);
+        next = OBJ_S16(obj, 0x70);
+        if (next >= 0) {
+            OBJ_S16(obj, 0x68) = next;
         }
         OBJ_S16(obj, 0x70) = -1;
 
-        state = obj[0x25E];
-        if (state == 1 || (state == 2 && OBJ_S16(obj, 0x68) == 0 && OBJ_S16(obj, 0x6A) > 1) ||
+        if (obj[0x25E] == 1 || (obj[0x25E] == 2 && OBJ_S16(obj, 0x68) == 0 && OBJ_S16(obj, 0x6A) > 1) ||
             OBJ_S16(obj, 0x62) == -1) {
             *changedMask |= 1 << i;
-            if (OBJ_S16(obj, 0x64) >= 0) {
-                time = (f32)OBJ_S16(obj, 0x6C);
-                if (gs[0x11] != 0 && gs[6] == 2) {
-                    fn_8001BA44(i, OBJ_S16(obj, 0x64), obj[0x260], obj[0x263], OBJ_S16(obj, 0x6C), obj[0x266], obj[0x26A]);
+            next = OBJ_S16(obj, 0x64);
+            if (next >= 0) {
+                frame = OBJ_S16(obj, 0x6C);
+                time = frame;
+                if (g_d_GameSettings.minigamesEnabled != 0 && g_d_GameSettings._06 == 2) {
+                    fn_8001BA44(i, next, obj[0x260], obj[0x263], frame, obj[0x266], obj[0x26A]);
                 } else {
-                    fn_8001BE50(i, OBJ_S16(obj, 0x64), obj[0x260], obj[0x263], OBJ_S16(obj, 0x6C), obj[0x266], obj[0x26A]);
+                    fn_8001BE50(i, next, obj[0x260], obj[0x263], frame, obj[0x266], obj[0x26A]);
                 }
                 OBJ_S16(obj, 0x60) = OBJ_S16(obj, 0x62);
                 OBJ_S16(obj, 0x62) = OBJ_S16(obj, 0x64);
@@ -3514,8 +3518,9 @@ void fn_8001C234(u32* changedMask) {
                 obj[0x269] = obj[0x26A];
                 obj[0x26C] = obj[0x26D];
                 OBJ_S16(obj, 0x6A) = 0;
-                if (OBJ_S16(obj, 0x66) >= 0) {
-                    OBJ_S16(obj, 0x64) = OBJ_S16(obj, 0x66);
+                next = OBJ_S16(obj, 0x66);
+                if (next >= 0) {
+                    OBJ_S16(obj, 0x64) = next;
                     OBJ_S16(obj, 0x6C) = OBJ_S16(obj, 0x6E);
                     obj[0x260] = obj[0x261];
                     obj[0x263] = obj[0x264];
@@ -3531,10 +3536,10 @@ void fn_8001C234(u32* changedMask) {
             }
             obj[0x25E] = 0;
         } else {
-            time = fn_800B4C40(hugeAnimStruct.actorTable->entries[(s8)obj[0x255]].actor);
+            time = fn_800B4C40(*(Actor**)((u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34));
         }
         if (highLevelSimulationFlag[0] == 0) {
-            fn_8004B208(obj, OBJ_S16(obj, 0x62), stadiumCollisionRelated(gs[9], obj[0x275]), time);
+            fn_8004B208(obj, OBJ_S16(obj, 0x62), stadiumCollisionRelated(g_d_GameSettings.StadiumID, obj[0x275]), time);
         }
     }
 }
