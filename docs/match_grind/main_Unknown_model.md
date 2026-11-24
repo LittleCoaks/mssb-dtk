@@ -77,7 +77,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | QueueCharacterAnimation | matched | 100.00 |
 | AnimateCharacter | matched | 100.00 |
 | fn_8001BA44 | pending | 94.59 |
-| fn_8001BE50 | pending | 83.76 |
+| fn_8001BE50 | pending | 96.87 |
 | fn_8001C234 | pending | 86.23 |
 | fn_8001C528 | pending | 95.62 |
 | loadFielderActors | matched | 100.00 |
@@ -161,7 +161,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_800145F8 | pending | 39.48 |
 | fn_8001F8A4 | pending | 86.06 |
 | fn_80016344 | pending | 97.49 |
-| fn_8001BE50 | pending | 83.76 |
+| fn_8001BE50 | pending | 96.87 |
 | fn_80014204 | pending | 49.62 |
 | fn_8001BA44 | pending | 94.59 |
 | fn_80016B60 | matched | 100.00 |
@@ -500,6 +500,14 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   [3] local declaration order (block, partSlot, geo, texPalette, layout, i) -> 98.22% local, 98.30% report
   remaining: obj / texPalette sit in r28 / r29 swapped, and the lbl_803CB7C4 / mulli setup before LoadActorLayout is scheduled in a
       different order.
+
+## fn_8001BE50 [O1] (996 bytes target, 996 ours; 81.43% -> 96.87% fuzzy over the session -- 83.76% after the getAnimBone change in the
+   fn_8001BA44 commit, 96.87% now; unit 91.21% -> 91.43%)
+  [1] fn_8001BA44's recipe: the sequence bounds check as two returns, `speedPending = framePending = (bank != NULL)`, the bone tail as
+      fn_8001B5EC's two-branch body with typed entry stores, the attach tail as fn_8001B308's body (`attach == 0` first) -> 95.96%
+  [2] the anim parameter as an int (the target tests it with a plain cmpwi; both extern declarations in model.c updated, callers
+      unchanged) -> 96.83% local, 96.87% report, size exact
+  remaining: the same two-register object copy and clear-path ordering differences as fn_8001BA44.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
