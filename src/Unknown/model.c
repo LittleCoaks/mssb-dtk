@@ -6577,11 +6577,11 @@ void fn_8001B224(void) {
 
 void fn_80017D28(u8* obj) {
     s32 slot = (s8)obj[0x255] + 4;
-    u8* rec = HA(0) + slot * 0x27C;
+    u8* rec = HA(0) + slot * MODEL_RECORD_SIZE;
     u8* p;
 
-    rec[0xE56] = obj[0x252];
-    p = rec + 0xC04;
+    rec[MODEL_RECORD_BASE + 0x252] = obj[0x252];
+    p = rec + MODEL_RECORD_BASE;
     p[0x254] = obj[0x254];
     p[0x255] = slot;
     p[0x25C] = 1;
@@ -6590,8 +6590,7 @@ void fn_80017D28(u8* obj) {
     p[0x25A] = obj[0x25A];
     p[0x25B] = obj[0x25B];
     *(u32*)(p + 8) = *(u32*)(obj + 0xC);
-    /* fn_80017814 takes four arguments; the original passes only what is already in r4-r6, so the call is cast to one argument. */
-    ((void (*)(void*))fn_80017814)(p);
+    fn_80017814(p, slot, 0, fn_8001FDD4);
 }
 
 void fn_8001F16C(void) {

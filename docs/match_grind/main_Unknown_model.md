@@ -44,7 +44,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001758C | pending | 92.06 |
 | fn_800177B4 | pending | 99.00 |
 | fn_80017814 | pending | 92.88 |
-| fn_80017D28 | pending | 88.11 |
+| fn_80017D28 | matched | 100.00 |
 | fn_80017DBC | pending | 90.70 |
 | setupAnimationModelMemory | pending | 85.74 |
 | animationInitializationRunnerRelated | pending | 84.68 |
@@ -651,6 +651,15 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   tried, no gain: mode declared first (94.81), last / assigned late (97.50, same), no mode local (94.81).
   remaining: volatile register numbering in the scan loop (target maxA r6 / maxD r3 / maxE r9 / mode r5) and the matching size
       registers.
+
+## fn_80017D28 [O1] (148 bytes target, 148 ours; 88.11% -> 100%, unit 92.98% -> 93.01%)
+  baseline: 88.11% (one-argument cast call)
+  [1] KEY: the target sets up all four arguments: r4 = the computed slot ((s8)obj[0x255] + 4), r5 = 0, r6 = fn_8001FDD4. The
+      [S2] attempt passed (s8)obj[0x255] and obj[0x254] (64.05%). `fn_80017814(p, slot, 0, fn_8001FDD4)` -> 100%; the cast and its
+      comment are gone. (Passing (s8)p[0x255] instead of slot: 81.76%.) No missing prototype was involved; the four-argument
+      extern was already in place.
+  readability pass: done (0x27C / 0xC04 replaced with MODEL_RECORD_SIZE / MODEL_RECORD_BASE, 0xE56 written as MODEL_RECORD_BASE + 0x252;
+  still 100%).
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
