@@ -36,7 +36,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80015468 | pending | 93.57 |
 | practice_loadAllGraphics | pending | 97.25 |
 | fn_80016344 | pending | 77.25 |
-| fn_80016710 | pending | 75.07 |
+| fn_80016710 | pending | 93.51 |
 | fn_80016B60 | pending | 75.32 |
 | fn_80016F7C | pending | 89.54 |
 | fn_80017098 | pending | 78.84 |
@@ -165,7 +165,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80014204 | pending | 49.62 |
 | fn_8001BA44 | pending | 79.40 |
 | fn_80016B60 | pending | 75.32 |
-| fn_80016710 | pending | 75.07 |
+| fn_80016710 | pending | 93.51 |
 | fn_8001500C | pending | 88.99 |
 | fn_8001AB10 | pending | 93.93 |
 | fn_80015468 | pending | 93.57 |
@@ -370,6 +370,19 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       keeps the second untruncated (s32) -> 98.12%, size exact; fn_8001B5EC rises 89.87 -> 91.52
   tried, no gain: 60 declaration orders, obj assigned as a statement.
   remaining: register numbering only (obj in r31 / table r30 / offset r27 in the target vs r29 / r27 / r29 in ours).
+
+## fn_80016710 [O1] (1104 bytes target, 1080 ours; 75.07% -> 93.51% fuzzy, unit 87.61% -> 87.95%)
+  baseline: 75.07% (1028 bytes)
+  [1] record / object / flag addressing through the typed HA_SLOTS view (pool[slot], objects[slot], flags[]) instead of HA() byte offsets:
+      base + index order as in the target -> 72.9% local (alignment shifted, kept for the later steps)
+  [2] KEY: each state-4 branch written out with its own `if (!attached) return 0;` (u8 result, clrlwi.), the no-part case folded into the
+      test (`fileIndex == -1 || part->0x10 == 0` -> clear rec+0x2C, attached = TRUE) instead of goto joins, the part pointer re-read from
+      rec+8 at each use, (s8) 0x715 test -> 89.9%
+  [3] state 5: each mode's call tested on its own with a (u8) cast -> 91.2%
+  [4] state 3 as a static inline (loadSlotAnimBank) with `return 1` from the ready branch and a shared `return 0` (the target's shared
+      `li r0,0` join) -> 93.1% local, 93.51% report
+  remaining (24 bytes short): the record + 8 address is kept in a register in a slightly different order, the final attach-store sequence
+      (lis / stb lbl_803CBBFA / add) is scheduled differently, and a few lwz loads of rec+8 sit before vs. after their address computation.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
