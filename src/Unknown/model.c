@@ -1976,12 +1976,11 @@ void stadiumSetupRelated(void) {
     }
 }
 
-void fn_8001CCC8(void) {
+static inline void applyStadiumLightParams(void) {
     StadiumLightParams* params;
     s32 stadium;
     s32 i;
     Vec dir;
-    GXColor color;
 
     hugeAnimStruct._3085 = 4;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
@@ -2006,16 +2005,27 @@ void fn_8001CCC8(void) {
     if (inputParams[g_d_GameSettings._54].ambient.a != 0) {
         adjustLightingParams(1, inputParams[g_d_GameSettings._54].ambient);
     }
+}
+
+static inline void initStadiumLights(StadiumLightInput* light) {
+    s32 i;
+    GXColor color;
 
     for (i = 0; i < 4; i++) {
         LITAlloc(&hugeAnimStruct.lights[i]);
         LITInitAttn(hugeAnimStruct.lights[i], lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
                     lbl_803CC4B8, lbl_803CC4B8);
-        LITInitPos(hugeAnimStruct.lights[i], lbl_80367318[i].pos.x, lbl_80367318[i].pos.y,
-                   lbl_80367318[i].pos.z);
-        color = lbl_80367318[i].color;
+        LITInitPos(hugeAnimStruct.lights[i], light[i].pos.x, light[i].pos.y, light[i].pos.z);
+        color = light[i].color;
         LITInitColor(hugeAnimStruct.lights[i], &color);
     }
+}
+
+void fn_8001CCC8(void) {
+    StadiumLightInput* light = lbl_80367318;
+
+    applyStadiumLightParams();
+    initStadiumLights(light);
 }
 
 extern void fn_800196D8(void);

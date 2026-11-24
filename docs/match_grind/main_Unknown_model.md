@@ -86,7 +86,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001CA40 | matched | 100.00 |
 | fn_8001CB10 | matched | 100.00 |
 | initStadiumLighting | matched | 100.00 |
-| fn_8001CCC8 | pending | 84.25 |
+| fn_8001CCC8 | matched | 100.00 |
 | stadiumSetupRelated | pending | 88.20 |
 | fn_8001D074 | pending | 91.30 |
 | applyUniformScaleToObject | matched | 100.00 |
@@ -145,7 +145,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001B35C | pending | 99.95 |
 | fn_80019A60 | pending | 91.69 |
 | fn_8001A25C | pending | 91.69 |
-| fn_8001CCC8 | pending | 84.25 |
+| fn_8001CCC8 | matched | 100.00 |
 | fn_8001DB74 | pending | 87.81 |
 | fn_8001758C | pending | 92.06 |
 | fn_80017340 | pending | 98.09 |
@@ -544,6 +544,19 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
     layout = block->loaded[partIndex[0]];
     geo = block->loaded[partIndex[1]];
     (rest unchanged)
+
+## fn_8001CCC8 [O1] (428 bytes target, 428 ours; 84.25% -> 100%, unit 91.77% -> 91.88%)
+  baseline: 84.25% (size exact; loop register numbering and swapped stack slots for dir / color / ambient)
+  [1] `StadiumLightInput* light = lbl_80367318;` at the top, second loop reads light[i] (target keeps the base in r31) -> 98.46%
+      (light[i] also in the first loop 91.26%; color/dir order, i as int, dir in a block, explicit Vec copy, ambient local: no change)
+  [2] KEY: everything from `_3085 = 4` to the ambient test as `static inline void applyStadiumLightParams(void)` (own params/stadium/i/dir)
+      -> 99.96% (fixes the first-loop registers and the dir slots)
+  [3] KEY: the LIT loop as `static inline void initStadiumLights(StadiumLightInput* light)` (own i/color), caller keeps the light local
+      and calls both -> 100%  (color-only inline wrapper, color decl order, ambient as a named local: still 99.96;
+      passing lbl_80367318 directly instead of the local: 85.09%, 416 bytes)
+  readability pass: done. Left as literals: `_3085 = 4`, the light count 4 (no named constant), `StadiumID + 7` minigame offset.
+  lead for stadiumSetupRelated: its target shows the same swapped stack slots / registers; it is very likely the same two inlines
+  plus the prop-entry loop (the inlines are defined just above fn_8001CCC8, so they would have to move above stadiumSetupRelated).
 
 ## Findings
 - [O1] UNIT-LEVEL ITEM FOR THE END: fn_8001B35C (99.95%) differs only in its .sdata2 float literal references
