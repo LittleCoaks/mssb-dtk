@@ -70,8 +70,8 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | copyAnimationStructures | matched | 100.00 |
 | fn_8001B308 | pending | 93.57 |
 | fn_8001B35C | pending | 83.65 |
-| fn_8001B4D8 | pending-WEAK | 74.81 |
-| fn_8001B5EC | pending | 89.87 |
+| fn_8001B4D8 | pending | 98.12 |
+| fn_8001B5EC | pending | 91.52 |
 | getAnimationCollisionOffset | matched | 100.00 |
 | getAnimRelatedCoordinates | matched | 100.00 |
 | QueueCharacterAnimation | matched | 100.00 |
@@ -177,9 +177,9 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80011CA8 | pending | 60.01 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
-| fn_8001B4D8 | pending | 74.81 |
+| fn_8001B4D8 | pending | 98.12 |
 | fn_80016F7C | pending | 89.54 |
-| fn_8001B5EC | pending | 89.87 |
+| fn_8001B5EC | pending | 91.52 |
 
 ## fn_8001A3FC [O1] (692 bytes target, 692 ours; 35.90% -> 98.61% fuzzy, unit 80.28% -> 81.01%)
   baseline: 35.90% (968 bytes)
@@ -357,6 +357,19 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       the 13-slot clear as 12 straight stores + a remainder loop behind a `cmpwi r6,13` guard (both guards on a register holding the
       loop's 0, the clear loop's 0 shared with the stored value); ours unrolls both partially. Also the mode-0 scan's team counter is a
       copy of maxA's 0 in the target (`mr r9,r31`).
+
+## fn_8001B4D8 [O1] (276 bytes target, 276 ours; 74.81% -> 98.12% fuzzy; fn_8001B5EC 89.87% -> 91.52% as a side effect, unit 87.49% -> 87.61%)
+  baseline: 74.81% (296 bytes)
+  [1] the apply / offsetApplied test as one positive `if (apply != 0 && obj->offsetApplied == 0) { ... }` (the early-return form
+      branched twice) -> 79.2%
+  [2] the actor-table entry addressed as `hugeAnimStruct.actorTable->entries[(u16)slot]` (ActorObjectEntry, .actor / .unk64 / .unk66) at
+      each use: the target keeps the table and the slot*0x90 offset and re-adds them after the call, which only happens with the typed
+      form (byte arithmetic through a node pointer CSEs the address; mixing the two is 83.9%) -> 96.4%; `moved` declared before `offset`
+      (stack slots) -> 96.6%
+  [3] getRootBone returns s32 (shared with fn_8001B5EC): the target truncates the first bone with clrlwi (stored through a u16) and
+      keeps the second untruncated (s32) -> 98.12%, size exact; fn_8001B5EC rises 89.87 -> 91.52
+  tried, no gain: 60 declaration orders, obj assigned as a statement.
+  remaining: register numbering only (obj in r31 / table r30 / offset r27 in the target vs r29 / r27 / r29 in ours).
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
