@@ -34,7 +34,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | loadBatterModelFromDisk | matched | 100.00 |
 | fn_8001500C | pending | 88.99 |
 | fn_80015468 | pending | 93.57 |
-| practice_loadAllGraphics | pending-WEAK | 70.08 |
+| practice_loadAllGraphics | pending | 97.25 |
 | fn_80016344 | pending | 77.25 |
 | fn_80016710 | pending | 75.07 |
 | fn_80016B60 | pending | 75.32 |
@@ -325,6 +325,23 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       void fn_80011578(void) { s32 i; for (i = 0; i < 13; i++) { clearObjectField5C(i); } }
   readability pass: done. 13 (object slots) left as a literal: no object-count constant is in scope at this point of model.c
       (ANIM_OBJECT_COUNT / RECORD_COUNT are defined and #undef'd inside other view blocks).
+
+## practice_loadAllGraphics [O1] (2552 bytes target, 2552 ours; 70.08% -> 97.25% fuzzy, unit 85.96% -> 87.12%)
+  baseline: 70.08% (2416 bytes)
+  [1] `anim` as a macro for hugeAnimStruct instead of a `u8* anim` local: the target rematerialises the base per block -> 74.5%
+  [2] the 0xB/0xC phase macro rebuilt around small u8-returning pieces: loadPracticeEffect() as a static inline with a single exit
+      (`li r3,1/0; clrlwi.` as in the target) and the 0xC arms step likewise; the effect-search step had to stay a macro
+      (STEP_PRACTICE_EFFECTS(done)) because MWCC would not inline it as a function (it was emitted out of line, 1240 bytes) -> 85.6%
+  [3] (u8) test of animateModelArmsGlovesBats' result, (u32) compare with 9, (s8) 0x715 test -> 85.6%
+  [4] the 0x2D77 == 2 block re-reading anim[0x2D7B] instead of locals -> 86.6%
+  [5] the found path of the effect search jumps straight to the stepped join with a goto (label passed in, one per expansion) -> 88.2%
+  [6] line-up release block: re-read OBJ_SLOT(anim, i) at every use (the target reloads it), `if (k < 9) continue`, the inner obj != NULL
+      re-check, s8 -1/-2 stores; the slot search for fn_80017098 passes the loop index k itself (no separate idx = 9) -> 94.7%
+  [7] the effect search reads p[0x61] once per test into a u8 (`(s8)(c61 = p[0x61]) != -2`) -> 94.97%, size exact
+  [8] the free-slot count loop walks the base pointer itself (q) while the match loop uses a copy (p = q) -> 96.57% local, 97.25% report
+  tried, no gain: OBJ_SLOT as a u8** array index, typeId as s32 with (u8) casts, the count loop as a for with break (vs while).
+  remaining: typeId is re-zero-extended in the target (clrlwi before the match loop, clrlslwi for the lbl_800EEB18 index); register numbering
+      (base r28/r29 vs ours r29/r30); the lineUp / inMemRoster address setup order in the release loop.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
