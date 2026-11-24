@@ -2522,7 +2522,7 @@ static inline void clearObjectField5C(s8 index) {
     if (index < 0 || index >= 13) {
         return;
     }
-    obj = HA_OBJ(index);
+    obj = (u8*)hugeAnimStruct.objects[index];
     if (obj == NULL) {
         return;
     }
@@ -6267,7 +6267,7 @@ BOOL fn_80012B90(void* objPtr) {
 }
 
 void fn_80011578(void) {
-    s8 i;
+    s32 i;
 
     for (i = 0; i < 13; i++) {
         clearObjectField5C(i);

@@ -9,8 +9,8 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 |---|---|---|
 | fn_80011468 | pending | 85.15 |
 | fn_80011570 | matched | 100.00 |
-| fn_80011578 | pending-WEAK | 66.10 |
-| fn_800115C8 | pending | 99.00 |
+| fn_80011578 | matched | 100.00 |
+| fn_800115C8 | matched | 100.00 |
 | fn_80011604 | pending | 99.00 |
 | fn_80011640 | matched | 100.00 |
 | fn_800116DC | pending | 99.63 |
@@ -312,6 +312,19 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   remaining: the target materialises the 0 once before the toy-field branch and keeps the pointer/zero stores in source order (ours sinks the
       zero stores and loads 0 in each branch: the 4 extra bytes); register numbering in the scan (entry r5 / offset copy r3 in the target).
   readability: 54 (characters) and 19 (files per character) left as literals; CHAR_RECORD_COUNT (54) is only defined in a later view block.
+
+## fn_80011578 / fn_800115C8 [O1] (shared inline clearObjectField5C) -- both matched
+  baseline: fn_80011578 66.10% (84 bytes vs 80), fn_800115C8 99.00%
+  [1] fn_80011578's loop counter as s32 (s8 index is only the inline's parameter): ctr loop of 13 as in the target -> 94% (u32 same; u8 70.2; s16 75.2)
+  [2] clearObjectField5C reads the slot as `(u8*)hugeAnimStruct.objects[index]` instead of HA_OBJ(index) (byte offset 0x2C50 + index*4):
+      the target adds base + index*4 then loads 0x2C50(rX) -> fn_80011578 100%, fn_800115C8 100%.
+      `((u8**)HA(0x2C50))[index]` 83.75 / 100; `*(u8**)(HA(0x2C50) + index * 4)` 100 / 98.67.
+  final source:
+      static inline void clearObjectField5C(s8 index) { ... if (index < 0 || index >= 13) return;
+          obj = (u8*)hugeAnimStruct.objects[index]; if (obj == NULL) return; *(u32*)(obj + 0x5C) = 0; }
+      void fn_80011578(void) { s32 i; for (i = 0; i < 13; i++) { clearObjectField5C(i); } }
+  readability pass: done. 13 (object slots) left as a literal: no object-count constant is in scope at this point of model.c
+      (ANIM_OBJECT_COUNT / RECORD_COUNT are defined and #undef'd inside other view blocks).
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
