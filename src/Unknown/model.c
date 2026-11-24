@@ -2499,10 +2499,8 @@ void somethingFileHandlingLoadingRelated(void) {
     void* tex;
     int i;
     s32 count;
-    int off;
 
-    count = 30;
-    hugeAnimStruct.effectCount = count;
+    count = hugeAnimStruct.effectCount = 30;
 
     archive = hugeAnimStruct.archive;
     hugeAnimStruct.sources[0].data = (u8*)archive + archive[0];
@@ -2520,98 +2518,29 @@ void somethingFileHandlingLoadingRelated(void) {
 
     hugeAnimStruct.modelTable = ActorObjectInitTable(count);
 
-    for (i = 0, off = 0; i < 30; i++, off += 0x90) {
+    for (i = 0; i < 30; i++) {
         animateBallRelated(hugeAnimStruct.modelTable, i, i, hugeAnimStruct.sources[0].data, 0, 0);
-        fn_800BD548(hugeAnimStruct.modelTable + off + 0x34, 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1],
+        fn_800BD548(hugeAnimStruct.modelTable + i * 0x90 + 0x34, 4, hugeAnimStruct._AC[0], hugeAnimStruct._AC[1],
                     hugeAnimStruct._AC[2], hugeAnimStruct._AC[3]);
-        CTRLSetTranslation((Control*)(hugeAnimStruct.modelTable + off + 0x44), 0.0f, 0.0f, 0.0f);
-        CTRLSetRotation((Control*)(hugeAnimStruct.modelTable + off + 0x44), 0.0f, 0.0f, 0.0f);
+        CTRLSetTranslation((Control*)(hugeAnimStruct.modelTable + i * 0x90 + 0x44), 0.0f, 0.0f, 0.0f);
+        CTRLSetRotation((Control*)(hugeAnimStruct.modelTable + i * 0x90 + 0x44), 0.0f, 0.0f, 0.0f);
     }
 
     hugeAnimStruct.effects = _OSAllocFromHeap(0x20, count * sizeof(PMEffect));
-    for (i = 0; i < 30; i++) {
-        PMEffect* fx = &hugeAnimStruct.effects[i];
-        fx->update = 0;
-        fx->pos.x = 0.0f;
-        fx->pos.y = 0.0f;
-        fx->pos.z = 0.0f;
-        fx->rot.x = 0.0f;
-        fx->rot.y = 0.0f;
-        fx->rot.z = 0.0f;
-        fx->visible = FALSE;
+    for (i = 0; i < count; i++) {
+        hugeAnimStruct.effects[i].pos.x = 0.0f;
+        hugeAnimStruct.effects[i].pos.y = 0.0f;
+        hugeAnimStruct.effects[i].pos.z = 0.0f;
+        hugeAnimStruct.effects[i].rot.x = 0.0f;
+        hugeAnimStruct.effects[i].rot.y = 0.0f;
+        hugeAnimStruct.effects[i].rot.z = 0.0f;
+        hugeAnimStruct.effects[i].visible = FALSE;
+        hugeAnimStruct.effects[i].update = NULL;
     }
 }
 
 #undef hugeAnimStruct
 
-
-static inline void swapShortPair(ShortsTableOwner* owner, u16 first, u16 second) {
-    u16 b;
-    u16 a;
-
-    a = owner->slot[first];
-    b = owner->slot[second];
-    if (a != SHORT_TABLE_END && b != SHORT_TABLE_END) {
-        owner->order[a] = b;
-        owner->order[b] = a;
-    }
-}
-
-static inline void swapShortPairs(ShortsTableOwner* owner, u16 (*pairs)[2]) {
-    for (; (*pairs)[0] != SHORT_TABLE_END; pairs++) {
-        swapShortPair(owner, (*pairs)[0], (*pairs)[1]);
-    }
-}
-
-static inline void swapShortPairsNonEmpty(ShortsTableOwner* owner, u16 (*pairs)[2]) {
-    s32 i;
-    u16(*p)[2];
-
-    p = pairs;
-    i = 0;
-    do {
-        swapShortPair(owner, (*p)[0], (*p)[1]);
-        p++;
-    } while (pairs[++i][0] != SHORT_TABLE_END);
-}
-
-void initShortsHandleCompressedDiskReads(ShortsTableOwner* owner) {
-    s32 i;
-    u16(*pairs)[2];
-
-    for (i = 0; i < SHORT_TABLE_COUNT; i++) {
-        owner->order[i] = i;
-    }
-
-    swapShortPairsNonEmpty(owner, lbl_800EE960);
-
-    switch (owner->charId) {
-    case CHAR_ID_PARATROOPA_RED:
-    case CHAR_ID_PARATROOPA_GREEN:
-        pairs = lbl_803CB798;
-        break;
-    case CHAR_ID_PARAGOOMBA:
-        pairs = lbl_800EE998;
-        break;
-    case CHAR_ID_BIRDO:
-        pairs = lbl_803CB7A0;
-        break;
-    case CHAR_ID_SHYGUY_RED:
-    case CHAR_ID_SHYGUY_BLUE:
-    case CHAR_ID_SHYGUY_YELLOW:
-    case CHAR_ID_SHYGUY_GREEN:
-    case CHAR_ID_SHYGUY_BLACK:
-        pairs = lbl_800EE9B0;
-        break;
-    default:
-        pairs = NULL;
-        break;
-    }
-
-    if (pairs != NULL) {
-        swapShortPairs(owner, pairs);
-    }
-}
 
 /* Small accessors over the animation/model state block, addressed by raw offset. */
 #define HA(off)       (((u8*)&hugeAnimStruct) + (off))
@@ -3446,50 +3375,56 @@ extern void fn_800145F8(int mode);
 extern void* fn_80023AA4(void);
 extern void fn_80018DEC(int mode);
 
-void fn_8001A3FC(int mode) {
-    s32 start;
+/* The slot arrays of hugeAnimStruct that fn_8001A3FC resets. */
+typedef struct hugeAnimStruct_view_8001a3fc {
+    /* 0x0000 */ u8 _0000[0xC04];
+    /* 0x0C04 */ u8 pool[13][MODEL_RECORD_SIZE];
+    /* 0x2C50 */ void* objects[13];
+    /* 0x2C84 */ u8 _2C84[0x2D6A - 0x2C84];
+    /* 0x2D6A */ u8 flags[0x2D90 - 0x2D6A];
+} hugeAnimStruct_view_8001a3fc;
+#define HA_SLOTS (*(hugeAnimStruct_view_8001a3fc*)&hugeAnimStruct)
+
+/* Largest (low 28 bits of the +4 word) of the file entries named by
+ * lbl_800EEB18; negative ids are unused. */
+static inline u32 maxListedFileSize(void) {
+    u8* files = lbl_803CB794;
     s32 i;
-    s32 k;
-    u32 maxSize;
-    s16* entry;
     u32 v;
+    u32 maxSize = 0;
+    s16* ids = lbl_800EEB18;
+
+    for (i = 0; i < 54; i++) {
+        s32 id = ids[i];
+        if (id >= 0) {
+            v = *(u32*)(files + id * 16 + 4) & 0x0FFFFFFF;
+            if (maxSize < v) {
+                maxSize = v;
+            }
+        }
+    }
+    return maxSize;
+}
+
+void fn_8001A3FC(int mode) {
+    s32 i;
+    u32 maxSize;
     u8* pool;
-    u8* flags = lbl_803CBC34;
+    s32 count;
+    s32 k;
+    s32 slot;
 
     animationInitializationRunnerRelated(mode);
-    start = 1;
-    flags[0] = 0;
-    flags[1] = 0;
-    flags[2] = 0;
-    flags[3] = 0;
-    flags[4] = start;
-    for (i = start; i < 13; i++) {
+    lbl_803CBC34[0] = 0;
+    lbl_803CBC34[1] = 0;
+    lbl_803CBC34[2] = 0;
+    lbl_803CBC34[3] = 0;
+    lbl_803CBC34[4] = count = i = 1;
+    for (; i < 13; i++) {
         lbl_80118220[i * 0x64 + 0x61] = -2;
     }
-    if (start != 0) {
-        maxSize = 0;
-        entry = lbl_800EEB18;
-        for (i = 0; i < 18; i++) {
-            if (entry[0] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[0] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            if (entry[1] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[1] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            if (entry[2] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[2] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            entry += 3;
-        }
+    if (count != 0) {
+        maxSize = maxListedFileSize();
         pool = _OSAllocFromHeap(0x20, (maxSize + 0x1F) & ~0x1F);
         *(u8**)lbl_80118220 = pool;
         lbl_803CBC30 = pool;
@@ -3497,24 +3432,29 @@ void fn_8001A3FC(int mode) {
         lbl_80118220[0x60] = 0xFF;
     }
     fn_800145F8(mode);
-    HA_U32(0x13C) = (u32)fn_80023AA4();
+    hugeAnimStruct.modelEntries = fn_80023AA4();
     fn_80018DEC(mode);
     initActorArray(13);
-    for (k = 0; k < 13; k++) {
-        u8* rec = HA(MODEL_RECORD_BASE + k * MODEL_RECORD_SIZE);
-
-        rec[0x255] = k;
-        HA_OBJ(k) = NULL;
-        *HA(0x2D6A + k) = 0xFF;
-        rec[0x257] = 0xFF;
+    slot = 0;
+    for (k = 0; k < 9; k++, slot++) {
+        HA_SLOTS.pool[slot][0x255] = slot;
+        HA_SLOTS.objects[slot] = NULL;
+        HA_SLOTS.flags[slot] = 0xFF;
+        HA_SLOTS.pool[slot][0x257] = 0xFF;
     }
-    for (i = start - 1; i < 9; i++) {
-        *HA(0x2D7F + i) = 0xFF;
+    for (k = 0; k < 4; k++, slot++) {
+        HA_SLOTS.pool[slot][0x255] = slot;
+        HA_SLOTS.objects[slot] = NULL;
+        HA_SLOTS.flags[slot] = 0xFF;
+        HA_SLOTS.pool[slot][0x257] = 0xFF;
     }
-    *HA(0x2D89) = 0xFF;
-    *HA(0x2D8A) = 0xFF;
-    *HA(0x2D8B) = 0xFF;
-    *HA(0x2D8C) = 0xFF;
+    for (i = 0; i < 9; i++) {
+        HA_SLOTS.flags[0x2D7F - 0x2D6A + i] = 0xFF;
+    }
+    HA_SLOTS.flags[0x2D89 - 0x2D6A] = 0xFF;
+    HA_SLOTS.flags[0x2D8A - 0x2D6A] = 0xFF;
+    HA_SLOTS.flags[0x2D8B - 0x2D6A] = 0xFF;
+    HA_SLOTS.flags[0x2D8C - 0x2D6A] = 0xFF;
 }
 
 extern u8 lbl_80366158[];
@@ -3992,38 +3932,45 @@ void fn_8001E0D8(ActorObjectTable* table, int group, MtxPtr camera) {
 extern void* lbl_803CB7A8;
 extern void* lbl_803CBC24;
 
-#define FILE_ENTRY_FIELD(base, idx, n) (*(u32*)((u8*)(base) + (idx) * 16 + 4 + (n) * 0x10) & 0x0FFFFFFF)
-#define MAX_STEP(maxVar, idx, n)                               \
-    do {                                                       \
-        u32 v_ = FILE_ENTRY_FIELD(lbl_803CB7A8, idx, n);       \
-        if ((maxVar) < v_) {                                   \
-            (maxVar) = v_;                                     \
-        }                                                      \
-    } while (0)
-#define MAX_OF_SIX_FIELDS(maxVar, idx) \
-    MAX_STEP(maxVar, idx, 0);          \
-    MAX_STEP(maxVar, idx, 1);          \
-    MAX_STEP(maxVar, idx, 2);          \
-    MAX_STEP(maxVar, idx, 3);          \
-    MAX_STEP(maxVar, idx, 4);          \
-    MAX_STEP(maxVar, idx, 5)
+
+/* One 16-byte entry of the file table at lbl_803CB7A8; the low 28 bits of
+ * `size` are the file size. */
+typedef struct FileTableEntry {
+    u32 _00;
+    u32 size;
+    u32 _08;
+    u32 _0C;
+} FileTableEntry;
+
+/* Largest of the six consecutive file entries starting at `idx`. */
+static inline u32 maxFileSizeOfSix(u32 maxSize, s32 idx) {
+    s32 k;
+
+    for (k = 0; k < 6; k++) {
+        u32 v = ((FileTableEntry*)lbl_803CB7A8)[idx + k].size & 0x0FFFFFFF;
+        if (maxSize < v) {
+            maxSize = v;
+        }
+    }
+    return maxSize;
+}
 
 void fn_800145F8(int mode) {
-    u32 maxSize = 0;
     u32 size;
     u8* pool;
-    s32 i;
+    u32 i;
     s32 j;
-    s32 idx;
-    s32 a;
-    s32 b;
+    u32 t;
+    s16 idx;
+    u8* rec;
+    u32 maxSize = 0;
 
     if (mode == 0) {
-        for (i = 0; i < 2; i++) {
+        for (t = 0; t < 2; t++) {
             for (j = 0; j < 9; j++) {
-                idx = lbl_800EEAAC[*(s16*)((u8*)&inMemRoster[i][j] + 0x24)];
+                idx = lbl_800EEAAC[*(s16*)((u8*)&inMemRoster[t][j] + 0x24)];
                 if (idx >= 0) {
-                    MAX_OF_SIX_FIELDS(maxSize, idx);
+                    maxSize = maxFileSizeOfSix(maxSize, idx);
                 }
             }
         }
@@ -4031,7 +3978,7 @@ void fn_800145F8(int mode) {
         for (i = 0; i < 54; i++) {
             idx = lbl_800EEAAC[i];
             if (idx >= 0) {
-                MAX_OF_SIX_FIELDS(maxSize, idx);
+                maxSize = maxFileSizeOfSix(maxSize, idx);
             }
         }
     }
@@ -4042,25 +3989,19 @@ void fn_800145F8(int mode) {
     for (i = 0; i < 13; i++) {
         u8* rec = HA(i * 0xD4);
 
-        *(u32*)(rec + 0x140) = (u32)pool + size * (i * 2);
-        *(u32*)(rec + 0x1A4) = (u32)pool + size * (i * 2 + 1);
+        *(u32*)(rec + 0x140) = (u32)lbl_803CBC24 + size * (i * 2);
+        *(u32*)(rec + 0x1A4) = (u32)lbl_803CBC24 + size * (i * 2 + 1);
     }
-    a = 0;
-    b = 1;
-    for (i = 0; i < 13; i++) {
-        u8* rec = HA(i * 0xD4);
-
-        rec[0x20F] = 0xFF;
-        rec[0x211] = 0xFF;
-        rec[0x210] = 0xFF;
+    for (i = 0, rec = HA(0); i < 13; i++, rec += 0xD4) {
+        ((s8*)rec)[0x20F] = -1;
+        ((s8*)rec)[0x211] = -1;
+        ((s8*)rec)[0x210] = -1;
         rec[0x20D] = 0xFF;
         rec[0x20E] = 0xFF;
         *(u32*)(rec + 0x208) = 0;
         rec[0x20C] = 0;
-        rec[0x1A0] = a;
-        a += 2;
-        rec[0x204] = b;
-        b += 2;
+        rec[0x1A0] = i * 2;
+        rec[0x204] = i * 2 + 1;
     }
 }
 
@@ -4526,32 +4467,33 @@ void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     obj->mode = mode;
 }
 
-#define MAX_STEP_S32(maxVar, base, n)                          \
-    do {                                                       \
-        s32 v_ = (s32)FILE_ENTRY_FIELD(lbl_803CB7A8, base, n); \
-        if ((maxVar) < v_) {                                   \
-            (maxVar) = v_;                                     \
-        }                                                      \
-    } while (0)
+/* Signed variant of maxFileSizeOfSix. */
+static inline s32 maxFileSizeOfSixS32(s32 maxSize, int idx) {
+    s32 k;
+
+    for (k = 0; k < 6; k++) {
+        s32 v = ((FileTableEntry*)lbl_803CB7A8)[idx + k].size & 0x0FFFFFFF;
+        if (maxSize < v) {
+            maxSize = v;
+        }
+    }
+    return maxSize;
+}
 
 void fn_80014204(s32 count) {
-    s32 maxSize = 0;
     s32 size;
     u8* pool;
     s32 total;
     s32 i;
     s32 fileBase = 0;
+    u8* rec;
     s32 a;
     s32 b;
+    s32 maxSize = 0;
 
     for (i = 0; i < 54; i++) {
         if (lbl_800EEAAC[i] >= 0) {
-            MAX_STEP_S32(maxSize, fileBase, 0);
-            MAX_STEP_S32(maxSize, fileBase, 1);
-            MAX_STEP_S32(maxSize, fileBase, 2);
-            MAX_STEP_S32(maxSize, fileBase, 3);
-            MAX_STEP_S32(maxSize, fileBase, 4);
-            MAX_STEP_S32(maxSize, fileBase, 5);
+            maxSize = maxFileSizeOfSixS32(maxSize, fileBase);
             fileBase += 6;
         }
     }
@@ -4563,25 +4505,19 @@ void fn_80014204(s32 count) {
     for (i = 0; i < total; i++) {
         u8* rec = HA(i * 0xD4);
 
-        *(u32*)(rec + 0x140) = (u32)pool + size * (i * 2);
-        *(u32*)(rec + 0x1A4) = (u32)pool + size * (i * 2 + 1);
+        *(u32*)(rec + 0x140) = (u32)lbl_803CBC24 + size * (i * 2);
+        *(u32*)(rec + 0x1A4) = (u32)lbl_803CBC24 + size * (i * 2 + 1);
     }
-    a = 0;
-    b = 1;
-    for (i = 0; i < total; i++) {
-        u8* rec = HA(i * 0xD4);
-
-        rec[0x210] = 0xFF;
-        rec[0x211] = 0xFF;
-        rec[0x20F] = 0xFF;
+    for (i = 0, rec = HA(0), a = 0, b = 1; i < total; i++, rec += 0xD4, a += 2, b += 2) {
+        ((s8*)rec)[0x210] = -1;
+        ((s8*)rec)[0x211] = -1;
+        ((s8*)rec)[0x20F] = -1;
         rec[0x20E] = 0xFF;
         rec[0x20D] = 0xFF;
         *(u32*)(rec + 0x208) = 0;
         rec[0x20C] = 0;
         rec[0x1A0] = a;
-        a += 2;
         rec[0x204] = b;
-        b += 2;
     }
 }
 
@@ -5080,13 +5016,14 @@ extern f32 lbl_803CC4D0;
 void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     ActorObjectEntry* entry = &hugeAnimStruct.actorTable->entries[slot];
     u32* header = *(u32**)(rec + 8);
-    u32 tex;
     u32 layout;
     u32 geo;
     u32 skn;
+    u32 tex;
     void* anim;
     u16 boneCount;
-    u16 bone;
+    s32 bone;
+    u16 boneId;
     s32 i;
 
     if (header[0] != 0) {
@@ -5107,15 +5044,16 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     tex = (*(u32**)(rec + 8))[0];
     convertTextureHeader((void*)tex);
     layout = (*(u32**)(rec + 8))[1];
-    if (layout == 0) {
+    if (layout != 0) {
+        geo = (*(u32**)(rec + 8))[2];
+        skn = (*(u32**)(rec + 8))[3];
+        LoadActorLayout((void*)layout);
+        convertGeometryAndSknHeader((void*)geo, (void*)skn);
+        haveActLayoutPointToGeoHeader((void*)layout, (void*)geo);
+        UpdateTexturePalettePointers((void*)geo, (void*)tex);
+    } else {
         return;
     }
-    geo = (*(u32**)(rec + 8))[2];
-    skn = (*(u32**)(rec + 8))[3];
-    LoadActorLayout((void*)layout);
-    convertGeometryAndSknHeader((void*)geo, (void*)skn);
-    haveActLayoutPointToGeoHeader((void*)layout, (void*)geo);
-    UpdateTexturePalettePointers((void*)geo, (void*)tex);
 
     if (mode < 9) {
         anim = *(void**)(rec + 0x18);
@@ -5131,17 +5069,21 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     boneCount = *(u16*)((u8*)entry->actor + 6);
     memset(rec + 0x162, 0xFF, 0xF0);
     for (i = 0; i < boneCount; i++) {
-        bone = **(u16**)(*(u8**)((u8*)entry->actor + 0x18) + i * 4);
-        if (bone != 0xFFFF) {
-            *(u16*)(rec + 0x162 + bone * 2) = i;
+        boneId = **(u16**)(*(u8**)((u8*)entry->actor + 0x18) + i * 4);
+        if (boneId != 0xFFFF) {
+            *(u16*)(rec + 0x162 + boneId * 2) = i;
         }
     }
-    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x188));
-    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x194));
-    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x1AA));
+    bone = *(u16*)(rec + 0x188);
+    callDSInsertListObject((UnkB2B4C*)entry->actor, bone);
+    bone = *(u16*)(rec + 0x194);
+    callDSInsertListObject((UnkB2B4C*)entry->actor, bone);
+    bone = *(u16*)(rec + 0x1AA);
+    callDSInsertListObject((UnkB2B4C*)entry->actor, bone);
     *(Actor**)rec = entry->actor;
-    if (*(u16*)(rec + 0x168) != 0xFFFF) {
-        fn_800B2B54(*(UnkB2B4C**)rec, *(u16*)(rec + 0x168), 13);
+    bone = *(u16*)(rec + 0x168);
+    if (bone != 0xFFFF) {
+        fn_800B2B54(*(UnkB2B4C**)rec, bone, 13);
     }
     fn_800BD548(entry, 4, HA_U32(0xAC), HA_U32(0xB0), HA_U32(0xB4), HA_U32(0xB8));
     CTRLSetTranslation(&entry->control, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4B8);
@@ -5151,17 +5093,17 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     bone = *(u16*)(rec + 0x168);
     if (bone != 0xFFFF) {
         fn_800B2BA8(entry->actor, bone, NULL, 0);
-        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+        MODEL_BONE_FLAGGED(entry->actor, (u16)bone) = 1;
     }
     bone = *(u16*)(rec + 0x166);
     if (bone != 0xFFFF) {
         fn_800B2BA8(entry->actor, bone, NULL, 0);
-        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+        MODEL_BONE_FLAGGED(entry->actor, (u16)bone) = 1;
     }
     bone = *(u16*)(rec + 0x164);
     if (bone != 0xFFFF) {
         fn_800B2BA8(entry->actor, bone, NULL, 0);
-        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+        MODEL_BONE_FLAGGED(entry->actor, (u16)bone) = 1;
     }
     bone = *(u16*)(rec + 0x1AA);
     if (bone != 0xFFFF) {
@@ -5170,7 +5112,7 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     bone = *(u16*)(rec + 0x1BE);
     if (bone != 0xFFFF) {
         fn_800B2BA8(entry->actor, bone, NULL, 0);
-        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+        MODEL_BONE_FLAGGED(entry->actor, (u16)bone) = 1;
     }
     fn_800B2C08(entry->actor, *(u16*)(rec + 0x16A));
     initShortsHandleCompressedDiskReads((ShortsTableOwner*)rec);
@@ -5238,8 +5180,7 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
         break;
     case CHAR_ID_PARAGOOMBA:
         fn_800637D4(rec, entry);
-        initSpecialHandBones(rec, entry);
-        break;
+        /* fallthrough */
     case CHAR_ID_MONTY:
     case CHAR_ID_GOOMBA:
         initSpecialHandBones(rec, entry);
@@ -5257,6 +5198,75 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
         break;
     }
 }
+
+static inline void swapShortPair(ShortsTableOwner* owner, u16 first, u16 second) {
+    u16 b;
+    u16 a;
+
+    a = owner->slot[first];
+    b = owner->slot[second];
+    if (a != SHORT_TABLE_END && b != SHORT_TABLE_END) {
+        owner->order[a] = b;
+        owner->order[b] = a;
+    }
+}
+
+static inline void swapShortPairs(ShortsTableOwner* owner, u16 (*pairs)[2]) {
+    for (; (*pairs)[0] != SHORT_TABLE_END; pairs++) {
+        swapShortPair(owner, (*pairs)[0], (*pairs)[1]);
+    }
+}
+
+static inline void swapShortPairsNonEmpty(ShortsTableOwner* owner, u16 (*pairs)[2]) {
+    s32 i;
+    u16(*p)[2];
+
+    p = pairs;
+    i = 0;
+    do {
+        swapShortPair(owner, (*p)[0], (*p)[1]);
+        p++;
+    } while (pairs[++i][0] != SHORT_TABLE_END);
+}
+
+void initShortsHandleCompressedDiskReads(ShortsTableOwner* owner) {
+    s32 i;
+    u16(*pairs)[2];
+
+    for (i = 0; i < SHORT_TABLE_COUNT; i++) {
+        owner->order[i] = i;
+    }
+
+    swapShortPairsNonEmpty(owner, lbl_800EE960);
+
+    switch (owner->charId) {
+    case CHAR_ID_PARATROOPA_RED:
+    case CHAR_ID_PARATROOPA_GREEN:
+        pairs = lbl_803CB798;
+        break;
+    case CHAR_ID_PARAGOOMBA:
+        pairs = lbl_800EE998;
+        break;
+    case CHAR_ID_BIRDO:
+        pairs = lbl_803CB7A0;
+        break;
+    case CHAR_ID_SHYGUY_RED:
+    case CHAR_ID_SHYGUY_BLUE:
+    case CHAR_ID_SHYGUY_YELLOW:
+    case CHAR_ID_SHYGUY_GREEN:
+    case CHAR_ID_SHYGUY_BLACK:
+        pairs = lbl_800EE9B0;
+        break;
+    default:
+        pairs = NULL;
+        break;
+    }
+
+    if (pairs != NULL) {
+        swapShortPairs(owner, pairs);
+    }
+}
+
 
 void fn_80019C00(void) {
     DrawingSceneStruct* item = currentDrawingItem;

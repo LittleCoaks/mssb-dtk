@@ -25,8 +25,8 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | LoadModel | pending | 80.22 |
 | fn_80012B90 | pending | 88.88 |
 | animateModelArmsGlovesBats | pending-WEAK | 57.33 |
-| fn_80014204 | pending-WEAK | 49.62 |
-| fn_800145F8 | pending-WEAK | 39.48 |
+| fn_80014204 | pending | 80.71 |
+| fn_800145F8 | pending | 87.85 |
 | fn_80014990 | pending | 93.09 |
 | fn_80014A18 | pending | 94.58 |
 | loadSomethingFromDiskAtBeginningOfAB1 | matched | 100.00 |
@@ -43,7 +43,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80017340 | pending | 81.76 |
 | fn_8001758C | pending | 80.09 |
 | fn_800177B4 | pending | 99.00 |
-| fn_80017814 | pending-WEAK | 56.21 |
+| fn_80017814 | pending | 92.88 |
 | fn_80017D28 | pending | 88.11 |
 | fn_80017DBC | pending | 90.70 |
 | setupAnimationModelMemory | pending-WEAK | 63.93 |
@@ -58,7 +58,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80019A60 | pending | 91.69 |
 | fn_80019C00 | pending | 77.59 |
 | fn_8001A25C | pending | 91.69 |
-| fn_8001A3FC | pending-WEAK | 35.90 |
+| fn_8001A3FC | exhausted | 98.61 |
 | challengeMapRelated | pending | 87.45 |
 | fn_8001AAA4 | matched | 100.00 |
 | fn_8001AAF0 | matched | 100.00 |
@@ -105,7 +105,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001F16C | pending | 88.91 |
 | resetGameStadiumStateOnExit | pending | 94.06 |
 | challengeMapMaybe | matched | 100.00 |
-| somethingFileHandlingLoadingRelated | pending-WEAK | 42.34 |
+| somethingFileHandlingLoadingRelated | pending | 95.51 |
 | fn_8001F8A4 | pending | 86.06 |
 | initShortsHandleCompressedDiskReads | matched | 100.00 |
 | fn_8001FDD4 | matched | 100.00 |
@@ -152,7 +152,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80017DBC | pending | 90.70 |
 | fn_80018B74 | pending | 87.89 |
 | fn_80017098 | pending | 78.84 |
-| fn_8001A3FC | pending | 35.90 |
+| fn_8001A3FC | exhausted | 98.61 |
 | fn_8001C234 | pending | 86.23 |
 | fn_8001E488 | pending | 97.30 |
 | fn_80014A18 | pending | 94.58 |
@@ -181,7 +181,97 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80016F7C | pending | 89.54 |
 | fn_8001B5EC | pending | 89.87 |
 
+## fn_8001A3FC [O1] (692 bytes target, 692 ours; 35.90% -> 98.61% fuzzy, unit 80.28% -> 81.01%)
+  baseline: 35.90% (968 bytes)
+  [1] one 54-entry scan loop (no hand 3x unroll), struct view for pool/objects/flags, natural 13-loop -> 54.6..63.6% (kept the scan; the 13-loop still unrolled 6x+remainder)
+  [2] 13-record loop: s32/u32/s16/u16/s8/u8 index, while/do-while, rec pointer, pointer-walk, two loops (0..9 / 9..13 and 0..9 / ;<13), <=12, !=13 -> best 78.65% (split 9 + 4); MWCC picks the
+      known-count factor from the trip count (9 -> 3, 13 -> 6 + dynamic remainder), not from body size
+  [3] KEY: `slot = 0; for (k = 0; k < 9; k++, slot++) {...} for (k = 0; k < 4; k++, slot++) {...}` -- a separate counter k with the stored/index variable as a
+      secondary induction variable gives the target's incremental `addi r9,r9,1` 3x unroll (ctr 3) and the 4-body tail recomputed from r9 -> 88.4%, then 94.86%
+  [4] scan `s32 id = tbl[i]` local (drops extsh.) -> +0.5
+  [5] guard sharing the `1`: `count = 1; lbl[4] = count; for (i = count..)` 700 bytes; `lbl_803CBC34[4] = count = i = 1; for (; i < 13; i++)` + `if (count != 0)` -> 692 bytes, 95.66%
+      (also `count = i = 1;` before the zero stores: same). Tried/worse: `if (lbl_803CBC34[4])` reload, `if (count)` (folded), count as u8/s8/u32, initModelCache(count) inline
+      (96.06, 688), `for (i = 0; i < count; i++)` alloc loop (85..89%), ModelCacheEntry struct + pointer walk (73%)
+  [6] separate `slot` variable for the record loops instead of reusing i -> 97.27% (stops NULL being a copy of the index's 0)
+  [7] scan moved into a `static inline u32 maxListedFileSize(void)` -> 98.49%; its local declaration order (files, i, v, maxSize, ids of 120 perms) -> 98.60%
+  tried, no gain: outer local declaration order (40 perms), scan via ids param / count param / ids++ walk, slot-init inline, 2D7F-loop inline or other counter
+  variable, s8 -1 stores, chain zero stores, `maxSize` reused for count.
+  remaining (register numbering only, no instruction differences): the `1` lands in r5 instead of r4 at the top; scan ptr/counter r5<->r7 swap;
+  tail base/zero r3/r7 vs r4/r3. Same scan block appears in fn_80019C00 (target there also copies maxSize's 0 into the dead counter): try maxListedFileSize there.
+  readability: enum-shaped bytes left as literals (lbl_803CBC34[0..4] flags/count, lbl_80118220 0x64-byte cache entries with -2 end / -1 free sentinels at +0x61).
+
+## fn_800145F8 [O1] (920 bytes target, 924 ours; 39.48% -> 87.85% fuzzy, unit 81.01% -> 81.75%)
+  baseline: 39.48% (1196 bytes)
+  [1] idx as s16 (target `extsh.` test), team counter u32 t (`cmplwi r9,2`), loop index u32 i (`cmplwi r8,13` on the remainder) -> 42.6%
+  [2] buffer loop reads the global back (`(u32)lbl_803CBC24 + size * (i * 2)`): matches the target's reload of lbl_803CBC24 in the remainder loop -> 43.2%
+  [3] KEY: final 13-record loop kept rolled by walking a pointer (`for (i = 0, rec = HA(0); i < 13; i++, rec += 0xD4)`); `i != 13` and do-while also stay rolled
+      (77.4 / 76.8) but the pointer walk scores best -> 77.7%
+  [4] six-field max written as a loop over k < 6 indexing `FileTableEntry[idx + k].size` (fully unrolled late, so each step is `addi rT,rIdx16,K; lwzx`);
+      explicit six steps / parenthesised offsets all CSE `base + idx*16` into `lwz off(r)` -> 85.4%
+  [5] 0x20F/0x211/0x210 stored as s8 -1 (target uses a separate -1 constant from the 0xFF ones) -> size 920 but 84.7 alone; with
+      `rec[0x1A0] = i * 2; rec[0x204] = i * 2 + 1` (the zero stores become copies of i's 0 as in the target) -> 85.3%
+  [6] six-field loop moved into `static inline u32 maxFileSizeOfSix(u32 maxSize, s32 idx)` and maxSize declared last -> 87.08% (scan regions now identical to target)
+  tried, no gain: separate a/b counters or k++/a+=2 in the buffer loop (unrolls differently, 648 bytes), record-relative pointer (HA(0x140)), Rec145 struct view,
+  direct HA() stores, `i * 2 * size`, pool local vs global (pool: 920 bytes but 86.48), other counter variables for the final loop, rec declared in block,
+  a/b in the final loop header (920 bytes, 86.92).
+  remaining: the unrolled 6x buffer loop uses r23..r31 (stmw r23) where the target uses r27..r31 -- same instruction multiset, different scheduling/
+  allocation; and the final loop copies the hugeAnimStruct base (`mr r9,r3`, the 4 extra bytes) where the target computes it straight into the pointer register.
+  next: buffer-loop expression shape (the target keeps 2(i+k) values in r27..r30 across the body); try a records struct view with both buffer pointers adjacent.
+
+## somethingFileHandlingLoadingRelated [O1] (700 bytes target, 696 ours; 42.34% -> 95.51% fuzzy, unit 81.75% -> 82.38%)
+  baseline: 42.34% (656 bytes)
+  [1] effect-init loop as `for (i = 0; i < count; i++)` with every field written through `hugeAnimStruct.effects[i].` (no fx local) in the target's order
+      pos.x/y/z, rot.x/y/z, visible, update -> the body matches (pointer reloaded per store, stfsx) -> 68.7%
+  [2] KEY: `count = hugeAnimStruct.effectCount = 30;` keeps count unfolded (target: `li r31,30` live across the calls, `mulli r4,r31,0x28`, `cmpwi r31,0`
+      guard, dynamic 2x unroll with srwi./andi.). `count = 30; effectCount = count;`, `effectCount = count = 30;`, longer chains with i/off, count as
+      u16/s16/u8/u32/int, an inline returning 30 all fold -> 94.63%
+  [3] model-table loop addressing `modelTable + i * 0x90 + 0x34/0x44` instead of a separate `off` induction variable -> 95.43%
+      (`for (i = off = 0; ...)` gives 700 bytes but 94.83; parenthesised offsets / &table[...] 91.96; PMModelEntry struct view, `0x90 * i`: no change)
+  remaining: the target reloads sources[0].data/geo/tex from memory after storing them (lwz r27/r28/r30, 0x2da0..0x2da8); ours keeps the stored values
+      (mr), 4 bytes and the reg assignment of the three locals. Tried, all forwarded identically: u32-word stores, a 3-iteration store loop, a
+      relocateWords inline with a k loop, a PMModelSource* src for stores or loads, raw-offset loads, (void**) loads, a 1-iteration loop.
+      Also the target copies the table offset induction variable from i (`mr r28,r27`), ours materialises a second `li 0`.
+
+## fn_80014204 [O1] (1012 bytes target, 1016 ours; 49.62% -> 80.71% fuzzy, unit 82.38% -> 82.90%)
+  baseline: 49.62% (1200 bytes)
+  [1] fn_800145F8's recipe: k < 6 loop in an inline (signed: maxFileSizeOfSixS32), pool read back through lbl_803CBC24, s8 -1 stores for
+      0x210/0x211/0x20F, `i * 2` / `i * 2 + 1` -> 38.3% alone (1352 bytes): the final loop unrolled 8x instead of the target's 4x
+  [2] final loop as a pointer walk (`rec += 0xD4`) -> dynamic 4x unroll as in the target -> 75.6%
+  [3] KEY for the scan: the helper's index parameter as `int` (s32 is `long` here) -> `slwi` once + `addi K; lwzx` per step like the target;
+      with s32/u32 the inner (idx + k) is recomputed or strength-reduced into a +96 induction variable -> 79.9% (s16/u16 idx 79.8/80.0 but 1020/1016)
+      tried, worse: `(base + idx)[k]`, byte-offset forms (988/992 bytes, idx*16 strength-reduced), `int i` (78.3)
+  [4] final loop with explicit a/b counters in the for header (`a = 0, b = 1 ... a += 2, b += 2`) -> 80.33%
+  tried, no gain: local declaration order (30 perms), helper parameter order/types, total as int or inlined `count * 3`, `(u32)pool` in the buffer loop
+      (1012 bytes but 78.19), `i = 0` outside the pointer-walk loop, k++/a += 2 counter in the buffer loop (changes the unroll, 804 bytes).
+  remaining: same as fn_800145F8 -- the 8x-unrolled buffer loop uses r19..r31 where the target uses r24..r31 (same instructions), so total
+      ends up in r24 instead of r7; and the final loop copies the hugeAnimStruct base (`mr`) instead of computing it into the pointer register.
+      The scan's maxSize/fileBase/pointer registers are rotated (r4/r7/r5 vs r7/r5/r4).
+
+## fn_80017814 [O1] (1300 bytes target, 1300 ours; 56.21% -> 92.88% fuzzy, unit 82.90% -> 83.70%)
+  baseline: 56.21% (1660 bytes)
+  [1] KEY: the target calls initShortsHandleCompressedDiskReads (bl); ours inlined it (-inline auto, defined earlier in the file). Moved it and its three
+      swapShortPair* static inlines below fn_80017814, matching the target's address order (it sits near the end of the unit) -> 86.51%, 1284 bytes.
+      It is its only caller in the file and it stays 100%.
+  [2] bone checks on an s32 `bone` (target: `addis r0,rX,0; cmplwi r0,0xffff`) with the flag index cast back `(u16)bone` (clrlslwi), a separate u16
+      boneId for the memset loop, and PARAGOOMBA falling through into the MONTY/GOOMBA initSpecialHandBones case -> 89.33%
+  [3] the +0x168 check and the three callDSInsertListObject arguments read into `bone` first (target loads the u16 before the actor) -> 91.56%
+  [4] `if (layout != 0) { ...four calls... } else { return; }` reproduces the target's `b` + dead `b exit` pair -> 92.34%, size exact
+  [5] local declaration order layout, geo, skn, tex (24 perms tried) -> 92.51% (local scorer; report 92.88%)
+  tried, no gain: ternary for the anim argument, an s8 local for rec[0x255], `mode >= 9` polarity, header/entry declaration order or statement
+      order, array-index forms for the bone table, u16 i (worse), `(u16)-1` / `(s16)bone != -1` compares.
+  remaining (registers/scheduling only): prologue order (target loads rec+8 before computing entry), layout loaded into r3 then moved to r26,
+      rec[0x255] loaded before the anim branch in ours, and the memset loop's i*4 counter is a fresh `li 0` instead of a copy of i.
+  note: fn_80017DBC (90.70%) has the same bone block; the s32 bone / (u16) index form may help it.
+
 ## Findings
+- [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
+  early in model.c. Moving it below its caller (to its address-order spot) stops the inlining without touching its own codegen.
+- [O1] Unfolded-constant lever (seen twice now): assigning a constant through a chain into a struct/array field, e.g. `count = field = 30;` or
+  `field = count = i = 1;`, keeps MWCC from constant-propagating `count`, so guards, multiplies and loop bounds use the register as in the target.
+  Which chain order works differs per function; try every order.
+- [O1] Unroll shape lever: a loop whose stored/index value is a secondary induction variable (`for (k = 0; k < N; k++, slot++)`) unrolls with
+  incremental `addi rX,rX,1` per copy, and a constant-count follow-on loop from that runtime value comes out as straight copies off a mulli-computed base.
+  A plain `for (i = 0; i < N; i++)` gives parallel `addi rA,rI,1 / rI,2` copies instead. Likely relevant to fn_800145F8 / fn_80014204 / fn_80019C00.
 - fn_80011578 loops s8 i over 13 object slots calling the bounds-checked `clearObjectField5C` (same inline as fn_800115C8); loop form differs.
 - Object slot record at hugeAnimStruct+0x2C50 (+i*4); obj+0x2C / +0x30 hold per-object effect/part records (fn_80011B64 resets them);
   obj+0x255 is the actor slot (s8) indexing hugeAnimStruct.actorTable[slot*0x90]; node+0x98 bit 2 and node+0x68 are toggled by
