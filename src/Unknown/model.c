@@ -6068,39 +6068,42 @@ BOOL fn_80011CA8(void* objPtr, s32 kind, s32 seq) {
 extern u8 lbl_803CBC04;
 extern u32 lbl_803CBC08;
 
-static inline BOOL finishHandItemLoad(u32 tex) {
+static inline u8 finishHandItemLoad(u32 tex) {
     ModelSlotBlock* block;
     s32 i;
     void* layout;
     void* geo;
     u8* partSlot;
+    u8 ret;
 
-    if (lbl_803716B8[0x1E8] != 0) {
-        return FALSE;
-    }
-    block = (ModelSlotBlock*)lbl_803CBC1C;
-    lbl_803CBC0C = 0;
-    for (i = 0; i < 4; i++) {
-        if (block->loaded[i] != NULL) {
-            block->loaded[i] = (void*)((u8*)block->loaded + (u32)block->loaded[i]);
+    if (lbl_803716B8[0x1E8] == 0) {
+        block = (ModelSlotBlock*)lbl_803CBC1C;
+        lbl_803CBC0C = 0;
+        for (i = 0; i < 4; i++) {
+            if (block->loaded[i] != NULL) {
+                block->loaded[i] = (void*)((u8*)block->loaded + (u32)block->loaded[i]);
+            }
         }
+        layout = block->loaded[lbl_803CB7C4[0]];
+        geo = block->loaded[lbl_803CB7C4[1]];
+        partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
+        UpdateTexturePalettePointers(geo, (void*)tex);
+        fn_800238E0(hugeAnimStruct.modelEntries, block->slot, block->slot, layout);
+        if (block->loaded[2] != NULL) {
+            adjustInternalPointers(block->loaded[lbl_803CB7C4[2]]);
+            ACTActorRelated(block->loaded[lbl_803CB7C4[2]], partSlot);
+        }
+        block->_04 = block->loaded[lbl_803CB7C4[3]];
+        actRelated(block->loaded[lbl_803CB7C4[2]], &block->_04);
+        lbl_803CBC1C = NULL;
+        ret = TRUE;
+    } else {
+        ret = FALSE;
     }
-    layout = block->loaded[lbl_803CB7C4[0]];
-    geo = block->loaded[lbl_803CB7C4[1]];
-    partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
-    LoadActorLayout(layout);
-    convertGeometryAndSknHeader(geo, NULL);
-    haveActLayoutPointToGeoHeader(layout, geo);
-    UpdateTexturePalettePointers(geo, (void*)tex);
-    fn_800238E0(hugeAnimStruct.modelEntries, block->slot, block->slot, layout);
-    if (block->loaded[2] != NULL) {
-        adjustInternalPointers(block->loaded[lbl_803CB7C4[2]]);
-        ACTActorRelated(block->loaded[lbl_803CB7C4[2]], partSlot);
-    }
-    block->_04 = block->loaded[lbl_803CB7C4[3]];
-    actRelated(block->loaded[lbl_803CB7C4[2]], &block->_04);
-    lbl_803CBC1C = NULL;
-    return TRUE;
+    return ret;
 }
 
 BOOL fn_80012B90(void* objPtr) {
@@ -6110,8 +6113,7 @@ BOOL fn_80012B90(void* objPtr) {
     u8 phase = lbl_803CBC04;
     ModelOwner* owner;
     u32 tex;
-    s32 ready;
-    s32 isFlagClear;
+    u8 isFlagClear;
     s32 kind;
     ModelSlotBlock* target;
     s32 groupIndex;
@@ -6128,8 +6130,9 @@ BOOL fn_80012B90(void* objPtr) {
     case 0:
     case 3:
     case 6:
-        owner->texPalette = **(void***)(obj + 8);
-        lbl_803CBC08 = (u32)**(void***)(obj + 8);
+        tex = (u32)**(void***)(obj + 8);
+        owner->texPalette = (void*)tex;
+        lbl_803CBC08 = tex;
         owner->charId = charId;
         if (lbl_803CBC04 == 0) {
             ((u8*)owner)[0xD1] = ((u8*)owner)[0xD0];
@@ -6150,10 +6153,9 @@ BOOL fn_80012B90(void* objPtr) {
     case 2:
         tex = lbl_803CBC08;
         isFlagClear = (owner->flag == 0);
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
-            if (isFlagClear == owner->flag) {
-                kind = 1 - isFlagClear;
-            } else {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
+            kind = 1 - isFlagClear;
+            if (isFlagClear != owner->flag) {
                 kind = 3 - isFlagClear;
             }
             if (isFlagClear != 0) {
@@ -6165,15 +6167,14 @@ BOOL fn_80012B90(void* objPtr) {
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, kind, target->loaded);
         }
-        ready = finishHandItemLoad(tex);
-        if (ready) {
+        if (finishHandItemLoad(tex)) {
             owner->flag = (owner->flag == 0);
             lbl_803CBC04 = lbl_803CBC04 + 1;
         }
         break;
     case 4:
         tex = lbl_803CBC08;
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             lbl_803CBC1C = (u8*)&owner->blocks[1];
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, 1, owner->blocks[1].loaded);
@@ -6184,7 +6185,7 @@ BOOL fn_80012B90(void* objPtr) {
         break;
     case 5:
         tex = lbl_803CBC08;
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             lbl_803CBC1C = (u8*)&owner->blocks[0];
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, 0, owner->blocks[0].loaded);
@@ -6195,7 +6196,7 @@ BOOL fn_80012B90(void* objPtr) {
         break;
     case 7:
         tex = lbl_803CBC08;
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             lbl_803CBC1C = (u8*)&owner->blocks[1];
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, 5, owner->blocks[1].loaded);
@@ -6206,7 +6207,7 @@ BOOL fn_80012B90(void* objPtr) {
         break;
     case 8:
         tex = lbl_803CBC08;
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             lbl_803CBC1C = (u8*)&owner->blocks[0];
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, 4, owner->blocks[0].loaded);

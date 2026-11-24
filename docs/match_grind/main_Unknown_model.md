@@ -23,7 +23,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80011CA8 | pending | 66.51 |
 | fn_800126EC | matched | 100.00 |
 | LoadModel | pending | 98.30 |
-| fn_80012B90 | pending | 88.88 |
+| fn_80012B90 | pending | 93.39 |
 | animateModelArmsGlovesBats | pending | 92.08 |
 | fn_80014204 | pending | 80.71 |
 | fn_800145F8 | pending | 87.85 |
@@ -684,6 +684,20 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       (96.86, with or without the four field resets).
   remaining: charObj and the loop offset swap r27/r28, and the lbl_803CC4B8 load before the three byte stores.
   readability pass (partial, function not 100%): GameModeSelected 7 / 2 -> GAME_TYPE_MINIGAMES / GAME_TYPE_PRACTICE.
+
+## fn_80012B90 [O1] (2800 bytes target, 2800 ours; 88.88% -> 93.39%, unit 93.22% -> 93.43%)
+  baseline: 88.88% (2808 bytes)
+  Recipe from animateModelArmsGlovesBats: this function has no per-actor or parts loops and no for(;;) phase loop in the target
+  (each phase returns through the switch), so only the finish-inline part applies.
+  [1] KEY: finishHandItemLoad with a single exit and a u8 result (`if (lbl_803716B8[0x1E8] == 0) { ...; ret = TRUE; } else
+      ret = FALSE; return ret;`) -> 92.17%, size exact (target tests it with clrlwi.)
+  [2] phases 0/3/6 read **(obj + 8) once into tex and store it to the owner and lbl_803CBC08 -> 92.56%
+  [3] isFlagClear as u8 (extrwi CLZ idiom, cmplw) and the 0x715 tests through (s8) (cmpwi) -> 93.22%
+  [4] kind as `kind = 1 - c; if (c != owner->flag) kind = 3 - c;` (target's subfic / beq / subfic) -> 93.39%
+  tried, no gain: the 0x30 store typed as ModelOwner** (no change); the `ready` local dropped (no change, kept dropped).
+  remaining: callee-saved numbering (target keeps obj in r27 and uses r24..r31; ours r25..r31) and local scheduling: the
+      loadCharacterHandItem argument loads, the phase/flag store order in phase 1/2 and the three final stores in phase 8
+      come out in a different order.
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
