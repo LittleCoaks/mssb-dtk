@@ -2877,14 +2877,32 @@ s32 fn_8001B35C(int index, int mode) {
 }
 
 
+static inline void updateActorVisibility(ActorObjectEntry* entry, u8* obj, s32 mode) {
+    u8* camera = (u8*)returnFloatFromModeIndex(mode) + 0x40;
+    s32 shift = mode * 3;
+    u8 keep = ~(3 << shift);
+
+    if (*HA(0x307A) == 5) {
+        entry->actor->unk98 = 1;
+    } else {
+        Mtx trans;
+        Actor* actor;
+
+        PSMTXTrans(trans, *(f32*)(obj + 0x34), *(f32*)(obj + 0x38), *(f32*)(obj + 0x3C));
+        PSMTXConcat((MtxPtr)camera, trans, trans);
+        actor = entry->actor;
+        actor->unk98 = (actor->unk98 & keep) | ((u8)fn_800B3C04(mode, (StadiumModelNode*)actor, trans) << shift);
+    }
+}
+
 void fn_8001DB74(ActorObjectTable* table) {
+    ActorObjectEntry* entry;
     u16 i;
     u16 mode;
+    u8* obj;
 
     for (i = 0; i < table->count; i++) {
-        u8* obj = HA_OBJ(i);
-        ActorObjectEntry* entry;
-
+        obj = (u8*)hugeAnimStruct.objects[i];
         if (obj == NULL) {
             continue;
         }
@@ -2905,28 +2923,14 @@ void fn_8001DB74(ActorObjectTable* table) {
             ACTSetSpeed(entry->actor, entry->speed);
         }
         if (entry->boneParam & 2) {
-            updateBoneParam(entry->actor, entry->boneParam & 1);
+            updateBoneParam(entry->actor, (u8)(entry->boneParam & 1));
         }
         Set_FUN_800b2b6c((UnkB2B4C*)entry->actor, entry->unk68);
         if (entry->applyControl != 0) {
             fn_800BDA24(entry);
         }
         for (mode = 0; mode < returnScissorMode(); mode++) {
-            s32 shift = mode * 3;
-            u8 keep = ~(3 << shift);
-            u8* camera = (u8*)returnFloatFromModeIndex(mode) + 0x40;
-
-            if (*HA(0x307A) == 5) {
-                entry->actor->unk98 = 1;
-            } else {
-                Mtx trans;
-                Actor* actor;
-
-                PSMTXTrans(trans, *(f32*)(obj + 0x34), *(f32*)(obj + 0x38), *(f32*)(obj + 0x3C));
-                PSMTXConcat((MtxPtr)camera, trans, trans);
-                actor = entry->actor;
-                actor->unk98 = (actor->unk98 & keep) | ((u8)fn_800B3C04(mode, (StadiumModelNode*)actor, trans) << shift);
-            }
+            updateActorVisibility(entry, obj, mode);
         }
         entry->animPending = 0;
         entry->framePending = 0;

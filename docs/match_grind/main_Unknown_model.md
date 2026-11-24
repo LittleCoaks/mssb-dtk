@@ -94,7 +94,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | baseballCTRLSetScale | matched | 100.00 |
 | setHandModelAttached | matched | 100.00 |
 | fn_8001D2D4 | pending | 90.92 |
-| fn_8001DB74 | pending | 87.81 |
+| fn_8001DB74 | pending | 99.30 |
 | fn_8001DD58 | matched | 100.00 |
 | fn_8001DEA4 | matched | 100.00 |
 | fn_8001E0D8 | pending | 89.80 |
@@ -146,7 +146,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80019A60 | pending | 91.69 |
 | fn_8001A25C | pending | 91.69 |
 | fn_8001CCC8 | matched | 100.00 |
-| fn_8001DB74 | pending | 87.81 |
+| fn_8001DB74 | pending | 99.30 |
 | fn_8001758C | pending | 92.06 |
 | fn_80017340 | pending | 98.09 |
 | fn_80017DBC | pending | 90.70 |
@@ -624,6 +624,21 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       relocation as `base = (u32)offsetTable; offsetTable[i] = base + ((u32*)base)[i]`); fn_800196D8 stays 100% -> 99.21%
   [2] node read from currentDrawingItem at its declaration, before the _3082 early return (target loads it first) -> 100%
   readability pass: done (step numbers 0..8 are this node's own state machine, no enum).
+
+## fn_8001DB74 [O1] (484 bytes target, 484 ours; 87.81% -> 99.30%, unit 92.79% -> 92.88%)
+  baseline: 87.81% (480 bytes)
+  [1] objects via hugeAnimStruct.objects[i] and the camera pointer computed before shift/keep -> 95.17% (480)
+      (camera first alone 94.21; shift assigned before camera 92.98; an s32 counter with (u16) casts: no change)
+  [2] KEY: the per-mode body as `static inline void updateActorVisibility(ActorObjectEntry* entry, u8* obj, s32 mode)`
+      (the s32 parameter re-truncates the u16 loop counter, the target's extra clrlwi) -> 95.74%, size exact
+      (u16 / int parameter: 94.96, 480 bytes)
+  [3] entry and obj declared at function level before i and mode (order entry, i, mode, obj) -> 97.52%
+  [4] updateBoneParam(entry->actor, (u8)(entry->boneParam & 1)) (target computes the flag before loading the actor) -> 99.30%
+      (bp local u8 / s32: no change)
+  tried, no gain: shift passed in from the caller (99.30 / 98.47 with a u16 param), keep passed in (60.1), shift or keep before
+      camera inside the inline (95.95 / 89.46), an s32 counter with (u16) casts (99.30).
+  remaining: inside the inline the shift multiply should use the loop-condition copy of mode (r25) while the calls use a second
+      truncation (r24); ours uses one truncated copy for both, which renumbers r22-r25.
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
