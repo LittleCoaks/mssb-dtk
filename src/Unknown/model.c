@@ -5222,68 +5222,45 @@ void fn_80019C00(void) {
     f32 len;
     s32 i;
     s32 k;
+    u32 effect;
     u32 maxSize;
-    u32 v;
     u32 size;
     u8* pool;
-    s16* entry;
-    u8* effects = lbl_80118220;
+    u32 base;
 
     switch (*itemState) {
     case 0:
         setupAnimationModelMemory();
         initActorArray(((g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) + 1) * 4);
-        for (k = 4; k <= 12; k++) {
-            effects[0x61 + k * 0x64] = 0xFF;
+        for (effect = 4; effect < 13; effect++) {
+            ((s8*)lbl_80118220)[effect * 0x64 + 0x61] = -1;
         }
-        maxSize = 0;
-        entry = lbl_800EEB18;
-        for (i = 0; i < 18; i++) {
-            if (entry[0] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[0] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            if (entry[1] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[1] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            if (entry[2] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[2] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            entry += 3;
-        }
+        maxSize = maxListedFileSize();
         size = (maxSize + 0x1F) & ~0x1F;
         pool = _OSAllocFromHeap(0x20, size * 4);
         lbl_803CBC30 = pool;
-        *(u8**)effects = pool;
-        effects[0x61] = 0xFF;
-        effects[0x60] = 0xFF;
-        *(u32*)(effects + 0x64) = (u32)pool + size;
-        effects[0xC5] = 0xFF;
-        effects[0xC4] = 0xFF;
-        *(u32*)(effects + 0xC8) = (u32)pool + size * 2;
-        effects[0x129] = 0xFF;
-        effects[0x128] = 0xFF;
-        *(u32*)(effects + 0x12C) = (u32)pool + size * 3;
-        effects[0x18D] = 0xFF;
-        effects[0x18C] = 0xFF;
+        *(u8**)lbl_80118220 = pool;
+        lbl_80118220[0x61] = 0xFF;
+        lbl_80118220[0x60] = 0xFF;
+        *(u32*)(lbl_80118220 + 0x64) = (u32)pool + size;
+        lbl_80118220[0xC5] = 0xFF;
+        lbl_80118220[0xC4] = 0xFF;
+        *(u32*)(lbl_80118220 + 0xC8) = (u32)pool + size * 2;
+        lbl_80118220[0x129] = 0xFF;
+        lbl_80118220[0x128] = 0xFF;
+        *(u32*)(lbl_80118220 + 0x12C) = (u32)pool + size * 3;
+        lbl_80118220[0x18D] = 0xFF;
+        lbl_80118220[0x18C] = 0xFF;
         fn_80014204(4);
         HA_U32(0x13C) = (u32)fn_80023AA4();
         for (k = 0; k < 4; k++) {
-            HA(MODEL_RECORD_BASE + k * MODEL_RECORD_SIZE)[0x255] = k;
-            HA_OBJ(k) = NULL;
-            *HA(0x2D6A + k) = 0xFF;
-            HA(MODEL_RECORD_BASE + k * MODEL_RECORD_SIZE)[0x257] = 0xFF;
+            HA_SLOTS.pool[k][0x255] = k;
+            HA_SLOTS.objects[k] = NULL;
+            ((s8*)HA_SLOTS.flags)[k] = -1;
+            ((s8*)HA_SLOTS.pool[k])[0x257] = -1;
         }
         for (i = 0; i < 9; i++) {
-            *HA(0x2D7F + i) = 0xFF;
+            ((s8*)HA_SLOTS.flags)[0x2D7F - 0x2D6A + i] = -1;
         }
         *HA(0x2D89) = 0xFF;
         *HA(0x2D8A) = 0xFF;
@@ -5316,7 +5293,7 @@ void fn_80019C00(void) {
         (*itemState)++;
         break;
     case 4:
-        if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             *itemState = *itemState + 1;
         }
         break;
@@ -5336,10 +5313,9 @@ void fn_80019C00(void) {
         updateVectorInArray(0, copy);
         fn_800BF048(fn_8001AAF0);
         fn_800BF058(fn_8001AB10);
-        for (i = 0; i < 80; i += 8) {
-            for (k = 0; k < 8; k++) {
-                ((u32*)HA_U32(0x2C84))[i + k] += HA_U32(0x2C84);
-            }
+        base = HA_U32(0x2C84);
+        for (i = 0; i < 80; i++) {
+            ((u32*)HA_U32(0x2C84))[i] = base + ((u32*)base)[i];
         }
         *HA(0x307C) = 0;
         *HA(0x307D) = 0;

@@ -56,7 +56,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80018DEC | pending | 78.59 |
 | fn_800196D8 | pending | 86.33 |
 | fn_80019A60 | pending | 91.69 |
-| fn_80019C00 | pending | 77.59 |
+| fn_80019C00 | pending | 99.51 |
 | fn_8001A25C | pending | 91.69 |
 | fn_8001A3FC | exhausted | 98.61 |
 | challengeMapRelated | pending | 87.45 |
@@ -170,7 +170,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001AB10 | pending | 93.93 |
 | fn_80015468 | pending | 93.57 |
 | fn_80017814 | pending | 56.21 |
-| fn_80019C00 | pending | 77.59 |
+| fn_80019C00 | pending | 99.51 |
 | fn_8001D2D4 | pending | 90.92 |
 | fn_80018DEC | pending | 78.59 |
 | fn_8001E784 | pending | 97.94 |
@@ -425,6 +425,20 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       fn_80016710 (the other user) rises to 93.55
   remaining: register numbering (one more saved register in ours for the rec+8 pointer) and the clrlslwi/rlwinm spelling of the
       lbl_800EEB18 index (same instruction).
+
+## fn_80019C00 [O1] (1628 bytes target, 1632 ours; 77.59% -> 99.51% fuzzy, unit 89.65% -> 90.24%)
+  baseline: 77.59% (1764 bytes)
+  [1] state 0 reuses fn_8001A3FC's helpers: maxListedFileSize() for the pool scan, HA_SLOTS for the four-slot reset and the nine-flag
+      clear -> 84.4%
+  [2] lbl_80118220 used directly (no `effects` local held from the top) and the free-marker loop as s8 -1 stores -> 86.4%; its counter as
+      u32 (`effect`, no guard; s32 / k-based / pointer forms 86.4..89.3) -> 90.6%
+  [3] KEY: the offset-table relocation in state 5 as one 80-word loop that reads through the table base loaded once and writes through a
+      fresh hugeAnimStruct+0x2C84 read (`((u32*)HA_U32(0x2C84))[i] = base + ((u32*)base)[i]`), instead of nested 10 x 8 loops -> 99.31%
+  [4] s8 -1 stores in the slot reset, (s8) test of the 0x715 byte -> 99.46% local, 99.51% report
+  tried, no gain: the nine-flag clear counted by k / a fresh s32 / int / u32 / u8 variable (99.19 / 96.91 / 96.91 / 93.01), the slot loop
+      counted by i, `= 0` instead of NULL.
+  remaining (4 bytes over): the target's nine-flag loop guard reuses the slot loop's zero register (`li r7,0` for k = 0, the NULL
+      stores and `cmpwi r7,9`); ours materialises a second zero.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
