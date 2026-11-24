@@ -41,7 +41,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80016F7C | pending | 89.54 |
 | fn_80017098 | pending | 98.15 |
 | fn_80017340 | pending | 81.76 |
-| fn_8001758C | pending | 80.09 |
+| fn_8001758C | pending | 92.06 |
 | fn_800177B4 | pending | 99.00 |
 | fn_80017814 | pending | 92.88 |
 | fn_80017D28 | pending | 88.11 |
@@ -147,7 +147,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001A25C | pending | 91.69 |
 | fn_8001CCC8 | pending | 84.25 |
 | fn_8001DB74 | pending | 87.81 |
-| fn_8001758C | pending | 80.09 |
+| fn_8001758C | pending | 92.06 |
 | fn_80017340 | pending | 81.76 |
 | fn_80017DBC | pending | 90.70 |
 | fn_80018B74 | pending | 87.89 |
@@ -477,6 +477,17 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       the higher score)
   remaining: the object pointer is kept in one register where the target holds two copies (r10 / r28) for the inlined getAnimBone
       calls, and a few load / store orderings in the clear path.
+
+## fn_8001758C [O1] (552 bytes target, 544 ours; 80.09% -> 92.06% fuzzy, unit 90.82% -> 90.93%)
+  baseline: 80.09% (568 bytes)
+  [1] the record index parameter b is an int (the target multiplies it without clearing the high bits; the declaration near the top of
+      model.c updated with it, the caller fn_800177B4 unchanged) -> 76.1%
+  [2] the record through the typed HA_SLOTS.pool[b] (base + index order) -> 84.2%; the 0x715 byte tested through (s8) -> 85.1%
+  [3] KEY: one shared failure exit -- the not-ready / state-1 / default paths `break` out of the switch to a single `return FALSE`,
+      and the two memcpy fast paths `goto finish`, a label on the fn_80017814 call at the end of case 1 (the target reaches that call
+      from three places) -> 92.02% local, 92.06% report
+  remaining (8 bytes short): rec[0x252] is reloaded for the fn_8002204C call in the target (ours keeps it), and the load / store
+      scheduling around the roster bytes differs.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too

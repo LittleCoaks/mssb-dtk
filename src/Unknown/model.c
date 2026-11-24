@@ -2531,7 +2531,7 @@ void somethingFileHandlingLoadingRelated(void) {
 #define HA_OBJ(index) (*(u8**)HA(0x2C50 + (index) * 4))
 
 extern u32 lbl_803CBC18;
-BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h);
+BOOL fn_8001758C(void* a, int b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h);
 
 u32 fn_80011570(void) {
     return lbl_803CBC18;
@@ -6309,15 +6309,15 @@ void fn_80014990(int index, void* file, u32 value) {
 extern void fn_80017814(u8* record, s32 slot, s32 mode, void (*callback)(u8*));
 extern void fn_8001FDD4(u8* obj);
 
-BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h) {
+BOOL fn_8001758C(void* a, int b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h) {
     u8* state = a;
-    u8* rec = HA(MODEL_RECORD_BASE + b * MODEL_RECORD_SIZE);
+    u8* rec = HA_SLOTS.pool[b];
     s32 fileIndex;
 
     switch (*state) {
     case 0:
-        if (((u8*)&lbl_803C6CF8)[0x715] != 1) {
-            return FALSE;
+        if ((s8)((u8*)&lbl_803C6CF8)[0x715] != 1) {
+            break;
         }
         rec[0x25C] = 1;
         rec[0x256] = d;
@@ -6335,27 +6335,26 @@ BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h) {
         }
         if (rec[0x278] != 0 && h == 1 && *(s16*)HA(0x2D5C) == c) {
             memcpy(*(void**)(rec + 8), *(void**)HA(0x2D54), *(u32*)HA(0x2D58));
-            break;
+            goto finish;
         }
         if (g >= 10 && g <= 12 && h == 0 && *(s16*)HA(0x2D44) == c) {
             memcpy(*(void**)(rec + 8), *(void**)HA(0x2D3C), *(u32*)HA(0x2D40));
-            break;
+            goto finish;
         }
         if (h == 0 || fn_8002204C((s8)rec[0x252], *(s32*)(rec + 8)) == NULL) {
             ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 8), 0, 0);
         }
         *state = 1;
-        return FALSE;
-    case 1:
-        if (lbl_803716B8[0x1E8] != 0 || ((u8*)&lbl_803C6CF8)[0x715] != 1) {
-            return FALSE;
-        }
         break;
-    default:
-        return FALSE;
+    case 1:
+        if (lbl_803716B8[0x1E8] != 0 || (s8)((u8*)&lbl_803C6CF8)[0x715] != 1) {
+            break;
+        }
+    finish:
+        fn_80017814(rec, (s8)rec[0x255], g, fn_8001FDD4);
+        return TRUE;
     }
-    fn_80017814(rec, (s8)rec[0x255], g, fn_8001FDD4);
-    return TRUE;
+    return FALSE;
 }
 
 void fn_800177B4(void) {
