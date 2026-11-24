@@ -21,7 +21,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80011B64 | pending | 97.69 |
 | fn_80011BE4 | pending | 97.96 |
 | fn_80011CA8 | pending | 66.51 |
-| fn_800126EC | pending | 84.18 |
+| fn_800126EC | matched | 100.00 |
 | LoadModel | pending | 98.30 |
 | fn_80012B90 | pending | 88.88 |
 | animateModelArmsGlovesBats | pending | 92.08 |
@@ -176,7 +176,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001E784 | pending | 97.94 |
 | fn_80011CA8 | pending | 60.01 |
 | fn_80011468 | pending | 85.15 |
-| fn_800126EC | pending | 84.18 |
+| fn_800126EC | matched | 100.00 |
 | fn_8001B4D8 | pending | 98.12 |
 | fn_80016F7C | pending | 89.54 |
 | fn_8001B5EC | pending | 91.52 |
@@ -532,7 +532,23 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   remaining: only the sdata2 float literal relocations (@1097/@1985/@1986/@1736/@1987 vs lbl_803CC4B8/4F8/4FC/4D0/500),
       a unit-level pool naming/ordering issue, not code.
 
+## fn_800126EC [O1] (268 bytes target, 268 ours; 84.18% -> 100% , unit 91.70% -> 91.77%)
+  baseline: 84.18% (size exact; prologue load scheduling only)
+  [1] partSlot declared/initialised first (with or without the `loaded` local) -> 99.10%
+  [2] KEY: plain declarations, then assignments in order partSlot, layout, geo (no `loaded` local) -> 100%
+  tried, no gain: dropping `loaded` alone, keeping initialisers in the original order (84.18%).
+  readability pass: done (no enum-shaped literals; 0x90 / 0x34 are the model entry stride / part offset, no named constant).
+  final source:
+    void* layout; void* geo; u8* partSlot;
+    partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+    layout = block->loaded[partIndex[0]];
+    geo = block->loaded[partIndex[1]];
+    (rest unchanged)
+
 ## Findings
+- [O1] UNIT-LEVEL ITEM FOR THE END: fn_8001B35C (99.95%) differs only in its .sdata2 float literal references
+  (ours @1097/@1985/@1986/@1736/@1987, target lbl_803CC4B8/4F8/4FC/4D0/500). That is literal order or sharing between
+  functions in the unit's pool, not code; leave it until the end and solve it at the unit level (tools/match_pool.py).
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
   early in model.c. Moving it below its caller (to its address-order spot) stops the inlining without touching its own codegen.
 - [O1] Unfolded-constant lever (seen twice now): assigning a constant through a chain into a struct/array field, e.g. `count = field = 30;` or

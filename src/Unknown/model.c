@@ -2612,10 +2612,13 @@ void fn_80011468(void) {
 }
 
 void fn_800126EC(ModelSlotBlock* block, void* texPalette, u8* partIndex) {
-    void** loaded = block->loaded;
-    void* layout = loaded[partIndex[0]];
-    void* geo = loaded[partIndex[1]];
-    u8* partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+    void* layout;
+    void* geo;
+    u8* partSlot;
+
+    partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+    layout = block->loaded[partIndex[0]];
+    geo = block->loaded[partIndex[1]];
 
     LoadActorLayout(layout);
     convertGeometryAndSknHeader(geo, NULL);
