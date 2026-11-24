@@ -39,7 +39,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80016710 | pending | 93.55 |
 | fn_80016B60 | matched | 100.00 |
 | fn_80016F7C | pending | 89.54 |
-| fn_80017098 | pending | 78.84 |
+| fn_80017098 | pending | 98.15 |
 | fn_80017340 | pending | 81.76 |
 | fn_8001758C | pending | 80.09 |
 | fn_800177B4 | pending | 99.00 |
@@ -151,7 +151,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80017340 | pending | 81.76 |
 | fn_80017DBC | pending | 90.70 |
 | fn_80018B74 | pending | 87.89 |
-| fn_80017098 | pending | 78.84 |
+| fn_80017098 | pending | 98.15 |
 | fn_8001A3FC | exhausted | 98.61 |
 | fn_8001C234 | pending | 86.23 |
 | fn_8001E488 | pending | 97.30 |
@@ -453,6 +453,15 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       or s16 / u16 / u8 / s8 (58..60).
   remaining (200 bytes short): the target keeps every carve loop as a dynamic 8x unroll with a remainder loop -- including the first,
       one-iteration `n > 14` loop, whose start 15 it never constant-folds; ours folds that loop and unrolls the others differently.
+
+## fn_80017098 [O1] (680 bytes target, 680 ours; 78.84% -> 98.15% fuzzy, unit 90.30% -> 90.52%)
+  baseline: 78.84% (648 bytes)
+  [1] KEY: no `roster` local -- the target only computes inMemRoster[team][idx] inside the f < 0 paths (and again for the final CharID
+      store), so each use is written as inMemRoster[team][idx].stats.CharID / byte +0x26 / +0x27; records, flags and object slots
+      through the typed HA_SLOTS view (its definition moved above this function) -> 97.79%, size exact
+  [2] the object-slot clear and the final object store through hugeAnimStruct.objects[] (base + index order) -> 98.15%
+      (also reading the slot through it in the compare: 98.06, not kept)
+  remaining: register numbering / scheduling in the found block (base and zero constants in different registers).
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too

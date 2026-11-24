@@ -3283,8 +3283,18 @@ void fn_80018B74(void) {
 
 extern void fn_800177B4(void);
 
+/* The per-slot arrays of hugeAnimStruct: the 0x27C-byte animation objects, the
+ * pointer to each, and the byte flags from +0x2D6A. */
+typedef struct hugeAnimStruct_view_8001a3fc {
+    /* 0x0000 */ u8 _0000[0xC04];
+    /* 0x0C04 */ u8 pool[13][MODEL_RECORD_SIZE];
+    /* 0x2C50 */ void* objects[13];
+    /* 0x2C84 */ u8 _2C84[0x2D6A - 0x2C84];
+    /* 0x2D6A */ u8 flags[0x2D90 - 0x2D6A];
+} hugeAnimStruct_view_8001a3fc;
+#define HA_SLOTS (*(hugeAnimStruct_view_8001a3fc*)&hugeAnimStruct)
+
 BOOL fn_80017098(int team, int idx, int c, int d, int e, int f) {
-    u8* roster = (u8*)&inMemRoster[team][idx];
     DrawingSceneStruct* task;
     s32 i;
     s32 slot;
@@ -3294,40 +3304,42 @@ BOOL fn_80017098(int team, int idx, int c, int d, int e, int f) {
         slot = d;
     } else {
         for (i = 0; i < 13; i++) {
-            u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
             BOOL same = FALSE;
 
-            if ((s8)rec[0x252] == *(s16*)(roster + 0x24) && rec[0x25A] == roster[0x26] && rec[0x25B] == roster[0x27] &&
-                (s8)rec[0x257] == (s8)idx) {
+            if ((s8)HA_SLOTS.pool[i][0x252] == inMemRoster[team][idx].stats.CharID &&
+                HA_SLOTS.pool[i][0x25A] == ((u8*)&inMemRoster[team][idx])[0x26] &&
+                HA_SLOTS.pool[i][0x25B] == ((u8*)&inMemRoster[team][idx])[0x27] &&
+                (s8)HA_SLOTS.pool[i][0x257] == (s8)idx) {
                 same = TRUE;
             }
-            if (rec[0x256] == team && same && rec[0x258] == c && rec[0x259] == e) {
+            if (HA_SLOTS.pool[i][0x256] == team && same && HA_SLOTS.pool[i][0x258] == c &&
+                HA_SLOTS.pool[i][0x259] == e) {
                 s32 j;
 
                 *HA(0x2D77) = 0;
-                *HA(0x2D6A + i) = d;
+                HA_SLOTS.flags[i] = d;
                 *HA(0x2D79) = i;
-                rec[0x254] = d;
+                HA_SLOTS.pool[i][0x254] = d;
                 for (j = 0; j < 13; j++) {
-                    if (HA_OBJ(j) == rec) {
-                        HA_OBJ(j) = NULL;
+                    if (HA_SLOTS.objects[j] == HA_SLOTS.pool[i]) {
+                        hugeAnimStruct.objects[j] = NULL;
                         break;
                     }
                 }
-                HA_OBJ(d) = rec;
+                hugeAnimStruct.objects[d] = HA_SLOTS.pool[i];
                 return TRUE;
             }
         }
         task = insertGraphicDrawingFunction(fn_800177B4, 0);
         if (d >= 9) {
             for (slot = 9; slot < 13; slot++) {
-                if ((s8)*HA(0x2D6A + slot) < 0) {
+                if ((s8)HA_SLOTS.flags[slot] < 0) {
                     break;
                 }
             }
         } else {
             for (slot = 0; slot < 13; slot++) {
-                if ((s8)*HA(0x2D6A + slot) < 0) {
+                if ((s8)HA_SLOTS.flags[slot] < 0) {
                     break;
                 }
             }
@@ -3341,11 +3353,11 @@ BOOL fn_80017098(int team, int idx, int c, int d, int e, int f) {
     *((u8*)task + 0x15) = d;
     *((u8*)task + 0x1D) = e;
     if (f < 0) {
-        *((u8*)task + 0x16) = *(s16*)(roster + 0x24);
+        *((u8*)task + 0x16) = inMemRoster[team][idx].stats.CharID;
     } else {
         *((u8*)task + 0x16) = f;
     }
-    *HA(0x2D6A + slot) = d;
+    HA_SLOTS.flags[slot] = d;
     *HA(0x2D77) = 1;
     *HA(0x2D79) = slot;
     return FALSE;
@@ -3357,16 +3369,6 @@ extern void fn_800145F8(int mode);
 extern void* fn_80023AA4(void);
 extern void fn_80018DEC(int mode);
 
-/* The per-slot arrays of hugeAnimStruct: the 0x27C-byte animation objects, the
- * pointer to each, and the byte flags from +0x2D6A. */
-typedef struct hugeAnimStruct_view_8001a3fc {
-    /* 0x0000 */ u8 _0000[0xC04];
-    /* 0x0C04 */ u8 pool[13][MODEL_RECORD_SIZE];
-    /* 0x2C50 */ void* objects[13];
-    /* 0x2C84 */ u8 _2C84[0x2D6A - 0x2C84];
-    /* 0x2D6A */ u8 flags[0x2D90 - 0x2D6A];
-} hugeAnimStruct_view_8001a3fc;
-#define HA_SLOTS (*(hugeAnimStruct_view_8001a3fc*)&hugeAnimStruct)
 
 /* Largest (low 28 bits of the +4 word) of the file entries named by
  * lbl_800EEB18; negative ids are unused. */
