@@ -24,7 +24,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_800126EC | pending | 84.18 |
 | LoadModel | pending | 80.22 |
 | fn_80012B90 | pending | 88.88 |
-| animateModelArmsGlovesBats | pending-WEAK | 57.33 |
+| animateModelArmsGlovesBats | pending | 92.08 |
 | fn_80014204 | pending | 80.71 |
 | fn_800145F8 | pending | 87.85 |
 | fn_80014990 | pending | 93.09 |
@@ -262,6 +262,29 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   remaining (registers/scheduling only): prologue order (target loads rec+8 before computing entry), layout loaded into r3 then moved to r26,
       rec[0x255] loaded before the anim branch in ours, and the memset loop's i*4 counter is a fresh `li 0` instead of a copy of i.
   note: fn_80017DBC (90.70%) has the same bone block; the s32 bone / (u16) index form may help it.
+
+## animateModelArmsGlovesBats [O1] (2948 bytes target, 2952 ours; 57.33% -> 92.08% fuzzy, unit 83.70% -> 85.41%)
+  baseline: 57.33% (2716 bytes)
+  [1] rewrite on the target's shape: u8 record counters (clrlwi/cmplwi 13), the bone link as an inline (linkHandAttachBone) with an int `bone`
+      (addis compare, 0xFFFF as lis/subi), the finish routine as an inline taking the texture read before the load request (attachHandModel(tex),
+      same shape as fn_80012B90's finishHandItemLoad), the two load phases inside `for (;;)` (phase 1 success loops back to the top), the
+      category test as `(part < 9 && r211 < 9) || (part >= 9 && r211 >= 9)` re-reading actor+0x254, PARAGOOMBA-style shared stores -> 78.8%
+  [2] linkHandAttachBone: the target loops over obj->actors (counter 0, pointer -4, `while (j-- != 0)`) with the s16 table test inside; a
+      `j = 0; do { ... } while (j-- != 0);` keeps that loop (for (j = 0; j >= 0; j--) folds away; s8/s16 j keep it but 84.2) -> 86.3%
+  [3] parts walk as `p = arr + count; do { cand = *--p; count--; ... } while (count != 0)` (lwzu -4, no guard) -> 88.6%
+  [4] `match = selSet == lowPart` assigned per phase (CLZ idiom instead of compare/branch) and the 0x715 test through (s8*) (cmpwi) -> 89.5%
+  [5] attachHandModel with a single exit (`ret = TRUE/FALSE; return ret;`) so the result is a register tested with `clrlwi.` -> 90.8%
+  [6] the first-pass match loop indexes `((u8(*)[0xD4])hugeAnimStruct)[i]` (rec) so the matched-record store recomputes the base -> 91.0%
+  [7] `sel` as s32 (no clrlwi of the 0x25A/0x25B byte) -> 91.96% (local scorer; report 92.08%)
+  tried, no gain: a result variable without the single-exit inline (merged away), RECORD(i) everywhere instead of rec (89.7), the matched
+      record through the array form only in the first loop (90.7), u8 match / u8 selSet (91.4), an entry local or ModelEntry90 struct for
+      the parts lookup (no change).
+  remaining: the parts lookup is `addi 0x34; lwzx` in ours vs `add; lwz 0x34` in the target; the free-slot and replacement stores use the
+      kept record pointer where the target recomputes hugeAnimStruct + i*0xD4; `match` is u8 in the target (extrwi 8,19) and computed
+      once before the loop for phase 1; register numbering in the first-pass loop.
+  not done: unifying attachHandModel with fn_80012B90's finishHandItemLoad -- the two sit under different hugeAnimStruct views (raw byte
+      array here, the full struct there) and lbl_803CB7C4/lbl_803716B8 views; the bodies are now the same shape, so a shared inline is
+      possible once the views are unified.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too

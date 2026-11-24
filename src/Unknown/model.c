@@ -377,118 +377,115 @@ typedef u8 hugeAnimStruct_view_80013680[0x3154];
 #define ENTRY_STRIDE 0x90
 #define NO_BONE 0xFFFF
 
-static u8* getObject(s32 slot) {
+static inline u8* getObject(s32 slot) {
     return ((u8**)(hugeAnimStruct + OBJECT_TABLE_OFFSET))[slot];
 }
 
-static u16 getHandAttachBone(u8* obj, s32 which) {
-    if (obj == NULL) {
-        return NO_BONE;
+static inline void linkHandAttachBone(u8* obj, s32 which) {
+    s32 bone;
+
+    if (obj != NULL) {
+        bone = FIELD_U16(obj, 0x162 + handAttachBoneIDs[which] * 2);
+    } else {
+        bone = NO_BONE;
     }
-    return FIELD_U16(obj, 0x162 + handAttachBoneIDs[which] * 2);
+    if (bone != NO_BONE) {
+        s16 n = lbl_800EEAAC[FIELD_S8(obj, 0x252)];
+        s32 j;
+
+        j = 0;
+        do {
+            u8* act = ((u8**)obj)[j];
+
+            if (n >= 0 && FIELD_PTR(obj, 0x30) != NULL) {
+                u8* node = ((u8**)FIELD_PTR(act, 0x18))[bone];
+                u8* parts = FIELD_PTR(FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET) +
+                                          FIELD_U8(FIELD_PTR(obj, 0x30), 0x60 + which * 0x64) * ENTRY_STRIDE,
+                                      0x34);
+
+                if (parts != NULL) {
+                    s32 i;
+
+                    u8** p;
+
+                    i = FIELD_U16(parts, 0x6);
+                    p = (u8**)FIELD_PTR(parts, 0x18) + i;
+                    do {
+                        u8* cand = *--p;
+                        i--;
+
+                        if (FIELD_U32(cand, 0x14) != 0) {
+                            FIELD_U32(node, 0x14) = FIELD_U32(cand, 0x14);
+                            break;
+                        }
+                    } while (i != 0);
+                }
+                return;
+            }
+        } while (j-- != 0);
+    }
 }
 
-static void clearBoneSlot(u8* obj, u16 bone, s32 subIndexOffset) {
-    s16 val = lbl_800EEAAC[FIELD_S8(obj, 0x252)];
-    u8* sub;
-    u8* list;
-    u8* bonePtr;
-    u8* entry;
-    u8* data;
-    u8* arr;
-    u32 count;
-    u32 i;
+static inline u8 attachHandModel(u32 tex) {
+    u8* block;
+    s32 i;
+    u8* layout;
+    u8* geo;
+    u8* partSlot;
+    u8 ret;
 
-    if (val < 0) {
-        return;
-    }
-    sub = FIELD_PTR(obj, 0x30);
-    if (sub == NULL) {
-        return;
-    }
-    list = FIELD_PTR(FIELD_PTR(obj, 0), 0x18);
-    bonePtr = ((u8**)list)[bone];
-    entry = FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET) + FIELD_U8(sub, subIndexOffset) * ENTRY_STRIDE;
-    data = FIELD_PTR(entry, 0x34);
-    if (data == NULL) {
-        return;
-    }
-    count = FIELD_U16(data, 0x6);
-    arr = FIELD_PTR(data, 0x18);
-    for (i = count; i != 0; i--) {
-        u8* item = ((u8**)arr)[i - 1];
-        u32 v = FIELD_U32(item, 0x14);
-        if (v != 0) {
-            FIELD_U32(bonePtr, 0x14) = v;
-            return;
+    if (lbl_803716B8[0x1E8] == 0) {
+        block = lbl_803CBC1C;
+        lbl_803CBC0C = 0;
+        for (i = 0; i < 4; i++) {
+            if (((u32*)FIELD_PTR(block, 0))[i] != 0) {
+                ((u32*)FIELD_PTR(block, 0))[i] = (u32)FIELD_PTR(block, 0) + ((u32*)FIELD_PTR(block, 0))[i];
+            }
         }
-    }
-}
-
-static BOOL attachHandModelTail(void) {
-    u8* p;
-    u8* h;
-    u8* table;
-    u8* entry;
-    u8* a;
-    u8* b;
-    u8* f;
-    u32 off;
-    s32 idx;
-
-    if (FIELD_U8(lbl_803716B8, 0x1E8) != 0) {
-        return FALSE;
-    }
-    p = lbl_803CBC1C;
-    lbl_803CBC0C = 0;
-    h = FIELD_PTR(p, 0);
-    for (off = 0; off < 0x10; off += 4) {
-        u32 v = FIELD_U32(h, off);
-        if (v != 0) {
-            FIELD_U32(h, off) = (u32)h + v;
+        layout = ((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[0]];
+        geo = ((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[1]];
+        partSlot = FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET) + FIELD_U8(block, 0x60) * ENTRY_STRIDE + 0x34;
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
+        UpdateTexturePalettePointers((UnkTexPalGeo*)geo, (void*)tex);
+        fn_800238E0(FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET), FIELD_U8(block, 0x60), FIELD_U8(block, 0x60), layout);
+        if (((u8**)FIELD_PTR(block, 0))[2] != NULL) {
+            adjustInternalPointers(((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[2]]);
+            ACTActorRelated(((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[2]], partSlot);
         }
-    }
-
-    idx = FIELD_U8(p, 0x60);
-    table = FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET);
-    entry = table + idx * ENTRY_STRIDE;
-    a = ((u8**)h)[lbl_803CB7C4[0]];
-    b = ((u8**)h)[lbl_803CB7C4[1]];
-    f = entry + 0x34;
-
-    LoadActorLayout(a);
-    convertGeometryAndSknHeader(b, NULL);
-    haveActLayoutPointToGeoHeader(a, b);
-    UpdateTexturePalettePointers((UnkTexPalGeo*)b, (void*)lbl_803CBC00);
-    fn_800238E0(table, idx, idx, a);
-    if (FIELD_PTR(h, 0x8) != NULL) {
-        adjustInternalPointers(((u8**)h)[lbl_803CB7C4[2]]);
-        ACTActorRelated(((u8**)h)[lbl_803CB7C4[2]], f);
-    }
-    FIELD_PTR(p, 0x4) = ((u8**)h)[lbl_803CB7C4[3]];
-    actRelated(((u8**)h)[lbl_803CB7C4[2]], p + 0x4);
+        FIELD_PTR(block, 0x4) = ((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[3]];
+        actRelated(((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[2]], block + 0x4);
     lbl_803CBC1C = NULL;
-    return TRUE;
+        ret = TRUE;
+    } else {
+        ret = FALSE;
+    }
+    return ret;
 }
 
 BOOL animateModelArmsGlovesBats(void* actorPtr) {
     u8* actor = actorPtr;
-    s8 charSlot = FIELD_S8(actor, 0x252);
-    s8 part = FIELD_S8(actor, 0x254);
+    s32 charSlot = FIELD_S8(actor, 0x252);
+    s32 part = FIELD_S8(actor, 0x254);
     BOOL lowPart;
-    BOOL flagsMatch;
-    BOOL placed;
-    u8 sel;
-    s32 i;
-    s32 k;
+    BOOL selSet;
+    s32 sel;
+    u8 i;
+    u8 k;
     u8* rec;
+    u8* sub;
+    u32 tex;
+    s32 kind;
+    BOOL match;
+    u8 ready;
 
     if (lbl_803CBBFB == 0) {
         lbl_803CBBFB = 1;
         lbl_803CBC00 = FIELD_U32(FIELD_PTR(actor, 0x8), 0);
 
         for (i = 0; i < RECORD_COUNT; i++) {
-            rec = RECORD(i);
+            rec = ((u8(*)[RECORD_STRIDE])hugeAnimStruct)[i];
             if (FIELD_S8(rec, 0x20F) != charSlot) {
                 continue;
             }
@@ -504,25 +501,16 @@ BOOL animateModelArmsGlovesBats(void* actorPtr) {
             if (FIELD_U32(rec, 0x208) != lbl_803CBC00) {
                 continue;
             }
-            if ((part >= 9) != (FIELD_S8(rec, 0x211) >= 9)) {
+            if (!((FIELD_S8(actor, 0x254) < 9 && FIELD_S8(rec, 0x211) < 9) ||
+                  (FIELD_S8(actor, 0x254) >= 9 && FIELD_S8(rec, 0x211) >= 9))) {
                 continue;
             }
 
-            FIELD_U8(rec, 0x210) = (u8)part;
+            FIELD_S8(RECORD(i), 0x210) = part;
             FIELD_PTR(actor, 0x30) = rec + 0x140;
             FIELD_U8(FIELD_PTR(actor, 0x30), 0xCC) = TRUE;
-            {
-                u8* obj = getObject(part);
-                u16 bone = getHandAttachBone(obj, 0);
-                if (bone != NO_BONE) {
-                    clearBoneSlot(obj, bone, 0x60);
-                }
-                obj = getObject(part);
-                bone = getHandAttachBone(obj, 1);
-                if (bone != NO_BONE) {
-                    clearBoneSlot(obj, bone, 0xC4);
-                }
-            }
+            linkHandAttachBone(getObject(FIELD_S8(actor, 0x254)), 0);
+            linkHandAttachBone(getObject(FIELD_S8(actor, 0x254)), 1);
             lbl_803CBBFD = 0;
             lbl_803CBBFC = 0;
             lbl_803CBBFB = 0;
@@ -532,51 +520,43 @@ BOOL animateModelArmsGlovesBats(void* actorPtr) {
 
         if (lbl_803CBBFC == 0 && lbl_803CBBFD == 0) {
             for (i = 0; i < RECORD_COUNT; i++) {
-                rec = RECORD(i);
-                if (FIELD_S8(rec, 0x210) == part && part < 9) {
-                    FIELD_S8(rec, 0x210) = -1;
+                if (FIELD_S8(RECORD(i), 0x210) == FIELD_S8(actor, 0x254) && FIELD_S8(RECORD(i), 0x210) < 9) {
+                    FIELD_S8(RECORD(i), 0x210) = -1;
                     break;
                 }
             }
 
-            placed = FALSE;
             for (i = 0; i < RECORD_COUNT; i++) {
-                rec = RECORD(i);
+                rec = ((u8(*)[RECORD_STRIDE])hugeAnimStruct)[i];
                 if (FIELD_S8(rec, 0x210) == -1) {
                     lbl_803CBC20 = rec + 0x140;
                     FIELD_U32(rec, 0x208) = lbl_803CBC00;
-                    FIELD_S8(rec, 0x20F) = charSlot;
-                    FIELD_U8(rec, 0x211) = FIELD_U8(rec, 0x210);
-                    FIELD_U8(rec, 0x210) = (u8)part;
-                    FIELD_U8(rec, 0x20D) = FIELD_U8(actor, 0x25A);
-                    FIELD_U8(rec, 0x20E) = FIELD_U8(actor, 0x25B);
-                    placed = TRUE;
+                    FIELD_S8(RECORD(i), 0x20F) = charSlot;
+                    FIELD_U8(RECORD(i), 0x211) = FIELD_U8(RECORD(i), 0x210);
+                    FIELD_S8(RECORD(i), 0x210) = part;
+                    FIELD_U8(RECORD(i), 0x20D) = FIELD_U8(actor, 0x25A);
+                    FIELD_U8(RECORD(i), 0x20E) = FIELD_U8(actor, 0x25B);
                     break;
                 }
             }
 
-            if (!placed) {
+            if (i == RECORD_COUNT) {
                 for (i = 0; i < RECORD_COUNT; i++) {
-                    u8* sub;
-                    rec = RECORD(i);
-                    sub = rec + 0x140;
+                    sub = RECORD(i) + 0x140;
                     lbl_803CBC20 = sub;
                     for (k = 0; k < RECORD_COUNT; k++) {
                         u8* obj = getObject(k);
-                        if (obj == NULL) {
-                            continue;
-                        }
-                        if (FIELD_S8(sub, 0xCF) == FIELD_S8(obj, 0x252)) {
+                        if (obj != NULL && FIELD_S8(sub, 0xCF) == FIELD_S8(obj, 0x252)) {
                             break;
                         }
                     }
                     if (k == RECORD_COUNT) {
                         FIELD_U32(sub, 0xC8) = lbl_803CBC00;
-                        FIELD_S8(rec, 0x20F) = charSlot;
-                        FIELD_U8(rec, 0x211) = FIELD_U8(rec, 0x210);
-                        FIELD_U8(rec, 0x210) = (u8)part;
-                        FIELD_U8(rec, 0x20D) = FIELD_U8(actor, 0x25A);
-                        FIELD_U8(rec, 0x20E) = FIELD_U8(actor, 0x25B);
+                        FIELD_S8(RECORD(i), 0x20F) = charSlot;
+                        FIELD_U8(RECORD(i), 0x211) = FIELD_U8(RECORD(i), 0x210);
+                        FIELD_S8(RECORD(i), 0x210) = part;
+                        FIELD_U8(RECORD(i), 0x20D) = FIELD_U8(actor, 0x25A);
+                        FIELD_U8(RECORD(i), 0x20E) = FIELD_U8(actor, 0x25B);
                         break;
                     }
                 }
@@ -591,50 +571,60 @@ BOOL animateModelArmsGlovesBats(void* actorPtr) {
         return FALSE;
     }
 
-    lowPart = part < 9;
-    sel = lowPart ? FIELD_U8(actor, 0x25A) : FIELD_U8(actor, 0x25B);
-    flagsMatch = ((sel != 0) == lowPart);
-
-    if (lbl_803CBBFC == 0) {
-        if (lbl_803CBC0C == 0 && FIELD_U8(&lbl_803C6CF8, 0x715) == 1) {
-            u8* sub = lbl_803CBC20;
-            s32 r4;
-            if (lowPart && FIELD_U8(sub, 0xCD) != 0) {
-                r4 = 3;
-            } else if (flagsMatch) {
-                r4 = 5;
-            } else {
-                r4 = 1;
-            }
-            lbl_803CBC1C = sub + 0x64;
-            lbl_803CBC0C = 1;
-            loadCharacterHandItem(FIELD_S8(sub, 0xCF), r4, FIELD_PTR(sub, 0x64));
-        }
-        if (!attachHandModelTail()) {
-            return FALSE;
-        }
-        lbl_803CBBFC = 1;
+    if (part < 9) {
+        sel = FIELD_U8(actor, 0x25A);
+    } else {
+        sel = FIELD_U8(actor, 0x25B);
     }
+    lowPart = part < 9;
+    selSet = sel != 0;
 
-    if (lbl_803CBBFD == 0) {
-        if (lbl_803CBC0C == 0 && FIELD_U8(&lbl_803C6CF8, 0x715) == 1) {
-            u8* sub = lbl_803CBC20;
-            s32 r4;
-            if (lowPart && FIELD_U8(sub, 0xCD) != 1) {
-                r4 = 2;
-            } else if (flagsMatch) {
-                r4 = 4;
-            } else {
-                r4 = 0;
+    for (;;) {
+        if (lbl_803CBBFC == 0) {
+            tex = lbl_803CBC00;
+            sub = lbl_803CBC20;
+            match = selSet == lowPart;
+            if (lbl_803CBC0C == 0 && ((s8*)&lbl_803C6CF8)[0x715] == 1) {
+                if (lowPart && FIELD_U8(sub, 0xCD) != 0) {
+                    kind = 3;
+                } else if (match) {
+                    kind = 5;
+                } else {
+                    kind = 1;
+                }
+                lbl_803CBC1C = sub + 0x64;
+                lbl_803CBC0C = 1;
+                loadCharacterHandItem(FIELD_S8(sub, 0xCF), kind, FIELD_PTR(sub + 0x64, 0));
             }
-            lbl_803CBC1C = sub;
-            lbl_803CBC0C = 1;
-            loadCharacterHandItem(FIELD_S8(sub, 0xCF), r4, FIELD_PTR(sub, 0x0));
+            ready = attachHandModel(tex);
+            if (!ready) {
+                break;
+            }
+            lbl_803CBBFC = 1;
+        } else {
+            if (lbl_803CBBFD == 0) {
+                tex = lbl_803CBC00;
+                sub = lbl_803CBC20;
+                match = selSet == lowPart;
+                if (lbl_803CBC0C == 0 && ((s8*)&lbl_803C6CF8)[0x715] == 1) {
+                    if (lowPart && FIELD_U8(sub, 0xCD) != 1) {
+                        kind = 2;
+                    } else if (match) {
+                        kind = 4;
+                    } else {
+                        kind = 0;
+                    }
+                    lbl_803CBC1C = sub;
+                    lbl_803CBC0C = 1;
+                    loadCharacterHandItem(FIELD_S8(sub, 0xCF), kind, FIELD_PTR(sub, 0));
+                }
+                ready = attachHandModel(tex);
+                if (ready) {
+                    lbl_803CBBFD = 1;
+                }
+            }
+            break;
         }
-        if (!attachHandModelTail()) {
-            return FALSE;
-        }
-        lbl_803CBBFD = 1;
     }
 
     if (lbl_803CBBFC == 0 || lbl_803CBBFD == 0) {
@@ -642,23 +632,13 @@ BOOL animateModelArmsGlovesBats(void* actorPtr) {
     }
 
     FIELD_PTR(actor, 0x30) = lbl_803CBC20;
-    {
-        u8* obj = getObject(part);
-        u16 bone = getHandAttachBone(obj, 0);
-        if (bone != NO_BONE) {
-            clearBoneSlot(obj, bone, 0x60);
-        }
-        obj = getObject(part);
-        bone = getHandAttachBone(obj, 1);
-        if (bone != NO_BONE) {
-            clearBoneSlot(obj, bone, 0xC4);
-        }
-    }
+    linkHandAttachBone(getObject(FIELD_S8(actor, 0x254)), 0);
+    linkHandAttachBone(getObject(FIELD_S8(actor, 0x254)), 1);
     FIELD_U8(FIELD_PTR(actor, 0x30), 0xCC) = TRUE;
     lbl_803CBC20 = NULL;
+    lbl_803CBBFB = 0;
     lbl_803CBBFD = 0;
     lbl_803CBBFC = 0;
-    lbl_803CBBFB = 0;
     lbl_803CBC00 = 0;
     return TRUE;
 }
