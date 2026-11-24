@@ -2542,74 +2542,6 @@ void somethingFileHandlingLoadingRelated(void) {
 #undef hugeAnimStruct
 
 
-static inline void swapShortPair(ShortsTableOwner* owner, u16 first, u16 second) {
-    u16 b;
-    u16 a;
-
-    a = owner->slot[first];
-    b = owner->slot[second];
-    if (a != SHORT_TABLE_END && b != SHORT_TABLE_END) {
-        owner->order[a] = b;
-        owner->order[b] = a;
-    }
-}
-
-static inline void swapShortPairs(ShortsTableOwner* owner, u16 (*pairs)[2]) {
-    for (; (*pairs)[0] != SHORT_TABLE_END; pairs++) {
-        swapShortPair(owner, (*pairs)[0], (*pairs)[1]);
-    }
-}
-
-static inline void swapShortPairsNonEmpty(ShortsTableOwner* owner, u16 (*pairs)[2]) {
-    s32 i;
-    u16(*p)[2];
-
-    p = pairs;
-    i = 0;
-    do {
-        swapShortPair(owner, (*p)[0], (*p)[1]);
-        p++;
-    } while (pairs[++i][0] != SHORT_TABLE_END);
-}
-
-void initShortsHandleCompressedDiskReads(ShortsTableOwner* owner) {
-    s32 i;
-    u16(*pairs)[2];
-
-    for (i = 0; i < SHORT_TABLE_COUNT; i++) {
-        owner->order[i] = i;
-    }
-
-    swapShortPairsNonEmpty(owner, lbl_800EE960);
-
-    switch (owner->charId) {
-    case CHAR_ID_PARATROOPA_RED:
-    case CHAR_ID_PARATROOPA_GREEN:
-        pairs = lbl_803CB798;
-        break;
-    case CHAR_ID_PARAGOOMBA:
-        pairs = lbl_800EE998;
-        break;
-    case CHAR_ID_BIRDO:
-        pairs = lbl_803CB7A0;
-        break;
-    case CHAR_ID_SHYGUY_RED:
-    case CHAR_ID_SHYGUY_BLUE:
-    case CHAR_ID_SHYGUY_YELLOW:
-    case CHAR_ID_SHYGUY_GREEN:
-    case CHAR_ID_SHYGUY_BLACK:
-        pairs = lbl_800EE9B0;
-        break;
-    default:
-        pairs = NULL;
-        break;
-    }
-
-    if (pairs != NULL) {
-        swapShortPairs(owner, pairs);
-    }
-}
-
 /* Small accessors over the animation/model state block, addressed by raw offset. */
 #define HA(off)       (((u8*)&hugeAnimStruct) + (off))
 #define HA_OBJ(index) (*(u8**)HA(0x2C50 + (index) * 4))
@@ -5084,13 +5016,14 @@ extern f32 lbl_803CC4D0;
 void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     ActorObjectEntry* entry = &hugeAnimStruct.actorTable->entries[slot];
     u32* header = *(u32**)(rec + 8);
-    u32 tex;
     u32 layout;
     u32 geo;
     u32 skn;
+    u32 tex;
     void* anim;
     u16 boneCount;
-    u16 bone;
+    s32 bone;
+    u16 boneId;
     s32 i;
 
     if (header[0] != 0) {
@@ -5111,15 +5044,16 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     tex = (*(u32**)(rec + 8))[0];
     convertTextureHeader((void*)tex);
     layout = (*(u32**)(rec + 8))[1];
-    if (layout == 0) {
+    if (layout != 0) {
+        geo = (*(u32**)(rec + 8))[2];
+        skn = (*(u32**)(rec + 8))[3];
+        LoadActorLayout((void*)layout);
+        convertGeometryAndSknHeader((void*)geo, (void*)skn);
+        haveActLayoutPointToGeoHeader((void*)layout, (void*)geo);
+        UpdateTexturePalettePointers((void*)geo, (void*)tex);
+    } else {
         return;
     }
-    geo = (*(u32**)(rec + 8))[2];
-    skn = (*(u32**)(rec + 8))[3];
-    LoadActorLayout((void*)layout);
-    convertGeometryAndSknHeader((void*)geo, (void*)skn);
-    haveActLayoutPointToGeoHeader((void*)layout, (void*)geo);
-    UpdateTexturePalettePointers((void*)geo, (void*)tex);
 
     if (mode < 9) {
         anim = *(void**)(rec + 0x18);
@@ -5135,17 +5069,21 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     boneCount = *(u16*)((u8*)entry->actor + 6);
     memset(rec + 0x162, 0xFF, 0xF0);
     for (i = 0; i < boneCount; i++) {
-        bone = **(u16**)(*(u8**)((u8*)entry->actor + 0x18) + i * 4);
-        if (bone != 0xFFFF) {
-            *(u16*)(rec + 0x162 + bone * 2) = i;
+        boneId = **(u16**)(*(u8**)((u8*)entry->actor + 0x18) + i * 4);
+        if (boneId != 0xFFFF) {
+            *(u16*)(rec + 0x162 + boneId * 2) = i;
         }
     }
-    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x188));
-    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x194));
-    callDSInsertListObject((UnkB2B4C*)entry->actor, *(u16*)(rec + 0x1AA));
+    bone = *(u16*)(rec + 0x188);
+    callDSInsertListObject((UnkB2B4C*)entry->actor, bone);
+    bone = *(u16*)(rec + 0x194);
+    callDSInsertListObject((UnkB2B4C*)entry->actor, bone);
+    bone = *(u16*)(rec + 0x1AA);
+    callDSInsertListObject((UnkB2B4C*)entry->actor, bone);
     *(Actor**)rec = entry->actor;
-    if (*(u16*)(rec + 0x168) != 0xFFFF) {
-        fn_800B2B54(*(UnkB2B4C**)rec, *(u16*)(rec + 0x168), 13);
+    bone = *(u16*)(rec + 0x168);
+    if (bone != 0xFFFF) {
+        fn_800B2B54(*(UnkB2B4C**)rec, bone, 13);
     }
     fn_800BD548(entry, 4, HA_U32(0xAC), HA_U32(0xB0), HA_U32(0xB4), HA_U32(0xB8));
     CTRLSetTranslation(&entry->control, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4B8);
@@ -5155,17 +5093,17 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     bone = *(u16*)(rec + 0x168);
     if (bone != 0xFFFF) {
         fn_800B2BA8(entry->actor, bone, NULL, 0);
-        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+        MODEL_BONE_FLAGGED(entry->actor, (u16)bone) = 1;
     }
     bone = *(u16*)(rec + 0x166);
     if (bone != 0xFFFF) {
         fn_800B2BA8(entry->actor, bone, NULL, 0);
-        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+        MODEL_BONE_FLAGGED(entry->actor, (u16)bone) = 1;
     }
     bone = *(u16*)(rec + 0x164);
     if (bone != 0xFFFF) {
         fn_800B2BA8(entry->actor, bone, NULL, 0);
-        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+        MODEL_BONE_FLAGGED(entry->actor, (u16)bone) = 1;
     }
     bone = *(u16*)(rec + 0x1AA);
     if (bone != 0xFFFF) {
@@ -5174,7 +5112,7 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
     bone = *(u16*)(rec + 0x1BE);
     if (bone != 0xFFFF) {
         fn_800B2BA8(entry->actor, bone, NULL, 0);
-        MODEL_BONE_FLAGGED(entry->actor, bone) = 1;
+        MODEL_BONE_FLAGGED(entry->actor, (u16)bone) = 1;
     }
     fn_800B2C08(entry->actor, *(u16*)(rec + 0x16A));
     initShortsHandleCompressedDiskReads((ShortsTableOwner*)rec);
@@ -5242,8 +5180,7 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
         break;
     case CHAR_ID_PARAGOOMBA:
         fn_800637D4(rec, entry);
-        initSpecialHandBones(rec, entry);
-        break;
+        /* fallthrough */
     case CHAR_ID_MONTY:
     case CHAR_ID_GOOMBA:
         initSpecialHandBones(rec, entry);
@@ -5261,6 +5198,75 @@ void fn_80017814(u8* rec, s32 slot, s32 mode, void (*callback)(u8*)) {
         break;
     }
 }
+
+static inline void swapShortPair(ShortsTableOwner* owner, u16 first, u16 second) {
+    u16 b;
+    u16 a;
+
+    a = owner->slot[first];
+    b = owner->slot[second];
+    if (a != SHORT_TABLE_END && b != SHORT_TABLE_END) {
+        owner->order[a] = b;
+        owner->order[b] = a;
+    }
+}
+
+static inline void swapShortPairs(ShortsTableOwner* owner, u16 (*pairs)[2]) {
+    for (; (*pairs)[0] != SHORT_TABLE_END; pairs++) {
+        swapShortPair(owner, (*pairs)[0], (*pairs)[1]);
+    }
+}
+
+static inline void swapShortPairsNonEmpty(ShortsTableOwner* owner, u16 (*pairs)[2]) {
+    s32 i;
+    u16(*p)[2];
+
+    p = pairs;
+    i = 0;
+    do {
+        swapShortPair(owner, (*p)[0], (*p)[1]);
+        p++;
+    } while (pairs[++i][0] != SHORT_TABLE_END);
+}
+
+void initShortsHandleCompressedDiskReads(ShortsTableOwner* owner) {
+    s32 i;
+    u16(*pairs)[2];
+
+    for (i = 0; i < SHORT_TABLE_COUNT; i++) {
+        owner->order[i] = i;
+    }
+
+    swapShortPairsNonEmpty(owner, lbl_800EE960);
+
+    switch (owner->charId) {
+    case CHAR_ID_PARATROOPA_RED:
+    case CHAR_ID_PARATROOPA_GREEN:
+        pairs = lbl_803CB798;
+        break;
+    case CHAR_ID_PARAGOOMBA:
+        pairs = lbl_800EE998;
+        break;
+    case CHAR_ID_BIRDO:
+        pairs = lbl_803CB7A0;
+        break;
+    case CHAR_ID_SHYGUY_RED:
+    case CHAR_ID_SHYGUY_BLUE:
+    case CHAR_ID_SHYGUY_YELLOW:
+    case CHAR_ID_SHYGUY_GREEN:
+    case CHAR_ID_SHYGUY_BLACK:
+        pairs = lbl_800EE9B0;
+        break;
+    default:
+        pairs = NULL;
+        break;
+    }
+
+    if (pairs != NULL) {
+        swapShortPairs(owner, pairs);
+    }
+}
+
 
 void fn_80019C00(void) {
     DrawingSceneStruct* item = currentDrawingItem;

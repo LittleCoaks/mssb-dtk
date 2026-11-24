@@ -43,7 +43,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80017340 | pending | 81.76 |
 | fn_8001758C | pending | 80.09 |
 | fn_800177B4 | pending | 99.00 |
-| fn_80017814 | pending-WEAK | 56.21 |
+| fn_80017814 | pending | 92.88 |
 | fn_80017D28 | pending | 88.11 |
 | fn_80017DBC | pending | 90.70 |
 | setupAnimationModelMemory | pending-WEAK | 63.93 |
@@ -247,7 +247,25 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       ends up in r24 instead of r7; and the final loop copies the hugeAnimStruct base (`mr`) instead of computing it into the pointer register.
       The scan's maxSize/fileBase/pointer registers are rotated (r4/r7/r5 vs r7/r5/r4).
 
+## fn_80017814 [O1] (1300 bytes target, 1300 ours; 56.21% -> 92.88% fuzzy, unit 82.90% -> 83.70%)
+  baseline: 56.21% (1660 bytes)
+  [1] KEY: the target calls initShortsHandleCompressedDiskReads (bl); ours inlined it (-inline auto, defined earlier in the file). Moved it and its three
+      swapShortPair* static inlines below fn_80017814, matching the target's address order (it sits near the end of the unit) -> 86.51%, 1284 bytes.
+      It is its only caller in the file and it stays 100%.
+  [2] bone checks on an s32 `bone` (target: `addis r0,rX,0; cmplwi r0,0xffff`) with the flag index cast back `(u16)bone` (clrlslwi), a separate u16
+      boneId for the memset loop, and PARAGOOMBA falling through into the MONTY/GOOMBA initSpecialHandBones case -> 89.33%
+  [3] the +0x168 check and the three callDSInsertListObject arguments read into `bone` first (target loads the u16 before the actor) -> 91.56%
+  [4] `if (layout != 0) { ...four calls... } else { return; }` reproduces the target's `b` + dead `b exit` pair -> 92.34%, size exact
+  [5] local declaration order layout, geo, skn, tex (24 perms tried) -> 92.51% (local scorer; report 92.88%)
+  tried, no gain: ternary for the anim argument, an s8 local for rec[0x255], `mode >= 9` polarity, header/entry declaration order or statement
+      order, array-index forms for the bone table, u16 i (worse), `(u16)-1` / `(s16)bone != -1` compares.
+  remaining (registers/scheduling only): prologue order (target loads rec+8 before computing entry), layout loaded into r3 then moved to r26,
+      rec[0x255] loaded before the anim branch in ours, and the memset loop's i*4 counter is a fresh `li 0` instead of a copy of i.
+  note: fn_80017DBC (90.70%) has the same bone block; the s32 bone / (u16) index form may help it.
+
 ## Findings
+- [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
+  early in model.c. Moving it below its caller (to its address-order spot) stops the inlining without touching its own codegen.
 - [O1] Unfolded-constant lever (seen twice now): assigning a constant through a chain into a struct/array field, e.g. `count = field = 30;` or
   `field = count = i = 1;`, keeps MWCC from constant-propagating `count`, so guards, multiplies and loop bounds use the register as in the target.
   Which chain order works differs per function; try every order.
