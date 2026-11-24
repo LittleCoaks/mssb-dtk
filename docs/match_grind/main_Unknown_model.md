@@ -101,7 +101,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001E460 | matched | 100.00 |
 | setNullPtrForStadiumObjs | matched | 100.00 |
 | fn_8001E488 | pending | 97.30 |
-| fn_8001E784 | pending | 75.96 |
+| fn_8001E784 | pending | 97.94 |
 | fn_8001F16C | pending | 88.91 |
 | resetGameStadiumStateOnExit | pending | 94.06 |
 | challengeMapMaybe | matched | 100.00 |
@@ -173,7 +173,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_80019C00 | pending | 77.59 |
 | fn_8001D2D4 | pending | 90.92 |
 | fn_80018DEC | pending | 78.59 |
-| fn_8001E784 | pending | 75.96 |
+| fn_8001E784 | pending | 97.94 |
 | fn_80011CA8 | pending | 60.01 |
 | fn_80011468 | pending | 85.15 |
 | fn_800126EC | pending | 84.18 |
@@ -395,6 +395,22 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   final source: see fn_80016B60 in src/Unknown/model.c (committed with this entry).
   readability pass: done. 0x13 (files per character) and the per-mode file numbers (4, 0xB..0xE, 5/0x12, 2/9/0xA, 0x10) left as literals:
       no file-id enum exists. GAME_TYPE_* already used for the mode tests.
+
+## fn_8001E784 [O1] (2536 bytes target, 2540 ours; 75.96% -> 97.94% fuzzy, unit 88.39% -> 89.32%)
+  baseline: 75.96% (2576 bytes)
+  [1] shared static inline for fn_8001E488's body: making fn_8001E488 call it drops fn_8001E488 (97.19 -> 94.47 local), so it is NOT
+      shared; fn_8001E784 uses its own copy, drawOverlayFrustumPass(), and fn_8001E488 keeps its body -> 75.93% (no real change alone)
+  [2] KEY: the main body under `if (*HA(0x307A) != 0) { ... } else { hook-only path }` (the target places the state-0 path last)
+      instead of an early return; the light colour copied field by field into `dir` -> 93.2%
+  [3] the state read through HA(0x307A) each time (no `state` pointer local), `light = lbl_80367318` assigned after the state test,
+      adjustLightingParams given the ambient colour directly (no extra local copy), light slot as `((void**)HA(0xAC))[i]` -> 95.5%
+  [4] inline: the object slot read as hugeAnimStruct.objects[i] and the entry pointer taken only after the NULL test; the light
+      slot as `*(void**)(HA(i * 4) + 0xAC)`; the light walk as `light++` -> 97.4%
+  [5] the default dispatch branch is `else if (*HA(0x307A) != 0)` (the target re-tests the state) -> 97.75%
+  [6] overlay entries as `(ActorObjectEntry*)((u8*)table + 0x34) + (u16)k` -> 97.92% local, 97.94% report
+  tried, no gain: light initialised at the declaration / in the for header / inside the 0x3085 block.
+  remaining: 4 bytes over -- the light pointer is copied into a saved register (`mr`) instead of being loaded straight into it, plus
+      add/addi ordering in three entry address computations.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
