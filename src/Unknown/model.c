@@ -1381,19 +1381,39 @@ typedef struct {
 typedef Vec lbl_80367318_view_8001a6b0;
 #define lbl_80367318 (*(lbl_80367318_view_8001a6b0*)&lbl_80367318)
 
-void challengeMapRelated(void) {
-    ChallengeMapNode *node;
+static inline void enableStadiumShadows(void) {
     Vec dir;
     f32 len;
     s32 i;
-    s32 k;
-    Vec copy;
+    u32 base;
+
+    dir.x = -lbl_80367318.x;
+    dir.y = -lbl_80367318.y;
+    dir.z = -lbl_80367318.z;
+    len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
+    hugeAnimStruct._3087 = 1;
+    dir.x /= len;
+    dir.y /= len;
+    dir.z /= len;
+    fn_8003A540(0);
+    hugeAnimStruct._3086 = 1;
+    DrawShadows(1);
+    updateVectorInArray(0, dir);
+    fn_800BF048(fn_8001AAF0);
+    fn_800BF058(fn_8001AB10);
+    base = (u32)hugeAnimStruct.offsetTable;
+    for (i = 0; i < 80; i++) {
+        hugeAnimStruct.offsetTable[i] = base + ((u32*)base)[i];
+    }
+}
+
+void challengeMapRelated(void) {
+    ChallengeMapNode *node = (ChallengeMapNode *)currentDrawingItem;
 
     if (hugeAnimStruct._3082 != 0) {
         return;
     }
 
-    node = (ChallengeMapNode *)currentDrawingItem;
     switch (node->step) {
     case 0:
         hugeAnimStruct._2D77 = 0;
@@ -1426,26 +1446,7 @@ void challengeMapRelated(void) {
         }
         break;
     case 6:
-        dir.x = -lbl_80367318.x;
-        dir.y = -lbl_80367318.y;
-        dir.z = -lbl_80367318.z;
-        len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
-        hugeAnimStruct._3087 = 1;
-        dir.x /= len;
-        dir.y /= len;
-        dir.z /= len;
-        fn_8003A540(0);
-        hugeAnimStruct._3086 = 1;
-        DrawShadows(1);
-        copy = dir;
-        updateVectorInArray(0, copy);
-        fn_800BF048(fn_8001AAF0);
-        fn_800BF058(fn_8001AB10);
-        for (i = 0; i < 80; i += 8) {
-            for (k = 0; k < 8; k++) {
-                hugeAnimStruct.offsetTable[i + k] += (u32)hugeAnimStruct.offsetTable;
-            }
-        }
+        enableStadiumShadows();
         hugeAnimStruct._3082 = 0;
         hugeAnimStruct._307C = 0;
         hugeAnimStruct._307D = 0;
@@ -1465,7 +1466,6 @@ void challengeMapRelated(void) {
         break;
     }
 }
-
 #undef hugeAnimStruct
 #undef lbl_80367318
 
@@ -3779,32 +3779,6 @@ int fn_80015468(int team) {
 }
 
 extern void fn_8001F8A4(void);
-
-static inline void enableStadiumShadows(void) {
-    Vec dir;
-    f32 len;
-    s32 i;
-    u32 base;
-
-    dir.x = -lbl_80367318[0].pos.x;
-    dir.y = -lbl_80367318[0].pos.y;
-    dir.z = -lbl_80367318[0].pos.z;
-    len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
-    *HA(0x3087) = 1;
-    dir.x /= len;
-    dir.y /= len;
-    dir.z /= len;
-    fn_8003A540(0);
-    *HA(0x3086) = 1;
-    DrawShadows(1);
-    updateVectorInArray(0, dir);
-    fn_800BF048(fn_8001AAF0);
-    fn_800BF058(fn_8001AB10);
-    base = HA_U32(0x2C84);
-    for (i = 0; i < 80; i++) {
-        ((u32*)HA_U32(0x2C84))[i] = base + ((u32*)base)[i];
-    }
-}
 
 void fn_800196D8(void) {
     DrawingSceneStruct* item = currentDrawingItem;

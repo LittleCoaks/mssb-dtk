@@ -59,7 +59,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80019C00 | pending | 99.51 |
 | fn_8001A25C | pending | 91.69 |
 | fn_8001A3FC | exhausted | 98.61 |
-| challengeMapRelated | pending | 87.45 |
+| challengeMapRelated | matched | 100.00 |
 | fn_8001AAA4 | matched | 100.00 |
 | fn_8001AAF0 | matched | 100.00 |
 | fn_8001AB10 | pending | 93.93 |
@@ -616,6 +616,14 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   readability pass: done (huge+0x307B/0x307C/... byte flags have no names yet; task bytes +0x14/+0x16/+0x17 left as offsets).
   lead: challengeMapRelated case 6 and fn_80019C00 state 5 carry the same block; enableStadiumShadows sits just above
   fn_800196D8, so it would have to move above challengeMapRelated (which uses a different lbl_80367318 view) to be shared.
+
+## challengeMapRelated [O1] (1012 bytes target, 1012 ours; 87.45% -> 100%, unit 92.57% -> 92.79%)
+  baseline: 87.45%
+  [1] KEY: case 6 now calls the shared `enableStadiumShadows()` inline (same block as fn_800196D8 state 2). The inline moved above
+      challengeMapRelated and is written in that view's terms (lbl_80367318 as a Vec, hugeAnimStruct._3086/_3087/offsetTable,
+      relocation as `base = (u32)offsetTable; offsetTable[i] = base + ((u32*)base)[i]`); fn_800196D8 stays 100% -> 99.21%
+  [2] node read from currentDrawingItem at its declaration, before the _3082 early return (target loads it first) -> 100%
+  readability pass: done (step numbers 0..8 are this node's own state machine, no enum).
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
