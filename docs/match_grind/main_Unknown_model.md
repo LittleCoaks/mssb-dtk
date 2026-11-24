@@ -102,7 +102,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | setNullPtrForStadiumObjs | matched | 100.00 |
 | fn_8001E488 | pending | 97.30 |
 | fn_8001E784 | pending | 97.94 |
-| fn_8001F16C | pending | 88.91 |
+| fn_8001F16C | pending | 99.15 |
 | resetGameStadiumStateOnExit | pending | 94.06 |
 | challengeMapMaybe | matched | 100.00 |
 | somethingFileHandlingLoadingRelated | pending | 95.51 |
@@ -698,6 +698,14 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   remaining: callee-saved numbering (target keeps obj in r27 and uses r24..r31; ours r25..r31) and local scheduling: the
       loadCharacterHandItem argument loads, the phase/flag store order in phase 1/2 and the three final stores in phase 8
       come out in a different order.
+
+## fn_8001F16C [O1] (188 bytes target, 188 ours; 88.91% -> 99.15%, unit 93.43% -> 93.44%)
+  baseline: 88.91% (size exact)
+  [1] objects through hugeAnimStruct.objects[i] (target walks a base copy with disp 0x2C50) -> 98.94%; the entry typed as
+      &actorTable->entries[slot] with ->actor / ->applyControl and the count through an ActorObjectTable* local (same score, kept)
+  [2] declaration order table, i, obj, entry (best of all 24) -> 99.15%
+  tried, no gain: int i, obj / entry declared in the loop, the assignment inside the if, continue form (all 99.15); early return 96.81 (192).
+  remaining: the loop counter and the object pointer swap r28 / r30.
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were

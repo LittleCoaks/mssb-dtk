@@ -6568,19 +6568,19 @@ void fn_80017D28(u8* obj) {
 }
 
 void fn_8001F16C(void) {
-    u8* node;
-    u8* obj;
+    ActorObjectTable* table;
     s32 i;
-    u8* actors;
+    u8* obj;
+    ActorObjectEntry* entry;
 
     if (*HA(0x307A) != 0 && *HA(0x307A) != 3) {
-        actors = (u8*)hugeAnimStruct.actorTable;
-        for (i = 0; i < *(u16*)actors; i++) {
-            obj = HA_OBJ(i);
+        table = hugeAnimStruct.actorTable;
+        for (i = 0; i < table->count; i++) {
+            obj = (u8*)hugeAnimStruct.objects[i];
             if (obj != NULL) {
-                node = (u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34;
-                if (*(void**)node != NULL && node[0x6C] != 0) {
-                    fn_800B2D5C(*(void**)node);
+                entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
+                if (entry->actor != NULL && entry->applyControl != 0) {
+                    fn_800B2D5C(entry->actor);
                 }
             }
         }
