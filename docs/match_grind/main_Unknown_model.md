@@ -87,7 +87,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001CB10 | matched | 100.00 |
 | initStadiumLighting | matched | 100.00 |
 | fn_8001CCC8 | matched | 100.00 |
-| stadiumSetupRelated | pending | 88.20 |
+| stadiumSetupRelated | matched | 100.00 |
 | fn_8001D074 | pending | 91.30 |
 | applyUniformScaleToObject | matched | 100.00 |
 | applyNonUniformScaleToObject | matched | 100.00 |
@@ -660,6 +660,17 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       extern was already in place.
   readability pass: done (0x27C / 0xC04 replaced with MODEL_RECORD_SIZE / MODEL_RECORD_BASE, 0xE56 written as MODEL_RECORD_BASE + 0x252;
   still 100%).
+
+## stadiumSetupRelated [O1] (512 bytes target, 512 ours; 88.20% -> 100%, unit 93.01% -> 93.11%)
+  baseline: 88.20%
+  [1] fn_8001CCC8's two inlines moved above stadiumSetupRelated and used as-is (light local, applyStadiumLightParams(),
+      initStadiumLights(light)) -> 95.32% (the param copy costs an `mr` and swaps the colour stack slot)
+  [2] the LIT loop written in the function: light[i] 93.63% (520), light++ walking 96.43% (516); a separate prop-loop counter +0.5;
+      light assigned after the params call 85.34 (540)
+  [3] KEY: `static inline void setupStadiumLighting(void)` holding the light local, applyStadiumLightParams() and the LIT loop
+      (light++ form 99.75%, size exact; light[i] form -> 100%). The caller keeps only the prop-entry loop.
+      fn_8001CCC8 keeps its own form (light local + initStadiumLights(light)) and stays 100%.
+  readability pass: done (no enum-shaped literals; 0x90 / 0x34 = actor entry stride / offset).
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
