@@ -5423,7 +5423,7 @@ void fn_8001D2D4(void) {
             processCharacterStateBasedOnGameMode((CharacterStateActor*)obj);
             break;
         case CHAR_ID_PETEY:
-            entry->actor->unk98 = 1;
+            entry->actor->unk99 = 1;
             updateSpecialBatAttach(obj, entry);
             break;
         case CHAR_ID_MONTY:
@@ -5440,14 +5440,14 @@ void fn_8001D2D4(void) {
         case CHAR_ID_NOKI_RED:
         case CHAR_ID_NOKI_GREEN:
         case CHAR_ID_KOOPA_RED:
-            entry->actor->unk98 = 1;
+            entry->actor->unk99 = 1;
             break;
         case CHAR_ID_PARATROOPA_RED:
         case CHAR_ID_PARATROOPA_GREEN:
             if (*(s16*)(obj + 0x62) == 0x40) {
-                entry->actor->unk98 = 0;
+                entry->actor->unk99 = 0;
             } else {
-                entry->actor->unk98 = 1;
+                entry->actor->unk99 = 1;
             }
             break;
         }

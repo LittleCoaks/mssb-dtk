@@ -587,6 +587,10 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       inline (95.32), other layout/geo/tex orders, i last, zero first, a separate counter for the first loop (98.29-98.44), geo as s32.
   remaining: first loop i <-> geo register swap (r31/r28); set loads into r3 instead of r0; the lfs zero / li order in the entry block.
 
+## fn_8001D2D4 [O1] correctness fix (not a grind)
+  The per-character switch stored the actor flag at unk98 (0x98); the target stores 0x99 (unk99), as in fn_80011468. Fixed the four
+  stores -> 92.33% -> 92.34%. The later `(actor->unk98 & 9)` test is a real 0x98 read and stays.
+
 ## Findings
 - [O1] UNIT-LEVEL ITEM FOR THE END: fn_8001B35C (99.95%) differs only in its .sdata2 float literal references
   (ours @1097/@1985/@1986/@1736/@1987, target lbl_803CC4B8/4F8/4FC/4D0/500). That is literal order or sharing between
