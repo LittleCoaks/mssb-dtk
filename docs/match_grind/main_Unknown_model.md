@@ -76,8 +76,8 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | getAnimRelatedCoordinates | matched | 100.00 |
 | QueueCharacterAnimation | matched | 100.00 |
 | AnimateCharacter | matched | 100.00 |
-| fn_8001BA44 | pending | 79.40 |
-| fn_8001BE50 | pending | 81.43 |
+| fn_8001BA44 | pending | 94.59 |
+| fn_8001BE50 | pending | 83.76 |
 | fn_8001C234 | pending | 86.23 |
 | fn_8001C528 | pending | 95.62 |
 | loadFielderActors | matched | 100.00 |
@@ -161,9 +161,9 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_800145F8 | pending | 39.48 |
 | fn_8001F8A4 | pending | 86.06 |
 | fn_80016344 | pending | 97.49 |
-| fn_8001BE50 | pending | 81.43 |
+| fn_8001BE50 | pending | 83.76 |
 | fn_80014204 | pending | 49.62 |
-| fn_8001BA44 | pending | 79.40 |
+| fn_8001BA44 | pending | 94.59 |
 | fn_80016B60 | matched | 100.00 |
 | fn_80016710 | pending | 93.55 |
 | fn_8001500C | pending | 88.99 |
@@ -462,6 +462,21 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   [2] the object-slot clear and the final object store through hugeAnimStruct.objects[] (base + index order) -> 98.15%
       (also reading the slot through it in the compare: 98.06, not kept)
   remaining: register numbering / scheduling in the found block (base and zero constants in different registers).
+
+## fn_8001BA44 [O1] (1036 bytes target, 1032 ours; 79.40% -> 94.59% fuzzy; fn_8001BE50 81.43% -> 83.76% as a side effect, unit 90.52% -> 90.82%)
+  baseline: 79.40% (988 bytes)
+  [1] getAnimBone returns s32 (the target truncates each result with clrlwi where it becomes a u16 argument) and the anim parameter is
+      an int (the target tests it with a plain cmpwi; the extern declaration in model.c updated with it, fn_8001C234 unchanged) -> 82.4%;
+      fn_8001BE50 (the other getAnimBone user) rises to 83.76
+  [2] the sequence bounds check as two separate returns (`seq >= count`, then `seq < 0`), the pending flags written as
+      `speedPending = framePending = (bank != NULL)` -> 82.9%
+  [3] KEY: the bone tail is fn_8001B5EC's body inlined (two complete branches, each with its own transform call, Vec and
+      table->entries[(u16)slot] stores, first bone u16 / second s32) and the attach tail is fn_8001B308's body (byte-form node at
+      actorTable + slot * 0x90 + 0x34, `attach == 0` first) -> 94.2%, size exact
+  [4] the negative-id path stores one `zero` local into frame and blendTime -> 94.55% local, 94.59% report (1032 bytes; kept for
+      the higher score)
+  remaining: the object pointer is kept in one register where the target holds two copies (r10 / r28) for the inlined getAnimBone
+      calls, and a few load / store orderings in the clear path.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too

@@ -3443,7 +3443,7 @@ void fn_8001A3FC(int mode) {
 }
 
 extern u8 lbl_80366158[];
-extern void fn_8001BA44(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
+extern void fn_8001BA44(s32 index, int a, u8 b, u8 c, s16 d, u8 e, s32 f);
 extern void fn_8004B208(void* obj, s16 anim, int collision, f32 time);
 void fn_8001BE50(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
 
@@ -4214,7 +4214,7 @@ typedef struct ModelAnimObject {
     /* 0x26C */ u8 flag26C;
 } ModelAnimObject;
 
-static inline u16 getAnimBone(ModelAnimObject* obj, int which) {
+static inline s32 getAnimBone(ModelAnimObject* obj, int which) {
     if (obj != NULL) {
         return obj->partBones[which];
     }
@@ -4326,7 +4326,7 @@ void fn_8001BE50(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
 }
 
 
-void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attach, s32 speedDivisor) {
+void fn_8001BA44(s32 index, int anim, u8 boneParam, u8 mode, s16 frame, u8 attach, s32 speedDivisor) {
     f32 blend = lbl_803CC4B8;
     ModelAnimObject* obj = hugeAnimStruct.objects[index];
     ActorObjectEntry* entry;
@@ -4335,10 +4335,9 @@ void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     s32 seq;
     u8* bank;
     ModelAnimObject* cur;
-    u16 boneEnd;
-    u16 boneRoot;
     u8* node;
     Vec offset;
+    Vec offset2;
     BOOL valid;
 
     if (obj == NULL) {
@@ -4384,24 +4383,29 @@ void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     if (valid) {
         bank = obj->banks[kind];
         if (bank != NULL) {
-            if (seq >= *(u16*)(bank + 0xA) || seq < 0) {
+            if (seq >= *(u16*)(bank + 0xA)) {
+                return;
+            }
+            if (seq < 0) {
                 return;
             }
             entry->anim = bank;
             entry->seqNum = seq;
             entry->frame = lbl_803CC4B8;
             entry->animPending = 1;
-            entry->framePending = entry->speedPending = (bank != NULL);
+            entry->speedPending = entry->framePending = (bank != NULL);
             entry->blendTime = blend;
         }
     } else {
+        f32 zero = lbl_803CC4B8;
+
         entry->anim = NULL;
         entry->seqNum = 0;
-        entry->frame = lbl_803CC4B8;
+        entry->frame = zero;
         entry->animPending = 1;
         entry->framePending = 0;
         entry->speedPending = 0;
-        entry->blendTime = lbl_803CC4B8;
+        entry->blendTime = zero;
         return;
     }
     if (obj->effectA != NULL) {
@@ -4420,25 +4424,35 @@ void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
 
     cur = hugeAnimStruct.objects[index];
     if (cur != NULL) {
+        s32 slot = cur->slot;
+
         if (mode == 0) {
-            boneRoot = getAnimBone(cur, 4);
-            boneEnd = getAnimBone(cur, 0);
+            u16 bone = getAnimBone(cur, 4);
+            s32 bone2 = getAnimBone(cur, 0);
+
+            table = hugeAnimStruct.actorTable;
+            maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                                  *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset);
+            table->entries[(u16)slot].unk64 = bone2;
+            table->entries[(u16)slot].unk66 = bone;
         } else {
-            boneRoot = getAnimBone(cur, 0);
-            boneEnd = getAnimBone(cur, 0);
+            u16 bone = getAnimBone(cur, 0);
+            s32 bone2 = getAnimBone(cur, 0);
+
+            table = hugeAnimStruct.actorTable;
+            maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                                  *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset2);
+            table->entries[(u16)slot].unk64 = bone2;
+            table->entries[(u16)slot].unk66 = bone;
         }
-        node = (u8*)hugeAnimStruct.actorTable + (u16)cur->slot * 0x90;
-        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
-        *(u16*)(node + 0x98) = boneEnd;
-        *(u16*)(node + 0x9A) = boneRoot;
     }
     cur = hugeAnimStruct.objects[index];
     if (cur != NULL) {
-        table = hugeAnimStruct.actorTable;
+        node = (u8*)hugeAnimStruct.actorTable + cur->slot * 0x90 + 0x34;
         if (attach == 0) {
-            table->entries[cur->slot].unk68 = 0;
+            *(u8**)(node + 0x68) = NULL;
         } else {
-            table->entries[cur->slot].unk68 = (u32)cur->attachPoint;
+            *(u8**)(node + 0x68) = (u8*)cur->attachPoint;
         }
     }
     obj->mode = mode;
