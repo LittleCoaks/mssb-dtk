@@ -1106,9 +1106,9 @@ typedef AnimModelMemory hugeAnimStruct_view_80018024;
 #define hugeAnimStruct (*(hugeAnimStruct_view_80018024*)&hugeAnimStruct)
 
 void setupAnimationModelMemory(void) {
-    s32 i;
     s32 entry;
     u32 maxA;
+    s32 i;
     u32 maxB;
     u32 v;
     u32 sizeA;
@@ -1118,33 +1118,16 @@ void setupAnimationModelMemory(void) {
     maxA = 0;
     maxB = 0;
     entry = 0;
-    p = (u8*)lbl_803CB790;
-    for (i = 0; i < 18; i++) {
-        v = ((CompressedFileEntry_80018024*)p)[0]._04 & 0x0FFFFFFF;
+    for (i = 0; i < 54; i++) {
+        v = *(u32*)((u8*)lbl_803CB790 + entry * 16 + 4) & 0x0FFFFFFF;
         if (maxA < v) {
             maxA = v;
         }
-        v = ((CompressedFileEntry_80018024*)p)[1]._04 & 0x0FFFFFFF;
+        v = *(u32*)((u8*)lbl_803CB790 + (entry + 1) * 16 + 4) & 0x0FFFFFFF;
         if (maxB < v) {
             maxB = v;
         }
-        v = ((CompressedFileEntry_80018024*)p)[19]._04 & 0x0FFFFFFF;
-        if (maxA < v) {
-            maxA = v;
-        }
-        v = ((CompressedFileEntry_80018024*)p)[20]._04 & 0x0FFFFFFF;
-        if (maxB < v) {
-            maxB = v;
-        }
-        v = ((CompressedFileEntry_80018024*)p)[38]._04 & 0x0FFFFFFF;
-        if (maxA < v) {
-            maxA = v;
-        }
-        v = ((CompressedFileEntry_80018024*)p)[39]._04 & 0x0FFFFFFF;
-        if (maxB < v) {
-            maxB = v;
-        }
-        p += 57 * 16;
+        entry += 19;
     }
 
     sizeA = (maxA + 0x1F) & ~0x1F;

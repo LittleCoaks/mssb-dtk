@@ -46,7 +46,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80017814 | pending | 92.88 |
 | fn_80017D28 | pending | 88.11 |
 | fn_80017DBC | pending | 90.70 |
-| setupAnimationModelMemory | pending-WEAK | 63.93 |
+| setupAnimationModelMemory | pending | 85.74 |
 | animationInitializationRunnerRelated | pending-WEAK | 70.75 |
 | fn_800188C0 | matched | 100.00 |
 | fn_800189B8 | matched | 100.00 |
@@ -300,6 +300,18 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       precomputed field addresses held on the stack (0x270..0x2C8). Ours folds everything into constant offsets from one record pointer.
       Next idea: give the copy-in and the write-back the same owner-form descriptor pointer expressions but keep the scalar reads through
       a separately recomputed record base (e.g. a typed records view vs. byte arithmetic), so only the memcpy addresses are shared.
+
+## setupAnimationModelMemory [O1] (588 bytes target, 592 ours; 63.93% -> 85.74% fuzzy, unit 85.70% -> 85.91%)
+  baseline: 63.93% (652 bytes)
+  [1] the hand-unrolled 18 x 3 scan replaced by one 54-iteration loop (the compiler's 3x unroll with ctr 18 and the dead +2 counter) -> 74.1%, 556 bytes
+  [2] KEY: a running file index `entry += 19` with byte addressing `*(u32*)(base + entry * 16 + 4)` / `(entry + 1) * 16 + 4`: the A field is
+      strength-reduced (`addi K; lwzx`), the B field recomputed per copy (`addi; slwi; addi 4; lwzx`), as in the target -> 84.6%.
+      Struct indexing `[entry]` / `[entry + 1]` (74.1) and parenthesised offsets (79.0, 588 bytes) are worse.
+  [3] local declaration order (entry, maxA, i, maxB, v) -> 84.93% local, 85.74% report (24 decl orders and 6 init orders measured, all within 0.3).
+  tried, no gain: NULL instead of 0, a shared `none` pointer for the zero stores.
+  remaining: the target materialises the 0 once before the toy-field branch and keeps the pointer/zero stores in source order (ours sinks the
+      zero stores and loads 0 in each branch: the 4 extra bytes); register numbering in the scan (entry r5 / offset copy r3 in the target).
+  readability: 54 (characters) and 19 (files per character) left as literals; CHAR_RECORD_COUNT (54) is only defined in a later view block.
 
 ## Findings
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
