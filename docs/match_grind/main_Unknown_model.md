@@ -81,7 +81,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001C234 | matched | 100.00 |
 | fn_8001C528 | pending | 95.62 |
 | loadFielderActors | matched | 100.00 |
-| loadAndAnimateCharacter | pending | 88.88 |
+| loadAndAnimateCharacter | pending | 98.52 |
 | loadCharacterAnimation | matched | 100.00 |
 | fn_8001CA40 | matched | 100.00 |
 | fn_8001CB10 | matched | 100.00 |
@@ -671,6 +671,19 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       (light++ form 99.75%, size exact; light[i] form -> 100%). The caller keeps only the prop-entry loop.
       fn_8001CCC8 keeps its own form (light local + initStadiumLights(light)) and stays 100%.
   readability pass: done (no enum-shaped literals; 0x90 / 0x34 = actor entry stride / offset).
+
+## loadAndAnimateCharacter [O1] (676 bytes target, 676 ours; 88.88% -> 98.52%, unit 93.11% -> 93.22%)
+  baseline: 88.88% (740 bytes)
+  The target's cached-bank path (charSlot == huge+0x2D50) does the memcpy and then branches into the middle of state 2's
+  non-minigame block (ANIMGet(0x2CAC), object bank link, 0x2D68 = charSlot, return 1); MWCC does not tail-merge the duplicate.
+  [1] structured: the duplicated block as written (88.88%), the attach step as a static inline taking the bank pointer (86.27%,
+      740) or the field offset (87.84%, 748) -> no merge in either.
+  [2] KEY: `goto attach;` from the cached path to a label on state 2's non-minigame block (exit-block threading; no structured
+      form reaches that block without duplicating it) -> 98.52%, size exact
+  tried, no gain: i / threshold declared in the outer block (98.52), i first (98.25), the bone-track loop as a static inline
+      (96.86, with or without the four field resets).
+  remaining: charObj and the loop offset swap r27/r28, and the lbl_803CC4B8 load before the three byte stores.
+  readability pass (partial, function not 100%): GameModeSelected 7 / 2 -> GAME_TYPE_MINIGAMES / GAME_TYPE_PRACTICE.
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were

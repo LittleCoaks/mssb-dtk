@@ -1738,7 +1738,7 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
     if (highLevelSimulationFlag[2] == 1) {
         if (g_d_GameSettings.minigamesEnabled) {
             s32 idx;
-            if (g_d_GameSettings.GameModeSelected == 7) {
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
                 idx = charSlot * 0x13 + 9;
             } else {
                 idx = charSlot * 0x13 + 2;
@@ -1746,18 +1746,10 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
             ARAMTransfer((void*)(lbl_803CB790 + (idx << 4)), *(s32*)(hugeAnimStruct + 0x2CF8), 0, 0);
         } else if (charSlot == *(s16*)(hugeAnimStruct + 0x2D50)) {
             memcpy(*(void**)(hugeAnimStruct + 0x2CAC), *(void**)(hugeAnimStruct + 0x2D48), *(u32*)(hugeAnimStruct + 0x2D4C));
-            ANIMGet(*(ANIMBank**)(hugeAnimStruct + 0x2CAC));
-            {
-                u8* obj = ((u8**)(hugeAnimStruct + 0x2C50))[objSlot];
-                if (*(void**)(obj + 0x10) == NULL) {
-                    *(void**)(obj + 0x10) = *(void**)(hugeAnimStruct + 0x2CAC);
-                }
-            }
-            *(s16*)(hugeAnimStruct + 0x2D68) = (s16)charSlot;
-            return 1;
+            goto attach;
         } else {
             s32 idx;
-            if (g_d_GameSettings.GameModeSelected == 2) {
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
                 idx = charSlot * 0x13 + 10;
             } else {
                 idx = charSlot * 0x13 + 2;
@@ -1775,6 +1767,7 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
                 }
             }
         } else {
+        attach:
             ANIMGet(*(ANIMBank**)(hugeAnimStruct + 0x2CAC));
             {
                 u8* obj = ((u8**)(hugeAnimStruct + 0x2C50))[objSlot];
