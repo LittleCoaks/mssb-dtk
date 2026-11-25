@@ -2633,19 +2633,28 @@ static inline s32 getRootBone(ModelOffsetObject* obj) {
     return 0xFFFF;
 }
 
-static inline u16 getEndBone(ModelOffsetObject* obj) {
+static inline s32 getEndBone(ModelOffsetObject* obj) {
     if (obj != NULL) {
         return obj->partBones[4];
     }
     return 0xFFFF;
 }
 
+static inline void setActorBoneRange(s32 slot, u16 bone, s32 bone2) {
+    ActorObjectTable* table;
+    Vec offset;
+
+    table = hugeAnimStruct.actorTable;
+    maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                          *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset);
+    table->entries[(u16)slot].unk64 = bone2;
+    table->entries[(u16)slot].unk66 = bone;
+}
+
 void fn_8001B5EC(int index, int mode) {
     ModelOffsetObject* obj = hugeAnimStruct.objects[index];
-    u16 boneEnd;
-    u16 boneRoot;
-    u8* node;
-    Vec offset;
+    u16 bone;
+    s32 bone2;
     s32 slot;
 
     if (obj == NULL) {
@@ -2653,19 +2662,13 @@ void fn_8001B5EC(int index, int mode) {
     }
     slot = obj->slot;
     if (mode == 0) {
-        boneEnd = getEndBone(obj);
-        boneRoot = getRootBone(obj);
-        node = (u8*)hugeAnimStruct.actorTable + (u16)slot * 0x90;
-        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
-        *(u16*)(node + 0x98) = boneRoot;
-        *(u16*)(node + 0x9A) = boneEnd;
+        bone = getEndBone(obj);
+        bone2 = getRootBone(obj);
+        setActorBoneRange(slot, bone, bone2);
     } else {
-        boneEnd = getRootBone(obj);
-        boneRoot = getRootBone(obj);
-        node = (u8*)hugeAnimStruct.actorTable + (u16)slot * 0x90;
-        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
-        *(u16*)(node + 0x98) = boneRoot;
-        *(u16*)(node + 0x9A) = boneEnd;
+        bone = getRootBone(obj);
+        bone2 = getRootBone(obj);
+        setActorBoneRange(slot, bone, bone2);
     }
 }
 

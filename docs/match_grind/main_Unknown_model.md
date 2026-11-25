@@ -71,7 +71,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001B308 | pending | 93.57 |
 | fn_8001B35C | pending | 99.95 |
 | fn_8001B4D8 | pending | 98.12 |
-| fn_8001B5EC | pending | 91.52 |
+| fn_8001B5EC | pending | 98.61 |
 | getAnimationCollisionOffset | matched | 100.00 |
 | getAnimRelatedCoordinates | matched | 100.00 |
 | QueueCharacterAnimation | matched | 100.00 |
@@ -179,7 +179,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_800126EC | matched | 100.00 |
 | fn_8001B4D8 | pending | 98.12 |
 | fn_80016F7C | matched | 100.00 |
-| fn_8001B5EC | pending | 91.52 |
+| fn_8001B5EC | pending | 98.61 |
 
 ## fn_8001A3FC [O1] (692 bytes target, 692 ours; 35.90% -> 98.61% fuzzy, unit 80.28% -> 81.01%)
   baseline: 35.90% (968 bytes)
@@ -743,6 +743,18 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
   [4] entry / obj / i / lightLevel at function level in that order (all 24 orders measured; several tie) -> 100%
   Re-checked after [4]: `lightLevel != 0xFF` still drops it to 99.29%, so the subtraction form stays.
   readability pass: done (0xFF = "no light override" level, no named constant in the repo).
+
+## fn_8001B5EC [O1] (316 bytes target, 316 ours; 89.87% (start of pass) / 91.52% -> 98.61%, unit 93.81% -> 93.85%)
+  baseline: 91.52% (after fn_8001B4D8's getRootBone change)
+  [1] each branch written like fn_8001B4D8: u16 bone / s32 bone2, an ActorObjectTable* local and table->entries[(u16)slot] for the
+      actor and the unk64 / unk66 stores (target recomputes the entry address after the call) -> 97.27%
+  [2] getEndBone returns s32 (its only user; the target truncates the end bone with clrlwi like the root bone) -> 98.59%
+  [3] the branch body as `static inline void setActorBoneRange(s32 slot, u16 bone, s32 bone2)` (own table / Vec; the target's two
+      branches use different Vec stack slots, 0x14 and 0x08) -> 98.61%; a Vec per branch block gives the same
+  tried, no gain: all 120 declaration orders of the five locals (98.59), bone locals per branch block (98.61), the getters passed
+      straight to the inline (96.37, 308 bytes).
+  remaining: the two branches allocate their callee-saved registers differently in the target (mode 0: table r31, bone r30,
+      bone2 r29; mode 1: bone r31, table r30, bone2 r29); ours uses one assignment for both.
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
