@@ -97,7 +97,7 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001DB74 | pending | 99.30 |
 | fn_8001DD58 | matched | 100.00 |
 | fn_8001DEA4 | matched | 100.00 |
-| fn_8001E0D8 | pending | 89.80 |
+| fn_8001E0D8 | matched | 100.00 |
 | fn_8001E460 | matched | 100.00 |
 | setNullPtrForStadiumObjs | matched | 100.00 |
 | fn_8001E488 | pending | 97.30 |
@@ -157,7 +157,7 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001E488 | pending | 97.30 |
 | fn_80014A18 | pending | 94.58 |
 | fn_800196D8 | matched | 100.00 |
-| fn_8001E0D8 | pending | 89.80 |
+| fn_8001E0D8 | matched | 100.00 |
 | fn_800145F8 | pending | 39.48 |
 | fn_8001F8A4 | pending | 98.70 |
 | fn_80016344 | pending | 97.49 |
@@ -731,6 +731,18 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       the FALSE exit last) -> 100%. (A do/while with `goto fail` also gives 100%; kept the structured form. A single `ret` variable:
       94.23; the body inside if/else: 89.92.)
   readability pass: done (no enum-shaped literals beyond GAME_TYPE_TOY_FIELD, already named).
+
+## fn_8001E0D8 [O1] (904 bytes target, 904 ours; 89.80% -> 100%, unit 93.66% -> 93.81%)
+  baseline: 89.80% (896 bytes)
+  [1] the light change as two adjustLightingParams calls: the level != 0xFF branch first (ambient.a = level, skip at 0, call with
+      ambient), the 0xFF branch reloading the stadium ambient; the test spelled `0xFF - lightLevel != 0` (target subfic / cmpwi)
+      -> 97.81%, size exact (`lightLevel != 0xFF`: 97.10, 900 bytes; s32 lightLevel 96.86)
+  [2] objects through hugeAnimStruct.objects[i] -> 98.32%
+  [3] KEY: the draw-args switch is fn_8001DEA4 itself, auto-inlined: `fn_8001DEA4(entry, group, trans);` replaces the hand-copied
+      switch -> 98.87% (fn_8001DEA4 stays 100%)
+  [4] entry / obj / i / lightLevel at function level in that order (all 24 orders measured; several tie) -> 100%
+  Re-checked after [4]: `lightLevel != 0xFF` still drops it to 99.29%, so the subtraction form stays.
+  readability pass: done (0xFF = "no light override" level, no named constant in the repo).
 
 ## Findings
 - [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
