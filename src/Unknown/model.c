@@ -38,6 +38,7 @@
 #include "Unknown/File_0x8001ce74.h"
 #include "Dolphin/mtx.h"
 #include "Dolphin/vec.h"
+#include "C3/actor/actorAnim.h"
 #include "C3/light/light.h"
 #include "Unknown/File_0x800bd478.h"
 #include "Unknown/File_0x8001d0d0.h"
@@ -225,24 +226,12 @@ u8 lbl_803CBC15;
 
 BOOL LoadModel(void* objPtr) {
     ModelObject* obj = objPtr;
-    ModelOwner* owner;
     ModelSlotBlock* block;
-    void** loaded;
-    void* layout;
+    void* partSlot;
     void* geo;
     void* texPalette;
-    void* partSlot;
-    s32 slot;
-    s32 flag;
-    u16 bone;
-    s32 n;
+    void* layout;
     s32 i;
-    void** cursor;
-    ModelActor* actor;
-    ModelLinkNode* node;
-    ModelPartList* parts;
-    ModelLinkNode** partNodes;
-    ModelObject* hugeObj;
 
     if (obj == NULL) {
         OSPanic("model.c", 0x22E6, " Character Data None \n");
@@ -253,91 +242,98 @@ BOOL LoadModel(void* objPtr) {
         return FALSE;
     }
 
-    if (lbl_803CBC14 == 0 && lbl_803C6CF8.cancel.bytes[1] == 1) {
-        owner = obj->owner;
+    if (lbl_803CBC14 == 0 && (s8)lbl_803C6CF8.cancel.bytes[1] == 1) {
+        ModelOwner* owner = obj->owner;
+
         if (owner->flag != 0) {
-            lbl_803CBC10 = &owner->blocks[1];
-            loadCharacterHandItem(owner->charId, 5, owner->blocks[1].loaded);
+            block = &owner->blocks[1];
+            lbl_803CBC10 = block;
+            loadCharacterHandItem(obj->owner->charId, 5, block->loaded);
             lbl_803CBC15 = 1;
         } else {
-            lbl_803CBC10 = &owner->blocks[0];
-            loadCharacterHandItem(owner->charId, 0, owner->blocks[0].loaded);
+            block = &owner->blocks[0];
+            lbl_803CBC10 = block;
+            loadCharacterHandItem(obj->owner->charId, 0, block->loaded);
             lbl_803CBC15 = 0;
         }
         lbl_803CBC14 = 1;
     }
 
-    if (lbl_803716B8.unk1E8 != 0) {
-        return FALSE;
-    }
+    if (lbl_803716B8.unk1E8 == 0) {
 
-    block = lbl_803CBC10;
-    owner = obj->owner;
-    texPalette = owner->texPalette;
-    loaded = block->loaded;
-
-    for (i = 0; i < 4; i++) {
-        if (loaded[i] != NULL) {
-            loaded[i] = (void*)((u8*)loaded + (u32)loaded[i]);
-        }
-    }
-
-    slot = block->slot;
-    layout = loaded[lbl_803CB7C4[0]];
-    geo = loaded[lbl_803CB7C4[1]];
-    partSlot = &hugeAnimStruct.entries[slot].parts;
-
-    LoadActorLayout(layout);
-    convertGeometryAndSknHeader(geo, NULL);
-    haveActLayoutPointToGeoHeader(layout, geo);
-    UpdateTexturePalettePointers(geo, texPalette);
-    fn_800238E0(hugeAnimStruct.entries, slot, slot, layout);
-
-    if (loaded[2] != NULL) {
-        adjustInternalPointers(loaded[lbl_803CB7C4[2]]);
-        ACTActorRelated(loaded[lbl_803CB7C4[2]], partSlot);
-    }
-
-    block->_04 = loaded[lbl_803CB7C4[3]];
-    actRelated(loaded[lbl_803CB7C4[2]], &block->_04);
-
-    flag = lbl_803CBC15;
-    hugeObj = hugeAnimStruct.objects[obj->slot];
-    if (hugeObj != NULL) {
-        bone = hugeObj->partBones[handAttachBoneIDs[flag]];
-    } else {
-        bone = NO_BONE;
-    }
-
-    if (bone != NO_BONE) {
-        owner = hugeObj->owner;
-        n = (s16)lbl_800EEAAC[hugeObj->charId];
-        cursor = hugeObj->actors;
-        i = 0;
-        if (n >= 0 && owner != NULL) {
-            actor = (ModelActor*)cursor[0];
-            partNodes = actor->nodes;
-            node = (ModelLinkNode*)partNodes[bone];
-            if (flag & 1) {
-                parts = hugeAnimStruct.entries[owner->blocks[1].slot].parts;
-            } else {
-                parts = hugeAnimStruct.entries[owner->blocks[0].slot].parts;
+        block = lbl_803CBC10;
+        texPalette = obj->owner->texPalette;
+        for (i = 0; i < 4; i++) {
+            if (block->loaded[i] != NULL) {
+                block->loaded[i] = (void*)((u8*)block->loaded + (u32)block->loaded[i]);
             }
-            if (parts != NULL) {
-                for (i = parts->count; i != 0; i--) {
-                    ModelLinkNode* cand = parts->nodes[i - 1];
-                    if (cand->link != NULL) {
-                        node->link = cand->link;
+        }
+        layout = block->loaded[lbl_803CB7C4[0]];
+        geo = block->loaded[lbl_803CB7C4[1]];
+        partSlot = &hugeAnimStruct.entries[block->slot].parts;
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
+        UpdateTexturePalettePointers(geo, texPalette);
+        fn_800238E0(hugeAnimStruct.entries, block->slot, block->slot, layout);
+        if (block->loaded[2] != NULL) {
+            adjustInternalPointers(block->loaded[lbl_803CB7C4[2]]);
+            ACTActorRelated(block->loaded[lbl_803CB7C4[2]], partSlot);
+        }
+        block->_04 = block->loaded[lbl_803CB7C4[3]];
+        actRelated(block->loaded[lbl_803CB7C4[2]], &block->_04);
+
+        {
+            ModelObject* cur = hugeAnimStruct.objects[obj->slot];
+            u8 flag = lbl_803CBC15;
+            s32 bone;
+
+            if (cur != NULL) {
+                bone = cur->partBones[handAttachBoneIDs[flag]];
+            } else {
+                bone = NO_BONE;
+            }
+            if (bone != NO_BONE) {
+                s16 n = ((s16*)lbl_800EEAAC)[cur->charId];
+                s32 j = 0;
+
+                do {
+                    ModelActor* actor = (ModelActor*)cur->actors[j];
+
+                    if (n >= 0 && cur->owner != NULL) {
+                        ModelLinkNode* node = (ModelLinkNode*)actor->nodes[bone];
+                        ModelPartList* parts;
+
+                        if (flag & 1) {
+                            parts = hugeAnimStruct.entries[cur->owner->blocks[1].slot].parts;
+                        } else {
+                            parts = hugeAnimStruct.entries[cur->owner->blocks[0].slot].parts;
+                        }
+                        if (parts != NULL) {
+                            s32 k = parts->count;
+                            ModelLinkNode** p = parts->nodes + k;
+
+                            do {
+                                ModelLinkNode* cand = *--p;
+
+                                k--;
+                                if (cand->link != NULL) {
+                                    node->link = cand->link;
+                                    break;
+                                }
+                            } while (k != 0);
+                        }
                         break;
                     }
-                }
+                } while (j-- != 0);
             }
         }
-    }
 
-    lbl_803CBC14 = 0;
-    lbl_803CBC10 = NULL;
-    return TRUE;
+        lbl_803CBC14 = 0;
+        lbl_803CBC10 = NULL;
+        return TRUE;
+    }
+    return FALSE;
 }
 
 #undef MODEL_ENTRY_SIZE
@@ -377,118 +373,115 @@ typedef u8 hugeAnimStruct_view_80013680[0x3154];
 #define ENTRY_STRIDE 0x90
 #define NO_BONE 0xFFFF
 
-static u8* getObject(s32 slot) {
+static inline u8* getObject(s32 slot) {
     return ((u8**)(hugeAnimStruct + OBJECT_TABLE_OFFSET))[slot];
 }
 
-static u16 getHandAttachBone(u8* obj, s32 which) {
-    if (obj == NULL) {
-        return NO_BONE;
+static inline void linkHandAttachBone(u8* obj, s32 which) {
+    s32 bone;
+
+    if (obj != NULL) {
+        bone = FIELD_U16(obj, 0x162 + handAttachBoneIDs[which] * 2);
+    } else {
+        bone = NO_BONE;
     }
-    return FIELD_U16(obj, 0x162 + handAttachBoneIDs[which] * 2);
+    if (bone != NO_BONE) {
+        s16 n = lbl_800EEAAC[FIELD_S8(obj, 0x252)];
+        s32 j;
+
+        j = 0;
+        do {
+            u8* act = ((u8**)obj)[j];
+
+            if (n >= 0 && FIELD_PTR(obj, 0x30) != NULL) {
+                u8* node = ((u8**)FIELD_PTR(act, 0x18))[bone];
+                u8* parts = FIELD_PTR(FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET) +
+                                          FIELD_U8(FIELD_PTR(obj, 0x30), 0x60 + which * 0x64) * ENTRY_STRIDE,
+                                      0x34);
+
+                if (parts != NULL) {
+                    s32 i;
+
+                    u8** p;
+
+                    i = FIELD_U16(parts, 0x6);
+                    p = (u8**)FIELD_PTR(parts, 0x18) + i;
+                    do {
+                        u8* cand = *--p;
+                        i--;
+
+                        if (FIELD_U32(cand, 0x14) != 0) {
+                            FIELD_U32(node, 0x14) = FIELD_U32(cand, 0x14);
+                            break;
+                        }
+                    } while (i != 0);
+                }
+                return;
+            }
+        } while (j-- != 0);
+    }
 }
 
-static void clearBoneSlot(u8* obj, u16 bone, s32 subIndexOffset) {
-    s16 val = lbl_800EEAAC[FIELD_S8(obj, 0x252)];
-    u8* sub;
-    u8* list;
-    u8* bonePtr;
-    u8* entry;
-    u8* data;
-    u8* arr;
-    u32 count;
-    u32 i;
+static inline u8 attachHandModel(u32 tex) {
+    u8* block;
+    s32 i;
+    u8* layout;
+    u8* geo;
+    u8* partSlot;
+    u8 ret;
 
-    if (val < 0) {
-        return;
-    }
-    sub = FIELD_PTR(obj, 0x30);
-    if (sub == NULL) {
-        return;
-    }
-    list = FIELD_PTR(FIELD_PTR(obj, 0), 0x18);
-    bonePtr = ((u8**)list)[bone];
-    entry = FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET) + FIELD_U8(sub, subIndexOffset) * ENTRY_STRIDE;
-    data = FIELD_PTR(entry, 0x34);
-    if (data == NULL) {
-        return;
-    }
-    count = FIELD_U16(data, 0x6);
-    arr = FIELD_PTR(data, 0x18);
-    for (i = count; i != 0; i--) {
-        u8* item = ((u8**)arr)[i - 1];
-        u32 v = FIELD_U32(item, 0x14);
-        if (v != 0) {
-            FIELD_U32(bonePtr, 0x14) = v;
-            return;
+    if (lbl_803716B8[0x1E8] == 0) {
+        block = lbl_803CBC1C;
+        lbl_803CBC0C = 0;
+        for (i = 0; i < 4; i++) {
+            if (((u32*)FIELD_PTR(block, 0))[i] != 0) {
+                ((u32*)FIELD_PTR(block, 0))[i] = (u32)FIELD_PTR(block, 0) + ((u32*)FIELD_PTR(block, 0))[i];
+            }
         }
-    }
-}
-
-static BOOL attachHandModelTail(void) {
-    u8* p;
-    u8* h;
-    u8* table;
-    u8* entry;
-    u8* a;
-    u8* b;
-    u8* f;
-    u32 off;
-    s32 idx;
-
-    if (FIELD_U8(lbl_803716B8, 0x1E8) != 0) {
-        return FALSE;
-    }
-    p = lbl_803CBC1C;
-    lbl_803CBC0C = 0;
-    h = FIELD_PTR(p, 0);
-    for (off = 0; off < 0x10; off += 4) {
-        u32 v = FIELD_U32(h, off);
-        if (v != 0) {
-            FIELD_U32(h, off) = (u32)h + v;
+        layout = ((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[0]];
+        geo = ((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[1]];
+        partSlot = FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET) + FIELD_U8(block, 0x60) * ENTRY_STRIDE + 0x34;
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
+        UpdateTexturePalettePointers((UnkTexPalGeo*)geo, (void*)tex);
+        fn_800238E0(FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET), FIELD_U8(block, 0x60), FIELD_U8(block, 0x60), layout);
+        if (((u8**)FIELD_PTR(block, 0))[2] != NULL) {
+            adjustInternalPointers(((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[2]]);
+            ACTActorRelated(((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[2]], partSlot);
         }
-    }
-
-    idx = FIELD_U8(p, 0x60);
-    table = FIELD_PTR(hugeAnimStruct, ENTRY_TABLE_OFFSET);
-    entry = table + idx * ENTRY_STRIDE;
-    a = ((u8**)h)[lbl_803CB7C4[0]];
-    b = ((u8**)h)[lbl_803CB7C4[1]];
-    f = entry + 0x34;
-
-    LoadActorLayout(a);
-    convertGeometryAndSknHeader(b, NULL);
-    haveActLayoutPointToGeoHeader(a, b);
-    UpdateTexturePalettePointers((UnkTexPalGeo*)b, (void*)lbl_803CBC00);
-    fn_800238E0(table, idx, idx, a);
-    if (FIELD_PTR(h, 0x8) != NULL) {
-        adjustInternalPointers(((u8**)h)[lbl_803CB7C4[2]]);
-        ACTActorRelated(((u8**)h)[lbl_803CB7C4[2]], f);
-    }
-    FIELD_PTR(p, 0x4) = ((u8**)h)[lbl_803CB7C4[3]];
-    actRelated(((u8**)h)[lbl_803CB7C4[2]], p + 0x4);
+        FIELD_PTR(block, 0x4) = ((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[3]];
+        actRelated(((u8**)FIELD_PTR(block, 0))[lbl_803CB7C4[2]], block + 0x4);
     lbl_803CBC1C = NULL;
-    return TRUE;
+        ret = TRUE;
+    } else {
+        ret = FALSE;
+    }
+    return ret;
 }
 
 BOOL animateModelArmsGlovesBats(void* actorPtr) {
     u8* actor = actorPtr;
-    s8 charSlot = FIELD_S8(actor, 0x252);
-    s8 part = FIELD_S8(actor, 0x254);
+    s32 charSlot = FIELD_S8(actor, 0x252);
+    s32 part = FIELD_S8(actor, 0x254);
     BOOL lowPart;
-    BOOL flagsMatch;
-    BOOL placed;
-    u8 sel;
-    s32 i;
-    s32 k;
+    BOOL selSet;
+    s32 sel;
+    u8 i;
+    u8 k;
     u8* rec;
+    u8* sub;
+    u32 tex;
+    s32 kind;
+    BOOL match;
+    u8 ready;
 
     if (lbl_803CBBFB == 0) {
         lbl_803CBBFB = 1;
         lbl_803CBC00 = FIELD_U32(FIELD_PTR(actor, 0x8), 0);
 
         for (i = 0; i < RECORD_COUNT; i++) {
-            rec = RECORD(i);
+            rec = ((u8(*)[RECORD_STRIDE])hugeAnimStruct)[i];
             if (FIELD_S8(rec, 0x20F) != charSlot) {
                 continue;
             }
@@ -504,25 +497,16 @@ BOOL animateModelArmsGlovesBats(void* actorPtr) {
             if (FIELD_U32(rec, 0x208) != lbl_803CBC00) {
                 continue;
             }
-            if ((part >= 9) != (FIELD_S8(rec, 0x211) >= 9)) {
+            if (!((FIELD_S8(actor, 0x254) < 9 && FIELD_S8(rec, 0x211) < 9) ||
+                  (FIELD_S8(actor, 0x254) >= 9 && FIELD_S8(rec, 0x211) >= 9))) {
                 continue;
             }
 
-            FIELD_U8(rec, 0x210) = (u8)part;
+            FIELD_S8(RECORD(i), 0x210) = part;
             FIELD_PTR(actor, 0x30) = rec + 0x140;
             FIELD_U8(FIELD_PTR(actor, 0x30), 0xCC) = TRUE;
-            {
-                u8* obj = getObject(part);
-                u16 bone = getHandAttachBone(obj, 0);
-                if (bone != NO_BONE) {
-                    clearBoneSlot(obj, bone, 0x60);
-                }
-                obj = getObject(part);
-                bone = getHandAttachBone(obj, 1);
-                if (bone != NO_BONE) {
-                    clearBoneSlot(obj, bone, 0xC4);
-                }
-            }
+            linkHandAttachBone(getObject(FIELD_S8(actor, 0x254)), 0);
+            linkHandAttachBone(getObject(FIELD_S8(actor, 0x254)), 1);
             lbl_803CBBFD = 0;
             lbl_803CBBFC = 0;
             lbl_803CBBFB = 0;
@@ -532,51 +516,43 @@ BOOL animateModelArmsGlovesBats(void* actorPtr) {
 
         if (lbl_803CBBFC == 0 && lbl_803CBBFD == 0) {
             for (i = 0; i < RECORD_COUNT; i++) {
-                rec = RECORD(i);
-                if (FIELD_S8(rec, 0x210) == part && part < 9) {
-                    FIELD_S8(rec, 0x210) = -1;
+                if (FIELD_S8(RECORD(i), 0x210) == FIELD_S8(actor, 0x254) && FIELD_S8(RECORD(i), 0x210) < 9) {
+                    FIELD_S8(RECORD(i), 0x210) = -1;
                     break;
                 }
             }
 
-            placed = FALSE;
             for (i = 0; i < RECORD_COUNT; i++) {
-                rec = RECORD(i);
+                rec = ((u8(*)[RECORD_STRIDE])hugeAnimStruct)[i];
                 if (FIELD_S8(rec, 0x210) == -1) {
                     lbl_803CBC20 = rec + 0x140;
                     FIELD_U32(rec, 0x208) = lbl_803CBC00;
-                    FIELD_S8(rec, 0x20F) = charSlot;
-                    FIELD_U8(rec, 0x211) = FIELD_U8(rec, 0x210);
-                    FIELD_U8(rec, 0x210) = (u8)part;
-                    FIELD_U8(rec, 0x20D) = FIELD_U8(actor, 0x25A);
-                    FIELD_U8(rec, 0x20E) = FIELD_U8(actor, 0x25B);
-                    placed = TRUE;
+                    FIELD_S8(RECORD(i), 0x20F) = charSlot;
+                    FIELD_U8(RECORD(i), 0x211) = FIELD_U8(RECORD(i), 0x210);
+                    FIELD_S8(RECORD(i), 0x210) = part;
+                    FIELD_U8(RECORD(i), 0x20D) = FIELD_U8(actor, 0x25A);
+                    FIELD_U8(RECORD(i), 0x20E) = FIELD_U8(actor, 0x25B);
                     break;
                 }
             }
 
-            if (!placed) {
+            if (i == RECORD_COUNT) {
                 for (i = 0; i < RECORD_COUNT; i++) {
-                    u8* sub;
-                    rec = RECORD(i);
-                    sub = rec + 0x140;
+                    sub = RECORD(i) + 0x140;
                     lbl_803CBC20 = sub;
                     for (k = 0; k < RECORD_COUNT; k++) {
                         u8* obj = getObject(k);
-                        if (obj == NULL) {
-                            continue;
-                        }
-                        if (FIELD_S8(sub, 0xCF) == FIELD_S8(obj, 0x252)) {
+                        if (obj != NULL && FIELD_S8(sub, 0xCF) == FIELD_S8(obj, 0x252)) {
                             break;
                         }
                     }
                     if (k == RECORD_COUNT) {
                         FIELD_U32(sub, 0xC8) = lbl_803CBC00;
-                        FIELD_S8(rec, 0x20F) = charSlot;
-                        FIELD_U8(rec, 0x211) = FIELD_U8(rec, 0x210);
-                        FIELD_U8(rec, 0x210) = (u8)part;
-                        FIELD_U8(rec, 0x20D) = FIELD_U8(actor, 0x25A);
-                        FIELD_U8(rec, 0x20E) = FIELD_U8(actor, 0x25B);
+                        FIELD_S8(RECORD(i), 0x20F) = charSlot;
+                        FIELD_U8(RECORD(i), 0x211) = FIELD_U8(RECORD(i), 0x210);
+                        FIELD_S8(RECORD(i), 0x210) = part;
+                        FIELD_U8(RECORD(i), 0x20D) = FIELD_U8(actor, 0x25A);
+                        FIELD_U8(RECORD(i), 0x20E) = FIELD_U8(actor, 0x25B);
                         break;
                     }
                 }
@@ -591,50 +567,60 @@ BOOL animateModelArmsGlovesBats(void* actorPtr) {
         return FALSE;
     }
 
-    lowPart = part < 9;
-    sel = lowPart ? FIELD_U8(actor, 0x25A) : FIELD_U8(actor, 0x25B);
-    flagsMatch = ((sel != 0) == lowPart);
-
-    if (lbl_803CBBFC == 0) {
-        if (lbl_803CBC0C == 0 && FIELD_U8(&lbl_803C6CF8, 0x715) == 1) {
-            u8* sub = lbl_803CBC20;
-            s32 r4;
-            if (lowPart && FIELD_U8(sub, 0xCD) != 0) {
-                r4 = 3;
-            } else if (flagsMatch) {
-                r4 = 5;
-            } else {
-                r4 = 1;
-            }
-            lbl_803CBC1C = sub + 0x64;
-            lbl_803CBC0C = 1;
-            loadCharacterHandItem(FIELD_S8(sub, 0xCF), r4, FIELD_PTR(sub, 0x64));
-        }
-        if (!attachHandModelTail()) {
-            return FALSE;
-        }
-        lbl_803CBBFC = 1;
+    if (part < 9) {
+        sel = FIELD_U8(actor, 0x25A);
+    } else {
+        sel = FIELD_U8(actor, 0x25B);
     }
+    lowPart = part < 9;
+    selSet = sel != 0;
 
-    if (lbl_803CBBFD == 0) {
-        if (lbl_803CBC0C == 0 && FIELD_U8(&lbl_803C6CF8, 0x715) == 1) {
-            u8* sub = lbl_803CBC20;
-            s32 r4;
-            if (lowPart && FIELD_U8(sub, 0xCD) != 1) {
-                r4 = 2;
-            } else if (flagsMatch) {
-                r4 = 4;
-            } else {
-                r4 = 0;
+    for (;;) {
+        if (lbl_803CBBFC == 0) {
+            tex = lbl_803CBC00;
+            sub = lbl_803CBC20;
+            match = selSet == lowPart;
+            if (lbl_803CBC0C == 0 && ((s8*)&lbl_803C6CF8)[0x715] == 1) {
+                if (lowPart && FIELD_U8(sub, 0xCD) != 0) {
+                    kind = 3;
+                } else if (match) {
+                    kind = 5;
+                } else {
+                    kind = 1;
+                }
+                lbl_803CBC1C = sub + 0x64;
+                lbl_803CBC0C = 1;
+                loadCharacterHandItem(FIELD_S8(sub, 0xCF), kind, FIELD_PTR(sub + 0x64, 0));
             }
-            lbl_803CBC1C = sub;
-            lbl_803CBC0C = 1;
-            loadCharacterHandItem(FIELD_S8(sub, 0xCF), r4, FIELD_PTR(sub, 0x0));
+            ready = attachHandModel(tex);
+            if (!ready) {
+                break;
+            }
+            lbl_803CBBFC = 1;
+        } else {
+            if (lbl_803CBBFD == 0) {
+                tex = lbl_803CBC00;
+                sub = lbl_803CBC20;
+                match = selSet == lowPart;
+                if (lbl_803CBC0C == 0 && ((s8*)&lbl_803C6CF8)[0x715] == 1) {
+                    if (lowPart && FIELD_U8(sub, 0xCD) != 1) {
+                        kind = 2;
+                    } else if (match) {
+                        kind = 4;
+                    } else {
+                        kind = 0;
+                    }
+                    lbl_803CBC1C = sub;
+                    lbl_803CBC0C = 1;
+                    loadCharacterHandItem(FIELD_S8(sub, 0xCF), kind, FIELD_PTR(sub, 0));
+                }
+                ready = attachHandModel(tex);
+                if (ready) {
+                    lbl_803CBBFD = 1;
+                }
+            }
+            break;
         }
-        if (!attachHandModelTail()) {
-            return FALSE;
-        }
-        lbl_803CBBFD = 1;
     }
 
     if (lbl_803CBBFC == 0 || lbl_803CBBFD == 0) {
@@ -642,23 +628,13 @@ BOOL animateModelArmsGlovesBats(void* actorPtr) {
     }
 
     FIELD_PTR(actor, 0x30) = lbl_803CBC20;
-    {
-        u8* obj = getObject(part);
-        u16 bone = getHandAttachBone(obj, 0);
-        if (bone != NO_BONE) {
-            clearBoneSlot(obj, bone, 0x60);
-        }
-        obj = getObject(part);
-        bone = getHandAttachBone(obj, 1);
-        if (bone != NO_BONE) {
-            clearBoneSlot(obj, bone, 0xC4);
-        }
-    }
+    linkHandAttachBone(getObject(FIELD_S8(actor, 0x254)), 0);
+    linkHandAttachBone(getObject(FIELD_S8(actor, 0x254)), 1);
     FIELD_U8(FIELD_PTR(actor, 0x30), 0xCC) = TRUE;
     lbl_803CBC20 = NULL;
+    lbl_803CBBFB = 0;
     lbl_803CBBFD = 0;
     lbl_803CBBFC = 0;
-    lbl_803CBBFB = 0;
     lbl_803CBC00 = 0;
     return TRUE;
 }
@@ -837,147 +813,165 @@ void actRelated(void *file, void *effect);
 
 #define OBJ_SLOT(anim, i) (*(u8 **)((anim) + 0x2C50 + (i) * 4))
 
-#define PRACTICE_LOAD_BC_STEPS() \
-    if (anim[0x2D7B] == 0xB) { \
-        if (lbl_803CB7C2 != 0) { \
-            u8 flag0 = lbl_803CBC34[0]; \
-            lbl_803CB7C2 = 0; \
-            if (flag0 != 0) { \
+static inline u8 loadPracticeEffect(u8 *obj, u8 typeId, u8 idxByte)
+{
+    s32 n = lbl_803CBC28;
+    s16 file;
+    u8 ret;
+
+    (lbl_80118220 + n * 0x64)[0x5D] = 0;
+    file = lbl_800EEB18[typeId];
+    if (file == -1 || *(u32 *)(*(u8 **)(obj + 0x08) + 0x10) == 0) {
+        *(u8 **)(obj + 0x2C) = NULL;
+        ret = TRUE;
+    } else {
+        if (lbl_803CBBFA == 0) {
+            fn_80021ADC(file, *(void **)(lbl_80118220 + n * 0x64));
+            lbl_803CBBFA = 1;
+        }
+        if ((s8)lbl_803C6CF8[0x715] == 1) {
+            u8 *entry = lbl_80118220 + n * 0x64;
+
+            entry[0x60] = typeId;
+            entry[0x61] = idxByte;
+            *(u32 *)(entry + 4) = *(u32 *)entry;
+            actRelated(*(void **)(*(u8 **)(obj + 0x08) + 0x10), entry + 4);
+            *(u8 **)(obj + 0x2C) = entry;
+            lbl_803CBBFA = 0;
+            ret = TRUE;
+        } else {
+            ret = FALSE;
+        }
+    }
+    return ret;
+}
+
+#define STEP_PRACTICE_EFFECTS(done) \
+ \
+ \
+    if (lbl_803CB7C2 != 0) { \
+        u8 flag0 = lbl_803CBC34[0]; \
+        lbl_803CB7C2 = 0; \
+        if (flag0 != 0) { \
+            lbl_803CBC2C = 0; \
+            lbl_803CBBF8 = 9; \
+        } else { \
+            if (lbl_803CBC34[1] != 0) { \
+                u8 count = lbl_803CBBF8; \
                 lbl_803CBC2C = 0; \
-                lbl_803CBBF8 = 9; \
-            } else { \
-                if (lbl_803CBC34[1] != 0) { \
-                    u8 count = lbl_803CBBF8; \
-                    lbl_803CBC2C = 0; \
-                    lbl_803CBBF8 = count + 1; \
-                } \
-                if (lbl_803CBC34[2] != 0) { \
-                    lbl_803CBBF8 = lbl_803CBBF8 + 1; \
-                    if (lbl_803CBC34[1] == 0) { \
-                        lbl_803CBC2C = 1; \
-                    } \
+                lbl_803CBBF8 = count + 1; \
+            } \
+            if (lbl_803CBC34[2] != 0) { \
+                lbl_803CBBF8 = lbl_803CBBF8 + 1; \
+                if (lbl_803CBC34[1] == 0) { \
+                    lbl_803CBC2C = 1; \
                 } \
             } \
         } \
-\
-        if (lbl_803CBBF8 == 0) { \
+    } \
+ \
+    if (lbl_803CBBF8 == 0) { \
+        ok = TRUE; \
+    } else { \
+        s32 idx = lbl_803CBBF0 + lbl_803CBC2C; \
+        u8 *obj = OBJ_SLOT(hugeAnimStruct, idx); \
+        u8 typeId = obj[0x252]; \
+        u8 idxByte = (u8)idx; \
+        u8 stepped; \
+ \
+        if (lbl_803CBBF9 == 0) { \
+            u8 *q = lbl_80118220; \
+            u8 *p; \
+            s32 i; \
+            s32 count; \
+            u8 c61; \
+ \
+            for (i = 0, p = q; (s8)(c61 = p[0x61]) != -2; i++, p += 0x64) { \
+                if (typeId == (s8)p[0x60] && (s8)c61 == -1) { \
+                    u8 *entry = lbl_80118220 + i * 0x64; \
+ \
+                    *(u8 **)(obj + 0x2C) = entry; \
+                    entry[0x60] = typeId; \
+                    entry[0x61] = idxByte; \
+                    *(u32 *)(entry + 0x30) = *(u32 *)(*(u8 **)(obj + 0x08) + 0x10); \
+                    stepped = TRUE; \
+                    goto done; \
+                } \
+            } \
+            lbl_803CBBF9 = 1; \
+            for (count = 0; (s8)(c61 = q[0x61]) != -2; count++, q += 0x64) { \
+                if ((s8)c61 == -1) { \
+                    break; \
+                } \
+            } \
+            lbl_803CBC28 = count; \
+        } \
+        if (loadPracticeEffect(obj, typeId, idxByte)) { \
+            lbl_803CBBF9 = 0; \
+            stepped = TRUE; \
+        } else { \
+            stepped = FALSE; \
+        } \
+    done: \
+        if (stepped) { \
+            lbl_803CBBF0 = lbl_803CBBF0 + 1; \
+        } \
+        if ((u32)lbl_803CBBF8 == (u32)lbl_803CBBF0) { \
+            lbl_803CBBF0 = 0; \
             ok = TRUE; \
         } else { \
-            int idx = lbl_803CBBF0 + lbl_803CBC2C; \
-            u8 *obj = OBJ_SLOT(anim, idx); \
-            u8 typeId = obj[0x252]; \
-            u8 idxByte = (u8)idx; \
-            int stepped = 0; \
-\
-            if (lbl_803CBBF9 == 0) { \
-                u8 *p = lbl_80118220; \
-                int found = 0; \
-\
-                while ((s8)p[0x61] != -2) { \
-                    if ((s8)p[0x60] == typeId && (s8)p[0x61] == -1) { \
-                        found = 1; \
-                        break; \
-                    } \
-                    p += 0x64; \
-                } \
-\
-                if (found) { \
-                    u8 *sub = *(u8 **)(obj + 0x08); \
-                    p[0x60] = typeId; \
-                    p[0x61] = idxByte; \
-                    *(u8 **)(obj + 0x2C) = p; \
-                    *(u32 *)(p + 0x30) = *(u32 *)(sub + 0x10); \
-                    stepped = 1; \
-                } else { \
-                    int count = 0; \
-                    u8 *q = lbl_80118220; \
-                    lbl_803CBBF9 = 1; \
-                    while ((s8)q[0x61] != -2 && (s8)q[0x61] != -1) { \
-                        q += 0x64; \
-                        count++; \
-                    } \
-                    lbl_803CBC28 = count; \
-                } \
-            } \
-\
-            if (!stepped) { \
-                int r3val; \
-                u8 *entry = lbl_80118220 + lbl_803CBC28 * 0x64; \
-                u8 *sub = *(u8 **)(obj + 0x08); \
-                entry[0x5D] = 0; \
-                if (lbl_800EEB18[typeId] == -1 || *(u32 *)(sub + 0x10) == 0) { \
-                    *(u8 **)(obj + 0x2C) = NULL; \
-                    r3val = 1; \
-                } else { \
-                    if (lbl_803CBBFA == 0) { \
-                        fn_80021ADC(lbl_800EEB18[typeId], *(void **)entry); \
-                        lbl_803CBBFA = 1; \
-                    } \
-                    if (lbl_803C6CF8[0x715] == 1) { \
-                        entry[0x60] = typeId; \
-                        entry[0x61] = idxByte; \
-                        *(u32 *)(entry + 4) = *(u32 *)entry; \
-                        actRelated(*(void **)(sub + 0x10), entry + 4); \
-                        *(u8 **)(obj + 0x2C) = entry; \
-                        lbl_803CBBFA = 0; \
-                        r3val = 1; \
-                    } else { \
-                        r3val = 0; \
-                    } \
-                } \
-                if (r3val) { \
-                    lbl_803CBBF9 = 0; \
-                    stepped = 1; \
-                } \
-            } \
-\
-            if (stepped) { \
-                lbl_803CBBF0 = lbl_803CBBF0 + 1; \
-            } \
-            if ((u32)lbl_803CBBF8 == (u32)lbl_803CBBF0) { \
-                lbl_803CBBF0 = 0; \
-                ok = TRUE; \
-            } else { \
-                ok = FALSE; \
-            } \
+            ok = FALSE; \
         } \
-\
+    } \
+
+static inline u8 stepPracticeArms(void)
+{
+    u8 ret;
+
+    if ((u8)animateModelArmsGlovesBats(OBJ_SLOT(hugeAnimStruct, lbl_803CBBF0))) {
+        lbl_803CBBF0 = lbl_803CBBF0 + 1;
+    }
+    if ((u32)lbl_803CBBF0 == 9) {
+        lbl_803CBBF0 = 0;
+        ret = TRUE;
+    } else {
+        ret = FALSE;
+    }
+    return ret;
+}
+
+#define PRACTICE_LOAD_BC_STEPS(done) \
+    if (anim[0x2D7B] == 0xB) { \
+        STEP_PRACTICE_EFFECTS(done) \
         if (!ok) { \
             return FALSE; \
         } \
         anim[0x2D7B] = 0xC; \
     } \
-\
     if (anim[0x2D7B] == 0xC) { \
-        int ret = animateModelArmsGlovesBats(OBJ_SLOT(anim, lbl_803CBBF0)); \
-        if ((u8)ret != 0) { \
-            lbl_803CBBF0 = lbl_803CBBF0 + 1; \
+        if (!stepPracticeArms()) { \
+            return FALSE; \
         } \
-        if (lbl_803CBBF0 == 9) { \
-            lbl_803CBBF0 = 0; \
-            return TRUE; \
-        } \
-        return FALSE; \
+        return TRUE; \
     }
+
+#define anim hugeAnimStruct
 
 BOOL practice_loadAllGraphics(int team)
 {
-    u8 *anim = hugeAnimStruct;
     u8 *lineUp;
     int i;
     int k;
-    int ok;
+    u8 ok;
 
     if (anim[0x2D77] == 1) {
         return FALSE;
     }
 
     if (anim[0x2D77] == 2) {
-        u8 srcSlot = anim[0x2D79];
-        u8 dstSlot = anim[0x2D7B];
-        OBJ_SLOT(anim, dstSlot) = anim + srcSlot * 0x27C + 0xC04;
+        OBJ_SLOT(anim, anim[0x2D7B]) = anim + anim[0x2D79] * 0x27C + 0xC04;
         anim[0x2D77] = 0;
-        anim[0x2D7B] = dstSlot + 1;
+        anim[0x2D7B] = anim[0x2D7B] + 1;
     }
 
     if (anim[0x2D7B] == 9) {
@@ -992,7 +986,7 @@ BOOL practice_loadAllGraphics(int team)
             }
             anim[0x2D7B] = 0xB;
         }
-        PRACTICE_LOAD_BC_STEPS()
+        PRACTICE_LOAD_BC_STEPS(effects_done_a)
     } else {
         if (anim[0x2D7B] == 0xA) {
             if (!fn_80014A18(team)) {
@@ -1000,49 +994,50 @@ BOOL practice_loadAllGraphics(int team)
             }
             anim[0x2D7B] = 0xB;
         }
-        PRACTICE_LOAD_BC_STEPS()
+        PRACTICE_LOAD_BC_STEPS(effects_done_b)
     }
 
     lineUp = lineUpInfoStruct + team * 0x24;
 
     for (i = 0; i < 9; i++) {
-        u8 *obj = OBJ_SLOT(anim, i);
-        if (obj == NULL) {
+        if (OBJ_SLOT(anim, i) == NULL) {
             continue;
         }
 
         for (k = 0; k < 9; k++) {
-            if (inMemRoster[team][(s8)lineUp[k * 4]].stats.CharID == (s8)obj[0x252]) {
+            if (inMemRoster[team][(s8)lineUp[k * 4]].stats.CharID == (s8)OBJ_SLOT(anim, i)[0x252]) {
                 break;
             }
         }
+        if (k < 9) {
+            continue;
+        }
 
-        if (k == 9) {
-            u8 *entry = *(u8 **)(obj + 0x2C);
+        if (OBJ_SLOT(anim, i) != NULL) {
+            u8 *entry = *(u8 **)(OBJ_SLOT(anim, i) + 0x2C);
             u8 *sub;
-            if (entry != NULL) {
-                entry[0x61] = 0xFF;
-                entry[0x5C] = 0xFE;
-                *(u8 **)(obj + 0x2C) = NULL;
-            }
 
-            sub = *(u8 **)(obj + 0x30);
+            if (entry != NULL) {
+                ((s8 *)entry)[0x61] = -1;
+                ((s8 *)entry)[0x5C] = -2;
+                *(u8 **)(OBJ_SLOT(anim, i) + 0x2C) = NULL;
+            }
+            sub = *(u8 **)(OBJ_SLOT(anim, i) + 0x30);
             if (sub != NULL) {
                 sub[0xD1] = sub[0xD0];
-                sub[0xD0] = 0xFF;
-                sub[0x5C] = 0xFE;
-                sub[0xC0] = 0xFE;
-                *(u8 **)(obj + 0x30) = NULL;
+                ((s8 *)sub)[0xD0] = -1;
+                ((s8 *)sub)[0x5C] = -2;
+                ((s8 *)sub)[0xC0] = -2;
+                *(u8 **)(OBJ_SLOT(anim, i) + 0x30) = NULL;
             }
-
-            obj[0x25C] = 0;
-            OBJ_SLOT(anim, i) = NULL;
-            {
-                int j;
-                for (j = 0; j < 13; j++) {
-                    if ((s8)anim[0x2D6A + j] == i) {
-                        anim[0x2D6A + j] = 0xFF;
-                    }
+            OBJ_SLOT(anim, i)[0x25C] = 0;
+        }
+        OBJ_SLOT(anim, i) = NULL;
+        {
+            int j;
+            for (j = 0; j < 13; j++) {
+                if ((s8)anim[0x2D6A + j] == i) {
+                    anim[0x2D6A + j] = 0xFF;
                 }
             }
         }
@@ -1050,14 +1045,12 @@ BOOL practice_loadAllGraphics(int team)
 
     {
         u8 state = anim[0x2D7B];
-        int idx = 9;
         for (k = 0; k < 9; k++) {
             if ((s8)state == (s8)lineUp[2 + k * 4]) {
-                idx = k;
                 break;
             }
         }
-        if (fn_80017098(team, idx, 0, state, 0, -1)) {
+        if (fn_80017098(team, k, 0, state, 0, -1)) {
             anim[0x2D77] = 2;
         }
     }
@@ -1065,8 +1058,10 @@ BOOL practice_loadAllGraphics(int team)
     return FALSE;
 }
 
+#undef anim
 #undef OBJ_SLOT
 #undef PRACTICE_LOAD_BC_STEPS
+#undef STEP_PRACTICE_EFFECTS
 #undef hugeAnimStruct
 #undef lbl_803C6CF8
 
@@ -1126,9 +1121,9 @@ typedef AnimModelMemory hugeAnimStruct_view_80018024;
 #define hugeAnimStruct (*(hugeAnimStruct_view_80018024*)&hugeAnimStruct)
 
 void setupAnimationModelMemory(void) {
-    s32 i;
     s32 entry;
     u32 maxA;
+    s32 i;
     u32 maxB;
     u32 v;
     u32 sizeA;
@@ -1138,33 +1133,16 @@ void setupAnimationModelMemory(void) {
     maxA = 0;
     maxB = 0;
     entry = 0;
-    p = (u8*)lbl_803CB790;
-    for (i = 0; i < 18; i++) {
-        v = ((CompressedFileEntry_80018024*)p)[0]._04 & 0x0FFFFFFF;
+    for (i = 0; i < 54; i++) {
+        v = *(u32*)((u8*)lbl_803CB790 + entry * 16 + 4) & 0x0FFFFFFF;
         if (maxA < v) {
             maxA = v;
         }
-        v = ((CompressedFileEntry_80018024*)p)[1]._04 & 0x0FFFFFFF;
+        v = *(u32*)((u8*)lbl_803CB790 + (entry + 1) * 16 + 4) & 0x0FFFFFFF;
         if (maxB < v) {
             maxB = v;
         }
-        v = ((CompressedFileEntry_80018024*)p)[19]._04 & 0x0FFFFFFF;
-        if (maxA < v) {
-            maxA = v;
-        }
-        v = ((CompressedFileEntry_80018024*)p)[20]._04 & 0x0FFFFFFF;
-        if (maxB < v) {
-            maxB = v;
-        }
-        v = ((CompressedFileEntry_80018024*)p)[38]._04 & 0x0FFFFFFF;
-        if (maxA < v) {
-            maxA = v;
-        }
-        v = ((CompressedFileEntry_80018024*)p)[39]._04 & 0x0FFFFFFF;
-        if (maxB < v) {
-            maxB = v;
-        }
-        p += 57 * 16;
+        entry += 19;
     }
 
     sizeA = (maxA + 0x1F) & ~0x1F;
@@ -1248,16 +1226,16 @@ typedef u8 hugeAnimStruct_view_80018270[];
 void animationInitializationRunnerRelated(int mode) {
     u32 maxA = 0;
     u32 maxB = 0;
-    u32 i;
+    int i;
     u32 n;
     u32 v;
     u32 base;
-    u32 a;
     u32 aUp;
     u32 bUp;
     u32 size;
     int t;
     int p;
+    u8 slot;
 
     if (mode == 2) {
         base = (u32)_OSAllocFromHeap(0x20, 0x13E80);
@@ -1274,16 +1252,19 @@ void animationInitializationRunnerRelated(int mode) {
             }
         }
 
-        a = maxA + 0x1F;
-        aUp = a & ~0x1F;
-        size = (a >> 5) + 0x13E80;
+        aUp = (maxA + 0x1F) & ~0x1F;
+        size = aUp * 4 + 0x13E80;
         base = (u32)_OSAllocFromHeap(0x20, size);
         HUGE_U32(0x2268) = base;
-        HUGE_U32(0x24E4) = base + aUp;
-        HUGE_U32(0x2760) = base + aUp * 2;
-        HUGE_U32(0x29DC) = base + aUp * 3;
+        base += aUp;
+        HUGE_U32(0x24E4) = base;
+        base += aUp;
+        HUGE_U32(0x2760) = base;
+        base += aUp;
+        HUGE_U32(0x29DC) = base;
+        base += aUp;
         HUGE_U32(0x2D64) = size;
-        HUGE_U32(0x2D3C) = base + aUp * 4;
+        HUGE_U32(0x2D3C) = base;
         HUGE_U32(0x2D40) = 0x13E80;
         HUGE_S16(0x2D44) = -1;
         HUGE_U8(0x2D46) = 0;
@@ -1291,7 +1272,7 @@ void animationInitializationRunnerRelated(int mode) {
         if (mode == 0) {
             for (t = 0; t < TEAMS_PER_GAME; t++) {
                 for (p = 0; p < PLAYERS_PER_TEAM; p++) {
-                    v = CHAR_RECORD_U32(inMemRoster[t][p].stats.CharID, 0x4) & 0x0FFFFFFF;
+                    v = *(u32 *)((u8 *)lbl_803CB790 + (inMemRoster[t][p].stats.CharID * 19) * 16 + 4) & 0x0FFFFFFF;
                     if (maxA < v) {
                         maxA = v;
                     }
@@ -1299,7 +1280,7 @@ void animationInitializationRunnerRelated(int mode) {
             }
             for (t = 0; t < TEAMS_PER_GAME; t++) {
                 for (p = 0; p < PLAYERS_PER_TEAM; p++) {
-                    v = CHAR_RECORD_U32(inMemRoster[t][p].stats.CharID, 0x14) & 0x0FFFFFFF;
+                    v = *(u32 *)((u8 *)lbl_803CB790 + (inMemRoster[t][p].stats.CharID * 19 + 1) * 16 + 4) & 0x0FFFFFFF;
                     if (maxB < v) {
                         maxB = v;
                     }
@@ -1313,7 +1294,7 @@ void animationInitializationRunnerRelated(int mode) {
                 }
             }
             for (n = 0; n < CHAR_RECORD_COUNT; n++) {
-                v = CHAR_RECORD_U32(n, 0x14) & 0x0FFFFFFF;
+                v = *(u32 *)((u8 *)lbl_803CB790 + (n * 19 + 1) * 16 + 4) & 0x0FFFFFFF;
                 if (maxB < v) {
                     maxB = v;
                 }
@@ -1321,14 +1302,13 @@ void animationInitializationRunnerRelated(int mode) {
         }
 
         bUp = (maxB + 0x1F) & ~0x1F;
-        a = maxA + 0x1F;
-        aUp = a & ~0x1F;
-        size = bUp * 9 + (a >> 5) + aUp + bUp;
+        aUp = (maxA + 0x1F) & ~0x1F;
+        size = bUp * 9 + aUp * 4 + aUp + bUp;
         base = (u32)_OSAllocFromHeap(0x20, size);
         HUGE_U32(0x2C8C) = base;
         HUGE_U32(0x2D64) = size;
-        for (i = 0; i < 9; i++) {
-            HUGE_U32(0xC0C + i * OBJECT_SLOT_STRIDE) = base;
+        for (slot = 0; slot < 9; slot++) {
+            HUGE_U32(0xC0C + slot * OBJECT_SLOT_STRIDE) = base;
             base += bUp;
         }
         HUGE_U32(0x2268) = base;
@@ -1401,19 +1381,39 @@ typedef struct {
 typedef Vec lbl_80367318_view_8001a6b0;
 #define lbl_80367318 (*(lbl_80367318_view_8001a6b0*)&lbl_80367318)
 
-void challengeMapRelated(void) {
-    ChallengeMapNode *node;
+static inline void enableStadiumShadows(void) {
     Vec dir;
     f32 len;
     s32 i;
-    s32 k;
-    Vec copy;
+    u32 base;
+
+    dir.x = -lbl_80367318.x;
+    dir.y = -lbl_80367318.y;
+    dir.z = -lbl_80367318.z;
+    len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
+    hugeAnimStruct._3087 = 1;
+    dir.x /= len;
+    dir.y /= len;
+    dir.z /= len;
+    fn_8003A540(0);
+    hugeAnimStruct._3086 = 1;
+    DrawShadows(1);
+    updateVectorInArray(0, dir);
+    fn_800BF048(fn_8001AAF0);
+    fn_800BF058(fn_8001AB10);
+    base = (u32)hugeAnimStruct.offsetTable;
+    for (i = 0; i < 80; i++) {
+        hugeAnimStruct.offsetTable[i] = base + ((u32*)base)[i];
+    }
+}
+
+void challengeMapRelated(void) {
+    ChallengeMapNode *node = (ChallengeMapNode *)currentDrawingItem;
 
     if (hugeAnimStruct._3082 != 0) {
         return;
     }
 
-    node = (ChallengeMapNode *)currentDrawingItem;
     switch (node->step) {
     case 0:
         hugeAnimStruct._2D77 = 0;
@@ -1446,26 +1446,7 @@ void challengeMapRelated(void) {
         }
         break;
     case 6:
-        dir.x = -lbl_80367318.x;
-        dir.y = -lbl_80367318.y;
-        dir.z = -lbl_80367318.z;
-        len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
-        hugeAnimStruct._3087 = 1;
-        dir.x /= len;
-        dir.y /= len;
-        dir.z /= len;
-        fn_8003A540(0);
-        hugeAnimStruct._3086 = 1;
-        DrawShadows(1);
-        copy = dir;
-        updateVectorInArray(0, copy);
-        fn_800BF048(fn_8001AAF0);
-        fn_800BF058(fn_8001AB10);
-        for (i = 0; i < 80; i += 8) {
-            for (k = 0; k < 8; k++) {
-                hugeAnimStruct.offsetTable[i + k] += (u32)hugeAnimStruct.offsetTable;
-            }
-        }
+        enableStadiumShadows();
         hugeAnimStruct._3082 = 0;
         hugeAnimStruct._307C = 0;
         hugeAnimStruct._307D = 0;
@@ -1485,7 +1466,6 @@ void challengeMapRelated(void) {
         break;
     }
 }
-
 #undef hugeAnimStruct
 #undef lbl_80367318
 
@@ -1758,7 +1738,7 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
     if (highLevelSimulationFlag[2] == 1) {
         if (g_d_GameSettings.minigamesEnabled) {
             s32 idx;
-            if (g_d_GameSettings.GameModeSelected == 7) {
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
                 idx = charSlot * 0x13 + 9;
             } else {
                 idx = charSlot * 0x13 + 2;
@@ -1766,18 +1746,10 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
             ARAMTransfer((void*)(lbl_803CB790 + (idx << 4)), *(s32*)(hugeAnimStruct + 0x2CF8), 0, 0);
         } else if (charSlot == *(s16*)(hugeAnimStruct + 0x2D50)) {
             memcpy(*(void**)(hugeAnimStruct + 0x2CAC), *(void**)(hugeAnimStruct + 0x2D48), *(u32*)(hugeAnimStruct + 0x2D4C));
-            ANIMGet(*(ANIMBank**)(hugeAnimStruct + 0x2CAC));
-            {
-                u8* obj = ((u8**)(hugeAnimStruct + 0x2C50))[objSlot];
-                if (*(void**)(obj + 0x10) == NULL) {
-                    *(void**)(obj + 0x10) = *(void**)(hugeAnimStruct + 0x2CAC);
-                }
-            }
-            *(s16*)(hugeAnimStruct + 0x2D68) = (s16)charSlot;
-            return 1;
+            goto attach;
         } else {
             s32 idx;
-            if (g_d_GameSettings.GameModeSelected == 2) {
+            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
                 idx = charSlot * 0x13 + 10;
             } else {
                 idx = charSlot * 0x13 + 2;
@@ -1795,6 +1767,7 @@ int loadAndAnimateCharacter(int charSlot, int objSlot) {
                 }
             }
         } else {
+        attach:
             ANIMGet(*(ANIMBank**)(hugeAnimStruct + 0x2CAC));
             {
                 u8* obj = ((u8**)(hugeAnimStruct + 0x2C50))[objSlot];
@@ -1948,12 +1921,11 @@ typedef struct {
 } hugeAnimStruct_view_8001ce74;
 #define hugeAnimStruct (*(hugeAnimStruct_view_8001ce74*)&hugeAnimStruct)
 
-void stadiumSetupRelated(void) {
+static inline void applyStadiumLightParams(void) {
     StadiumLightParams* params;
     s32 stadium;
     s32 i;
     Vec dir;
-    GXColor color;
 
     hugeAnimStruct._3085 = 4;
     if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
@@ -1978,16 +1950,42 @@ void stadiumSetupRelated(void) {
     if (inputParams[g_d_GameSettings._54].ambient.a != 0) {
         adjustLightingParams(1, inputParams[g_d_GameSettings._54].ambient);
     }
+}
+
+static inline void initStadiumLights(StadiumLightInput* light) {
+    s32 i;
+    GXColor color;
 
     for (i = 0; i < 4; i++) {
         LITAlloc(&hugeAnimStruct.lights[i]);
         LITInitAttn(hugeAnimStruct.lights[i], lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
                     lbl_803CC4B8, lbl_803CC4B8);
-        LITInitPos(hugeAnimStruct.lights[i], lbl_80367318[i].pos.x, lbl_80367318[i].pos.y,
-                   lbl_80367318[i].pos.z);
-        color = lbl_80367318[i].color;
+        LITInitPos(hugeAnimStruct.lights[i], light[i].pos.x, light[i].pos.y, light[i].pos.z);
+        color = light[i].color;
         LITInitColor(hugeAnimStruct.lights[i], &color);
     }
+}
+
+static inline void setupStadiumLighting(void) {
+    StadiumLightInput* light = lbl_80367318;
+    s32 i;
+    GXColor color;
+
+    applyStadiumLightParams();
+    for (i = 0; i < 4; i++) {
+        LITAlloc(&hugeAnimStruct.lights[i]);
+        LITInitAttn(hugeAnimStruct.lights[i], lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
+                    lbl_803CC4B8, lbl_803CC4B8);
+        LITInitPos(hugeAnimStruct.lights[i], light[i].pos.x, light[i].pos.y, light[i].pos.z);
+        color = light[i].color;
+        LITInitColor(hugeAnimStruct.lights[i], &color);
+    }
+}
+
+void stadiumSetupRelated(void) {
+    s32 i;
+
+    setupStadiumLighting();
 
     if (hugeAnimStruct.propEntries != NULL) {
         for (i = 0; i < *(u16*)hugeAnimStruct.propEntries; i++) {
@@ -1998,45 +1996,10 @@ void stadiumSetupRelated(void) {
 }
 
 void fn_8001CCC8(void) {
-    StadiumLightParams* params;
-    s32 stadium;
-    s32 i;
-    Vec dir;
-    GXColor color;
+    StadiumLightInput* light = lbl_80367318;
 
-    hugeAnimStruct._3085 = 4;
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-        stadium = g_d_GameSettings.StadiumID + 7;
-    } else {
-        stadium = g_d_GameSettings.StadiumID;
-    }
-    params = &inputParams[(u8)stadium];
-    g_d_GameSettings._54 = stadium;
-
-    for (i = 0; i < 4; i++) {
-        characterLightingRelated(params->lights[i], &lbl_80367318[i]);
-    }
-
-    dir.x = lbl_80367318[0].pos.x;
-    dir.y = lbl_80367318[0].pos.y;
-    dir.z = lbl_80367318[0].pos.z;
-    PSVECNormalize(&dir, &dir);
-    updateVectorInArray(0, dir);
-    fn_800BD2DC();
-
-    if (inputParams[g_d_GameSettings._54].ambient.a != 0) {
-        adjustLightingParams(1, inputParams[g_d_GameSettings._54].ambient);
-    }
-
-    for (i = 0; i < 4; i++) {
-        LITAlloc(&hugeAnimStruct.lights[i]);
-        LITInitAttn(hugeAnimStruct.lights[i], lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
-                    lbl_803CC4B8, lbl_803CC4B8);
-        LITInitPos(hugeAnimStruct.lights[i], lbl_80367318[i].pos.x, lbl_80367318[i].pos.y,
-                   lbl_80367318[i].pos.z);
-        color = lbl_80367318[i].color;
-        LITInitColor(hugeAnimStruct.lights[i], &color);
-    }
+    applyStadiumLightParams();
+    initStadiumLights(light);
 }
 
 extern void fn_800196D8(void);
@@ -2422,7 +2385,7 @@ typedef struct {
 void challengeMapMaybe(void) {
     int i;
 
-    for (i = 0; i < ANIM_OBJECT_COUNT; i++) {
+    for (i = 0; i < 13; i++) {
         AnimObject_8001f4c0* obj = &hugeAnimStruct.pool[i];
 
         obj->_25C = 0;
@@ -2446,7 +2409,7 @@ void challengeMapMaybe(void) {
         obj->_34[5] = 0.0f;
         obj->_70 = -1;
     }
-    for (i = 0; i < ANIM_OBJECT_COUNT; i++) {
+    for (i = 0; i < 13; i++) {
         if (hugeAnimStruct.objects[i] != NULL) {
             hugeAnimStruct.objects[i]->_25C = 1;
         }
@@ -2547,7 +2510,7 @@ void somethingFileHandlingLoadingRelated(void) {
 #define HA_OBJ(index) (*(u8**)HA(0x2C50 + (index) * 4))
 
 extern u32 lbl_803CBC18;
-BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h);
+BOOL fn_8001758C(void* a, int b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h);
 
 u32 fn_80011570(void) {
     return lbl_803CBC18;
@@ -2559,7 +2522,7 @@ static inline void clearObjectField5C(s8 index) {
     if (index < 0 || index >= 13) {
         return;
     }
-    obj = HA_OBJ(index);
+    obj = (u8*)hugeAnimStruct.objects[index];
     if (obj == NULL) {
         return;
     }
@@ -2575,41 +2538,37 @@ typedef struct ModelStateObject {
     /* 0x255 */ s8 slot;
 } ModelStateObject;
 
-extern void fn_8004B6EC(void* obj);
-extern void updateSpecialBatAttach(void* obj);
-extern void fn_8005240C(void* obj);
-
-#define MODEL_ENTRY_ACTOR_FLAG(entry) (*(u8*)(*(u8**)(entry) + 0x99))
+extern void fn_8004B6EC(void* obj, void* entry);
+extern void updateSpecialBatAttach(void* obj, void* entry);
+extern void fn_8005240C(void* obj, void* entry);
 
 void fn_80011468(void) {
     s32 i;
 
     for (i = 0; i < 13; i++) {
         ModelStateObject* obj = hugeAnimStruct.objects[i];
-        u8* entry;
+        ActorObjectEntry* entry;
 
         if (obj == NULL) {
             continue;
         }
-        entry = (u8*)hugeAnimStruct.actorTable + obj->slot * 0x90 + 0x34;
+        entry = &hugeAnimStruct.actorTable->entries[obj->slot];
         switch (obj->charId) {
         case CHAR_ID_BOWSERJR:
-            fn_8004B6EC(obj);
+            fn_8004B6EC(obj, entry);
             break;
         case CHAR_ID_GOOMBA:
         case CHAR_ID_PARAGOOMBA:
             processCharacterStateBasedOnGameMode((CharacterStateActor*)obj);
             break;
         case CHAR_ID_PETEY:
-            MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
-            updateSpecialBatAttach(obj);
-            break;
+            entry->actor->unk99 = 1;
         case CHAR_ID_MONTY:
-            updateSpecialBatAttach(obj);
+            updateSpecialBatAttach(obj, entry);
             break;
         case CHAR_ID_BOO:
         case CHAR_ID_KINGBOO:
-            fn_8005240C(obj);
+            fn_8005240C(obj, entry);
             break;
         case CHAR_ID_YOSHI:
         case CHAR_ID_WARIO:
@@ -2618,14 +2577,14 @@ void fn_80011468(void) {
         case CHAR_ID_NOKI_RED:
         case CHAR_ID_NOKI_GREEN:
         case CHAR_ID_KOOPA_RED:
-            MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
+            entry->actor->unk99 = 1;
             break;
         case CHAR_ID_PARATROOPA_RED:
         case CHAR_ID_PARATROOPA_GREEN:
             if (obj->frame == 0x40) {
-                MODEL_ENTRY_ACTOR_FLAG(entry) = 0;
+                entry->actor->unk99 = 0;
             } else {
-                MODEL_ENTRY_ACTOR_FLAG(entry) = 1;
+                entry->actor->unk99 = 1;
             }
             break;
         }
@@ -2633,10 +2592,13 @@ void fn_80011468(void) {
 }
 
 void fn_800126EC(ModelSlotBlock* block, void* texPalette, u8* partIndex) {
-    void** loaded = block->loaded;
-    void* layout = loaded[partIndex[0]];
-    void* geo = loaded[partIndex[1]];
-    u8* partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+    void* layout;
+    void* geo;
+    u8* partSlot;
+
+    partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+    layout = block->loaded[partIndex[0]];
+    geo = block->loaded[partIndex[1]];
 
     LoadActorLayout(layout);
     convertGeometryAndSknHeader(geo, NULL);
@@ -2664,26 +2626,35 @@ typedef struct ModelOffsetObject {
     /* 0x268 */ u8 offsetApplied;
 } ModelOffsetObject;
 
-static inline u16 getRootBone(ModelOffsetObject* obj) {
+static inline s32 getRootBone(ModelOffsetObject* obj) {
     if (obj != NULL) {
         return obj->partBones[0];
     }
     return 0xFFFF;
 }
 
-static inline u16 getEndBone(ModelOffsetObject* obj) {
+static inline s32 getEndBone(ModelOffsetObject* obj) {
     if (obj != NULL) {
         return obj->partBones[4];
     }
     return 0xFFFF;
 }
 
+static inline void setActorBoneRange(s32 slot, u16 bone, s32 bone2) {
+    ActorObjectTable* table;
+    Vec offset;
+
+    table = hugeAnimStruct.actorTable;
+    maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                          *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset);
+    table->entries[(u16)slot].unk64 = bone2;
+    table->entries[(u16)slot].unk66 = bone;
+}
+
 void fn_8001B5EC(int index, int mode) {
     ModelOffsetObject* obj = hugeAnimStruct.objects[index];
-    u16 boneEnd;
-    u16 boneRoot;
-    u8* node;
-    Vec offset;
+    u16 bone;
+    s32 bone2;
     s32 slot;
 
     if (obj == NULL) {
@@ -2691,51 +2662,43 @@ void fn_8001B5EC(int index, int mode) {
     }
     slot = obj->slot;
     if (mode == 0) {
-        boneEnd = getEndBone(obj);
-        boneRoot = getRootBone(obj);
-        node = (u8*)hugeAnimStruct.actorTable + (u16)slot * 0x90;
-        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
-        *(u16*)(node + 0x98) = boneRoot;
-        *(u16*)(node + 0x9A) = boneEnd;
+        bone = getEndBone(obj);
+        bone2 = getRootBone(obj);
+        setActorBoneRange(slot, bone, bone2);
     } else {
-        boneEnd = getRootBone(obj);
-        boneRoot = getRootBone(obj);
-        node = (u8*)hugeAnimStruct.actorTable + (u16)slot * 0x90;
-        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
-        *(u16*)(node + 0x98) = boneRoot;
-        *(u16*)(node + 0x9A) = boneEnd;
+        bone = getRootBone(obj);
+        bone2 = getRootBone(obj);
+        setActorBoneRange(slot, bone, bone2);
     }
 }
 
 void fn_8001B4D8(int index, int apply) {
     ModelOffsetObject* obj = hugeAnimStruct.objects[index];
     u16 bone;
-    u16 bone2;
-    u8* node;
-    u8* actors;
-    Vec offset;
+    s32 bone2;
+    ActorObjectTable* table;
     Vec moved;
+    Vec offset;
     s32 slot;
 
     if (obj == NULL) {
         return;
     }
     slot = obj->slot;
-    if (apply == 0 || obj->offsetApplied != 0) {
-        return;
+    if (apply != 0 && obj->offsetApplied == 0) {
+        bone = getRootBone(obj);
+        bone2 = getRootBone(obj);
+        table = hugeAnimStruct.actorTable;
+        maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                              *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset);
+        table->entries[(u16)slot].unk64 = bone2;
+        table->entries[(u16)slot].unk66 = bone;
+        moved = offset;
+        obj->pos.x = obj->pos.x + moved.x;
+        obj->pos.y = obj->pos.y + moved.y;
+        obj->pos.z = obj->pos.z + moved.z;
+        obj->offsetApplied = 1;
     }
-    bone = getRootBone(obj);
-    bone2 = getRootBone(obj);
-    actors = (u8*)hugeAnimStruct.actorTable;
-    node = actors + (u16)slot * 0x90;
-    maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
-    *(u16*)(node + 0x98) = bone2;
-    *(u16*)(node + 0x9A) = bone;
-    moved = offset;
-    obj->pos.x = obj->pos.x + moved.x;
-    obj->pos.y = obj->pos.y + moved.y;
-    obj->pos.z = obj->pos.z + moved.z;
-    obj->offsetApplied = 1;
 }
 
 extern BOOL fn_80016B60(void* record);
@@ -2750,15 +2713,15 @@ BOOL fn_80016F7C(void) {
         *HA(0x2D8D) = 0;
         *HA(0x2D88) = 0;
     }
-    do {
+    for (;;) {
         s8 cur = *HA(0x2D88);
 
-        if (!fn_80016B60(MODEL_RECORD(cur))) {
-            return FALSE;
+        if (!fn_80016B60(HA(cur * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE)) {
+            break;
         }
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            u32* src = (u32*)MODEL_RECORD((s8)*HA(0x2D88));
-            u32* dst = (u32*)MODEL_RECORD((s8)*HA(0x2D88) + 4);
+            u32* src = (u32*)(HA((s8)*HA(0x2D88) * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE);
+            u32* dst = (u32*)(HA(((s8)*HA(0x2D88) + 4) * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE);
 
             dst[4] = src[4];
             dst[5] = src[5];
@@ -2769,8 +2732,11 @@ BOOL fn_80016F7C(void) {
             dst[10] = src[10];
         }
         (*HA(0x2D88))++;
-    } while ((s8)*HA(0x2D88) < 4);
-    return TRUE;
+        if ((s8)*HA(0x2D88) >= 4) {
+            return TRUE;
+        }
+    }
+    return FALSE;
 }
 
 void fn_8001DD58(Actor* actor, int group, MtxPtr camera, u8 numLights, ...) {
@@ -2832,51 +2798,56 @@ void fn_800189E4(void) {
 
 s32 fn_8001B35C(int index, int mode) {
     ModelOffsetObject* obj = hugeAnimStruct.objects[index];
-    s32 steps = 0;
     s32 part = 1;
+    s32 steps = 0;
     f32 diff;
     f32 limit;
-    u16 bone;
+    s32 bone;
     Vec v;
 
     if (obj == NULL) {
         return 0;
     }
     switch (mode) {
-    case 0:
-        part = 3;
-        break;
     case 1:
         part = 2;
+        break;
+    case 0:
+        part = 3;
         break;
     case 2:
         part = 1;
         break;
     }
     if (obj != NULL) {
-        bone = obj->partBones[part];
-    } else {
-        bone = 0xFFFF;
-    }
-    if (bone == 0xFFFF) {
-        diff = 0.0f;
-    } else {
-        maybeTransformVectorByAnimationMatrix(*(void**)((u8*)hugeAnimStruct.actorTable + obj->slot * 0x90 + 0x34), bone, &v);
-        diff = v.y + obj->pos.y;
+        if (obj != NULL) {
+            bone = obj->partBones[part];
+        } else {
+            bone = 0xFFFF;
+        }
+        if (bone == 0xFFFF) {
+            diff = 0.0f;
+        } else {
+            maybeTransformVectorByAnimationMatrix(*(void**)((u8*)hugeAnimStruct.actorTable + obj->slot * 0x90 + 0x34), bone, &v);
+            diff = v.y;
+            diff += obj->pos.y;
+        }
     }
     diff = diff - obj->pos.y;
     if (diff < 0.0f) {
         if (diff >= -30.0f) {
             limit = -0.5f;
             steps = 1;
-            while (!(diff > limit)) {
+            for (;;) {
+                if (diff > limit) break;
                 limit -= 0.5f;
                 steps++;
             }
         }
     } else if (diff >= 0.5f && diff < 30.0f) {
         limit = 0.5f;
-        while (!(diff < limit)) {
+        for (;;) {
+            if (diff < limit) break;
             limit += 0.5f;
             steps--;
         }
@@ -2885,14 +2856,32 @@ s32 fn_8001B35C(int index, int mode) {
 }
 
 
+static inline void updateActorVisibility(ActorObjectEntry* entry, u8* obj, s32 mode) {
+    u8* camera = (u8*)returnFloatFromModeIndex(mode) + 0x40;
+    s32 shift = mode * 3;
+    u8 keep = ~(3 << shift);
+
+    if (*HA(0x307A) == 5) {
+        entry->actor->unk98 = 1;
+    } else {
+        Mtx trans;
+        Actor* actor;
+
+        PSMTXTrans(trans, *(f32*)(obj + 0x34), *(f32*)(obj + 0x38), *(f32*)(obj + 0x3C));
+        PSMTXConcat((MtxPtr)camera, trans, trans);
+        actor = entry->actor;
+        actor->unk98 = (actor->unk98 & keep) | ((u8)fn_800B3C04(mode, (StadiumModelNode*)actor, trans) << shift);
+    }
+}
+
 void fn_8001DB74(ActorObjectTable* table) {
+    ActorObjectEntry* entry;
     u16 i;
     u16 mode;
+    u8* obj;
 
     for (i = 0; i < table->count; i++) {
-        u8* obj = HA_OBJ(i);
-        ActorObjectEntry* entry;
-
+        obj = (u8*)hugeAnimStruct.objects[i];
         if (obj == NULL) {
             continue;
         }
@@ -2913,28 +2902,14 @@ void fn_8001DB74(ActorObjectTable* table) {
             ACTSetSpeed(entry->actor, entry->speed);
         }
         if (entry->boneParam & 2) {
-            updateBoneParam(entry->actor, entry->boneParam & 1);
+            updateBoneParam(entry->actor, (u8)(entry->boneParam & 1));
         }
         Set_FUN_800b2b6c((UnkB2B4C*)entry->actor, entry->unk68);
         if (entry->applyControl != 0) {
             fn_800BDA24(entry);
         }
         for (mode = 0; mode < returnScissorMode(); mode++) {
-            s32 shift = mode * 3;
-            u8 keep = ~(3 << shift);
-            u8* camera = (u8*)returnFloatFromModeIndex(mode) + 0x40;
-
-            if (*HA(0x307A) == 5) {
-                entry->actor->unk98 = 1;
-            } else {
-                Mtx trans;
-                Actor* actor;
-
-                PSMTXTrans(trans, *(f32*)(obj + 0x34), *(f32*)(obj + 0x38), *(f32*)(obj + 0x3C));
-                PSMTXConcat((MtxPtr)camera, trans, trans);
-                actor = entry->actor;
-                actor->unk98 = (actor->unk98 & keep) | ((u8)fn_800B3C04(mode, (StadiumModelNode*)actor, trans) << shift);
-            }
+            updateActorVisibility(entry, obj, mode);
         }
         entry->animPending = 0;
         entry->framePending = 0;
@@ -2981,60 +2956,68 @@ void fn_8001DEA4(ActorObjectEntry* entry, int group, MtxPtr camera) {
     }
 }
 
+/* The per-slot arrays of hugeAnimStruct: the 0x27C-byte animation objects, the
+ * pointer to each, and the byte flags from +0x2D6A. */
+typedef struct hugeAnimStruct_view_8001a3fc {
+    /* 0x0000 */ u8 _0000[0xC04];
+    /* 0x0C04 */ u8 pool[13][MODEL_RECORD_SIZE];
+    /* 0x2C50 */ void* objects[13];
+    /* 0x2C84 */ u8 _2C84[0x2D6A - 0x2C84];
+    /* 0x2D6A */ u8 flags[0x2D90 - 0x2D6A];
+} hugeAnimStruct_view_8001a3fc;
+#define HA_SLOTS (*(hugeAnimStruct_view_8001a3fc*)&hugeAnimStruct)
+
 BOOL fn_80017340(int slot) {
-    u8* rec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+    u8* rec = HA_SLOTS.pool[slot];
     s32 used[4];
-    s32 i;
     s32 j;
+    s32 i;
     s32 free;
 
-    if (*HA(0x2D8D) != 0) {
-        if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-            ANIMGet(*(void**)(rec + 0x14));
-            return TRUE;
-        }
-        return FALSE;
-    }
+    if (*HA(0x2D8D) == 0) {
+        used[0] = 0;
+        used[1] = 0;
+        used[2] = 0;
+        used[3] = 0;
+        for (i = 0; i < 4; i++) {
+            for (j = 0; j < 4; j++) {
+                u8* obj = HA_OBJ(9 + i);
 
-    used[0] = 0;
-    used[1] = 0;
-    used[2] = 0;
-    used[3] = 0;
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            u8* obj = HA_OBJ(9 + i);
-
-            if (obj != NULL) {
-                if ((s8)rec[0x252] == (s8)*HA(0x2D89 + j)) {
-                    *(u32*)(rec + 0x14) = *(u32*)HA(0x2CB0 + j * 4);
-                    return TRUE;
-                }
-                if ((s8)obj[0x252] == (s8)*HA(0x2D89 + j)) {
-                    used[j] = 1;
-                    break;
+                if (obj != NULL) {
+                    if ((s8)rec[0x252] == (s8)*HA(0x2D89 + j)) {
+                        *(u32*)(rec + 0x14) = ((u32*)HA(0x2CB0))[j];
+                        return TRUE;
+                    }
+                    if ((s8)obj[0x252] == (s8)*HA(0x2D89 + j)) {
+                        used[j] = 1;
+                        break;
+                    }
                 }
             }
         }
-    }
-    for (j = 0; j < 4; j++) {
-        if (used[j] == 0) {
-            *HA(0x2D89 + j) = 0xFF;
+        for (j = 0; j < 4; j++) {
+            if (used[j] == 0) {
+                *HA(0x2D89 + j) = 0xFF;
+            }
         }
-    }
-    for (free = 0; free < 4; free++) {
-        if ((s8)*HA(0x2D89 + free) < 0) {
-            break;
+        for (free = 0; free < 4; free++) {
+            if ((s8)*HA(0x2D89 + free) < 0) {
+                break;
+            }
         }
+        *HA(0x2D89 + free) = rec[0x252];
+        *(u32*)(rec + 0x14) = ((u32*)HA(0x2CB0))[free];
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+            i = (s8)rec[0x252] * 0x13 + 0xB;
+        } else {
+            i = (s8)rec[0x252] * 0x13 + 3;
+        }
+        ARAMTransfer((u8*)lbl_803CB790 + i * 16, *(s32*)(rec + 0x14), 0, 0);
+        *HA(0x2D8D) = 1;
+    } else if ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        ANIMGet(*(void**)(rec + 0x14));
+        return TRUE;
     }
-    *HA(0x2D89 + free) = rec[0x252];
-    *(u32*)(rec + 0x14) = *(u32*)HA(0x2CB0 + free * 4);
-    if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-        i = (s8)rec[0x252] * 0x13 + 0xB;
-    } else {
-        i = (s8)rec[0x252] * 0x13 + 3;
-    }
-    ARAMTransfer((u8*)lbl_803CB790 + i * 16, *(s32*)(rec + 0x14), 0, 0);
-    *HA(0x2D8D) = 1;
     return FALSE;
 }
 
@@ -3207,16 +3190,16 @@ void fn_8001AF98(void) {
 #define ROUND_UP_32(v) (((v) + 0x1F) & ~0x1F)
 
 void fn_80018B74(void) {
+    u32 maxD = 0;
+    u32 maxE = 0;
     u32 maxA = 0;
     u32 maxB = 0;
     u32 maxC = 0;
-    u32 maxD = 0;
-    u32 maxE = 0;
-    u32 sizeA;
-    u32 sizeB;
-    u32 sizeC;
-    u32 sizeD;
     u32 sizeE;
+    u32 sizeB;
+    u32 sizeD;
+    u32 sizeC;
+    u32 sizeA;
     u8 mode = g_d_GameSettings.GameModeSelected;
     s32 i;
     u32 v;
@@ -3225,19 +3208,25 @@ void fn_80018B74(void) {
     for (i = 0; i < 54; i++) {
         if (mode == GAME_TYPE_MINIGAMES) {
             v = CHAR_RECORD_FIELD(i, 0xD4);
+            if (maxA < v) {
+                maxA = v;
+            }
         } else {
             v = CHAR_RECORD_FIELD(i, 0x44);
-        }
-        if (maxA < v) {
-            maxA = v;
+            if (maxA < v) {
+                maxA = v;
+            }
         }
         if (mode == GAME_TYPE_TOY_FIELD) {
             v = CHAR_RECORD_FIELD(i, 0xE4);
+            if (maxB < v) {
+                maxB = v;
+            }
         } else {
             v = CHAR_RECORD_FIELD(i, 0xC4);
-        }
-        if (maxB < v) {
-            maxB = v;
+            if (maxB < v) {
+                maxB = v;
+            }
         }
         v = CHAR_RECORD_FIELD(i, 0x124);
         if (maxC < v) {
@@ -3245,11 +3234,14 @@ void fn_80018B74(void) {
         }
         if (mode == GAME_TYPE_MINIGAMES) {
             v = CHAR_RECORD_FIELD(i, 0x94);
+            if (maxD < v) {
+                maxD = v;
+            }
         } else {
             v = CHAR_RECORD_FIELD(i, 0x24);
-        }
-        if (maxD < v) {
-            maxD = v;
+            if (maxD < v) {
+                maxD = v;
+            }
         }
         v = CHAR_RECORD_FIELD(i, 0x104);
         if (maxE < v) {
@@ -3267,13 +3259,13 @@ void fn_80018B74(void) {
     HA_U32(0x2C9C) = sizeC;
     HA_U32(0x2C90) = sizeD;
     HA_U32(0x2CA4) = sizeE;
-    HA_U32(0x2D60) = sizeD + (sizeA + sizeB + sizeC + sizeE) * 4;
+    HA_U32(0x2D60) = sizeD + (sizeA + (sizeB + sizeC + sizeE)) * 4;
     cursor = (u32)_OSAllocFromHeap(0x20, HA_U32(0x2D60));
     HA_U32(0x2C88) = cursor;
 
     for (i = 0; i < 4; i++) {
         u8* set = HA(i * 0x14);
-        u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
+        u8* rec = HA(i * MODEL_RECORD_SIZE);
 
         *(u32*)(set + 0x2CEC) = cursor;
         cursor += sizeA;
@@ -3289,12 +3281,12 @@ void fn_80018B74(void) {
         }
         *(u32*)(set + 0x2CFC) = cursor;
         cursor += sizeE;
-        *(u32*)(rec + 0x10) = 0;
-        *(u32*)(rec + 0x1C) = 0;
-        *(u32*)(rec + 0x20) = 0;
-        *(u32*)(rec + 0x14) = 0;
-        *(u32*)(rec + 0x18) = 0;
-        *(u32*)(rec + 0x24) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x10) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x1C) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x20) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x14) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x18) = 0;
+        *(u32*)(rec + MODEL_RECORD_BASE + 0x24) = 0;
     }
     *(s16*)HA(0x2D68) = -1;
 }
@@ -3302,7 +3294,6 @@ void fn_80018B74(void) {
 extern void fn_800177B4(void);
 
 BOOL fn_80017098(int team, int idx, int c, int d, int e, int f) {
-    u8* roster = (u8*)&inMemRoster[team][idx];
     DrawingSceneStruct* task;
     s32 i;
     s32 slot;
@@ -3312,40 +3303,42 @@ BOOL fn_80017098(int team, int idx, int c, int d, int e, int f) {
         slot = d;
     } else {
         for (i = 0; i < 13; i++) {
-            u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
             BOOL same = FALSE;
 
-            if ((s8)rec[0x252] == *(s16*)(roster + 0x24) && rec[0x25A] == roster[0x26] && rec[0x25B] == roster[0x27] &&
-                (s8)rec[0x257] == (s8)idx) {
+            if ((s8)HA_SLOTS.pool[i][0x252] == inMemRoster[team][idx].stats.CharID &&
+                HA_SLOTS.pool[i][0x25A] == ((u8*)&inMemRoster[team][idx])[0x26] &&
+                HA_SLOTS.pool[i][0x25B] == ((u8*)&inMemRoster[team][idx])[0x27] &&
+                (s8)HA_SLOTS.pool[i][0x257] == (s8)idx) {
                 same = TRUE;
             }
-            if (rec[0x256] == team && same && rec[0x258] == c && rec[0x259] == e) {
+            if (HA_SLOTS.pool[i][0x256] == team && same && HA_SLOTS.pool[i][0x258] == c &&
+                HA_SLOTS.pool[i][0x259] == e) {
                 s32 j;
 
                 *HA(0x2D77) = 0;
-                *HA(0x2D6A + i) = d;
+                HA_SLOTS.flags[i] = d;
                 *HA(0x2D79) = i;
-                rec[0x254] = d;
+                HA_SLOTS.pool[i][0x254] = d;
                 for (j = 0; j < 13; j++) {
-                    if (HA_OBJ(j) == rec) {
-                        HA_OBJ(j) = NULL;
+                    if (HA_SLOTS.objects[j] == HA_SLOTS.pool[i]) {
+                        hugeAnimStruct.objects[j] = NULL;
                         break;
                     }
                 }
-                HA_OBJ(d) = rec;
+                hugeAnimStruct.objects[d] = HA_SLOTS.pool[i];
                 return TRUE;
             }
         }
         task = insertGraphicDrawingFunction(fn_800177B4, 0);
         if (d >= 9) {
             for (slot = 9; slot < 13; slot++) {
-                if ((s8)*HA(0x2D6A + slot) < 0) {
+                if ((s8)HA_SLOTS.flags[slot] < 0) {
                     break;
                 }
             }
         } else {
             for (slot = 0; slot < 13; slot++) {
-                if ((s8)*HA(0x2D6A + slot) < 0) {
+                if ((s8)HA_SLOTS.flags[slot] < 0) {
                     break;
                 }
             }
@@ -3359,11 +3352,11 @@ BOOL fn_80017098(int team, int idx, int c, int d, int e, int f) {
     *((u8*)task + 0x15) = d;
     *((u8*)task + 0x1D) = e;
     if (f < 0) {
-        *((u8*)task + 0x16) = *(s16*)(roster + 0x24);
+        *((u8*)task + 0x16) = inMemRoster[team][idx].stats.CharID;
     } else {
         *((u8*)task + 0x16) = f;
     }
-    *HA(0x2D6A + slot) = d;
+    HA_SLOTS.flags[slot] = d;
     *HA(0x2D77) = 1;
     *HA(0x2D79) = slot;
     return FALSE;
@@ -3375,15 +3368,6 @@ extern void fn_800145F8(int mode);
 extern void* fn_80023AA4(void);
 extern void fn_80018DEC(int mode);
 
-/* The slot arrays of hugeAnimStruct that fn_8001A3FC resets. */
-typedef struct hugeAnimStruct_view_8001a3fc {
-    /* 0x0000 */ u8 _0000[0xC04];
-    /* 0x0C04 */ u8 pool[13][MODEL_RECORD_SIZE];
-    /* 0x2C50 */ void* objects[13];
-    /* 0x2C84 */ u8 _2C84[0x2D6A - 0x2C84];
-    /* 0x2D6A */ u8 flags[0x2D90 - 0x2D6A];
-} hugeAnimStruct_view_8001a3fc;
-#define HA_SLOTS (*(hugeAnimStruct_view_8001a3fc*)&hugeAnimStruct)
 
 /* Largest (low 28 bits of the +4 word) of the file entries named by
  * lbl_800EEB18; negative ids are unused. */
@@ -3458,26 +3442,27 @@ void fn_8001A3FC(int mode) {
 }
 
 extern u8 lbl_80366158[];
-extern void fn_8001BA44(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
+extern void fn_8001BA44(s32 index, int a, u8 b, u8 c, s16 d, u8 e, s32 f);
 extern void fn_8004B208(void* obj, s16 anim, int collision, f32 time);
-void fn_8001BE50(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
+void fn_8001BE50(s32 index, int a, u8 b, u8 c, s16 d, u8 e, s32 f);
 
 #define OBJ_S16(o, off) (*(s16*)((u8*)(o) + (off)))
 #define OBJ_U8(o, off)  (*(u8*)((u8*)(o) + (off)))
 #define OBJ_F32(o, off) (*(f32*)((u8*)(o) + (off)))
 
 void fn_8001C234(u32* changedMask) {
+    u8* obj;
     s32 i;
-    u8* gs = (u8*)&g_d_GameSettings;
 
     *changedMask = 0;
     for (i = 0; i < 13; i++) {
-        u8* obj = HA_OBJ(i);
         f32 time;
         f32 animTime;
-        u16 bone;
-        s32 state;
+        s32 bone;
+        s16 next;
+        s16 frame;
 
+        obj = (u8*)hugeAnimStruct.objects[i];
         if (obj == NULL) {
             continue;
         }
@@ -3486,33 +3471,35 @@ void fn_8001C234(u32* changedMask) {
         }
         if (OBJ_S16(obj, 0x6A) < 600 && lbl_80366158[0x28] == 0 && highLevelSimulationFlag[0] == 0 &&
             obj[0x26F] == 0) {
-            OBJ_S16(obj, 0x6A) = OBJ_S16(obj, 0x6A) + 1;
+            OBJ_S16(obj, 0x6A)++;
         }
         animTime = lbl_803CC4F0;
-        if (HA_OBJ(i) != NULL) {
-            bone = *(u16*)(HA_OBJ(i) + 0x16A);
+        if (hugeAnimStruct.objects[i] != NULL) {
+            bone = *(u16*)((u8*)hugeAnimStruct.objects[i] + 0x16A);
         } else {
             bone = 0xFFFF;
         }
         if (bone != 0xFFFF) {
-            animTime = getActorBoneAnimTime(hugeAnimStruct.actorTable->entries[(s8)obj[0x255]].actor, bone);
+            animTime = getActorBoneAnimTime(*(Actor**)((u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34), bone);
         }
         OBJ_S16(obj, 0x68) = (s16)(animTime / OBJ_F32(obj, 0x4C));
-        if (OBJ_S16(obj, 0x70) >= 0) {
-            OBJ_S16(obj, 0x68) = OBJ_S16(obj, 0x70);
+        next = OBJ_S16(obj, 0x70);
+        if (next >= 0) {
+            OBJ_S16(obj, 0x68) = next;
         }
         OBJ_S16(obj, 0x70) = -1;
 
-        state = obj[0x25E];
-        if (state == 1 || (state == 2 && OBJ_S16(obj, 0x68) == 0 && OBJ_S16(obj, 0x6A) > 1) ||
+        if (obj[0x25E] == 1 || (obj[0x25E] == 2 && OBJ_S16(obj, 0x68) == 0 && OBJ_S16(obj, 0x6A) > 1) ||
             OBJ_S16(obj, 0x62) == -1) {
             *changedMask |= 1 << i;
-            if (OBJ_S16(obj, 0x64) >= 0) {
-                time = (f32)OBJ_S16(obj, 0x6C);
-                if (gs[0x11] != 0 && gs[6] == 2) {
-                    fn_8001BA44(i, OBJ_S16(obj, 0x64), obj[0x260], obj[0x263], OBJ_S16(obj, 0x6C), obj[0x266], obj[0x26A]);
+            next = OBJ_S16(obj, 0x64);
+            if (next >= 0) {
+                frame = OBJ_S16(obj, 0x6C);
+                time = frame;
+                if (g_d_GameSettings.minigamesEnabled != 0 && g_d_GameSettings._06 == 2) {
+                    fn_8001BA44(i, next, obj[0x260], obj[0x263], frame, obj[0x266], obj[0x26A]);
                 } else {
-                    fn_8001BE50(i, OBJ_S16(obj, 0x64), obj[0x260], obj[0x263], OBJ_S16(obj, 0x6C), obj[0x266], obj[0x26A]);
+                    fn_8001BE50(i, next, obj[0x260], obj[0x263], frame, obj[0x266], obj[0x26A]);
                 }
                 OBJ_S16(obj, 0x60) = OBJ_S16(obj, 0x62);
                 OBJ_S16(obj, 0x62) = OBJ_S16(obj, 0x64);
@@ -3523,8 +3510,9 @@ void fn_8001C234(u32* changedMask) {
                 obj[0x269] = obj[0x26A];
                 obj[0x26C] = obj[0x26D];
                 OBJ_S16(obj, 0x6A) = 0;
-                if (OBJ_S16(obj, 0x66) >= 0) {
-                    OBJ_S16(obj, 0x64) = OBJ_S16(obj, 0x66);
+                next = OBJ_S16(obj, 0x66);
+                if (next >= 0) {
+                    OBJ_S16(obj, 0x64) = next;
                     OBJ_S16(obj, 0x6C) = OBJ_S16(obj, 0x6E);
                     obj[0x260] = obj[0x261];
                     obj[0x263] = obj[0x264];
@@ -3540,10 +3528,10 @@ void fn_8001C234(u32* changedMask) {
             }
             obj[0x25E] = 0;
         } else {
-            time = fn_800B4C40(hugeAnimStruct.actorTable->entries[(s8)obj[0x255]].actor);
+            time = fn_800B4C40(*(Actor**)((u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34));
         }
         if (highLevelSimulationFlag[0] == 0) {
-            fn_8004B208(obj, OBJ_S16(obj, 0x62), stadiumCollisionRelated(gs[9], obj[0x275]), time);
+            fn_8004B208(obj, OBJ_S16(obj, 0x62), stadiumCollisionRelated(g_d_GameSettings.StadiumID, obj[0x275]), time);
         }
     }
 }
@@ -3788,13 +3776,8 @@ void fn_800196D8(void) {
     DrawingSceneStruct* item = currentDrawingItem;
     u8* itemState = (u8*)item + 0x14;
     DrawingSceneStruct* fresh;
-    Vec dir;
-    Vec copy;
-    f32 len;
-    s32 i;
-    s32 k;
 
-    switch ((s8)*itemState) {
+    switch (*itemState) {
     case 0:
         fresh = insertGraphicDrawingFunction(fn_800188C0, 0);
         *((u8*)fresh + 0x14) = 0;
@@ -3809,26 +3792,7 @@ void fn_800196D8(void) {
         }
         break;
     case 2:
-        dir.x = -lbl_80367318[0].pos.x;
-        dir.y = -lbl_80367318[0].pos.y;
-        dir.z = -lbl_80367318[0].pos.z;
-        len = dolsqrtf2((dir.x * dir.x) + (dir.y * dir.y) + (dir.z * dir.z));
-        *HA(0x3087) = 1;
-        dir.x /= len;
-        dir.y /= len;
-        dir.z /= len;
-        fn_8003A540(0);
-        *HA(0x3086) = 1;
-        DrawShadows(1);
-        copy = dir;
-        updateVectorInArray(0, copy);
-        fn_800BF048(fn_8001AAF0);
-        fn_800BF058(fn_8001AB10);
-        for (i = 0; i < 80; i += 8) {
-            for (k = 0; k < 8; k++) {
-                ((u32*)HA_U32(0x2C84))[i + k] += HA_U32(0x2C84);
-            }
-        }
+        enableStadiumShadows();
         *HA(0x307C) = 0;
         *HA(0x307D) = 0;
         *HA(0x3082) = 0;
@@ -3845,20 +3809,19 @@ void fn_800196D8(void) {
 }
 
 void fn_8001E0D8(ActorObjectTable* table, int group, MtxPtr camera) {
+    ActorObjectEntry* entry;
+    u8* obj;
+    u16 i;
     u8 lightLevel = 0xFF;
     GXColor ambient = inputParams[g_d_GameSettings._54].ambient;
-    u16 i;
 
     GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
     GXSetCullMode(GX_CULL_BACK);
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
     for (i = 0; i < table->count; i++) {
-        u8* obj = HA_OBJ(i);
-        ActorObjectEntry* entry;
-        Actor* actor;
-        u32* args;
         Mtx trans;
 
+        obj = (u8*)hugeAnimStruct.objects[i];
         if (obj == NULL) {
             continue;
         }
@@ -3873,58 +3836,22 @@ void fn_8001E0D8(ActorObjectTable* table, int group, MtxPtr camera) {
             continue;
         }
         if (lightLevel != obj[0x277]) {
-            GXColor color;
-
             lightLevel = obj[0x277];
-            if (lightLevel == 0xFF) {
-                color = inputParams[g_d_GameSettings._54].ambient;
-            } else {
+            if (0xFF - lightLevel != 0) {
                 ambient.a = lightLevel;
                 if (lightLevel == 0) {
                     continue;
                 }
-                color = ambient;
+                adjustLightingParams(1, ambient);
+            } else {
+                adjustLightingParams(1, inputParams[g_d_GameSettings._54].ambient);
             }
-            adjustLightingParams(1, color);
         }
         PSMTXTrans(trans, *(f32*)(obj + 0x34), *(f32*)(obj + 0x38), *(f32*)(obj + 0x3C));
         PSMTXConcat(camera, trans, trans);
         fn_800B9948(*(DOTevSetupCallback*)(obj + 0x5C));
         lbl_803CBC18 = (u32)obj;
-        actor = entry->actor;
-        args = entry->drawArgs;
-        if (entry->callback != NULL) {
-            entry->callback(entry);
-        }
-        switch (entry->drawArgCount) {
-        case 0:
-            fn_8001DD58(actor, group, trans, 0);
-            break;
-        case 1:
-            fn_8001DD58(actor, group, trans, 1, args[0]);
-            break;
-        case 2:
-            fn_8001DD58(actor, group, trans, 2, args[0], args[1]);
-            break;
-        case 3:
-            fn_8001DD58(actor, group, trans, 3, args[0], args[1], args[2]);
-            break;
-        case 4:
-            fn_8001DD58(actor, group, trans, 4, args[0], args[1], args[2], args[3]);
-            break;
-        case 5:
-            fn_8001DD58(actor, group, trans, 5, args[0], args[1], args[2], args[3], args[4]);
-            break;
-        case 6:
-            fn_8001DD58(actor, group, trans, 6, args[0], args[1], args[2], args[3], args[4], args[5]);
-            break;
-        case 7:
-            fn_8001DD58(actor, group, trans, 7, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
-            break;
-        case 8:
-            fn_8001DD58(actor, group, trans, 8, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
-            break;
-        }
+        fn_8001DEA4(entry, group, trans);
     }
     fn_800B993C();
 }
@@ -4011,26 +3938,26 @@ extern u8 lbl_800EEA58[];
 
 void fn_8001F8A4(void) {
     s32 i;
-    s32 set;
-    u32 layout;
-    u32 geo;
-    u32 tex;
-    u8* actorSet;
+    u8 set;
+    s32 idx;
+    void* tex;
+    void* geo;
+    void* layout;
     f32 zero;
 
     for (i = 0; i < 24; i++) {
-        layout = OFFSET_TABLE[i * 3];
-        geo = OFFSET_TABLE[i * 3 + 1];
-        tex = OFFSET_TABLE[i * 3 + 2];
-        LoadActorLayout((void*)layout);
-        convertGeometryAndSknHeader((void*)geo, NULL);
-        haveActLayoutPointToGeoHeader((void*)layout, (void*)geo);
+        layout = (void*)OFFSET_TABLE[i * 3];
+        geo = (void*)OFFSET_TABLE[i * 3 + 1];
+        tex = (void*)OFFSET_TABLE[i * 3 + 2];
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
         if (i == 11) {
-            tex = OFFSET_TABLE[0x80 / 4];
+            tex = (void*)OFFSET_TABLE[0x80 / 4];
         } else {
-            convertTextureHeader((void*)tex);
+            convertTextureHeader(tex);
         }
-        UpdateTexturePalettePointers((void*)geo, (void*)tex);
+        UpdateTexturePalettePointers(geo, tex);
     }
     ANIMGet((void*)OFFSET_TABLE[0x120 / 4]);
     adjustInternalPointers((void*)OFFSET_TABLE[0x130 / 4]);
@@ -4046,20 +3973,23 @@ void fn_8001F8A4(void) {
     for (i = 0; i < 25; i++) {
         ActorObjectTable* table;
         ActorObjectEntry* entry;
+        void* anim;
 
         set = lbl_800EEA58[i];
-        layout = OFFSET_TABLE[set * 3];
+        idx = set * 3;
+        layout = (void*)OFFSET_TABLE[idx];
         if (set < 16) {
-            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, (void*)layout, 0, 0);
+            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, layout, 0, 0);
         } else {
-            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, (void*)layout, OFFSET_TABLE[0x120 / 4], 0);
+            animateBallRelated((void*)HA_U32(0x64), (u16)i, (u16)i, layout, OFFSET_TABLE[0x120 / 4], 0);
             table = (ActorObjectTable*)HA_U32(0x64);
             entry = &table->entries[i];
             zero = lbl_803CC4B8;
+            anim = entry->anim;
             entry->seqNum = 0;
             entry->frame = zero;
             entry->animPending = 1;
-            entry->framePending = entry->speedPending = (entry->anim != NULL);
+            entry->speedPending = entry->framePending = (anim != NULL);
             entry->blendTime = zero;
             ACTSetAnimation(entry->actor, entry->anim, NULL, entry->seqNum, zero, entry->blendTime);
             updateBoneParam(entry->actor, 0);
@@ -4069,7 +3999,7 @@ void fn_8001F8A4(void) {
             fn_800BD548(&((ActorObjectTable*)HA_U32(0x64))->entries[i], 4, HA_U32(0xAC), HA_U32(0xB0), HA_U32(0xB4),
                         HA_U32(0xB8));
         } else {
-            fn_800BD548(&((ActorObjectTable*)HA_U32(0x64))->entries[i], 0, 0, 0, 0, 0);
+            fn_800BD548(&((ActorObjectTable*)HA_U32(0x64))->entries[i], 0, 0, 0, 0);
         }
         CTRLSetTranslation(&((ActorObjectTable*)HA_U32(0x64))->entries[i].control, lbl_803CC4B8, lbl_803CC4B8,
                            lbl_803CC4B8);
@@ -4083,15 +4013,14 @@ void fn_8001F8A4(void) {
     }
 
     HA_U32(0x2D90) = (u32)_OSAllocFromHeap(0x20, 1000);
+    zero = lbl_803CC4B8;
     for (i = 0; i < 25; i++) {
-        u8* base = (u8*)HA_U32(0x2D90);
-
-        *(f32*)(base + i * 0x28 + 4) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 8) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 0xC) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 0x10) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 0x14) = lbl_803CC4B8;
-        *(f32*)(base + i * 0x28 + 0x18) = lbl_803CC4B8;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 4) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 8) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 0xC) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 0x10) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 0x14) = zero;
+        *(f32*)((u8*)HA_U32(0x2D90) + i * 0x28 + 0x18) = zero;
         ((u8*)HA_U32(0x2D90))[i * 0x28 + 0x26] = 0;
         *(u32*)((u8*)HA_U32(0x2D90) + i * 0x28) = 0;
     }
@@ -4099,11 +4028,45 @@ void fn_8001F8A4(void) {
 
 extern void fn_80021BBC(int charId, int dest);
 
-int fn_80016344(int charId, int slot, int c, int d) {
-    u8* rec;
-    BOOL ready;
-    u8* part;
+static inline int loadSlotAnimBank(int slot) {
+    u8* rec = HA_SLOTS.pool[slot];
 
+    if (*HA(0x2D8D) == 0) {
+        *HA(0x2D8D) = 1;
+        HA_SLOTS.flags[0x2D7F - 0x2D6A + slot] = rec[0x252];
+        if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
+            *(u32*)(rec + 0x24) = HA_U32(0x2CAC);
+            fn_80021BBC((s8)rec[0x252], *(s32*)(rec + 0x24));
+        } else if (slot >= 9) {
+            *(u32*)(rec + 0x24) = HA_U32(0x2CAC);
+            ARAMTransfer((u8*)lbl_803CB790 + ((s8)rec[0x252] * 0x13 + 0x10) * 16, *(s32*)(rec + 0x24), 0, 0);
+        } else {
+            *(u32*)(rec + 0x24) = ((u32*)HA(0x2CFC))[slot * 5];
+            fn_80021BBC((s8)rec[0x252], *(s32*)(rec + 0x24));
+        }
+    } else if ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        ANIMGet(*(void**)(rec + 0x24));
+        return 1;
+    }
+    return 0;
+}
+
+static inline int loadExtraSlotAnimBank(int slot) {
+    u8* rec = HA_SLOTS.pool[slot];
+
+    if (*HA(0x2D8D) == 0) {
+        *HA(0x2D8D) = 1;
+        HA_SLOTS.flags[0x2D7F - 0x2D6A + slot] = rec[0x252];
+        *(u32*)(rec + 0x24) = HA_U32(0x2CBC);
+        ARAMTransfer((u8*)lbl_803CB790 + ((s8)rec[0x252] * 0x13 + 0x11) * 16, *(s32*)(rec + 0x24), 0, 0);
+    } else if ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        ANIMGet(*(void**)(rec + 0x24));
+        return 1;
+    }
+    return 0;
+}
+
+int fn_80016344(int charId, int slot, int c, int d) {
     if (*HA(0x2D77) == 6) {
         return 1;
     }
@@ -4111,55 +4074,20 @@ int fn_80016344(int charId, int slot, int c, int d) {
         return 0;
     }
     if (*HA(0x2D77) == 2) {
-        HA_OBJ(slot) = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
-        HA_OBJ(slot)[0x25A] = c;
-        HA_OBJ(slot)[0x25B] = c;
+        hugeAnimStruct.objects[slot] = HA_SLOTS.pool[slot];
+        ((u8*)hugeAnimStruct.objects[slot])[0x25A] = c;
+        ((u8*)hugeAnimStruct.objects[slot])[0x25B] = c;
         *HA(0x2D8D) = 0;
         *HA(0x2D77) = 3;
     }
 
     if (*HA(0x2D77) == 3) {
-        rec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
         if (slot == 12) {
-            if (*HA(0x2D8D) == 0) {
-                *HA(0x2D8D) = 1;
-                *HA(0x2D7F + slot) = rec[0x252];
-                *(u32*)(rec + 0x24) = HA_U32(0x2CBC);
-                ARAMTransfer((u8*)lbl_803CB790 + ((s8)rec[0x252] * 0x13 + 0x11) * 16, *(s32*)(rec + 0x24), 0, 0);
-                ready = FALSE;
-            } else {
-                ready = FALSE;
-                if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                    ANIMGet(*(void**)(rec + 0x24));
-                    ready = TRUE;
-                }
-            }
-            if (!ready) {
+            if (!loadExtraSlotAnimBank(slot)) {
                 return 0;
             }
         } else {
-            if (*HA(0x2D8D) == 0) {
-                *HA(0x2D8D) = 1;
-                *HA(0x2D7F + slot) = rec[0x252];
-                if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-                    *(u32*)(rec + 0x24) = HA_U32(0x2CAC);
-                    fn_80021BBC((s8)rec[0x252], *(s32*)(rec + 0x24));
-                } else if (slot >= 9) {
-                    *(u32*)(rec + 0x24) = HA_U32(0x2CAC);
-                    ARAMTransfer((u8*)lbl_803CB790 + ((s8)rec[0x252] * 0x13 + 0x10) * 16, *(s32*)(rec + 0x24), 0, 0);
-                } else {
-                    *(u32*)(rec + 0x24) = HA_U32(0x2CFC + slot * 0x14);
-                    fn_80021BBC((s8)rec[0x252], *(s32*)(rec + 0x24));
-                }
-                ready = FALSE;
-            } else {
-                ready = FALSE;
-                if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                    ANIMGet(*(void**)(rec + 0x24));
-                    ready = TRUE;
-                }
-            }
-            if (!ready) {
+            if (!loadSlotAnimBank(slot)) {
                 return 0;
             }
         }
@@ -4168,43 +4096,36 @@ int fn_80016344(int charId, int slot, int c, int d) {
 
     if (*HA(0x2D77) == 4) {
         s32 fileIndex = lbl_800EEB18[(u8)charId];
+        u8 attached;
 
-        if (fileIndex != -1) {
-            u8* slotRec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
-
-            part = *(u8**)(slotRec + 8);
-            if (*(u32*)(part + 0x10) != 0) {
-                if (lbl_803CBBFA == 0) {
-                    fn_80021ADC(fileIndex, *(void**)lbl_80118220);
-                    lbl_803CBBFA = 1;
-                }
-                if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                    lbl_80118220[0x60] = charId;
-                    lbl_80118220[0x61] = slot;
-                    *(u32*)(lbl_80118220 + 4) = *(u32*)lbl_80118220;
-                    actRelated(*(void**)(part + 0x10), lbl_80118220 + 4);
-                    lbl_803CBBFA = 0;
-                    *(u8**)(slotRec + 0x2C) = lbl_80118220;
-                    ready = TRUE;
-                } else {
-                    ready = FALSE;
-                }
-            } else {
-                goto noPart;
-            }
+        if (fileIndex == -1 || *(u32*)(*(u8**)(HA_SLOTS.pool[slot] + 8) + 0x10) == 0) {
+            *(u8**)(HA_SLOTS.pool[slot] + 0x2C) = NULL;
+            attached = TRUE;
         } else {
-        noPart:
-            *(u32*)(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE) + 0x2C) = 0;
-            ready = TRUE;
+            if (lbl_803CBBFA == 0) {
+                fn_80021ADC(fileIndex, *(void**)lbl_80118220);
+                lbl_803CBBFA = 1;
+            }
+            if ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
+                lbl_80118220[0x60] = charId;
+                lbl_80118220[0x61] = slot;
+                *(u32*)(lbl_80118220 + 4) = *(u32*)lbl_80118220;
+                actRelated(*(void**)(*(u8**)(HA_SLOTS.pool[slot] + 8) + 0x10), lbl_80118220 + 4);
+                lbl_803CBBFA = 0;
+                *(u8**)(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE) + 0x2C) = lbl_80118220;
+                attached = TRUE;
+            } else {
+                attached = FALSE;
+            }
         }
-        if (!ready) {
+        if (!attached) {
             return 0;
         }
         *HA(0x2D77) = 5;
     }
 
     if (*HA(0x2D77) == 5) {
-        if (!animateModelArmsGlovesBats(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE))) {
+        if (!(u8)animateModelArmsGlovesBats(HA_SLOTS.pool[slot])) {
             return 0;
         }
         *HA(0x2D77) = 0;
@@ -4237,14 +4158,14 @@ typedef struct ModelAnimObject {
     /* 0x26C */ u8 flag26C;
 } ModelAnimObject;
 
-static inline u16 getAnimBone(ModelAnimObject* obj, int which) {
+static inline s32 getAnimBone(ModelAnimObject* obj, int which) {
     if (obj != NULL) {
         return obj->partBones[which];
     }
     return 0xFFFF;
 }
 
-void fn_8001BE50(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attach, s32 speedDivisor) {
+void fn_8001BE50(s32 index, int anim, u8 boneParam, u8 mode, s16 frame, u8 attach, s32 speedDivisor) {
     f32 blend = lbl_803CC4B8;
     ModelAnimObject* obj = hugeAnimStruct.objects[index];
     ActorObjectEntry* entry;
@@ -4253,10 +4174,9 @@ void fn_8001BE50(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     s32 seq;
     u8* bank;
     ModelAnimObject* cur;
-    u16 boneEnd;
-    u16 boneRoot;
     u8* node;
     Vec offset;
+    Vec offset2;
 
     if (obj == NULL) {
         return;
@@ -4297,14 +4217,17 @@ void fn_8001BE50(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     }
     bank = obj->banks[kind];
     if (bank != NULL) {
-        if (seq >= *(u16*)(bank + 0xA) || seq < 0) {
+        if (seq >= *(u16*)(bank + 0xA)) {
+            return;
+        }
+        if (seq < 0) {
             return;
         }
         entry->anim = bank;
         entry->seqNum = seq;
         entry->frame = lbl_803CC4B8;
         entry->animPending = 1;
-        entry->framePending = entry->speedPending = (bank != NULL);
+        entry->speedPending = entry->framePending = (bank != NULL);
         entry->blendTime = blend;
     }
     if (obj->effectA != NULL) {
@@ -4324,32 +4247,42 @@ void fn_8001BE50(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
 
     cur = hugeAnimStruct.objects[index];
     if (cur != NULL) {
+        s32 slot = cur->slot;
+
         if (mode == 0) {
-            boneRoot = getAnimBone(cur, 4);
-            boneEnd = getAnimBone(cur, 0);
+            u16 bone = getAnimBone(cur, 4);
+            s32 bone2 = getAnimBone(cur, 0);
+
+            table = hugeAnimStruct.actorTable;
+            maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                                  *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset);
+            table->entries[(u16)slot].unk64 = bone2;
+            table->entries[(u16)slot].unk66 = bone;
         } else {
-            boneRoot = getAnimBone(cur, 0);
-            boneEnd = getAnimBone(cur, 0);
+            u16 bone = getAnimBone(cur, 0);
+            s32 bone2 = getAnimBone(cur, 0);
+
+            table = hugeAnimStruct.actorTable;
+            maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                                  *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset2);
+            table->entries[(u16)slot].unk64 = bone2;
+            table->entries[(u16)slot].unk66 = bone;
         }
-        node = (u8*)hugeAnimStruct.actorTable + (u16)cur->slot * 0x90;
-        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
-        *(u16*)(node + 0x98) = boneEnd;
-        *(u16*)(node + 0x9A) = boneRoot;
     }
     cur = hugeAnimStruct.objects[index];
     if (cur != NULL) {
-        table = hugeAnimStruct.actorTable;
+        node = (u8*)hugeAnimStruct.actorTable + cur->slot * 0x90 + 0x34;
         if (attach == 0) {
-            table->entries[cur->slot].unk68 = 0;
+            *(u8**)(node + 0x68) = NULL;
         } else {
-            table->entries[cur->slot].unk68 = (u32)cur->attachPoint;
+            *(u8**)(node + 0x68) = (u8*)cur->attachPoint;
         }
     }
     obj->mode = mode;
 }
 
 
-void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attach, s32 speedDivisor) {
+void fn_8001BA44(s32 index, int anim, u8 boneParam, u8 mode, s16 frame, u8 attach, s32 speedDivisor) {
     f32 blend = lbl_803CC4B8;
     ModelAnimObject* obj = hugeAnimStruct.objects[index];
     ActorObjectEntry* entry;
@@ -4358,10 +4291,9 @@ void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     s32 seq;
     u8* bank;
     ModelAnimObject* cur;
-    u16 boneEnd;
-    u16 boneRoot;
     u8* node;
     Vec offset;
+    Vec offset2;
     BOOL valid;
 
     if (obj == NULL) {
@@ -4407,24 +4339,29 @@ void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
     if (valid) {
         bank = obj->banks[kind];
         if (bank != NULL) {
-            if (seq >= *(u16*)(bank + 0xA) || seq < 0) {
+            if (seq >= *(u16*)(bank + 0xA)) {
+                return;
+            }
+            if (seq < 0) {
                 return;
             }
             entry->anim = bank;
             entry->seqNum = seq;
             entry->frame = lbl_803CC4B8;
             entry->animPending = 1;
-            entry->framePending = entry->speedPending = (bank != NULL);
+            entry->speedPending = entry->framePending = (bank != NULL);
             entry->blendTime = blend;
         }
     } else {
+        f32 zero = lbl_803CC4B8;
+
         entry->anim = NULL;
         entry->seqNum = 0;
-        entry->frame = lbl_803CC4B8;
+        entry->frame = zero;
         entry->animPending = 1;
         entry->framePending = 0;
         entry->speedPending = 0;
-        entry->blendTime = lbl_803CC4B8;
+        entry->blendTime = zero;
         return;
     }
     if (obj->effectA != NULL) {
@@ -4443,25 +4380,35 @@ void fn_8001BA44(s32 index, s16 anim, u8 boneParam, u8 mode, s16 frame, u8 attac
 
     cur = hugeAnimStruct.objects[index];
     if (cur != NULL) {
+        s32 slot = cur->slot;
+
         if (mode == 0) {
-            boneRoot = getAnimBone(cur, 4);
-            boneEnd = getAnimBone(cur, 0);
+            u16 bone = getAnimBone(cur, 4);
+            s32 bone2 = getAnimBone(cur, 0);
+
+            table = hugeAnimStruct.actorTable;
+            maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                                  *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset);
+            table->entries[(u16)slot].unk64 = bone2;
+            table->entries[(u16)slot].unk66 = bone;
         } else {
-            boneRoot = getAnimBone(cur, 0);
-            boneEnd = getAnimBone(cur, 0);
+            u16 bone = getAnimBone(cur, 0);
+            s32 bone2 = getAnimBone(cur, 0);
+
+            table = hugeAnimStruct.actorTable;
+            maybeTransformVectorByAnimationMatrix(table->entries[(u16)slot].actor,
+                                                  *(u16*)((u8*)table->entries[(u16)slot].actor + 0x80), &offset2);
+            table->entries[(u16)slot].unk64 = bone2;
+            table->entries[(u16)slot].unk66 = bone;
         }
-        node = (u8*)hugeAnimStruct.actorTable + (u16)cur->slot * 0x90;
-        maybeTransformVectorByAnimationMatrix(*(void**)(node + 0x34), *(u16*)(*(u8**)(node + 0x34) + 0x80), &offset);
-        *(u16*)(node + 0x98) = boneEnd;
-        *(u16*)(node + 0x9A) = boneRoot;
     }
     cur = hugeAnimStruct.objects[index];
     if (cur != NULL) {
-        table = hugeAnimStruct.actorTable;
+        node = (u8*)hugeAnimStruct.actorTable + cur->slot * 0x90 + 0x34;
         if (attach == 0) {
-            table->entries[cur->slot].unk68 = 0;
+            *(u8**)(node + 0x68) = NULL;
         } else {
-            table->entries[cur->slot].unk68 = (u32)cur->attachPoint;
+            *(u8**)(node + 0x68) = (u8*)cur->attachPoint;
         }
     }
     obj->mode = mode;
@@ -4522,13 +4469,14 @@ void fn_80014204(s32 count) {
 }
 
 #define MODEL_ARAM_FILE(rec, offset) ((u8*)lbl_803CB790 + ((s8)(rec)[0x252] * 0x13 + (offset)) * 16)
-#define MODEL_RECORD_BUFFER(rec, offset) (*(u32*)(HA((s8)(rec)[0x255] * 0x14 + (offset))))
+/* The slot's buffer for one animation file: five words per model slot from hugeAnimStruct+0x2CEC. */
+#define MODEL_RECORD_BUFFER(rec, offset) (((u32*)HA(offset))[(s8)(rec)[0x255] * 5])
 #define MODEL_LOAD_STATE (*HA(0x2D8D))
-#define MODEL_ANIM_READY (((u8*)&lbl_803C6CF8)[0x715] == 1)
+#define MODEL_ANIM_READY ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1)
 
 BOOL fn_80016B60(void* record) {
     u8* rec = record;
-    s32 fileOffset;
+    s32 fileIndex;
 
     if (MODEL_LOAD_STATE == 0) {
         MODEL_LOAD_STATE = 1;
@@ -4536,11 +4484,11 @@ BOOL fn_80016B60(void* record) {
     if (MODEL_LOAD_STATE == 1) {
         *(u32*)(rec + 0x18) = MODEL_RECORD_BUFFER(rec, 0x2CEC);
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-            fileOffset = 0xD;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xD;
         } else {
-            fileOffset = 4;
+            fileIndex = (s8)rec[0x252] * 0x13 + 4;
         }
-        ARAMTransfer(MODEL_ARAM_FILE(rec, fileOffset), *(s32*)(rec + 0x18), 0, 0);
+        ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 0x18), 0, 0);
         MODEL_LOAD_STATE = 2;
     } else if (MODEL_LOAD_STATE == 2) {
         if (MODEL_ANIM_READY) {
@@ -4550,13 +4498,13 @@ BOOL fn_80016B60(void* record) {
     } else if (MODEL_LOAD_STATE == 3) {
         *(u32*)(rec + 0x14) = MODEL_RECORD_BUFFER(rec, 0x2CF0);
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            fileOffset = 0xB;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xB;
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) {
-            fileOffset = 0xE;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xE;
         } else {
-            fileOffset = 0xC;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xC;
         }
-        ARAMTransfer(MODEL_ARAM_FILE(rec, fileOffset), *(s32*)(rec + 0x14), 0, 0);
+        ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 0x14), 0, 0);
         MODEL_LOAD_STATE = 4;
     } else if (MODEL_LOAD_STATE == 4) {
         if (MODEL_ANIM_READY) {
@@ -4566,11 +4514,11 @@ BOOL fn_80016B60(void* record) {
     } else if (MODEL_LOAD_STATE == 5) {
         *(u32*)(rec + 0x1C) = MODEL_RECORD_BUFFER(rec, 0x2CF4);
         if (g_d_GameSettings.minigamesEnabled != 0 || g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            fileOffset = 0x12;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0x12;
         } else {
-            fileOffset = 5;
+            fileIndex = (s8)rec[0x252] * 0x13 + 5;
         }
-        ARAMTransfer(MODEL_ARAM_FILE(rec, fileOffset), *(s32*)(rec + 0x1C), 0, 0);
+        ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 0x1C), 0, 0);
         MODEL_LOAD_STATE = 6;
     } else if (MODEL_LOAD_STATE == 6) {
         if (MODEL_ANIM_READY) {
@@ -4581,13 +4529,13 @@ BOOL fn_80016B60(void* record) {
     } else if (MODEL_LOAD_STATE == 7) {
         *(u32*)(rec + 0x10) = MODEL_RECORD_BUFFER(rec, 0x2CF8);
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_MINIGAMES) {
-            fileOffset = 9;
+            fileIndex = (s8)rec[0x252] * 0x13 + 9;
         } else if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            fileOffset = 0xA;
+            fileIndex = (s8)rec[0x252] * 0x13 + 0xA;
         } else {
-            fileOffset = 2;
+            fileIndex = (s8)rec[0x252] * 0x13 + 2;
         }
-        ARAMTransfer(MODEL_ARAM_FILE(rec, fileOffset), *(s32*)(rec + 0x10), 0, 0);
+        ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 0x10), 0, 0);
         MODEL_LOAD_STATE = 8;
     } else if (MODEL_LOAD_STATE == 8) {
         if (MODEL_ANIM_READY) {
@@ -4611,7 +4559,6 @@ BOOL fn_80016B60(void* record) {
 extern BOOL fn_80012B90(void* record);
 
 int fn_80016710(int charId, int slot) {
-    u8* rec;
     BOOL ready;
     u8* part;
     u8* effectBuf;
@@ -4623,117 +4570,87 @@ int fn_80016710(int charId, int slot) {
         return 0;
     }
     if (*HA(0x2D77) == 2) {
-        HA_OBJ(slot) = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+        HA_SLOTS.objects[slot] = HA_SLOTS.pool[slot];
         *HA(0x2D8D) = 0;
         *HA(0x2D77) = 3;
     }
 
     if (*HA(0x2D77) == 3) {
-        rec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
-        if (*HA(0x2D8D) == 0) {
-            *HA(0x2D8D) = 1;
-            *HA(0x2D7F + slot) = rec[0x252];
-            if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-                *(u32*)(rec + 0x24) = HA_U32(0x2CAC);
-                fn_80021BBC((s8)rec[0x252], *(s32*)(rec + 0x24));
-            } else if (slot >= 9) {
-                *(u32*)(rec + 0x24) = HA_U32(0x2CAC);
-                ARAMTransfer((u8*)lbl_803CB790 + ((s8)rec[0x252] * 0x13 + 0x10) * 16, *(s32*)(rec + 0x24), 0, 0);
-            } else {
-                *(u32*)(rec + 0x24) = HA_U32(0x2CFC + slot * 0x14);
-                fn_80021BBC((s8)rec[0x252], *(s32*)(rec + 0x24));
-            }
-            ready = FALSE;
-        } else {
-            ready = FALSE;
-            if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                ANIMGet(*(void**)(rec + 0x24));
-                ready = TRUE;
-            }
-        }
-        if (!ready) {
+        if (!loadSlotAnimBank(slot)) {
             return 0;
         }
         *HA(0x2D77) = 4;
     }
 
     if (*HA(0x2D77) == 4) {
-        s32 fileIndex = lbl_800EEB18[(u8)charId];
+        u8 attached;
 
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            if (fileIndex != -1) {
-                u8* slotRec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+            s32 fileIndex = lbl_800EEB18[(u8)charId];
 
-                part = *(u8**)(slotRec + 8);
-                if (*(u32*)(part + 0x10) != 0) {
-                    if (lbl_803CBBFA == 0) {
-                        fn_80021ADC(fileIndex, *(void**)lbl_80118220);
-                        lbl_803CBBFA = 1;
-                    }
-                    if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                        lbl_80118220[0x60] = charId;
-                        lbl_80118220[0x61] = slot;
-                        *(u32*)(lbl_80118220 + 4) = *(u32*)lbl_80118220;
-                        actRelated(*(void**)(part + 0x10), lbl_80118220 + 4);
-                        lbl_803CBBFA = 0;
-                        *(u8**)(slotRec + 0x2C) = lbl_80118220;
-                        ready = TRUE;
-                    } else {
-                        ready = FALSE;
-                    }
-                } else {
-                    goto noPartPractice;
-                }
+            if (fileIndex == -1 || *(u32*)(*(u8**)(HA_SLOTS.pool[slot] + 8) + 0x10) == 0) {
+                *(u8**)(HA_SLOTS.pool[slot] + 0x2C) = NULL;
+                attached = TRUE;
             } else {
-            noPartPractice:
-                *(u32*)(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE) + 0x2C) = 0;
-                ready = TRUE;
+                if (lbl_803CBBFA == 0) {
+                    fn_80021ADC(fileIndex, *(void**)lbl_80118220);
+                    lbl_803CBBFA = 1;
+                }
+                if ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
+                    lbl_80118220[0x60] = charId;
+                    lbl_80118220[0x61] = slot;
+                    *(u32*)(lbl_80118220 + 4) = *(u32*)lbl_80118220;
+                    actRelated(*(void**)(*(u8**)(HA_SLOTS.pool[slot] + 8) + 0x10), lbl_80118220 + 4);
+                    lbl_803CBBFA = 0;
+                    *(u8**)(HA_SLOTS.pool[slot] + 0x2C) = lbl_80118220;
+                    attached = TRUE;
+                } else {
+                    attached = FALSE;
+                }
+            }
+            if (!attached) {
+                return 0;
             }
         } else {
-            if (fileIndex != -1) {
-                u8* slotRec = HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE);
+            s32 fileIndex = lbl_800EEB18[(u8)charId];
 
-                part = *(u8**)(slotRec + 8);
-                if (*(u32*)(part + 0x10) != 0) {
-                    if (lbl_803CBBFA == 0) {
-                        fn_80021ADC(fileIndex, *(void**)(lbl_80118220 + slot * 0x64));
-                        lbl_803CBBFA = 1;
-                    }
-                    if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                        effectBuf = lbl_80118220 + slot * 0x64;
-                        effectBuf[0x60] = charId;
-                        effectBuf[0x61] = slot;
-                        *(u32*)(effectBuf + 4) = *(u32*)effectBuf;
-                        actRelated(*(void**)(part + 0x10), effectBuf + 4);
-                        lbl_803CBBFA = 0;
-                        *(u8**)(slotRec + 0x2C) = effectBuf;
-                        ready = TRUE;
-                    } else {
-                        ready = FALSE;
-                    }
-                } else {
-                    goto noPart;
-                }
+            if (fileIndex == -1 || *(u32*)(*(u8**)(HA_SLOTS.pool[slot] + 8) + 0x10) == 0) {
+                *(u8**)(HA_SLOTS.pool[slot] + 0x2C) = NULL;
+                attached = TRUE;
             } else {
-            noPart:
-                *(u32*)(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE) + 0x2C) = 0;
-                ready = TRUE;
+                if (lbl_803CBBFA == 0) {
+                    fn_80021ADC(fileIndex, *(void**)(lbl_80118220 + slot * 0x64));
+                    lbl_803CBBFA = 1;
+                }
+                if ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
+                    effectBuf = lbl_80118220 + slot * 0x64;
+                    effectBuf[0x60] = charId;
+                    effectBuf[0x61] = slot;
+                    *(u32*)(effectBuf + 4) = *(u32*)effectBuf;
+                    actRelated(*(void**)(*(u8**)(HA_SLOTS.pool[slot] + 8) + 0x10), effectBuf + 4);
+                    lbl_803CBBFA = 0;
+                    *(u8**)(HA_SLOTS.pool[slot] + 0x2C) = effectBuf;
+                    attached = TRUE;
+                } else {
+                    attached = FALSE;
+                }
             }
-        }
-        if (!ready) {
-            return 0;
+            if (!attached) {
+                return 0;
+            }
         }
         *HA(0x2D77) = 5;
     }
 
     if (*HA(0x2D77) == 5) {
         if (g_d_GameSettings.GameModeSelected == GAME_TYPE_PRACTICE) {
-            ready = animateModelArmsGlovesBats(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE));
+            if (!(u8)animateModelArmsGlovesBats(HA_SLOTS.pool[slot])) {
+                return 0;
+            }
         } else {
-            ready = fn_80012B90(HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE));
-        }
-        if (!ready) {
-            return 0;
+            if (!(u8)fn_80012B90(HA_SLOTS.pool[slot])) {
+                return 0;
+            }
         }
         return 1;
     }
@@ -4743,40 +4660,32 @@ int fn_80016710(int charId, int slot) {
 
 extern u8 lbl_803CBBF9;
 
-#define EFFECT_BUF(i) (lbl_80118220 + (i) * 0x64)
 
 int fn_8001500C(int team, int idx, int slot) {
-    u8* obj;
-    u8* buf;
-    s32 i;
-    s32 found;
-    s32 ok;
-    s32 result;
-    u8 charId;
-    u8* flags = lbl_803CBC34;
+    u8 result;
 
     if (*HA(0x2D77) == 1) {
         return 0;
     }
     if (*HA(0x2D77) == 2) {
-        HA_OBJ(slot) = HA(MODEL_RECORD_BASE + *HA(0x2D79) * MODEL_RECORD_SIZE);
+        hugeAnimStruct.objects[slot] = HA(*HA(0x2D79) * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE;
         *HA(0x2D8D) = 0;
         *HA(0x2D77) = 3;
     }
 
     if (*HA(0x2D77) == 3) {
         if (fn_80017340(*HA(0x2D79))) {
-            if (*HA(0x2D78) != 0 && *(u32*)(HA_OBJ(slot) + 0x2C) != 0) {
-                if (*(u32*)(HA_OBJ(slot) + 0x30) == 0) {
+            if (*HA(0x2D78) != 0 && *(u32*)(((u8*)hugeAnimStruct.objects[slot]) + 0x2C) != 0) {
+                if (*(u32*)(((u8*)hugeAnimStruct.objects[slot]) + 0x30) == 0) {
                     *HA(0x2D77) = 5;
                     return 0;
                 }
                 *HA(0x2D77) = 0;
                 return 1;
             }
-            if (flags[3] != 0) {
+            if (lbl_803CBC34[3] != 0) {
                 *HA(0x2D77) = 4;
-            } else if (flags[4] != 0 && slot == 9) {
+            } else if (lbl_803CBC34[4] != 0 && slot == 9) {
                 *HA(0x2D77) = 4;
             } else {
                 *HA(0x2D77) = 5;
@@ -4787,67 +4696,46 @@ int fn_8001500C(int team, int idx, int slot) {
     }
 
     if (*HA(0x2D77) == 4) {
-        obj = HA_OBJ(slot);
-        charId = obj[0x252];
-        found = FALSE;
+        u8* obj = (u8*)hugeAnimStruct.objects[slot];
+        u8 typeId = obj[0x252];
+        u8 found;
+
         if (lbl_803CBBF9 == 0) {
-            buf = lbl_80118220;
-            for (i = 0; (s8)buf[0x61] != -2; i++, buf += 0x64) {
-                if ((s8)charId == (s8)buf[0x60] && (s8)buf[0x61] == -1) {
-                    buf = EFFECT_BUF(i);
-                    *(u8**)(obj + 0x2C) = buf;
-                    buf[0x60] = charId;
-                    buf[0x61] = slot;
-                    *(u32*)(buf + 0x30) = *(u32*)(*(u8**)(obj + 8) + 0x10);
+            u8* q = lbl_80118220;
+            u8* p;
+            s32 i;
+            s32 count;
+            u8 c61;
+
+            for (i = 0, p = q; (s8)(c61 = p[0x61]) != -2; p += 0x64, i++) {
+                if ((s8)typeId == (s8)p[0x60] && (s8)c61 == -1) {
+                    u8* entry = lbl_80118220 + i * 0x64;
+
+                    *(u8**)(obj + 0x2C) = entry;
+                    entry[0x60] = typeId;
+                    entry[0x61] = slot;
+                    *(u32*)(entry + 0x30) = *(u32*)(*(u8**)(obj + 0x08) + 0x10);
                     found = TRUE;
+                    goto done;
+                }
+            }
+            lbl_803CBBF9 = 1;
+            for (count = 0; (s8)(c61 = q[0x61]) != -2; q += 0x64, count++) {
+                if ((s8)c61 == -1) {
                     break;
                 }
             }
-            if (!found) {
-                lbl_803CBBF9 = 1;
-                buf = lbl_80118220;
-                for (i = 0; (s8)buf[0x61] != -2; i++, buf += 0x64) {
-                    if ((s8)buf[0x61] == -1) {
-                        break;
-                    }
-                }
-                lbl_803CBC28 = i;
-            }
+            lbl_803CBC28 = count;
         }
-        if (!found) {
-            s32 k = lbl_803CBC28;
-            s32 fileIndex = lbl_800EEB18[charId];
-
-            buf = EFFECT_BUF(k);
-            buf[0x5D] = 0;
-            if (fileIndex == -1 || *(u32*)(*(u8**)(obj + 8) + 0x10) == 0) {
-                *(u32*)(obj + 0x2C) = 0;
-                ok = TRUE;
-            } else {
-                if (lbl_803CBBFA == 0) {
-                    fn_80021ADC(fileIndex, *(void**)buf);
-                    lbl_803CBBFA = 1;
-                }
-                if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
-                    buf = EFFECT_BUF(k);
-                    buf[0x60] = charId;
-                    buf[0x61] = slot;
-                    *(u32*)(buf + 4) = *(u32*)buf;
-                    actRelated(*(void**)(*(u8**)(obj + 8) + 0x10), buf + 4);
-                    *(u8**)(obj + 0x2C) = buf;
-                    lbl_803CBBFA = 0;
-                    ok = TRUE;
-                } else {
-                    ok = FALSE;
-                }
-            }
-            if (ok) {
-                lbl_803CBBF9 = 0;
-                found = TRUE;
-            }
+        if (loadPracticeEffect(obj, typeId, slot)) {
+            lbl_803CBBF9 = 0;
+            found = TRUE;
+        } else {
+            found = FALSE;
         }
+    done:
         if (found) {
-            if (*HA(0x2D78) != 0 && *(u32*)(HA_OBJ(slot) + 0x30) != 0) {
+            if (*HA(0x2D78) != 0 && *(u32*)((u8*)hugeAnimStruct.objects[slot] + 0x30) != 0) {
                 *HA(0x2D77) = 0;
                 return 1;
             }
@@ -4858,7 +4746,7 @@ int fn_8001500C(int team, int idx, int slot) {
     }
 
     if (*HA(0x2D77) == 5) {
-        if (animateModelArmsGlovesBats(HA_OBJ(slot))) {
+        if ((u8)animateModelArmsGlovesBats(((u8*)hugeAnimStruct.objects[slot]))) {
             *HA(0x2D77) = 0;
             return 1;
         }
@@ -4871,16 +4759,15 @@ int fn_8001500C(int team, int idx, int slot) {
         *HA(0x2D78) = fn_80017098(team, idx, 1, slot, 0, -1);
     }
     result = *HA(0x2D78);
-    if (result == 0) {
-        return result;
-    }
-    if (slot == 9) {
-        *HA(0x2D77) = 2;
-        return 0;
-    }
-    if (*(u32*)(HA_OBJ(slot) + 0x30) == 0) {
-        *HA(0x2D77) = 5;
-        return 0;
+    if (result != 0) {
+        if (slot == 9) {
+            *HA(0x2D77) = 2;
+            return 0;
+        }
+        if (*(u32*)(((u8*)hugeAnimStruct.objects[slot]) + 0x30) == 0) {
+            *HA(0x2D77) = 5;
+            return 0;
+        }
     }
     return result;
 }
@@ -5277,68 +5164,45 @@ void fn_80019C00(void) {
     f32 len;
     s32 i;
     s32 k;
+    u32 effect;
     u32 maxSize;
-    u32 v;
     u32 size;
     u8* pool;
-    s16* entry;
-    u8* effects = lbl_80118220;
+    u32 base;
 
     switch (*itemState) {
     case 0:
         setupAnimationModelMemory();
         initActorArray(((g_d_GameSettings.GameModeSelected == GAME_TYPE_TOY_FIELD) + 1) * 4);
-        for (k = 4; k <= 12; k++) {
-            effects[0x61 + k * 0x64] = 0xFF;
+        for (effect = 4; effect < 13; effect++) {
+            ((s8*)lbl_80118220)[effect * 0x64 + 0x61] = -1;
         }
-        maxSize = 0;
-        entry = lbl_800EEB18;
-        for (i = 0; i < 18; i++) {
-            if (entry[0] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[0] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            if (entry[1] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[1] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            if (entry[2] >= 0) {
-                v = *(u32*)((u8*)lbl_803CB794 + entry[2] * 16 + 4) & 0x0FFFFFFF;
-                if (maxSize < v) {
-                    maxSize = v;
-                }
-            }
-            entry += 3;
-        }
+        maxSize = maxListedFileSize();
         size = (maxSize + 0x1F) & ~0x1F;
         pool = _OSAllocFromHeap(0x20, size * 4);
         lbl_803CBC30 = pool;
-        *(u8**)effects = pool;
-        effects[0x61] = 0xFF;
-        effects[0x60] = 0xFF;
-        *(u32*)(effects + 0x64) = (u32)pool + size;
-        effects[0xC5] = 0xFF;
-        effects[0xC4] = 0xFF;
-        *(u32*)(effects + 0xC8) = (u32)pool + size * 2;
-        effects[0x129] = 0xFF;
-        effects[0x128] = 0xFF;
-        *(u32*)(effects + 0x12C) = (u32)pool + size * 3;
-        effects[0x18D] = 0xFF;
-        effects[0x18C] = 0xFF;
+        *(u8**)lbl_80118220 = pool;
+        lbl_80118220[0x61] = 0xFF;
+        lbl_80118220[0x60] = 0xFF;
+        *(u32*)(lbl_80118220 + 0x64) = (u32)pool + size;
+        lbl_80118220[0xC5] = 0xFF;
+        lbl_80118220[0xC4] = 0xFF;
+        *(u32*)(lbl_80118220 + 0xC8) = (u32)pool + size * 2;
+        lbl_80118220[0x129] = 0xFF;
+        lbl_80118220[0x128] = 0xFF;
+        *(u32*)(lbl_80118220 + 0x12C) = (u32)pool + size * 3;
+        lbl_80118220[0x18D] = 0xFF;
+        lbl_80118220[0x18C] = 0xFF;
         fn_80014204(4);
         HA_U32(0x13C) = (u32)fn_80023AA4();
         for (k = 0; k < 4; k++) {
-            HA(MODEL_RECORD_BASE + k * MODEL_RECORD_SIZE)[0x255] = k;
-            HA_OBJ(k) = NULL;
-            *HA(0x2D6A + k) = 0xFF;
-            HA(MODEL_RECORD_BASE + k * MODEL_RECORD_SIZE)[0x257] = 0xFF;
+            HA_SLOTS.pool[k][0x255] = k;
+            HA_SLOTS.objects[k] = NULL;
+            ((s8*)HA_SLOTS.flags)[k] = -1;
+            ((s8*)HA_SLOTS.pool[k])[0x257] = -1;
         }
         for (i = 0; i < 9; i++) {
-            *HA(0x2D7F + i) = 0xFF;
+            ((s8*)HA_SLOTS.flags)[0x2D7F - 0x2D6A + i] = -1;
         }
         *HA(0x2D89) = 0xFF;
         *HA(0x2D8A) = 0xFF;
@@ -5371,7 +5235,7 @@ void fn_80019C00(void) {
         (*itemState)++;
         break;
     case 4:
-        if (((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if ((s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             *itemState = *itemState + 1;
         }
         break;
@@ -5391,10 +5255,9 @@ void fn_80019C00(void) {
         updateVectorInArray(0, copy);
         fn_800BF048(fn_8001AAF0);
         fn_800BF058(fn_8001AB10);
-        for (i = 0; i < 80; i += 8) {
-            for (k = 0; k < 8; k++) {
-                ((u32*)HA_U32(0x2C84))[i + k] += HA_U32(0x2C84);
-            }
+        base = HA_U32(0x2C84);
+        for (i = 0; i < 80; i++) {
+            ((u32*)HA_U32(0x2C84))[i] = base + ((u32*)base)[i];
         }
         *HA(0x307C) = 0;
         *HA(0x307D) = 0;
@@ -5459,22 +5322,22 @@ void fn_8001D2D4(void) {
         entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
         switch ((s8)obj[0x252]) {
         case CHAR_ID_BOWSERJR:
-            fn_8004B6EC(obj);
+            fn_8004B6EC(obj, entry);
             break;
         case CHAR_ID_GOOMBA:
         case CHAR_ID_PARAGOOMBA:
             processCharacterStateBasedOnGameMode((CharacterStateActor*)obj);
             break;
         case CHAR_ID_PETEY:
-            entry->actor->unk98 = 1;
-            updateSpecialBatAttach(obj);
+            entry->actor->unk99 = 1;
+            updateSpecialBatAttach(obj, entry);
             break;
         case CHAR_ID_MONTY:
-            updateSpecialBatAttach(obj);
+            updateSpecialBatAttach(obj, entry);
             break;
         case CHAR_ID_BOO:
         case CHAR_ID_KINGBOO:
-            fn_8005240C(obj);
+            fn_8005240C(obj, entry);
             break;
         case CHAR_ID_YOSHI:
         case CHAR_ID_WARIO:
@@ -5483,14 +5346,14 @@ void fn_8001D2D4(void) {
         case CHAR_ID_NOKI_RED:
         case CHAR_ID_NOKI_GREEN:
         case CHAR_ID_KOOPA_RED:
-            entry->actor->unk98 = 1;
+            entry->actor->unk99 = 1;
             break;
         case CHAR_ID_PARATROOPA_RED:
         case CHAR_ID_PARATROOPA_GREEN:
             if (*(s16*)(obj + 0x62) == 0x40) {
-                entry->actor->unk98 = 0;
+                entry->actor->unk99 = 0;
             } else {
-                entry->actor->unk98 = 1;
+                entry->actor->unk99 = 1;
             }
             break;
         }
@@ -5718,14 +5581,11 @@ void fn_80018DEC(int mode) {
     if (mode == 2) {
         u8* rec = files;
 
-        for (i = 0; i < 18; i++) {
-            for (j = 0; j < 3; j++) {
-                TRACK_MAX(m3, rec + j * 0x130, 0xA4);
-                TRACK_MAX(m4, rec + j * 0x130, 0xB4);
-                TRACK_MAX(m6, rec + j * 0x130, 0x124);
-                TRACK_MAX(m8, rec + j * 0x130, 0x44);
-            }
-            rec += 0x390;
+        for (i = 0; i < 54; i++, rec += 0x130) {
+            TRACK_MAX(m3, rec, 0xA4);
+            TRACK_MAX(m4, rec, 0xB4);
+            TRACK_MAX(m6, rec, 0x124);
+            TRACK_MAX(m8, rec, 0x44);
         }
         for (i = 1; i < 9; i++) {
             u8* ch = files + *(s16*)((u8*)&inMemRoster[0][i] + 0x24) * 0x130;
@@ -5748,15 +5608,12 @@ void fn_80018DEC(int mode) {
     } else {
         u8* rec = files;
 
-        for (i = 0; i < 27; i++) {
-            for (j = 0; j < 2; j++) {
-                TRACK_MAX(m3, rec + j * 0x130, 0x24);
-                TRACK_MAX(m4, rec + j * 0x130, 0x34);
-                TRACK_MAX(m5, rec + j * 0x130, 0x44);
-                TRACK_MAX(m6, rec + j * 0x130, 0x54);
-                TRACK_MAX(m7, rec + j * 0x130, 0x64);
-            }
-            rec += 0x260;
+        for (i = 0; i < 54; i++, rec += 0x130) {
+            TRACK_MAX(m3, rec, 0x24);
+            TRACK_MAX(m4, rec, 0x34);
+            TRACK_MAX(m5, rec, 0x44);
+            TRACK_MAX(m6, rec, 0x54);
+            TRACK_MAX(m7, rec, 0x64);
         }
     }
 
@@ -5773,10 +5630,11 @@ void fn_80018DEC(int mode) {
     HA_U32(0x2C98) = sizeE;
     if (mode == 2) {
         total = sizeB * 4 + sizeE * 8 + sizeD + sizeC + sizeG + sizeA + sizeA;
+        HA_U32(0x2C88) = (u32)_OSAllocFromHeap(0x20, total);
     } else {
         total = sizeB * 4 + sizeE * 9 + sizeC + sizeG + sizeA + sizeA;
+        HA_U32(0x2C88) = (u32)_OSAllocFromHeap(0x20, total);
     }
-    HA_U32(0x2C88) = (u32)_OSAllocFromHeap(0x20, total);
     HA_U32(0x2D60) = total;
 
     cursor = HA_U32(0x2C88);
@@ -5820,7 +5678,7 @@ void fn_80018DEC(int mode) {
     *(s16*)HA(0x2D50) = -1;
     *HA(0x2D52) = 0;
 
-    for (i = 0; i < 13; i++) {
+    for (i = *HA(0x2D52); i < 13; i++) {
         u8* rec = HA(MODEL_RECORD_BASE + i * MODEL_RECORD_SIZE);
 
         *(u32*)(rec + 0x10) = 0;
@@ -5856,7 +5714,7 @@ extern void fn_800BD670(void* table, MtxPtr camera);
     GXSetCullMode(GX_CULL_BACK);                                                               \
     GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);               \
     for (k = 0; (u16)k < ((ActorObjectTable*)HA_U32(0x68))->count; k++) {                      \
-        ActorObjectEntry* overlay = &((ActorObjectTable*)HA_U32(0x68))->entries[(u16)k];       \
+        ActorObjectEntry* overlay = (ActorObjectEntry*)((u8*)HA_U32(0x68) + 0x34) + (u16)k;       \
         if (overlay->actor != NULL && overlay->applyControl != 0) {                            \
             void (*overlayCb)(void) = *(void (**)(void))((u8*)HA_U32(0x2D94) + (u16)k * 0x28); \
             if (overlayCb != NULL) {                                                           \
@@ -5866,19 +5724,150 @@ extern void fn_800BD670(void* table, MtxPtr camera);
         }                                                                                      \
     }
 
+static inline void drawOverlayFrustumPass(void) {
+    s32 i;
+    Mtx44 proj;
+
+    GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
+    GXSetCullMode(GX_CULL_BACK);
+    GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
+    for (i = 0; i < hugeAnimStruct.actorTable->count; i++) {
+        u8* obj = (u8*)hugeAnimStruct.objects[i];
+        ActorObjectEntry* entry;
+        Actor* actor;
+        u32* args;
+        MtxPtr camera;
+        f32 x;
+        f32 y;
+
+        if (obj == NULL) {
+            continue;
+        }
+        entry = &hugeAnimStruct.actorTable->entries[i];
+        if (entry->actor == NULL) {
+            continue;
+        }
+        if (entry->applyControl == 0) {
+            continue;
+        }
+        x = *(f32*)(obj + 0x34) / lbl_803CC514;
+        y = *(f32*)(obj + 0x38) / lbl_803CC514;
+        C_MTXFrustum(proj, lbl_803CC518 + y, lbl_803CC51C + y, lbl_803CC520 + x, lbl_803CC524 + x, lbl_803CC4F0,
+                     lbl_803CC528);
+        GXSetProjection(proj, GX_PERSPECTIVE);
+        camera = (MtxPtr)((u8*)returnFloatFromModeIndex(0) + 0x40);
+        actor = entry->actor;
+        args = entry->drawArgs;
+        if (entry->callback != NULL) {
+            entry->callback(entry);
+        }
+        switch (entry->drawArgCount) {
+        case 0:
+            fn_8001DD58(actor, 0, camera, 0);
+            break;
+        case 1:
+            fn_8001DD58(actor, 0, camera, 1, args[0]);
+            break;
+        case 2:
+            fn_8001DD58(actor, 0, camera, 2, args[0], args[1]);
+            break;
+        case 3:
+            fn_8001DD58(actor, 0, camera, 3, args[0], args[1], args[2]);
+            break;
+        case 4:
+            fn_8001DD58(actor, 0, camera, 4, args[0], args[1], args[2], args[3]);
+            break;
+        case 5:
+            fn_8001DD58(actor, 0, camera, 5, args[0], args[1], args[2], args[3], args[4]);
+            break;
+        case 6:
+            fn_8001DD58(actor, 0, camera, 6, args[0], args[1], args[2], args[3], args[4], args[5]);
+            break;
+        case 7:
+            fn_8001DD58(actor, 0, camera, 7, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+            break;
+        case 8:
+            fn_8001DD58(actor, 0, camera, 8, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
+            break;
+        }
+    }
+}
+
 void fn_8001E784(void) {
     s32 i;
     s32 k;
     s32 mode;
-    u32 level;
-    Mtx44 proj;
     GXColor color;
     Vec dir;
-    StadiumLightInput* light = lbl_80367318;
-    u8* state = HA(0x307A);
+    StadiumLightInput* light;
 
     GXSetCurrentGXThread();
-    if (*state == 0) {
+    if (*HA(0x307A) != 0) {
+        light = lbl_80367318;
+        if (*HA(0x3085) != 0) {
+            adjustLightingParams(inputParams[g_d_GameSettings._54].ambient.a != 0, inputParams[g_d_GameSettings._54].ambient);
+            for (i = 0; i < 4; i++, light++) {
+                LITInitAttn(*(void**)(HA(i * 4) + 0xAC), lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
+                            lbl_803CC4B8, lbl_803CC4B8);
+                LITInitPos(*(void**)(HA(i * 4) + 0xAC), light->pos.x, light->pos.y, light->pos.z);
+                color = light->color;
+                LITInitColor(*(void**)(HA(i * 4) + 0xAC), &color);
+                dir.x = light->pos.x;
+                dir.y = light->pos.y;
+                dir.z = light->pos.z;
+                PSVECNormalize(&dir, &dir);
+                LITInitDir(*(void**)(HA(i * 4) + 0xAC), dir.x, dir.y, dir.z);
+                LITXForm(*(void**)(HA(i * 4) + 0xAC), CAMERA_VIEW(0));
+            }
+        }
+
+        mode = returnScissorMode() - 1;
+        do {
+            setScissorAndProjection(mode);
+            if (*HA(0x307A) == 3) {
+                RUN_STADIUM_HOOK(mode, 0);
+                RUN_AND_CLEAR_STADIUM_HOOK(mode);
+                if (*(u16*)HA(0x3078) != 0) {
+                    DRAW_OVERLAY_TABLE();
+                }
+                if (*HA(0x307E) != 0) {
+                    fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
+                    minigamesGXStuff();
+                }
+            } else if (*HA(0x307A) == 5) {
+                drawOverlayFrustumPass();
+            } else if (*HA(0x307A) == 2) {
+                GXSetZCompLoc(0);
+                fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
+            } else if (*HA(0x307A) == 4) {
+                fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
+                if (*(u16*)HA(0x3078) != 0) {
+                    DRAW_OVERLAY_TABLE();
+                }
+                fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
+                minigamesGXStuff();
+            } else if (*HA(0x307A) != 0) {
+                RUN_STADIUM_HOOK(mode, 0);
+                if (*HA(0x307C) != 0) {
+                    fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
+                    fn_800BD670((void*)HA_U32(0x64), CAMERA_VIEW(mode));
+                    if (*(u16*)HA(0x3078) != 0) {
+                        DRAW_OVERLAY_TABLE();
+                    }
+                    if (HA_U32(0x3074) != 0) {
+                        ((void (*)(MtxPtr))HA_U32(0x3074))(CAMERA_VIEW(mode));
+                        HA_U32(0x3074) = 0;
+                    }
+                }
+                RUN_AND_CLEAR_STADIUM_HOOK(mode);
+                if (*HA(0x307E) != 0) {
+                    fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
+                    minigamesGXStuff();
+                }
+            }
+        } while (mode-- != 0);
+        GXSetScissor(0, 0, 0x280, 0x1C0);
+    } else {
         if (*HA(0x3088) != 0 && *HA(0x307E) != 0) {
             RUN_STADIUM_HOOK(0, 0);
             if (STADIUM_HOOK() != NULL) {
@@ -5888,142 +5877,13 @@ void fn_8001E784(void) {
         }
         fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
         minigamesGXStuff();
-        return;
     }
-
-    if (*HA(0x3085) != 0) {
-        color = inputParams[g_d_GameSettings._54].ambient;
-        adjustLightingParams(inputParams[g_d_GameSettings._54].ambient.a != 0, color);
-        for (i = 0; i < 4; i++) {
-            LITInitAttn((void*)HA_U32(0xAC + i * 4), lbl_803CC4F0, lbl_803CC4B8, lbl_803CC4B8, lbl_803CC4F0,
-                        lbl_803CC4B8, lbl_803CC4B8);
-            LITInitPos((void*)HA_U32(0xAC + i * 4), light[i].pos.x, light[i].pos.y, light[i].pos.z);
-            color = light[i].color;
-            LITInitColor((void*)HA_U32(0xAC + i * 4), &color);
-            dir = light[i].pos;
-            PSVECNormalize(&dir, &dir);
-            LITInitDir((void*)HA_U32(0xAC + i * 4), dir.x, dir.y, dir.z);
-            LITXForm((void*)HA_U32(0xAC + i * 4), CAMERA_VIEW(0));
-        }
-    }
-
-    mode = returnScissorMode() - 1;
-    do {
-        setScissorAndProjection(mode);
-        if (*state == 3) {
-            RUN_STADIUM_HOOK(mode, 0);
-            RUN_AND_CLEAR_STADIUM_HOOK(mode);
-            if (*(u16*)HA(0x3078) != 0) {
-                DRAW_OVERLAY_TABLE();
-            }
-            if (*HA(0x307E) != 0) {
-                fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
-                minigamesGXStuff();
-            }
-        } else if (*state == 5) {
-            GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
-            GXSetCullMode(GX_CULL_BACK);
-            GXSetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-            {
-                s32 i2;
-                for (i2 = 0; i2 < hugeAnimStruct.actorTable->count; i2++) {
-                    u8* obj = HA_OBJ(i2);
-                    ActorObjectEntry* entry = &hugeAnimStruct.actorTable->entries[i2];
-                    Actor* actor;
-                    u32* args;
-                    MtxPtr camera;
-                    f32 x;
-                    f32 y;
-
-                    if (obj == NULL) {
-                        continue;
-                    }
-                    if (entry->actor == NULL) {
-                        continue;
-                    }
-                    if (entry->applyControl == 0) {
-                        continue;
-                    }
-                    x = *(f32*)(obj + 0x34) / lbl_803CC514;
-                    y = *(f32*)(obj + 0x38) / lbl_803CC514;
-                    C_MTXFrustum(proj, lbl_803CC518 + y, lbl_803CC51C + y, lbl_803CC520 + x, lbl_803CC524 + x,
-                                 lbl_803CC4F0, lbl_803CC528);
-                    GXSetProjection(proj, GX_PERSPECTIVE);
-                    camera = CAMERA_VIEW(0);
-                    actor = entry->actor;
-                    args = entry->drawArgs;
-                    if (entry->callback != NULL) {
-                        entry->callback(entry);
-                    }
-                    switch (entry->drawArgCount) {
-                    case 0:
-                        fn_8001DD58(actor, 0, camera, 0);
-                        break;
-                    case 1:
-                        fn_8001DD58(actor, 0, camera, 1, args[0]);
-                        break;
-                    case 2:
-                        fn_8001DD58(actor, 0, camera, 2, args[0], args[1]);
-                        break;
-                    case 3:
-                        fn_8001DD58(actor, 0, camera, 3, args[0], args[1], args[2]);
-                        break;
-                    case 4:
-                        fn_8001DD58(actor, 0, camera, 4, args[0], args[1], args[2], args[3]);
-                        break;
-                    case 5:
-                        fn_8001DD58(actor, 0, camera, 5, args[0], args[1], args[2], args[3], args[4]);
-                        break;
-                    case 6:
-                        fn_8001DD58(actor, 0, camera, 6, args[0], args[1], args[2], args[3], args[4], args[5]);
-                        break;
-                    case 7:
-                        fn_8001DD58(actor, 0, camera, 7, args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
-                        break;
-                    case 8:
-                        fn_8001DD58(actor, 0, camera, 8, args[0], args[1], args[2], args[3], args[4], args[5], args[6],
-                                    args[7]);
-                        break;
-                    }
-                }
-            }
-        } else if (*state == 2) {
-            GXSetZCompLoc(0);
-            fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
-        } else if (*state == 4) {
-            fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
-            if (*(u16*)HA(0x3078) != 0) {
-                DRAW_OVERLAY_TABLE();
-            }
-            fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
-            minigamesGXStuff();
-        } else {
-            RUN_STADIUM_HOOK(mode, 0);
-            if (*HA(0x307C) != 0) {
-                fn_8001E0D8(hugeAnimStruct.actorTable, mode, CAMERA_VIEW(mode));
-                fn_800BD670((void*)HA_U32(0x64), CAMERA_VIEW(mode));
-                if (*(u16*)HA(0x3078) != 0) {
-                    DRAW_OVERLAY_TABLE();
-                }
-                if (HA_U32(0x3074) != 0) {
-                    ((void (*)(MtxPtr))HA_U32(0x3074))(CAMERA_VIEW(mode));
-                    HA_U32(0x3074) = 0;
-                }
-            }
-            RUN_AND_CLEAR_STADIUM_HOOK(mode);
-            if (*HA(0x307E) != 0) {
-                fn_8003414C(CAMERA_VIEW(returnsCurrentMode()));
-                minigamesGXStuff();
-            }
-        }
-    } while (mode-- != 0);
-    GXSetScissor(0, 0, 0x280, 0x1C0);
 }
 
 #define BANK_DESC_SIZE 0x64
 #define BANK_DESC_AT(rec, k) ((rec) + 0x140 + ((k) >> 1) * 0xD4 + ((k) & 1) * BANK_DESC_SIZE)
 
-static void copyBankDesc(u8* dst, u8* src) {
+static inline void copyBankDesc(u8* dst, u8* src) {
     *(u32*)(dst + 0x0) = *(u32*)(src + 0x0);
     dst[0x60] = src[0x60];
     *(u32*)(dst + 0x4) = *(u32*)(src + 0x4);
@@ -6036,7 +5896,7 @@ static void copyBankDesc(u8* dst, u8* src) {
 }
 
 static inline void linkHandPartNode(ModelObject* cur, s32 which) {
-    u16 bone;
+    s32 bone;
 
     if (cur != NULL) {
         bone = cur->partBones[handAttachBoneIDs[which]];
@@ -6044,27 +5904,34 @@ static inline void linkHandPartNode(ModelObject* cur, s32 which) {
         bone = 0xFFFF;
     }
     if (bone != 0xFFFF) {
-        ModelOwner* owner = cur->owner;
-        s32 n = (s16)lbl_800EEAAC[cur->charId];
+        s16 n = lbl_800EEAAC[cur->charId];
+        s32 j = 0;
 
-        if (n >= 0 && owner != NULL) {
-            ModelActor* actor = (ModelActor*)cur->actors[0];
-            ModelLinkNode* node = (ModelLinkNode*)actor->nodes[bone];
-            ModelPartList* parts = ((ModelEntry*)hugeAnimStruct.modelEntries)[owner->blocks[which].slot].parts;
+        do {
+            ModelActor* actor = (ModelActor*)cur->actors[j];
 
-            if (parts != NULL) {
-                s32 i;
+            if (n >= 0 && cur->owner != NULL) {
+                ModelLinkNode* node = (ModelLinkNode*)actor->nodes[bone];
+                ModelPartList* parts =
+                    ((ModelEntry*)hugeAnimStruct.modelEntries)[cur->owner->blocks[which].slot].parts;
 
-                for (i = parts->count; i != 0; i--) {
-                    ModelLinkNode* cand = parts->nodes[i - 1];
+                if (parts != NULL) {
+                    s32 i = parts->count;
+                    ModelLinkNode** p = parts->nodes + i;
 
-                    if (cand->link != NULL) {
-                        node->link = cand->link;
-                        break;
-                    }
+                    do {
+                        ModelLinkNode* cand = *--p;
+
+                        i--;
+                        if (cand->link != NULL) {
+                            node->link = cand->link;
+                            break;
+                        }
+                    } while (i != 0);
                 }
+                return;
             }
-        }
+        } while (j-- != 0);
     }
 }
 
@@ -6140,39 +6007,42 @@ BOOL fn_80011CA8(void* objPtr, s32 kind, s32 seq) {
 extern u8 lbl_803CBC04;
 extern u32 lbl_803CBC08;
 
-static inline BOOL finishHandItemLoad(u32 tex) {
+static inline u8 finishHandItemLoad(u32 tex) {
     ModelSlotBlock* block;
     s32 i;
     void* layout;
     void* geo;
     u8* partSlot;
+    u8 ret;
 
-    if (lbl_803716B8[0x1E8] != 0) {
-        return FALSE;
-    }
-    block = (ModelSlotBlock*)lbl_803CBC1C;
-    lbl_803CBC0C = 0;
-    for (i = 0; i < 4; i++) {
-        if (block->loaded[i] != NULL) {
-            block->loaded[i] = (void*)((u8*)block->loaded + (u32)block->loaded[i]);
+    if (lbl_803716B8[0x1E8] == 0) {
+        block = (ModelSlotBlock*)lbl_803CBC1C;
+        lbl_803CBC0C = 0;
+        for (i = 0; i < 4; i++) {
+            if (block->loaded[i] != NULL) {
+                block->loaded[i] = (void*)((u8*)block->loaded + (u32)block->loaded[i]);
+            }
         }
+        layout = block->loaded[lbl_803CB7C4[0]];
+        geo = block->loaded[lbl_803CB7C4[1]];
+        partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+        LoadActorLayout(layout);
+        convertGeometryAndSknHeader(geo, NULL);
+        haveActLayoutPointToGeoHeader(layout, geo);
+        UpdateTexturePalettePointers(geo, (void*)tex);
+        fn_800238E0(hugeAnimStruct.modelEntries, block->slot, block->slot, layout);
+        if (block->loaded[2] != NULL) {
+            adjustInternalPointers(block->loaded[lbl_803CB7C4[2]]);
+            ACTActorRelated(block->loaded[lbl_803CB7C4[2]], partSlot);
+        }
+        block->_04 = block->loaded[lbl_803CB7C4[3]];
+        actRelated(block->loaded[lbl_803CB7C4[2]], &block->_04);
+        lbl_803CBC1C = NULL;
+        ret = TRUE;
+    } else {
+        ret = FALSE;
     }
-    layout = block->loaded[lbl_803CB7C4[0]];
-    geo = block->loaded[lbl_803CB7C4[1]];
-    partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
-    LoadActorLayout(layout);
-    convertGeometryAndSknHeader(geo, NULL);
-    haveActLayoutPointToGeoHeader(layout, geo);
-    UpdateTexturePalettePointers(geo, (void*)tex);
-    fn_800238E0(hugeAnimStruct.modelEntries, block->slot, block->slot, layout);
-    if (block->loaded[2] != NULL) {
-        adjustInternalPointers(block->loaded[lbl_803CB7C4[2]]);
-        ACTActorRelated(block->loaded[lbl_803CB7C4[2]], partSlot);
-    }
-    block->_04 = block->loaded[lbl_803CB7C4[3]];
-    actRelated(block->loaded[lbl_803CB7C4[2]], &block->_04);
-    lbl_803CBC1C = NULL;
-    return TRUE;
+    return ret;
 }
 
 BOOL fn_80012B90(void* objPtr) {
@@ -6182,8 +6052,7 @@ BOOL fn_80012B90(void* objPtr) {
     u8 phase = lbl_803CBC04;
     ModelOwner* owner;
     u32 tex;
-    s32 ready;
-    s32 isFlagClear;
+    u8 isFlagClear;
     s32 kind;
     ModelSlotBlock* target;
     s32 groupIndex;
@@ -6200,8 +6069,9 @@ BOOL fn_80012B90(void* objPtr) {
     case 0:
     case 3:
     case 6:
-        owner->texPalette = **(void***)(obj + 8);
-        lbl_803CBC08 = (u32)**(void***)(obj + 8);
+        tex = (u32)**(void***)(obj + 8);
+        owner->texPalette = (void*)tex;
+        lbl_803CBC08 = tex;
         owner->charId = charId;
         if (lbl_803CBC04 == 0) {
             ((u8*)owner)[0xD1] = ((u8*)owner)[0xD0];
@@ -6222,10 +6092,9 @@ BOOL fn_80012B90(void* objPtr) {
     case 2:
         tex = lbl_803CBC08;
         isFlagClear = (owner->flag == 0);
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
-            if (isFlagClear == owner->flag) {
-                kind = 1 - isFlagClear;
-            } else {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
+            kind = 1 - isFlagClear;
+            if (isFlagClear != owner->flag) {
                 kind = 3 - isFlagClear;
             }
             if (isFlagClear != 0) {
@@ -6237,15 +6106,14 @@ BOOL fn_80012B90(void* objPtr) {
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, kind, target->loaded);
         }
-        ready = finishHandItemLoad(tex);
-        if (ready) {
+        if (finishHandItemLoad(tex)) {
             owner->flag = (owner->flag == 0);
             lbl_803CBC04 = lbl_803CBC04 + 1;
         }
         break;
     case 4:
         tex = lbl_803CBC08;
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             lbl_803CBC1C = (u8*)&owner->blocks[1];
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, 1, owner->blocks[1].loaded);
@@ -6256,7 +6124,7 @@ BOOL fn_80012B90(void* objPtr) {
         break;
     case 5:
         tex = lbl_803CBC08;
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             lbl_803CBC1C = (u8*)&owner->blocks[0];
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, 0, owner->blocks[0].loaded);
@@ -6267,7 +6135,7 @@ BOOL fn_80012B90(void* objPtr) {
         break;
     case 7:
         tex = lbl_803CBC08;
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             lbl_803CBC1C = (u8*)&owner->blocks[1];
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, 5, owner->blocks[1].loaded);
@@ -6278,7 +6146,7 @@ BOOL fn_80012B90(void* objPtr) {
         break;
     case 8:
         tex = lbl_803CBC08;
-        if (lbl_803CBC0C == 0 && ((u8*)&lbl_803C6CF8)[0x715] == 1) {
+        if (lbl_803CBC0C == 0 && (s8)((u8*)&lbl_803C6CF8)[0x715] == 1) {
             lbl_803CBC1C = (u8*)&owner->blocks[0];
             lbl_803CBC0C = 1;
             loadCharacterHandItem(owner->charId, 4, owner->blocks[0].loaded);
@@ -6297,7 +6165,7 @@ BOOL fn_80012B90(void* objPtr) {
 }
 
 void fn_80011578(void) {
-    s8 i;
+    s32 i;
 
     for (i = 0; i < 13; i++) {
         clearObjectField5C(i);
@@ -6368,15 +6236,15 @@ void fn_80014990(int index, void* file, u32 value) {
 extern void fn_80017814(u8* record, s32 slot, s32 mode, void (*callback)(u8*));
 extern void fn_8001FDD4(u8* obj);
 
-BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h) {
+BOOL fn_8001758C(void* a, int b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h) {
     u8* state = a;
-    u8* rec = HA(MODEL_RECORD_BASE + b * MODEL_RECORD_SIZE);
+    u8* rec = HA_SLOTS.pool[b];
     s32 fileIndex;
 
     switch (*state) {
     case 0:
-        if (((u8*)&lbl_803C6CF8)[0x715] != 1) {
-            return FALSE;
+        if ((s8)((u8*)&lbl_803C6CF8)[0x715] != 1) {
+            break;
         }
         rec[0x25C] = 1;
         rec[0x256] = d;
@@ -6394,27 +6262,26 @@ BOOL fn_8001758C(void* a, u8 b, u8 c, u8 d, u8 e, u8 f, u8 g, u8 h) {
         }
         if (rec[0x278] != 0 && h == 1 && *(s16*)HA(0x2D5C) == c) {
             memcpy(*(void**)(rec + 8), *(void**)HA(0x2D54), *(u32*)HA(0x2D58));
-            break;
+            goto finish;
         }
         if (g >= 10 && g <= 12 && h == 0 && *(s16*)HA(0x2D44) == c) {
             memcpy(*(void**)(rec + 8), *(void**)HA(0x2D3C), *(u32*)HA(0x2D40));
-            break;
+            goto finish;
         }
         if (h == 0 || fn_8002204C((s8)rec[0x252], *(s32*)(rec + 8)) == NULL) {
             ARAMTransfer((u8*)lbl_803CB790 + fileIndex * 16, *(s32*)(rec + 8), 0, 0);
         }
         *state = 1;
-        return FALSE;
-    case 1:
-        if (lbl_803716B8[0x1E8] != 0 || ((u8*)&lbl_803C6CF8)[0x715] != 1) {
-            return FALSE;
-        }
         break;
-    default:
-        return FALSE;
+    case 1:
+        if (lbl_803716B8[0x1E8] != 0 || (s8)((u8*)&lbl_803C6CF8)[0x715] != 1) {
+            break;
+        }
+    finish:
+        fn_80017814(rec, (s8)rec[0x255], g, fn_8001FDD4);
+        return TRUE;
     }
-    fn_80017814(rec, (s8)rec[0x255], g, fn_8001FDD4);
-    return TRUE;
+    return FALSE;
 }
 
 void fn_800177B4(void) {
@@ -6520,7 +6387,7 @@ extern Mtx identityMtx;
 extern Mtx lbl_800E6630;
 extern f32 lbl_803CC4B8;
 extern u8 destAnimStructs[0x204C];
-void fn_8001BE50(s32 index, s16 a, u8 b, u8 c, s16 d, u8 e, s32 f);
+void fn_8001BE50(s32 index, int a, u8 b, u8 c, s16 d, u8 e, s32 f);
 void fn_800B2D5C(void* ptr);
 
 typedef struct MtxCopy {
@@ -6623,11 +6490,11 @@ void fn_8001B224(void) {
 
 void fn_80017D28(u8* obj) {
     s32 slot = (s8)obj[0x255] + 4;
-    u8* rec = HA(0) + slot * 0x27C;
+    u8* rec = HA(0) + slot * MODEL_RECORD_SIZE;
     u8* p;
 
-    rec[0xE56] = obj[0x252];
-    p = rec + 0xC04;
+    rec[MODEL_RECORD_BASE + 0x252] = obj[0x252];
+    p = rec + MODEL_RECORD_BASE;
     p[0x254] = obj[0x254];
     p[0x255] = slot;
     p[0x25C] = 1;
@@ -6636,24 +6503,23 @@ void fn_80017D28(u8* obj) {
     p[0x25A] = obj[0x25A];
     p[0x25B] = obj[0x25B];
     *(u32*)(p + 8) = *(u32*)(obj + 0xC);
-    /* fn_80017814 takes four arguments; the original passes only what is already in r4-r6, so the call is cast to one argument. */
-    ((void (*)(void*))fn_80017814)(p);
+    fn_80017814(p, slot, 0, fn_8001FDD4);
 }
 
 void fn_8001F16C(void) {
-    u8* node;
-    u8* obj;
+    ActorObjectTable* table;
     s32 i;
-    u8* actors;
+    u8* obj;
+    ActorObjectEntry* entry;
 
     if (*HA(0x307A) != 0 && *HA(0x307A) != 3) {
-        actors = (u8*)hugeAnimStruct.actorTable;
-        for (i = 0; i < *(u16*)actors; i++) {
-            obj = HA_OBJ(i);
+        table = hugeAnimStruct.actorTable;
+        for (i = 0; i < table->count; i++) {
+            obj = (u8*)hugeAnimStruct.objects[i];
             if (obj != NULL) {
-                node = (u8*)hugeAnimStruct.actorTable + (s8)obj[0x255] * 0x90 + 0x34;
-                if (*(void**)node != NULL && node[0x6C] != 0) {
-                    fn_800B2D5C(*(void**)node);
+                entry = &hugeAnimStruct.actorTable->entries[(s8)obj[0x255]];
+                if (entry->actor != NULL && entry->applyControl != 0) {
+                    fn_800B2D5C(entry->actor);
                 }
             }
         }

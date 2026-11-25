@@ -7,10 +7,10 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 
 | function | status | % |
 |---|---|---|
-| fn_80011468 | pending | 85.15 |
+| fn_80011468 | matched | 100.00 |
 | fn_80011570 | matched | 100.00 |
-| fn_80011578 | pending-WEAK | 66.10 |
-| fn_800115C8 | pending | 99.00 |
+| fn_80011578 | matched | 100.00 |
+| fn_800115C8 | matched | 100.00 |
 | fn_80011604 | pending | 99.00 |
 | fn_80011640 | matched | 100.00 |
 | fn_800116DC | pending | 99.63 |
@@ -20,11 +20,11 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_80011A60 | pending | 92.62 |
 | fn_80011B64 | pending | 97.69 |
 | fn_80011BE4 | pending | 97.96 |
-| fn_80011CA8 | pending-WEAK | 60.01 |
-| fn_800126EC | pending | 84.18 |
-| LoadModel | pending | 80.22 |
-| fn_80012B90 | pending | 88.88 |
-| animateModelArmsGlovesBats | pending-WEAK | 57.33 |
+| fn_80011CA8 | pending | 66.51 |
+| fn_800126EC | matched | 100.00 |
+| LoadModel | pending | 98.30 |
+| fn_80012B90 | pending | 93.39 |
+| animateModelArmsGlovesBats | pending | 92.08 |
 | fn_80014204 | pending | 80.71 |
 | fn_800145F8 | pending | 87.85 |
 | fn_80014990 | pending | 93.09 |
@@ -32,34 +32,34 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | loadSomethingFromDiskAtBeginningOfAB1 | matched | 100.00 |
 | loadSomethingFromDiskAtBeginningOfAB2 | matched | 100.00 |
 | loadBatterModelFromDisk | matched | 100.00 |
-| fn_8001500C | pending | 88.99 |
+| fn_8001500C | pending | 96.83 |
 | fn_80015468 | pending | 93.57 |
-| practice_loadAllGraphics | pending-WEAK | 70.08 |
-| fn_80016344 | pending | 77.25 |
-| fn_80016710 | pending | 75.07 |
-| fn_80016B60 | pending | 75.32 |
-| fn_80016F7C | pending | 89.54 |
-| fn_80017098 | pending | 78.84 |
-| fn_80017340 | pending | 81.76 |
-| fn_8001758C | pending | 80.09 |
+| practice_loadAllGraphics | pending | 97.25 |
+| fn_80016344 | pending | 97.49 |
+| fn_80016710 | pending | 93.55 |
+| fn_80016B60 | matched | 100.00 |
+| fn_80016F7C | matched | 100.00 |
+| fn_80017098 | pending | 98.15 |
+| fn_80017340 | pending | 98.09 |
+| fn_8001758C | pending | 92.06 |
 | fn_800177B4 | pending | 99.00 |
 | fn_80017814 | pending | 92.88 |
-| fn_80017D28 | pending | 88.11 |
+| fn_80017D28 | matched | 100.00 |
 | fn_80017DBC | pending | 90.70 |
-| setupAnimationModelMemory | pending-WEAK | 63.93 |
-| animationInitializationRunnerRelated | pending-WEAK | 70.75 |
+| setupAnimationModelMemory | pending | 85.74 |
+| animationInitializationRunnerRelated | pending | 84.68 |
 | fn_800188C0 | matched | 100.00 |
 | fn_800189B8 | matched | 100.00 |
 | fn_800189E4 | pending | 91.88 |
 | fn_80018B38 | matched | 100.00 |
-| fn_80018B74 | pending | 87.89 |
-| fn_80018DEC | pending | 78.59 |
-| fn_800196D8 | pending | 86.33 |
+| fn_80018B74 | pending | 97.50 |
+| fn_80018DEC | pending | 80.11 |
+| fn_800196D8 | matched | 100.00 |
 | fn_80019A60 | pending | 91.69 |
-| fn_80019C00 | pending | 77.59 |
+| fn_80019C00 | pending | 99.51 |
 | fn_8001A25C | pending | 91.69 |
 | fn_8001A3FC | exhausted | 98.61 |
-| challengeMapRelated | pending | 87.45 |
+| challengeMapRelated | matched | 100.00 |
 | fn_8001AAA4 | matched | 100.00 |
 | fn_8001AAF0 | matched | 100.00 |
 | fn_8001AB10 | pending | 93.93 |
@@ -69,44 +69,44 @@ Every function in the unit is now drafted (no 0% rows). Rows marked pending-WEAK
 | fn_8001B224 | pending | 97.53 |
 | copyAnimationStructures | matched | 100.00 |
 | fn_8001B308 | pending | 93.57 |
-| fn_8001B35C | pending | 83.65 |
-| fn_8001B4D8 | pending-WEAK | 74.81 |
-| fn_8001B5EC | pending | 89.87 |
+| fn_8001B35C | pending | 99.95 |
+| fn_8001B4D8 | pending | 98.12 |
+| fn_8001B5EC | pending | 98.61 |
 | getAnimationCollisionOffset | matched | 100.00 |
 | getAnimRelatedCoordinates | matched | 100.00 |
 | QueueCharacterAnimation | matched | 100.00 |
 | AnimateCharacter | matched | 100.00 |
-| fn_8001BA44 | pending | 79.40 |
-| fn_8001BE50 | pending | 81.43 |
-| fn_8001C234 | pending | 86.23 |
+| fn_8001BA44 | pending | 94.59 |
+| fn_8001BE50 | pending | 96.87 |
+| fn_8001C234 | matched | 100.00 |
 | fn_8001C528 | pending | 95.62 |
 | loadFielderActors | matched | 100.00 |
-| loadAndAnimateCharacter | pending | 88.88 |
+| loadAndAnimateCharacter | pending | 98.52 |
 | loadCharacterAnimation | matched | 100.00 |
 | fn_8001CA40 | matched | 100.00 |
 | fn_8001CB10 | matched | 100.00 |
 | initStadiumLighting | matched | 100.00 |
-| fn_8001CCC8 | pending | 84.25 |
-| stadiumSetupRelated | pending | 88.20 |
+| fn_8001CCC8 | matched | 100.00 |
+| stadiumSetupRelated | matched | 100.00 |
 | fn_8001D074 | pending | 91.30 |
 | applyUniformScaleToObject | matched | 100.00 |
 | applyNonUniformScaleToObject | matched | 100.00 |
 | baseballCTRLSetScale | matched | 100.00 |
 | setHandModelAttached | matched | 100.00 |
 | fn_8001D2D4 | pending | 90.92 |
-| fn_8001DB74 | pending | 87.81 |
+| fn_8001DB74 | pending | 99.30 |
 | fn_8001DD58 | matched | 100.00 |
 | fn_8001DEA4 | matched | 100.00 |
-| fn_8001E0D8 | pending | 89.80 |
+| fn_8001E0D8 | matched | 100.00 |
 | fn_8001E460 | matched | 100.00 |
 | setNullPtrForStadiumObjs | matched | 100.00 |
 | fn_8001E488 | pending | 97.30 |
-| fn_8001E784 | pending | 75.96 |
-| fn_8001F16C | pending | 88.91 |
+| fn_8001E784 | pending | 97.94 |
+| fn_8001F16C | pending | 99.15 |
 | resetGameStadiumStateOnExit | pending | 94.06 |
 | challengeMapMaybe | matched | 100.00 |
 | somethingFileHandlingLoadingRelated | pending | 95.51 |
-| fn_8001F8A4 | pending | 86.06 |
+| fn_8001F8A4 | pending | 98.70 |
 | initShortsHandleCompressedDiskReads | matched | 100.00 |
 | fn_8001FDD4 | matched | 100.00 |
 
@@ -142,44 +142,44 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
 | fn_8001DEA4 | matched | 100 |
 | fn_8001AF98 | matched | 100 |
 | fn_800189E4 | pending | 91.88 |
-| fn_8001B35C | pending | 83.65 |
+| fn_8001B35C | pending | 99.95 |
 | fn_80019A60 | pending | 91.69 |
 | fn_8001A25C | pending | 91.69 |
-| fn_8001CCC8 | pending | 84.25 |
-| fn_8001DB74 | pending | 87.81 |
-| fn_8001758C | pending | 80.09 |
-| fn_80017340 | pending | 81.76 |
+| fn_8001CCC8 | matched | 100.00 |
+| fn_8001DB74 | pending | 99.30 |
+| fn_8001758C | pending | 92.06 |
+| fn_80017340 | pending | 98.09 |
 | fn_80017DBC | pending | 90.70 |
-| fn_80018B74 | pending | 87.89 |
-| fn_80017098 | pending | 78.84 |
+| fn_80018B74 | pending | 97.50 |
+| fn_80017098 | pending | 98.15 |
 | fn_8001A3FC | exhausted | 98.61 |
-| fn_8001C234 | pending | 86.23 |
+| fn_8001C234 | matched | 100.00 |
 | fn_8001E488 | pending | 97.30 |
 | fn_80014A18 | pending | 94.58 |
-| fn_800196D8 | pending | 86.33 |
-| fn_8001E0D8 | pending | 89.80 |
+| fn_800196D8 | matched | 100.00 |
+| fn_8001E0D8 | matched | 100.00 |
 | fn_800145F8 | pending | 39.48 |
-| fn_8001F8A4 | pending | 86.06 |
-| fn_80016344 | pending | 77.25 |
-| fn_8001BE50 | pending | 81.43 |
+| fn_8001F8A4 | pending | 98.70 |
+| fn_80016344 | pending | 97.49 |
+| fn_8001BE50 | pending | 96.87 |
 | fn_80014204 | pending | 49.62 |
-| fn_8001BA44 | pending | 79.40 |
-| fn_80016B60 | pending | 75.32 |
-| fn_80016710 | pending | 75.07 |
-| fn_8001500C | pending | 88.99 |
+| fn_8001BA44 | pending | 94.59 |
+| fn_80016B60 | matched | 100.00 |
+| fn_80016710 | pending | 93.55 |
+| fn_8001500C | pending | 96.83 |
 | fn_8001AB10 | pending | 93.93 |
 | fn_80015468 | pending | 93.57 |
 | fn_80017814 | pending | 56.21 |
-| fn_80019C00 | pending | 77.59 |
+| fn_80019C00 | pending | 99.51 |
 | fn_8001D2D4 | pending | 90.92 |
-| fn_80018DEC | pending | 78.59 |
-| fn_8001E784 | pending | 75.96 |
+| fn_80018DEC | pending | 80.11 |
+| fn_8001E784 | pending | 97.94 |
 | fn_80011CA8 | pending | 60.01 |
-| fn_80011468 | pending | 85.15 |
-| fn_800126EC | pending | 84.18 |
-| fn_8001B4D8 | pending | 74.81 |
-| fn_80016F7C | pending | 89.54 |
-| fn_8001B5EC | pending | 89.87 |
+| fn_80011468 | matched | 100.00 |
+| fn_800126EC | matched | 100.00 |
+| fn_8001B4D8 | pending | 98.12 |
+| fn_80016F7C | matched | 100.00 |
+| fn_8001B5EC | pending | 98.61 |
 
 ## fn_8001A3FC [O1] (692 bytes target, 692 ours; 35.90% -> 98.61% fuzzy, unit 80.28% -> 81.01%)
   baseline: 35.90% (968 bytes)
@@ -263,7 +263,506 @@ Left alone: every function over ~150 bytes that was unowned, and all existing dr
       rec[0x255] loaded before the anim branch in ours, and the memset loop's i*4 counter is a fresh `li 0` instead of a copy of i.
   note: fn_80017DBC (90.70%) has the same bone block; the s32 bone / (u16) index form may help it.
 
+## animateModelArmsGlovesBats [O1] (2948 bytes target, 2952 ours; 57.33% -> 92.08% fuzzy, unit 83.70% -> 85.41%)
+  baseline: 57.33% (2716 bytes)
+  [1] rewrite on the target's shape: u8 record counters (clrlwi/cmplwi 13), the bone link as an inline (linkHandAttachBone) with an int `bone`
+      (addis compare, 0xFFFF as lis/subi), the finish routine as an inline taking the texture read before the load request (attachHandModel(tex),
+      same shape as fn_80012B90's finishHandItemLoad), the two load phases inside `for (;;)` (phase 1 success loops back to the top), the
+      category test as `(part < 9 && r211 < 9) || (part >= 9 && r211 >= 9)` re-reading actor+0x254, PARAGOOMBA-style shared stores -> 78.8%
+  [2] linkHandAttachBone: the target loops over obj->actors (counter 0, pointer -4, `while (j-- != 0)`) with the s16 table test inside; a
+      `j = 0; do { ... } while (j-- != 0);` keeps that loop (for (j = 0; j >= 0; j--) folds away; s8/s16 j keep it but 84.2) -> 86.3%
+  [3] parts walk as `p = arr + count; do { cand = *--p; count--; ... } while (count != 0)` (lwzu -4, no guard) -> 88.6%
+  [4] `match = selSet == lowPart` assigned per phase (CLZ idiom instead of compare/branch) and the 0x715 test through (s8*) (cmpwi) -> 89.5%
+  [5] attachHandModel with a single exit (`ret = TRUE/FALSE; return ret;`) so the result is a register tested with `clrlwi.` -> 90.8%
+  [6] the first-pass match loop indexes `((u8(*)[0xD4])hugeAnimStruct)[i]` (rec) so the matched-record store recomputes the base -> 91.0%
+  [7] `sel` as s32 (no clrlwi of the 0x25A/0x25B byte) -> 91.96% (local scorer; report 92.08%)
+  tried, no gain: a result variable without the single-exit inline (merged away), RECORD(i) everywhere instead of rec (89.7), the matched
+      record through the array form only in the first loop (90.7), u8 match / u8 selSet (91.4), an entry local or ModelEntry90 struct for
+      the parts lookup (no change).
+  remaining: the parts lookup is `addi 0x34; lwzx` in ours vs `add; lwz 0x34` in the target; the free-slot and replacement stores use the
+      kept record pointer where the target recomputes hugeAnimStruct + i*0xD4; `match` is u8 in the target (extrwi 8,19) and computed
+      once before the loop for phase 1; register numbering in the first-pass loop.
+  not done: unifying attachHandModel with fn_80012B90's finishHandItemLoad -- the two sit under different hugeAnimStruct views (raw byte
+      array here, the full struct there) and lbl_803CB7C4/lbl_803716B8 views; the bodies are now the same shape, so a shared inline is
+      possible once the views are unified.
+
+## fn_80011CA8 [O1] (2628 bytes target, 2156 ours; 60.01% -> 66.51% fuzzy, unit 85.41% -> 85.70%)
+  baseline: 60.01% (2116 bytes)
+  [1] copyBankDesc made `static inline` (the target inlines all twelve copies: scalar fields + two memcpy each) -> part of the gain
+  [2] linkHandPartNode rewritten like animateModelArmsGlovesBats' linkHandAttachBone: int bone (addis compare), s16 table value tested inside
+      a `j = 0; do { ... } while (j-- != 0);` loop over cur->actors, the parts walk as `p = nodes + count; do { *--p; count--; } while (count)`
+      -> both link blocks now match the target's shape. Together with [1]: 63.16% local, 66.51% report.
+  tried, worse: descriptor pointers in the target's owner form ((slot * 3 + k / 2) * 0xD4 + 0x140, as fn_80012B90 does) for descriptors 2..5
+      everywhere (44.5%, 2492 bytes), only in the write-back (52.9%), only as copy-in sources (54.0%), and with `rec` dropped in favour of
+      HA(slot * 0x27C) at every use (43.9% / 52.4%, 2532 / 2436 bytes). They get closer in size but misalign the copy-in sequence.
+  remaining: 472 bytes short. The target recomputes hugeAnimStruct + slot*0x27C for every copy-in and keeps the descriptor memcpy pointers
+      (desc+0x10 / desc+0x34) for descriptors 2..5 live in r18..r25, computed in the owner form; the write-back switch then stores through 28
+      precomputed field addresses held on the stack (0x270..0x2C8). Ours folds everything into constant offsets from one record pointer.
+      Next idea: give the copy-in and the write-back the same owner-form descriptor pointer expressions but keep the scalar reads through
+      a separately recomputed record base (e.g. a typed records view vs. byte arithmetic), so only the memcpy addresses are shared.
+
+## setupAnimationModelMemory [O1] (588 bytes target, 592 ours; 63.93% -> 85.74% fuzzy, unit 85.70% -> 85.91%)
+  baseline: 63.93% (652 bytes)
+  [1] the hand-unrolled 18 x 3 scan replaced by one 54-iteration loop (the compiler's 3x unroll with ctr 18 and the dead +2 counter) -> 74.1%, 556 bytes
+  [2] KEY: a running file index `entry += 19` with byte addressing `*(u32*)(base + entry * 16 + 4)` / `(entry + 1) * 16 + 4`: the A field is
+      strength-reduced (`addi K; lwzx`), the B field recomputed per copy (`addi; slwi; addi 4; lwzx`), as in the target -> 84.6%.
+      Struct indexing `[entry]` / `[entry + 1]` (74.1) and parenthesised offsets (79.0, 588 bytes) are worse.
+  [3] local declaration order (entry, maxA, i, maxB, v) -> 84.93% local, 85.74% report (24 decl orders and 6 init orders measured, all within 0.3).
+  tried, no gain: NULL instead of 0, a shared `none` pointer for the zero stores.
+  remaining: the target materialises the 0 once before the toy-field branch and keeps the pointer/zero stores in source order (ours sinks the
+      zero stores and loads 0 in each branch: the 4 extra bytes); register numbering in the scan (entry r5 / offset copy r3 in the target).
+  readability: 54 (characters) and 19 (files per character) left as literals; CHAR_RECORD_COUNT (54) is only defined in a later view block.
+
+## fn_80011578 / fn_800115C8 [O1] (shared inline clearObjectField5C) -- both matched
+  baseline: fn_80011578 66.10% (84 bytes vs 80), fn_800115C8 99.00%
+  [1] fn_80011578's loop counter as s32 (s8 index is only the inline's parameter): ctr loop of 13 as in the target -> 94% (u32 same; u8 70.2; s16 75.2)
+  [2] clearObjectField5C reads the slot as `(u8*)hugeAnimStruct.objects[index]` instead of HA_OBJ(index) (byte offset 0x2C50 + index*4):
+      the target adds base + index*4 then loads 0x2C50(rX) -> fn_80011578 100%, fn_800115C8 100%.
+      `((u8**)HA(0x2C50))[index]` 83.75 / 100; `*(u8**)(HA(0x2C50) + index * 4)` 100 / 98.67.
+  final source:
+      static inline void clearObjectField5C(s8 index) { ... if (index < 0 || index >= 13) return;
+          obj = (u8*)hugeAnimStruct.objects[index]; if (obj == NULL) return; *(u32*)(obj + 0x5C) = 0; }
+      void fn_80011578(void) { s32 i; for (i = 0; i < 13; i++) { clearObjectField5C(i); } }
+  readability pass: done. 13 (object slots) left as a literal: no object-count constant is in scope at this point of model.c
+      (ANIM_OBJECT_COUNT / RECORD_COUNT are defined and #undef'd inside other view blocks).
+
+## practice_loadAllGraphics [O1] (2552 bytes target, 2552 ours; 70.08% -> 97.25% fuzzy, unit 85.96% -> 87.12%)
+  baseline: 70.08% (2416 bytes)
+  [1] `anim` as a macro for hugeAnimStruct instead of a `u8* anim` local: the target rematerialises the base per block -> 74.5%
+  [2] the 0xB/0xC phase macro rebuilt around small u8-returning pieces: loadPracticeEffect() as a static inline with a single exit
+      (`li r3,1/0; clrlwi.` as in the target) and the 0xC arms step likewise; the effect-search step had to stay a macro
+      (STEP_PRACTICE_EFFECTS(done)) because MWCC would not inline it as a function (it was emitted out of line, 1240 bytes) -> 85.6%
+  [3] (u8) test of animateModelArmsGlovesBats' result, (u32) compare with 9, (s8) 0x715 test -> 85.6%
+  [4] the 0x2D77 == 2 block re-reading anim[0x2D7B] instead of locals -> 86.6%
+  [5] the found path of the effect search jumps straight to the stepped join with a goto (label passed in, one per expansion) -> 88.2%
+  [6] line-up release block: re-read OBJ_SLOT(anim, i) at every use (the target reloads it), `if (k < 9) continue`, the inner obj != NULL
+      re-check, s8 -1/-2 stores; the slot search for fn_80017098 passes the loop index k itself (no separate idx = 9) -> 94.7%
+  [7] the effect search reads p[0x61] once per test into a u8 (`(s8)(c61 = p[0x61]) != -2`) -> 94.97%, size exact
+  [8] the free-slot count loop walks the base pointer itself (q) while the match loop uses a copy (p = q) -> 96.57% local, 97.25% report
+  tried, no gain: OBJ_SLOT as a u8** array index, typeId as s32 with (u8) casts, the count loop as a for with break (vs while).
+  remaining: typeId is re-zero-extended in the target (clrlwi before the match loop, clrlslwi for the lbl_800EEB18 index); register numbering
+      (base r28/r29 vs ours r29/r30); the lineUp / inMemRoster address setup order in the release loop.
+
+## animationInitializationRunnerRelated [O1] (1616 bytes target, 1680 ours; 70.75% -> 84.68% fuzzy, unit 87.12% -> 87.49%)
+  baseline: 70.75% (1736 bytes)
+  [1] CORRECTNESS FIX: the draft sized the pools with `(a >> 5)` where the target uses aUp * 4 (`extlwi rX,rY,25,2` = ((maxA + 31) >> 5) << 7):
+      mode 2 allocates aUp * 4 + 0x13E80, the other modes bUp * 9 + aUp * 4 + aUp + bUp. The old draft computed a different value.
+  [2] the roster scans use byte addressing `*(u32*)(base + (charId * 19 + k) * 16 + 4)` (file entry 0 / 1 of the character's 19-entry
+      block), giving the target's mulli 0x130 / (mulli 0x13; addi 1; slwi 4) + lwzx forms; same for the all-characters B scan -> 75.6%
+  [3] int `i` (the 1..8 alloc loop compares signed) and the mode-2 buffer carve as a running `base += aUp` like the other branch -> 77.9%
+  [4] the nine-slot buffer loop counted with a u8 (`slot`) -> 84.68% report (s32 81.6, s16 79.6, u32 no change)
+  tried, no gain: separate/typed counters for the 13-slot clear loop (u32/s32/u8/s16 all <= 79.0), chain-initialised counters
+      (`i = n = 0`), a shared zero variable for the clear loop, a chained double store.
+  remaining (64 bytes over): the target fully unrolls the nine-slot carve (constant offsets 0xC0C..0x1FEC) behind a `cmpwi r0,9` guard and
+      the 13-slot clear as 12 straight stores + a remainder loop behind a `cmpwi r6,13` guard (both guards on a register holding the
+      loop's 0, the clear loop's 0 shared with the stored value); ours unrolls both partially. Also the mode-0 scan's team counter is a
+      copy of maxA's 0 in the target (`mr r9,r31`).
+
+## fn_8001B4D8 [O1] (276 bytes target, 276 ours; 74.81% -> 98.12% fuzzy; fn_8001B5EC 89.87% -> 91.52% as a side effect, unit 87.49% -> 87.61%)
+  baseline: 74.81% (296 bytes)
+  [1] the apply / offsetApplied test as one positive `if (apply != 0 && obj->offsetApplied == 0) { ... }` (the early-return form
+      branched twice) -> 79.2%
+  [2] the actor-table entry addressed as `hugeAnimStruct.actorTable->entries[(u16)slot]` (ActorObjectEntry, .actor / .unk64 / .unk66) at
+      each use: the target keeps the table and the slot*0x90 offset and re-adds them after the call, which only happens with the typed
+      form (byte arithmetic through a node pointer CSEs the address; mixing the two is 83.9%) -> 96.4%; `moved` declared before `offset`
+      (stack slots) -> 96.6%
+  [3] getRootBone returns s32 (shared with fn_8001B5EC): the target truncates the first bone with clrlwi (stored through a u16) and
+      keeps the second untruncated (s32) -> 98.12%, size exact; fn_8001B5EC rises 89.87 -> 91.52
+  tried, no gain: 60 declaration orders, obj assigned as a statement.
+  remaining: register numbering only (obj in r31 / table r30 / offset r27 in the target vs r29 / r27 / r29 in ours).
+
+## fn_80016710 [O1] (1104 bytes target, 1080 ours; 75.07% -> 93.51% fuzzy, unit 87.61% -> 87.95%)
+  baseline: 75.07% (1028 bytes)
+  [1] record / object / flag addressing through the typed HA_SLOTS view (pool[slot], objects[slot], flags[]) instead of HA() byte offsets:
+      base + index order as in the target -> 72.9% local (alignment shifted, kept for the later steps)
+  [2] KEY: each state-4 branch written out with its own `if (!attached) return 0;` (u8 result, clrlwi.), the no-part case folded into the
+      test (`fileIndex == -1 || part->0x10 == 0` -> clear rec+0x2C, attached = TRUE) instead of goto joins, the part pointer re-read from
+      rec+8 at each use, (s8) 0x715 test -> 89.9%
+  [3] state 5: each mode's call tested on its own with a (u8) cast -> 91.2%
+  [4] state 3 as a static inline (loadSlotAnimBank) with `return 1` from the ready branch and a shared `return 0` (the target's shared
+      `li r0,0` join) -> 93.1% local, 93.51% report
+  remaining (24 bytes short): the record + 8 address is kept in a register in a slightly different order, the final attach-store sequence
+      (lis / stb lbl_803CBBFA / add) is scheduled differently, and a few lwz loads of rec+8 sit before vs. after their address computation.
+
+## fn_80016B60 [O1] -- matched (1052 bytes)
+  baseline: 75.32% (992 bytes)
+  [1] KEY: each mode branch computes the whole file index (`fileIndex = (s8)rec[0x252] * 0x13 + K`) and the transfer adds it to
+      lbl_803CB790 once (`base + fileIndex * 16`), as the target does, instead of selecting only the offset K -> 96.16%, size exact
+  [2] MODEL_ANIM_READY tests the byte through (s8) (cmpwi) -> 97.30%
+  [3] MODEL_RECORD_BUFFER indexes the five-word per-slot buffer sets as `((u32*)HA(offset))[(s8)rec[0x255] * 5]` (base + index order);
+      a typed 0x14-byte struct index also gives 100%, a reassociated byte sum does not (97.30) -> 100%
+  Both macros are used only by this function.
+  final source: see fn_80016B60 in src/Unknown/model.c (committed with this entry).
+  readability pass: done. 0x13 (files per character) and the per-mode file numbers (4, 0xB..0xE, 5/0x12, 2/9/0xA, 0x10) left as literals:
+      no file-id enum exists. GAME_TYPE_* already used for the mode tests.
+
+## fn_8001E784 [O1] (2536 bytes target, 2540 ours; 75.96% -> 97.94% fuzzy, unit 88.39% -> 89.32%)
+  baseline: 75.96% (2576 bytes)
+  [1] shared static inline for fn_8001E488's body: making fn_8001E488 call it drops fn_8001E488 (97.19 -> 94.47 local), so it is NOT
+      shared; fn_8001E784 uses its own copy, drawOverlayFrustumPass(), and fn_8001E488 keeps its body -> 75.93% (no real change alone)
+  [2] KEY: the main body under `if (*HA(0x307A) != 0) { ... } else { hook-only path }` (the target places the state-0 path last)
+      instead of an early return; the light colour copied field by field into `dir` -> 93.2%
+  [3] the state read through HA(0x307A) each time (no `state` pointer local), `light = lbl_80367318` assigned after the state test,
+      adjustLightingParams given the ambient colour directly (no extra local copy), light slot as `((void**)HA(0xAC))[i]` -> 95.5%
+  [4] inline: the object slot read as hugeAnimStruct.objects[i] and the entry pointer taken only after the NULL test; the light
+      slot as `*(void**)(HA(i * 4) + 0xAC)`; the light walk as `light++` -> 97.4%
+  [5] the default dispatch branch is `else if (*HA(0x307A) != 0)` (the target re-tests the state) -> 97.75%
+  [6] overlay entries as `(ActorObjectEntry*)((u8*)table + 0x34) + (u16)k` -> 97.92% local, 97.94% report
+  tried, no gain: light initialised at the declaration / in the for header / inside the 0x3085 block.
+  remaining: 4 bytes over -- the light pointer is copied into a saved register (`mr`) instead of being loaded straight into it, plus
+      add/addi ordering in three entry address computations.
+
+## fn_80016344 [O1] (972 bytes target, 972 ours; 77.25% -> 97.49% fuzzy; fn_80016710 93.51% -> 93.55% as a side effect, unit 89.32% -> 89.65%)
+  baseline: 77.25% (932 bytes)
+  [1] fn_80016710's recipe: typed HA_SLOTS addressing, the non-slot-12 state-3 branch is exactly loadSlotAnimBank (moved above this
+      function so both can use it), the slot-12 branch as a sibling inline loadExtraSlotAnimBank (0x2CBC buffer, file +0x11),
+      state 4 as one attach block with the no-part case in the condition and a u8 result, state 5 with a (u8) test -> 95.06%
+  [2] state 2 through hugeAnimStruct.objects[slot] (the model.c base struct) for the store and both byte writes (HA_SLOTS.objects adds an
+      extra address register, HA_OBJ is 94.7) -> 95.68%
+  [3] the final rec+0x2C store through HA(MODEL_RECORD_BASE + slot * MODEL_RECORD_SIZE): the target recomputes the record base there
+      instead of reusing it -> 96.54%, size exact (reading the part pointer as ((u8**)pool[slot])[2] scores 96.95 but is 968 bytes; not kept)
+  [4] loadSlotAnimBank reads the per-slot bank as ((u32*)HA(0x2CFC))[slot * 5] (base + index order) -> 97.04% local, 97.49% report;
+      fn_80016710 (the other user) rises to 93.55
+  remaining: register numbering (one more saved register in ours for the rec+8 pointer) and the clrlslwi/rlwinm spelling of the
+      lbl_800EEB18 index (same instruction).
+
+## fn_80019C00 [O1] (1628 bytes target, 1632 ours; 77.59% -> 99.51% fuzzy, unit 89.65% -> 90.24%)
+  baseline: 77.59% (1764 bytes)
+  [1] state 0 reuses fn_8001A3FC's helpers: maxListedFileSize() for the pool scan, HA_SLOTS for the four-slot reset and the nine-flag
+      clear -> 84.4%
+  [2] lbl_80118220 used directly (no `effects` local held from the top) and the free-marker loop as s8 -1 stores -> 86.4%; its counter as
+      u32 (`effect`, no guard; s32 / k-based / pointer forms 86.4..89.3) -> 90.6%
+  [3] KEY: the offset-table relocation in state 5 as one 80-word loop that reads through the table base loaded once and writes through a
+      fresh hugeAnimStruct+0x2C84 read (`((u32*)HA_U32(0x2C84))[i] = base + ((u32*)base)[i]`), instead of nested 10 x 8 loops -> 99.31%
+  [4] s8 -1 stores in the slot reset, (s8) test of the 0x715 byte -> 99.46% local, 99.51% report
+  tried, no gain: the nine-flag clear counted by k / a fresh s32 / int / u32 / u8 variable (99.19 / 96.91 / 96.91 / 93.01), the slot loop
+      counted by i, `= 0` instead of NULL.
+  remaining (4 bytes over): the target's nine-flag loop guard reuses the slot loop's zero register (`li r7,0` for k = 0, the NULL
+      stores and `cmpwi r7,9`); ours materialises a second zero.
+
+## fn_80018DEC [O1] (2284 bytes target, 2084 ours; 78.59% -> 80.11% fuzzy, unit 90.24% -> 90.30%)
+  baseline: 78.59% (2132 bytes)
+  [1] the mode-2 and default scans as single 54-record loops over a walking record pointer (the compiler's own 3x / 2x unrolls with ctr
+      18 / 27), instead of hand-nested 18x3 / 27x2 loops -> scans match the target
+  [2] each branch allocates for itself (`HA_U32(0x2C88) = _OSAllocFromHeap(0x20, total)` inside the if / else) -> 77.3% local
+  [3] the 13-record clear loop starts from `i = *HA(0x2D52)` just after storing 0 there (the target keeps the loop guard on the register
+      holding that 0; a plain `i = 0` folds the guard and `*HA(0x2D52) = i = 0` scores 76.8) -> 78.98% local, 80.11% report.
+      Kept because it scores higher even though it moves the size further from the target (2084 vs 2284).
+  tried, worse: the carve loops as for-loops over HA_U32(0x2CA8 + n * 4) (74.96), a carveBuffers(&n, stop, cursor, size) inline (73.7),
+      n opaque via `n = i = 15` / for-header chains (no change: the first one-iteration carve loop is still folded), n as int (no change)
+      or s16 / u16 / u8 / s8 (58..60).
+  remaining (200 bytes short): the target keeps every carve loop as a dynamic 8x unroll with a remainder loop -- including the first,
+      one-iteration `n > 14` loop, whose start 15 it never constant-folds; ours folds that loop and unrolls the others differently.
+
+## fn_80017098 [O1] (680 bytes target, 680 ours; 78.84% -> 98.15% fuzzy, unit 90.30% -> 90.52%)
+  baseline: 78.84% (648 bytes)
+  [1] KEY: no `roster` local -- the target only computes inMemRoster[team][idx] inside the f < 0 paths (and again for the final CharID
+      store), so each use is written as inMemRoster[team][idx].stats.CharID / byte +0x26 / +0x27; records, flags and object slots
+      through the typed HA_SLOTS view (its definition moved above this function) -> 97.79%, size exact
+  [2] the object-slot clear and the final object store through hugeAnimStruct.objects[] (base + index order) -> 98.15%
+      (also reading the slot through it in the compare: 98.06, not kept)
+  remaining: register numbering / scheduling in the found block (base and zero constants in different registers).
+
+## fn_8001BA44 [O1] (1036 bytes target, 1032 ours; 79.40% -> 94.59% fuzzy; fn_8001BE50 81.43% -> 83.76% as a side effect, unit 90.52% -> 90.82%)
+  baseline: 79.40% (988 bytes)
+  [1] getAnimBone returns s32 (the target truncates each result with clrlwi where it becomes a u16 argument) and the anim parameter is
+      an int (the target tests it with a plain cmpwi; the extern declaration in model.c updated with it, fn_8001C234 unchanged) -> 82.4%;
+      fn_8001BE50 (the other getAnimBone user) rises to 83.76
+  [2] the sequence bounds check as two separate returns (`seq >= count`, then `seq < 0`), the pending flags written as
+      `speedPending = framePending = (bank != NULL)` -> 82.9%
+  [3] KEY: the bone tail is fn_8001B5EC's body inlined (two complete branches, each with its own transform call, Vec and
+      table->entries[(u16)slot] stores, first bone u16 / second s32) and the attach tail is fn_8001B308's body (byte-form node at
+      actorTable + slot * 0x90 + 0x34, `attach == 0` first) -> 94.2%, size exact
+  [4] the negative-id path stores one `zero` local into frame and blendTime -> 94.55% local, 94.59% report (1032 bytes; kept for
+      the higher score)
+  remaining: the object pointer is kept in one register where the target holds two copies (r10 / r28) for the inlined getAnimBone
+      calls, and a few load / store orderings in the clear path.
+
+## fn_8001758C [O1] (552 bytes target, 544 ours; 80.09% -> 92.06% fuzzy, unit 90.82% -> 90.93%)
+  baseline: 80.09% (568 bytes)
+  [1] the record index parameter b is an int (the target multiplies it without clearing the high bits; the declaration near the top of
+      model.c updated with it, the caller fn_800177B4 unchanged) -> 76.1%
+  [2] the record through the typed HA_SLOTS.pool[b] (base + index order) -> 84.2%; the 0x715 byte tested through (s8) -> 85.1%
+  [3] KEY: one shared failure exit -- the not-ready / state-1 / default paths `break` out of the switch to a single `return FALSE`,
+      and the two memcpy fast paths `goto finish`, a label on the fn_80017814 call at the end of case 1 (the target reaches that call
+      from three places) -> 92.02% local, 92.06% report
+  remaining (8 bytes short): rec[0x252] is reloaded for the fn_8002204C call in the target (ours keeps it), and the load / store
+      scheduling around the roster bytes differs.
+
+## LoadModel [O1] (920 bytes target, 920 ours; 80.22% -> 98.30% fuzzy, unit 90.93% -> 91.21%)
+  baseline: 80.22% (864 bytes)
+  [1] the hand-item block reached through block->loaded at every use (the target re-reads the block's table pointer; no `loaded`
+      local), the requested block held in a `block` local while lbl_803CBC10 is set and passed to loadCharacterHandItem, the 0x715
+      byte through (s8), texPalette read from obj->owner after the ready test; the attach-bone link written in the do / while (j-- != 0)
+      actor-loop form with the parts walk `*--p` (as in animateModelArmsGlovesBats / fn_80011CA8) -> 95.6%
+  [2] the body under `if (lbl_803716B8.unk1E8 == 0) { ... return TRUE; } return FALSE;` (one shared failure exit as in the target),
+      the lbl_800EEAAC entry read as s16 (lhax) -> 98.04%, size exact
+  [3] local declaration order (block, partSlot, geo, texPalette, layout, i) -> 98.22% local, 98.30% report
+  remaining: obj / texPalette sit in r28 / r29 swapped, and the lbl_803CB7C4 / mulli setup before LoadActorLayout is scheduled in a
+      different order.
+
+## fn_8001BE50 [O1] (996 bytes target, 996 ours; 81.43% -> 96.87% fuzzy over the session -- 83.76% after the getAnimBone change in the
+   fn_8001BA44 commit, 96.87% now; unit 91.21% -> 91.43%)
+  [1] fn_8001BA44's recipe: the sequence bounds check as two returns, `speedPending = framePending = (bank != NULL)`, the bone tail as
+      fn_8001B5EC's two-branch body with typed entry stores, the attach tail as fn_8001B308's body (`attach == 0` first) -> 95.96%
+  [2] the anim parameter as an int (the target tests it with a plain cmpwi; both extern declarations in model.c updated, callers
+      unchanged) -> 96.83% local, 96.87% report, size exact
+  remaining: the same two-register object copy and clear-path ordering differences as fn_8001BA44.
+
+## fn_80017340 [O1] (588 bytes target, 588 ours; 81.76% -> 98.09% fuzzy, unit 91.43% -> 91.59%)
+  baseline: 81.76% (592 bytes)
+  [1] KEY: the scan / allocate path under `if (*HA(0x2D8D) == 0) { ... }` with the ready test as `else if` and one shared
+      `return FALSE` (the target's single failure exit), the record through HA_SLOTS.pool[slot] (the view definition moved up again,
+      above this function), the 0x715 byte through (s8) -> 94.99%, size exact
+  [2] the per-slot bank table read as `((u32*)HA(0x2CB0))[j]` / `[free]` (base + index order) -> 96.69%
+  [3] j declared before i -> 97.03% local, 98.09% report
+  tried, worse: the object slot through hugeAnimStruct.objects[9 + i] (92.7 / 94.4 with the table change).
+  remaining: register numbering in the nested search loop.
+
+## fn_8001B35C [O1] (380 bytes target, 380 ours; 83.65% -> 99.95% fuzzy, unit 91.59% -> 91.70%)
+  baseline: 83.65% (376 bytes)
+  [1] bone as s32 (addis/cmplwi 0xffff test) and switch arms in order case 1, case 0, case 2 -> 85.84%, size exact
+  [2] KEY: both step loops as `for (;;) { if (cond) break; ... }` (target tests at the loop top, no rotation) -> 96.11%
+      (while (1) same; goto form for the first loop 89.68%)
+  [3] the bone / height block wrapped in a second `if (obj != NULL) { ... }` (target's redundant `beq` pair) -> 97.16%, size exact
+  [4] part declared before steps -> 99.47%
+  [5] `diff = v.y; diff += obj->pos.y;` (v.y lands in f2) -> 99.58% local, 99.95% report
+  tried, no gain: limit/diff order, `diff -= pos.y`, Vec v first, ternary for bone, steps/part assigned late,
+      `return steps` on NULL; `obj->pos.y + v.y` 97.03; the height block as a static inline returning f32 98.32 (384 bytes).
+  remaining: only the sdata2 float literal relocations (@1097/@1985/@1986/@1736/@1987 vs lbl_803CC4B8/4F8/4FC/4D0/500),
+      a unit-level pool naming/ordering issue, not code.
+
+## fn_800126EC [O1] (268 bytes target, 268 ours; 84.18% -> 100% , unit 91.70% -> 91.77%)
+  baseline: 84.18% (size exact; prologue load scheduling only)
+  [1] partSlot declared/initialised first (with or without the `loaded` local) -> 99.10%
+  [2] KEY: plain declarations, then assignments in order partSlot, layout, geo (no `loaded` local) -> 100%
+  tried, no gain: dropping `loaded` alone, keeping initialisers in the original order (84.18%).
+  readability pass: done (no enum-shaped literals; 0x90 / 0x34 are the model entry stride / part offset, no named constant).
+  final source:
+    void* layout; void* geo; u8* partSlot;
+    partSlot = (u8*)hugeAnimStruct.modelEntries + block->slot * 0x90 + 0x34;
+    layout = block->loaded[partIndex[0]];
+    geo = block->loaded[partIndex[1]];
+    (rest unchanged)
+
+## fn_8001CCC8 [O1] (428 bytes target, 428 ours; 84.25% -> 100%, unit 91.77% -> 91.88%)
+  baseline: 84.25% (size exact; loop register numbering and swapped stack slots for dir / color / ambient)
+  [1] `StadiumLightInput* light = lbl_80367318;` at the top, second loop reads light[i] (target keeps the base in r31) -> 98.46%
+      (light[i] also in the first loop 91.26%; color/dir order, i as int, dir in a block, explicit Vec copy, ambient local: no change)
+  [2] KEY: everything from `_3085 = 4` to the ambient test as `static inline void applyStadiumLightParams(void)` (own params/stadium/i/dir)
+      -> 99.96% (fixes the first-loop registers and the dir slots)
+  [3] KEY: the LIT loop as `static inline void initStadiumLights(StadiumLightInput* light)` (own i/color), caller keeps the light local
+      and calls both -> 100%  (color-only inline wrapper, color decl order, ambient as a named local: still 99.96;
+      passing lbl_80367318 directly instead of the local: 85.09%, 416 bytes)
+  readability pass: done. Left as literals: `_3085 = 4`, the light count 4 (no named constant), `StadiumID + 7` minigame offset.
+  lead for stadiumSetupRelated: its target shows the same swapped stack slots / registers; it is very likely the same two inlines
+  plus the prop-entry loop (the inlines are defined just above fn_8001CCC8, so they would have to move above stadiumSetupRelated).
+
+## fn_80011468 [O1] (264 bytes target, 264 ours; 85.15% -> 100%, unit 91.88% -> 92.00%; fn_8001D2D4 90.92% -> 92.33% as a side effect)
+  baseline: 85.15% (268 bytes)
+  [1] Petey falls through into the Monty case (one shared updateSpecialBatAttach call) -> 87.95%, 260 bytes
+  [2] `(slot * 0x90 + 0x34)` parenthesised -> 93.79% (the +0x34 still folded into the load displacements)
+      (tried, no gain: an int offset local, u32 cast, a getActorEntry inline, the switch as an inline taking entry, repeating the
+       expression per case 52.02%)
+  [3] KEY: the entry is passed on. Target asm of fn_8004B6EC and fn_8005240C reads r4 as an ActorObjectEntry* (0x59 framePending,
+      0x5C frame, 0x0 actor), so their externs are now (void* obj, void* entry); the extra use stops the folding -> 93.64% (report)
+  [4] entry typed as `ActorObjectEntry*` = &hugeAnimStruct.actorTable->entries[obj->slot], flag as entry->actor->unk99 -> 99.62%
+  [5] updateSpecialBatAttach(obj, entry) too (target keeps entry live in r4 through the Petey fallthrough) -> 100%
+  The three extern changes also apply to fn_8001D2D4's copy of the same switch (90.92 -> 92.33).
+  readability pass: done. The unused MODEL_ENTRY_ACTOR_FLAG macro is gone. The 13 stays a literal: ANIM_OBJECT_COUNT is #undef'd
+  before this point. Note for fn_8001D2D4: its copy of the switch writes entry->actor->unk98, but the target stores 0x99 (unk99).
+
+## fn_8001F8A4 [O1] (936 bytes target, 936 ours; 86.06% -> 98.70%, unit 92.00% -> 92.19%)
+  baseline: 86.06% (920 bytes)
+  [1] the final clear loop reads HA_U32(0x2D90) afresh for every store (no cached base), with the float through `zero = lbl_803CC4B8`
+      assigned once before the loop (target hoists one lfs and recomputes base per store) -> 94.33%, size exact
+      (no zero local 90.49 / 952 bytes; zero assigned before the alloc 90.51)
+  [2] set as u8 (target cmplwi) -> folded into [1]
+  [3] the "else" fn_800BD548 call passes four trailing zeros, not five (variadic; target sets r4..r7 only) -> 94.76%
+  [4] the layout index through `idx = set * 3` (target mulli 3 then slwi 2) -> 95.17%
+  [5] `zero = lbl_803CC4B8` moved after `entry->seqNum = 0` -> 95.75%; `anim = entry->anim` read first, flags from it -> 98.01%;
+      zero assigned right after the entry pointer -> 98.55%
+  [6] declarations tex, geo, layout (first-loop register order) -> 98.70%; locals as void* (casts at the table reads) same score, kept
+  tried, no gain: framePending/speedPending order and split forms (93.46 / 94.74), a flag local (97.84), no table local, a setEntryAnimation
+      inline (95.32), other layout/geo/tex orders, i last, zero first, a separate counter for the first loop (98.29-98.44), geo as s32.
+  remaining: first loop i <-> geo register swap (r31/r28); set loads into r3 instead of r0; the lfs zero / li order in the entry block.
+
+## fn_8001D2D4 [O1] correctness fix (not a grind)
+  The per-character switch stored the actor flag at unk98 (0x98); the target stores 0x99 (unk99), as in fn_80011468. Fixed the four
+  stores -> 92.33% -> 92.34%. The later `(actor->unk98 & 9)` test is a real 0x98 read and stays.
+
+## fn_8001C234 [O1] (756 bytes target, 756 ours; 86.23% -> 100%, unit 92.19% -> 92.37%)
+  baseline: 86.23% (804 bytes)
+  [1] restructured from the asm: bone as s32, the three s16 "next" fields (0x70 / 0x64 / 0x66) read once into a local and
+      tested with >= 0, the 0x6C frame read once and passed on (also converted for `time`), the 0x6A increment as ++, the state
+      tested on obj[0x25E] directly, the actor through the byte-offset table form -> 89.88% (still 804 bytes)
+  [2] KEY: model.c never included C3/actor/actorAnim.h, so getActorBoneAnimTime and fn_800B4C40 were implicitly declared
+      (int return -> extra int-to-float conversions). Added the include -> 97.93%, size exact; no other function changed.
+  [3] objects read as hugeAnimStruct.objects[i] (all three reads; target walks a base copy with disp 0x2C50) with `obj` declared
+      at function level before i and assigned in the loop -> 99.60% local
+  [4] no gs byte-pointer local: g_d_GameSettings.minigamesEnabled / ._06 / .StadiumID directly, and lbl_80366158 directly -> 100%
+      (an lbl_80366158 pointer local helped only while gs existed; declaration permutations of obj / i / hl / gs: <= 99.60)
+  readability pass: done (named GameInitVariables fields replace gs[0x11] / gs[6] / gs[9]; the object fields stay OBJ_S16 offsets,
+  no struct for them yet; 600 = the 0x6A counter cap, no named constant).
+
+## fn_800196D8 [O1] (904 bytes target, 904 ours; 86.33% -> 100%, unit 92.37% -> 92.57%)
+  baseline: 86.33% (924 bytes)
+  [1] the offset relocation as one plain loop: `base = HA_U32(0x2C84); for (i = 0; i < 80; i++) table[i] = base + ((u32*)base)[i];`
+      with the table reloaded for every store (the compiler does the 8x unroll) -> 98.91%, 912 bytes
+  [2] switch on the u8 state directly (no s8 cast; target lbz + cmpwi) -> 99.42%, 908 bytes
+  [3] KEY: the light direction / shadow enable / relocation block as `static inline void enableStadiumShadows(void)` (own dir, len,
+      i, base) -> 100% (the inline without the relocation loop: 99.49%, 908 bytes; the extra Vec copy for the by-value call is
+      codegen-neutral and was dropped)
+  readability pass: done (huge+0x307B/0x307C/... byte flags have no names yet; task bytes +0x14/+0x16/+0x17 left as offsets).
+  lead: challengeMapRelated case 6 and fn_80019C00 state 5 carry the same block; enableStadiumShadows sits just above
+  fn_800196D8, so it would have to move above challengeMapRelated (which uses a different lbl_80367318 view) to be shared.
+
+## challengeMapRelated [O1] (1012 bytes target, 1012 ours; 87.45% -> 100%, unit 92.57% -> 92.79%)
+  baseline: 87.45%
+  [1] KEY: case 6 now calls the shared `enableStadiumShadows()` inline (same block as fn_800196D8 state 2). The inline moved above
+      challengeMapRelated and is written in that view's terms (lbl_80367318 as a Vec, hugeAnimStruct._3086/_3087/offsetTable,
+      relocation as `base = (u32)offsetTable; offsetTable[i] = base + ((u32*)base)[i]`); fn_800196D8 stays 100% -> 99.21%
+  [2] node read from currentDrawingItem at its declaration, before the _3082 early return (target loads it first) -> 100%
+  readability pass: done (step numbers 0..8 are this node's own state machine, no enum).
+
+## fn_8001DB74 [O1] (484 bytes target, 484 ours; 87.81% -> 99.30%, unit 92.79% -> 92.88%)
+  baseline: 87.81% (480 bytes)
+  [1] objects via hugeAnimStruct.objects[i] and the camera pointer computed before shift/keep -> 95.17% (480)
+      (camera first alone 94.21; shift assigned before camera 92.98; an s32 counter with (u16) casts: no change)
+  [2] KEY: the per-mode body as `static inline void updateActorVisibility(ActorObjectEntry* entry, u8* obj, s32 mode)`
+      (the s32 parameter re-truncates the u16 loop counter, the target's extra clrlwi) -> 95.74%, size exact
+      (u16 / int parameter: 94.96, 480 bytes)
+  [3] entry and obj declared at function level before i and mode (order entry, i, mode, obj) -> 97.52%
+  [4] updateBoneParam(entry->actor, (u8)(entry->boneParam & 1)) (target computes the flag before loading the actor) -> 99.30%
+      (bp local u8 / s32: no change)
+  tried, no gain: shift passed in from the caller (99.30 / 98.47 with a u16 param), keep passed in (60.1), shift or keep before
+      camera inside the inline (95.95 / 89.46), an s32 counter with (u16) casts (99.30).
+  remaining: inside the inline the shift multiply should use the loop-condition copy of mode (r25) while the calls use a second
+      truncation (r24); ours uses one truncated copy for both, which renumbers r22-r25.
+
+## fn_80018B74 [O1] (632 bytes target, 632 ours; 87.89% -> 97.50%, unit 92.88% -> 92.98%)
+  baseline: 87.89% (604 bytes)
+  [1] each mode-dependent maximum compares inside both branches of its if/else (target duplicates the compare per branch) -> 88.87% (640)
+  [2] the per-slot record pointer as HA(i * MODEL_RECORD_SIZE) with MODEL_RECORD_BASE folded into each field offset (target walks
+      huge + i*0x27C and stores at 0xC14.., 0xC20..) -> 92.22%, size exact
+  [3] total as `sizeD + (sizeA + (sizeB + sizeC + sizeE)) * 4` (target adds A last as the first operand) -> 96.30%
+  [4] all 120 orders of the five max declarations: best D,E,A,B,C 97.09%; then all 120 orders of the size declarations: best
+      E,B,D,C,A -> 97.50%
+  tried, no gain: mode declared first (94.81), last / assigned late (97.50, same), no mode local (94.81).
+  remaining: volatile register numbering in the scan loop (target maxA r6 / maxD r3 / maxE r9 / mode r5) and the matching size
+      registers.
+
+## fn_80017D28 [O1] (148 bytes target, 148 ours; 88.11% -> 100%, unit 92.98% -> 93.01%)
+  baseline: 88.11% (one-argument cast call)
+  [1] KEY: the target sets up all four arguments: r4 = the computed slot ((s8)obj[0x255] + 4), r5 = 0, r6 = fn_8001FDD4. The
+      [S2] attempt passed (s8)obj[0x255] and obj[0x254] (64.05%). `fn_80017814(p, slot, 0, fn_8001FDD4)` -> 100%; the cast and its
+      comment are gone. (Passing (s8)p[0x255] instead of slot: 81.76%.) No missing prototype was involved; the four-argument
+      extern was already in place.
+  readability pass: done (0x27C / 0xC04 replaced with MODEL_RECORD_SIZE / MODEL_RECORD_BASE, 0xE56 written as MODEL_RECORD_BASE + 0x252;
+  still 100%).
+
+## stadiumSetupRelated [O1] (512 bytes target, 512 ours; 88.20% -> 100%, unit 93.01% -> 93.11%)
+  baseline: 88.20%
+  [1] fn_8001CCC8's two inlines moved above stadiumSetupRelated and used as-is (light local, applyStadiumLightParams(),
+      initStadiumLights(light)) -> 95.32% (the param copy costs an `mr` and swaps the colour stack slot)
+  [2] the LIT loop written in the function: light[i] 93.63% (520), light++ walking 96.43% (516); a separate prop-loop counter +0.5;
+      light assigned after the params call 85.34 (540)
+  [3] KEY: `static inline void setupStadiumLighting(void)` holding the light local, applyStadiumLightParams() and the LIT loop
+      (light++ form 99.75%, size exact; light[i] form -> 100%). The caller keeps only the prop-entry loop.
+      fn_8001CCC8 keeps its own form (light local + initStadiumLights(light)) and stays 100%.
+  readability pass: done (no enum-shaped literals; 0x90 / 0x34 = actor entry stride / offset).
+
+## loadAndAnimateCharacter [O1] (676 bytes target, 676 ours; 88.88% -> 98.52%, unit 93.11% -> 93.22%)
+  baseline: 88.88% (740 bytes)
+  The target's cached-bank path (charSlot == huge+0x2D50) does the memcpy and then branches into the middle of state 2's
+  non-minigame block (ANIMGet(0x2CAC), object bank link, 0x2D68 = charSlot, return 1); MWCC does not tail-merge the duplicate.
+  [1] structured: the duplicated block as written (88.88%), the attach step as a static inline taking the bank pointer (86.27%,
+      740) or the field offset (87.84%, 748) -> no merge in either.
+  [2] KEY: `goto attach;` from the cached path to a label on state 2's non-minigame block (exit-block threading; no structured
+      form reaches that block without duplicating it) -> 98.52%, size exact
+  tried, no gain: i / threshold declared in the outer block (98.52), i first (98.25), the bone-track loop as a static inline
+      (96.86, with or without the four field resets).
+  remaining: charObj and the loop offset swap r27/r28, and the lbl_803CC4B8 load before the three byte stores.
+  readability pass (partial, function not 100%): GameModeSelected 7 / 2 -> GAME_TYPE_MINIGAMES / GAME_TYPE_PRACTICE.
+
+## fn_80012B90 [O1] (2800 bytes target, 2800 ours; 88.88% -> 93.39%, unit 93.22% -> 93.43%)
+  baseline: 88.88% (2808 bytes)
+  Recipe from animateModelArmsGlovesBats: this function has no per-actor or parts loops and no for(;;) phase loop in the target
+  (each phase returns through the switch), so only the finish-inline part applies.
+  [1] KEY: finishHandItemLoad with a single exit and a u8 result (`if (lbl_803716B8[0x1E8] == 0) { ...; ret = TRUE; } else
+      ret = FALSE; return ret;`) -> 92.17%, size exact (target tests it with clrlwi.)
+  [2] phases 0/3/6 read **(obj + 8) once into tex and store it to the owner and lbl_803CBC08 -> 92.56%
+  [3] isFlagClear as u8 (extrwi CLZ idiom, cmplw) and the 0x715 tests through (s8) (cmpwi) -> 93.22%
+  [4] kind as `kind = 1 - c; if (c != owner->flag) kind = 3 - c;` (target's subfic / beq / subfic) -> 93.39%
+  tried, no gain: the 0x30 store typed as ModelOwner** (no change); the `ready` local dropped (no change, kept dropped).
+  remaining: callee-saved numbering (target keeps obj in r27 and uses r24..r31; ours r25..r31) and local scheduling: the
+      loadCharacterHandItem argument loads, the phase/flag store order in phase 1/2 and the three final stores in phase 8
+      come out in a different order.
+
+## fn_8001F16C [O1] (188 bytes target, 188 ours; 88.91% -> 99.15%, unit 93.43% -> 93.44%)
+  baseline: 88.91% (size exact)
+  [1] objects through hugeAnimStruct.objects[i] (target walks a base copy with disp 0x2C50) -> 98.94%; the entry typed as
+      &actorTable->entries[slot] with ->actor / ->applyControl and the count through an ActorObjectTable* local (same score, kept)
+  [2] declaration order table, i, obj, entry (best of all 24) -> 99.15%
+  tried, no gain: int i, obj / entry declared in the loop, the assignment inside the if, continue form (all 99.15); early return 96.81 (192).
+  remaining: the loop counter and the object pointer swap r28 / r30.
+
+## fn_8001500C [O1] (1116 bytes target, 1116 ours; 88.99% -> 96.83%, unit 93.46% -> 93.61%)
+  baseline: 88.99% (1124 bytes). match_transitions.c's two-argument extern left alone.
+  [1] no `flags` pointer local (lbl_803CBC34[3] / [4] directly) and objects through hugeAnimStruct.objects[slot] -> 89.53% local
+  [2] KEY: state 4 is the same effect-buffer step as the practice code's STEP_PRACTICE_EFFECTS: the search loop with
+      `goto done` on a hit, the free-slot scan, then the existing loadPracticeEffect(obj, typeId, slot) inline (single exit, u8)
+      -> 94.67% local
+  [3] (u8) on animateModelArmsGlovesBats's result and `u8 result` for huge+0x2D78; slot passed straight through (no idxByte
+      local) with a (s8) compare of typeId -> 95.27%
+  [4] the record as HA(index * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE; both scan loops step the pointer before the counter
+      (`p += 0x64, i++`); the tail as `if (result != 0) { ... } return result;` -> 96.83% local, size exact
+  tried, no gain: the 0x715 test through (s8) in the old body (86.14), typeId as s32 (no change), a (u32) compare (96.31, 1112).
+  remaining: the target keeps hugeAnimStruct in r30 and typeId in r31 (ours r31 / r27), zero-extends typeId once before the
+      search (clrlwi), and schedules the hit-path stores slightly differently.
+  The goto here is the same one the practice macro uses: a hit in the search loop skips the load step and lands on the shared
+      `found` test; the structured form (a found flag tested after the loop) emitted an extra test per exit (S2 baseline).
+
+## fn_80016F7C [O1] (284 bytes target, 284 ours; 89.54% -> 100%, unit 93.61% -> 93.66%)
+  baseline: 89.54%
+  [1] the record pointers as HA(index * MODEL_RECORD_SIZE) + MODEL_RECORD_BASE (target adds the 0xC04 after the base, and keeps
+      it out of the copy displacements) -> 94.23%
+  [2] KEY: the loop as `for (;;) { if (!fn_80016B60(...)) break; ...; if (++count >= 4) return TRUE; } return FALSE;` (target places
+      the FALSE exit last) -> 100%. (A do/while with `goto fail` also gives 100%; kept the structured form. A single `ret` variable:
+      94.23; the body inside if/else: 89.92.)
+  readability pass: done (no enum-shaped literals beyond GAME_TYPE_TOY_FIELD, already named).
+
+## fn_8001E0D8 [O1] (904 bytes target, 904 ours; 89.80% -> 100%, unit 93.66% -> 93.81%)
+  baseline: 89.80% (896 bytes)
+  [1] the light change as two adjustLightingParams calls: the level != 0xFF branch first (ambient.a = level, skip at 0, call with
+      ambient), the 0xFF branch reloading the stadium ambient; the test spelled `0xFF - lightLevel != 0` (target subfic / cmpwi)
+      -> 97.81%, size exact (`lightLevel != 0xFF`: 97.10, 900 bytes; s32 lightLevel 96.86)
+  [2] objects through hugeAnimStruct.objects[i] -> 98.32%
+  [3] KEY: the draw-args switch is fn_8001DEA4 itself, auto-inlined: `fn_8001DEA4(entry, group, trans);` replaces the hand-copied
+      switch -> 98.87% (fn_8001DEA4 stays 100%)
+  [4] entry / obj / i / lightLevel at function level in that order (all 24 orders measured; several tie) -> 100%
+  Re-checked after [4]: `lightLevel != 0xFF` still drops it to 99.29%, so the subtraction form stays.
+  readability pass: done (0xFF = "no light override" level, no named constant in the repo).
+
+## fn_8001B5EC [O1] (316 bytes target, 316 ours; 89.87% (start of pass) / 91.52% -> 98.61%, unit 93.81% -> 93.85%)
+  baseline: 91.52% (after fn_8001B4D8's getRootBone change)
+  [1] each branch written like fn_8001B4D8: u16 bone / s32 bone2, an ActorObjectTable* local and table->entries[(u16)slot] for the
+      actor and the unk64 / unk66 stores (target recomputes the entry address after the call) -> 97.27%
+  [2] getEndBone returns s32 (its only user; the target truncates the end bone with clrlwi like the root bone) -> 98.59%
+  [3] the branch body as `static inline void setActorBoneRange(s32 slot, u16 bone, s32 bone2)` (own table / Vec; the target's two
+      branches use different Vec stack slots, 0x14 and 0x08) -> 98.61%; a Vec per branch block gives the same
+  tried, no gain: all 120 declaration orders of the five locals (98.59), bone locals per branch block (98.61), the getters passed
+      straight to the inline (96.37, 308 bytes).
+  remaining: the two branches allocate their callee-saved registers differently in the target (mode 0: table r31, bone r30,
+      bone2 r29; mode 1: bone r31, table r30, bone2 r29); ours uses one assignment for both.
+
 ## Findings
+- [O1] model.c had no prototype for getActorBoneAnimTime / fn_800B4C40 (C3/actor/actorAnim.h was not included), so they were
+  implicitly int. Check other units for implicit declarations of float-returning functions when an int->float conversion
+  sequence (xoris 0x8000 / lis 0x4330 / lfd / fsubs) appears after a call that the target uses straight from f1.
+- [O1] UNIT-LEVEL ITEM FOR THE END: fn_8001B35C (99.95%) differs only in its .sdata2 float literal references
+  (ours @1097/@1985/@1986/@1736/@1987, target lbl_803CC4B8/4F8/4FC/4D0/500). That is literal order or sharing between
+  functions in the unit's pool, not code; leave it until the end and solve it at the unit level (tools/match_pool.py).
 - [O1] File order decides auto-inlining here (`-inline auto` without deferred): a function the target calls but ours inlines is defined too
   early in model.c. Moving it below its caller (to its address-order spot) stops the inlining without touching its own codegen.
 - [O1] Unfolded-constant lever (seen twice now): assigning a constant through a chain into a struct/array field, e.g. `count = field = 30;` or
